@@ -40,19 +40,19 @@ export default function HomePage() {
       <section className="bg-white text-black py-10">
         <div className="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
           <div>
-            <p className="text-3xl font-black text-purple">12</p>
+            <p className="text-3xl font-black text-orange">12</p>
             <p className="text-xs text-gray-500 uppercase tracking-wide">Trade Services</p>
           </div>
           <div>
-            <p className="text-3xl font-black text-purple">100%</p>
+            <p className="text-3xl font-black text-orange">100%</p>
             <p className="text-xs text-gray-500 uppercase tracking-wide">Helderberg-Based</p>
           </div>
           <div>
-            <p className="text-3xl font-black text-purple">1</p>
+            <p className="text-3xl font-black text-orange">1</p>
             <p className="text-xs text-gray-500 uppercase tracking-wide">Point of Contact</p>
           </div>
           <div>
-            <p className="text-3xl font-black text-purple">7</p>
+            <p className="text-3xl font-black text-orange">7</p>
             <p className="text-xs text-gray-500 uppercase tracking-wide">Step Process</p>
           </div>
         </div>
