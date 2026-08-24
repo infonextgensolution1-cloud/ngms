@@ -16,7 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="flex items-center gap-2">
               <div>
                 <div className="font-bold text-sm tracking-tight">NEXT GEN</div>
-                <div className="text-[10px] font-semibold text-purple tracking-wide">MAINTENANCE SOLUTIONS</div>
+                <div className="text-[10px] font-semibold text-silver tracking-wide">MAINTENANCE SOLUTIONS</div>
               </div>
             </div>
             <nav className="flex items-center gap-4">
