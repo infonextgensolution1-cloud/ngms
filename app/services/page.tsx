@@ -12,7 +12,7 @@ export default function ServicesPage() {
     <main className="bg-white text-black">
       <section className="bg-jet text-white py-14 text-center px-4">
         <p className="text-orange font-bold text-sm mb-2 uppercase tracking-wide">What We Do</p>
-        <h1 className="text-3xl sm:text-5xl font-black">Everything Your Property Needs</h1>
+        <h1 className="text-4xl sm:text-6xl font-black">Everything Your Property Needs</h1>
         <p className="text-gray-300 text-lg max-w-xl mx-auto mt-4">
           One call covers 12 trade services across Strand, Somerset West, Gordon’s Bay and the Helderberg Basin.
         </p>
