@@ -1,3 +1,6 @@
+import Link from 'next/link'
+import { services } from '@/lib/services'
+
 export default function HomePage() {
   return (
     <main>
@@ -60,8 +63,22 @@ export default function HomePage() {
 
       <section className="bg-white text-black py-10 text-center">
         <p className="text-orange font-semibold text-sm mb-2">WHAT WE DO</p>
-        <h2 className="text-2xl sm:text-3xl font-black">EVERYTHING YOUR PROPERTY NEEDS</h2>
-        {/* Service grid goes here — see /services page */}
+        <h2 className="text-2xl sm:text-3xl font-black mb-10">EVERYTHING YOUR PROPERTY NEEDS</h2>
+        <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 sm:grid-cols-3 gap-4 text-left">
+          {services.slice(0, 6).map((service) => (
+            <Link
+              key={service.slug}
+              href={`/services/${service.slug}`}
+              className="border border-gray-200 rounded-xl p-4 hover:border-orange transition"
+            >
+              <p className="font-bold text-sm">{service.name}</p>
+              <p className="text-orange text-xs font-semibold mt-1">{service.tagline}</p>
+            </Link>
+          ))}
+        </div>
+        <Link href="/services" className="inline-block mt-8 text-orange font-semibold text-sm">
+          View all 12 services &rarr;
+        </Link>
       </section>
     </main>
   )
