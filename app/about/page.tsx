@@ -39,11 +39,11 @@ export default function AboutPage() {
               <p className="font-bold text-lg">Jacques Gordon</p>
               <p className="text-sm text-gray-600 font-semibold">Owner &amp; Project Manager</p>
             </div>
-            <div className="border-t-4 border-purple bg-gray-50 rounded-2xl p-6">
+            <div className="border-t-4 border-jet bg-gray-50 rounded-2xl p-6">
               <p className="font-bold text-lg">Mitch Ludick</p>
               <p className="text-sm text-gray-600 font-semibold">Paving Specialist</p>
             </div>
-            <div className="border-t-4 border-eco bg-gray-50 rounded-2xl p-6">
+            <div className="border-t-4 border-jet bg-gray-50 rounded-2xl p-6">
               <p className="font-bold text-lg">Henry Matthews</p>
               <p className="text-sm text-gray-600 font-semibold">Plumbing &amp; Maintenance Specialist</p>
             </div>
