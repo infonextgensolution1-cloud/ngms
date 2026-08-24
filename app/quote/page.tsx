@@ -32,27 +32,27 @@ export default function QuotePage() {
   return (
     <main className="bg-white text-black">
       <section className="bg-jet text-white py-14 px-4 text-center">
-        <p className="text-orange font-semibold text-sm uppercase tracking-wide mb-2">Get Started</p>
-        <h1 className="text-3xl sm:text-5xl font-black">Request a Free Quote</h1>
-        <p className="text-gray-400 max-w-xl mx-auto mt-4">
+        <p className="text-orange font-bold text-sm uppercase tracking-wide mb-2">Get Started</p>
+        <h1 className="text-4xl sm:text-6xl font-black">Request a Free Quote</h1>
+        <p className="text-gray-300 text-lg max-w-xl mx-auto mt-4">
           Tell us what you need and we’ll come back to you — usually the same day.
         </p>
       </section>
 
       <section className="max-w-xl mx-auto px-4 py-14">
         {submitted ? (
-          <div className="text-center border border-eco rounded-2xl p-8">
-            <p className="text-eco font-bold text-lg mb-2">Quote request sent</p>
-            <p className="text-gray-600">
+          <div className="text-center border-2 border-orange rounded-2xl p-8">
+            <p className="text-orange font-bold text-lg mb-2">Quote request sent</p>
+            <p className="text-gray-700 text-lg">
               We’ve opened WhatsApp with your details filled in — hit send and NGMS will get back to you shortly.
               You can also call or WhatsApp us directly on{' '}
-              <a href="tel:+27631387945" className="text-orange font-semibold">063 138 7945</a>.
+              <a href="tel:+27631387945" className="text-orange font-bold">063 138 7945</a>.
             </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-semibold mb-1">Full name</label>
+              <label className="block text-sm font-bold mb-1">Full name</label>
               <input
                 required
                 value={name}
@@ -62,7 +62,7 @@ export default function QuotePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-1">Phone number</label>
+              <label className="block text-sm font-bold mb-1">Phone number</label>
               <input
                 required
                 type="tel"
@@ -73,7 +73,7 @@ export default function QuotePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-1">Area</label>
+              <label className="block text-sm font-bold mb-1">Area</label>
               <select
                 value={suburb}
                 onChange={(e) => setSuburb(e.target.value)}
@@ -85,7 +85,7 @@ export default function QuotePage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-1">Service needed</label>
+              <label className="block text-sm font-bold mb-1">Service needed</label>
               <select
                 value={service}
                 onChange={(e) => setService(e.target.value)}
@@ -97,7 +97,7 @@ export default function QuotePage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-1">Tell us more (optional)</label>
+              <label className="block text-sm font-bold mb-1">Tell us more (optional)</label>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -108,13 +108,13 @@ export default function QuotePage() {
             </div>
             <button
               type="submit"
-              className="w-full bg-orange hover:bg-orange-dark text-white font-semibold px-6 py-4 rounded-full"
+              className="w-full bg-orange hover:bg-orange-dark text-white font-bold px-6 py-4 rounded-full"
             >
               Send via WhatsApp
             </button>
-            <p className="text-xs text-gray-500 text-center">
+            <p className="text-xs text-gray-600 text-center">
               This opens WhatsApp with your details pre-filled. Prefer email? Write to{' '}
-              <a href="mailto:info.nextgensolution1@gmail.com" className="text-orange">info.nextgensolution1@gmail.com</a>.
+              <a href="mailto:info.nextgensolution1@gmail.com" className="text-orange font-semibold">info.nextgensolution1@gmail.com</a>.
             </p>
           </form>
         )}
