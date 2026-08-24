@@ -9,7 +9,7 @@ export default function AboutPage() {
     <main className="bg-white text-black">
       <section className="bg-jet text-white py-14 px-4 text-center">
         <p className="text-orange font-bold text-sm uppercase tracking-wide mb-2">About NGMS</p>
-        <h1 className="text-3xl sm:text-5xl font-black">One Call, All Solutions</h1>
+        <h1 className="text-4xl sm:text-6xl font-black">One Call, All Solutions</h1>
         <p className="text-gray-300 text-lg max-w-xl mx-auto mt-4">
           Multi-trade property maintenance for the Helderberg Basin — Strand, Gordon’s Bay and Somerset West.
         </p>
