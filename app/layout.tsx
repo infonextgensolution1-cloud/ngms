@@ -18,19 +18,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <div className="h-1 bg-brand-bar" />
+        <div className="h-1.5 bg-brand-bar" />
         <header className="bg-white text-black sticky top-0 z-50 border-b border-gray-200">
           <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3 gap-4">
-            <Link href="/" className="flex items-center gap-2">
-              <img src={LOGO_DATA_URI} alt="NGMS logo" className="h-10 w-auto" />
+            <Link href="/" className="flex items-center gap-3">
+              <img src={LOGO_DATA_URI} alt="NGMS logo" className="h-16 w-auto" />
               <div>
-                <div className="font-bold text-base tracking-tight">NEXT GEN</div>
-                <div className="text-xs font-semibold text-gray-600 tracking-wide">MAINTENANCE SOLUTIONS</div>
+                <div className="font-black text-lg tracking-tight leading-none">NEXT GEN</div>
+                <div className="text-sm font-semibold text-gray-600 tracking-wide">MAINTENANCE SOLUTIONS</div>
               </div>
             </Link>
-            <nav className="hidden md:flex items-center gap-6 text-sm font-bold">
+            <nav className="hidden md:flex items-center gap-6 text-base font-bold">
               <Link href="/services" className="hover:text-orange">Services</Link>
-              <Link href="/portfolio" className="hover:text-purple">Our Work</Link>
+              <Link href="/portfolio" className="hover:text-purple">Projects</Link>
               <Link href="/price-list" className="hover:text-orange">Price List</Link>
               <Link href="/about" className="hover:text-purple">About</Link>
               <Link href="/contact" className="hover:text-orange">Contact</Link>
@@ -62,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
             <div className="flex flex-col sm:items-end gap-1 font-semibold">
               <Link href="/services" className="hover:text-sun">Services</Link>
-              <Link href="/portfolio" className="hover:text-sun">Our Work</Link>
+              <Link href="/portfolio" className="hover:text-sun">Projects</Link>
               <Link href="/price-list" className="hover:text-sun">Price List</Link>
               <Link href="/about" className="hover:text-sun">About</Link>
               <Link href="/contact" className="hover:text-sun">Contact</Link>
