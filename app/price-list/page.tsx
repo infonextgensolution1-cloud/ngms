@@ -111,11 +111,18 @@ export default function PriceListPage() {
           All prices exclude VAT · No callout fee in Strand, Gordon's Bay or Somerset West
         </p>
 
-        <div className="bg-cardgrey border border-orange rounded-card p-4 mb-10 text-sm text-mist">
+        <div className="bg-cardgrey border border-orange rounded-card p-4 mb-6 text-sm text-mist">
           <p>These are starting prices for standard residential work in good condition.</p>
           <p>Every job is measured and quoted properly after a free site assessment.</p>
           <p className="font-semibold mt-1 text-orange">10% off your first booking (excludes solar panel cleaning).</p>
         </div>
+
+        <a
+          href="https://wa.me/27631387945?text=Hi%2C%20I%27d%20like%20a%20quote%20based%20on%20the%20price%20list"
+          className="flex items-center justify-center gap-2 bg-blue hover:bg-blue-dark text-white font-heading font-semibold px-6 py-3 rounded-btn mb-10"
+        >
+          WhatsApp us about a price
+        </a>
 
         {tables.map((t) => (
           <PriceTable key={t.title} table={t} />
