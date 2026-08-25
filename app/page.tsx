@@ -45,7 +45,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="/quote"
-              className="bg-orange hover:bg-orange-dark text-white font-heading font-semibold px-6 py-3 rounded-btn"
+              className="bg-whatsapp hover:bg-whatsapp-dark text-white font-heading font-semibold px-6 py-3 rounded-btn"
             >
               GET FREE QUOTE
             </Link>
