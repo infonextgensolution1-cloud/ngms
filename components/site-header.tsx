@@ -9,10 +9,11 @@ const FACEBOOK_URL = 'https://www.facebook.com/p/Nextgen-Solar-Maintenance-Solut
 const WHATSAPP_URL = 'https://wa.me/27631387945'
 
 const LINKS = [
+  { href: '/', label: 'Home' },
   { href: '/services', label: 'Services' },
   { href: '/portfolio', label: 'Projects' },
   { href: '/gallery', label: 'Gallery' },
-  { href: '/price-list', label: 'Price List' },
+  { href: '/price-list', label: 'Catalog' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
 ]
