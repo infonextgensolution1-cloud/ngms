@@ -8,24 +8,36 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        jet: '#0a0a0a',
-        graphite: '#1a1a1a',
-        silver: '#a3a3a3',
+        // Deep Black — primary page background
+        jet: '#050608',
+        // Graphite — section/band background
+        graphite: '#101318',
+        // Dark Grey — borders / dividers
+        darkgrey: '#1B2027',
+        // Card Grey — card/panel background
+        cardgrey: '#151A20',
+        // Light Grey — secondary text on dark
+        mist: '#AEB6C0',
+        // near-white for primary text on dark
+        paper: '#F7F9FB',
+        // NGMS Orange — ~3% of the UI: primary CTA + one headline word
         orange: {
-          DEFAULT: '#F57C1B',
-          dark: '#D9660A',
+          DEFAULT: '#FF7A18',
+          dark: '#E0680E',
         },
-        purple: {
-          DEFAULT: '#8B1BF5',
-          dark: '#6D14C4',
+        // NGMS Blue — ~7% of the UI: trust, links, WhatsApp, location
+        blue: {
+          DEFAULT: '#1688FF',
+          dark: '#0F6FDB',
         },
-        eco: '#39D353',
-        sun: '#FACC15',
       },
-      backgroundImage: {
-        'hero-gradient': 'radial-gradient(ellipse at top, #262626 0%, #0a0a0a 60%)',
-        'headline-gradient': 'linear-gradient(90deg, #F57C1B, #FACC15, #8B1BF5)',
-        'brand-bar': 'linear-gradient(90deg, #F57C1B, #FACC15, #8B1BF5, #39D353)',
+      fontFamily: {
+        heading: ['var(--font-oswald)', 'sans-serif'],
+        body: ['var(--font-inter)', 'sans-serif'],
+      },
+      borderRadius: {
+        card: '12px',
+        btn: '8px',
       },
     },
   },
