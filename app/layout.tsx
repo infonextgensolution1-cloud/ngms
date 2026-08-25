@@ -36,10 +36,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 properly.
               </p>
               <div className="flex items-center gap-4 mt-5">
-                <a href={FACEBOOK_URL} aria-label="NGSMS on Facebook" className="text-mist hover:text-blue">
+                <a href={FACEBOOK_URL} aria-label="NGSMS on Facebook" className="text-blue hover:opacity-80">
                   <FacebookIcon className="h-7 w-7" />
                 </a>
-                <a href={WHATSAPP_URL} aria-label="WhatsApp NGSMS" className="text-blue hover:text-orange">
+                <a href={WHATSAPP_URL} aria-label="WhatsApp NGSMS" className="text-whatsapp hover:opacity-80">
                   <WhatsAppIcon className="h-7 w-7" />
                 </a>
               </div>
@@ -63,7 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <li><Link href="/services" className="hover:text-orange">Services</Link></li>
                 <li><Link href="/portfolio" className="hover:text-orange">Projects</Link></li>
                 <li><Link href="/gallery" className="hover:text-orange">Gallery</Link></li>
-                <li><Link href="/price-list" className="hover:text-orange">Price List</Link></li>
+                <li><Link href="/price-list" className="hover:text-orange">Catalog</Link></li>
                 <li><Link href="/about" className="hover:text-orange">About</Link></li>
                 <li><Link href="/contact" className="hover:text-orange">Contact</Link></li>
               </ul>
@@ -88,8 +88,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a
           href={WHATSAPP_URL}
           aria-label="WhatsApp NGSMS"
-          className="fixed bottom-5 right-5 z-50 flex items-center justify-center h-14 w-14 rounded-full shadow-lg"
-          style={{ backgroundColor: '#25D366' }}
+          className="fixed bottom-5 right-5 z-50 flex items-center justify-center h-14 w-14 rounded-full shadow-lg bg-whatsapp"
         >
           <WhatsAppIcon className="h-7 w-7 text-white" />
         </a>
