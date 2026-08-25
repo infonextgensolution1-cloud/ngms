@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
+import { Oswald, Inter } from 'next/font/google'
 import Link from 'next/link'
 import './globals.css'
+
+const oswald = Oswald({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-oswald' })
+const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-inter' })
 
 // Inlined as a data URI: GitHub's file-upload path was corrupting binary PNGs
 // (storing the base64 text itself instead of decoding it), so /public/logo.png
@@ -16,31 +20,31 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="bg-jet">
-        <header className="bg-jet text-white sticky top-0 z-50 border-b border-gray-800">
+    <html lang="en" className={`${oswald.variable} ${inter.variable}`}>
+      <body className="bg-jet font-body">
+        <header className="bg-jet text-white sticky top-0 z-50 border-b border-darkgrey">
           <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3 gap-4">
             <Link href="/" className="flex items-center gap-3">
               <img src={LOGO_DATA_URI} alt="NGSMS logo" className="h-16 w-auto" />
               <div>
-                <div className="font-black text-lg tracking-tight leading-none text-white">NEXTGEN</div>
-                <div className="text-sm font-semibold text-gray-400 tracking-wide">SOLAR &amp; MAINTENANCE SOLUTIONS</div>
+                <div className="font-heading font-bold text-lg tracking-tight leading-none text-paper">NEXTGEN</div>
+                <div className="text-sm font-semibold text-mist tracking-wide">SOLAR &amp; MAINTENANCE SOLUTIONS</div>
               </div>
             </Link>
-            <nav className="hidden md:flex items-center gap-6 text-base font-bold">
-              <Link href="/services" className="text-gray-200 hover:text-orange">Services</Link>
-              <Link href="/portfolio" className="text-gray-200 hover:text-orange">Projects</Link>
-              <Link href="/price-list" className="text-gray-200 hover:text-orange">Price List</Link>
-              <Link href="/about" className="text-gray-200 hover:text-orange">About</Link>
-              <Link href="/contact" className="text-gray-200 hover:text-orange">Contact</Link>
+            <nav className="hidden md:flex items-center gap-6 text-base font-semibold font-heading">
+              <Link href="/services" className="text-mist hover:text-orange">Services</Link>
+              <Link href="/portfolio" className="text-mist hover:text-orange">Projects</Link>
+              <Link href="/price-list" className="text-mist hover:text-orange">Price List</Link>
+              <Link href="/about" className="text-mist hover:text-orange">About</Link>
+              <Link href="/contact" className="text-mist hover:text-orange">Contact</Link>
             </nav>
             <nav className="flex items-center gap-3">
-              <a href="https://wa.me/27631387945" className="text-eco font-bold text-sm hidden sm:inline">
+              <a href="https://wa.me/27631387945" className="text-blue font-semibold text-sm hidden sm:inline">
                 WHATSAPP
               </a>
               <Link
                 href="/quote"
-                className="bg-orange hover:bg-orange-dark text-white font-bold text-xs px-4 py-2 rounded-full"
+                className="bg-orange hover:bg-orange-dark text-white font-bold text-xs px-4 py-2.5 rounded-btn"
               >
                 GET A QUOTE
               </Link>
@@ -50,12 +54,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {children}
 
-        <footer className="bg-jet text-gray-300 text-sm py-10 mt-10 border-t border-gray-800">
+        <footer className="bg-jet text-mist text-sm py-10 mt-10 border-t border-darkgrey">
           <div className="max-w-6xl mx-auto px-4 grid sm:grid-cols-2 gap-8">
             <div>
-              <p className="font-bold text-white text-base mb-1">NextGen Solar &amp; Maintenance Solutions</p>
+              <p className="font-heading font-bold text-paper text-base mb-1">NextGen Solar &amp; Maintenance Solutions</p>
               <p>Strand · Gordon’s Bay · Somerset West · Helderberg Basin</p>
-              <p className="mt-2 text-white font-semibold">
+              <p className="mt-2 text-paper font-semibold">
                 063 138 7945 · info.nextgensolution1@gmail.com
               </p>
             </div>
