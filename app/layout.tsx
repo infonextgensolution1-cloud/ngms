@@ -1,10 +1,14 @@
 import type { Metadata } from 'next'
 import { Oswald, Inter } from 'next/font/google'
 import Link from 'next/link'
+import { FacebookIcon, WhatsAppIcon } from '@/lib/icons'
 import './globals.css'
 
 const oswald = Oswald({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-oswald' })
 const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-inter' })
+
+const FACEBOOK_URL = 'https://www.facebook.com/p/Nextgen-Solar-Maintenance-Solutions-61590183304623/'
+const WHATSAPP_URL = 'https://wa.me/27631387945'
 
 // Inlined as a data URI: GitHub's file-upload path was corrupting binary PNGs
 // (storing the base64 text itself instead of decoding it), so /public/logo.png
@@ -39,8 +43,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/contact" className="text-mist hover:text-orange">Contact</Link>
             </nav>
             <nav className="flex items-center gap-3">
-              <a href="https://wa.me/27631387945" className="text-blue font-semibold text-sm hidden sm:inline">
-                WHATSAPP
+              <a href={FACEBOOK_URL} aria-label="NGSMS on Facebook" className="text-mist hover:text-blue">
+                <FacebookIcon className="h-5 w-5" />
+              </a>
+              <a href={WHATSAPP_URL} aria-label="WhatsApp NGSMS" className="text-blue hover:text-blue-dark">
+                <WhatsAppIcon className="h-5 w-5" />
               </a>
               <Link
                 href="/quote"
@@ -62,6 +69,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <p className="mt-2 text-paper font-semibold">
                 063 138 7945 · info.nextgensolution1@gmail.com
               </p>
+              <div className="flex items-center gap-4 mt-4">
+                <a href={FACEBOOK_URL} aria-label="NGSMS on Facebook" className="text-mist hover:text-blue">
+                  <FacebookIcon className="h-6 w-6" />
+                </a>
+                <a href={WHATSAPP_URL} aria-label="WhatsApp NGSMS" className="text-blue hover:text-orange">
+                  <WhatsAppIcon className="h-6 w-6" />
+                </a>
+              </div>
             </div>
             <div className="flex flex-col sm:items-end gap-1 font-semibold">
               <Link href="/services" className="hover:text-orange">Services</Link>
