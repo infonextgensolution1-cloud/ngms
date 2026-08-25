@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Price List | NGMS — Next Gen Maintenance Solutions',
+  title: 'Price List | NGSMS — NextGen Solar & Maintenance Solutions',
   description:
     'Clear starting rates for solar cleaning, painting, waterproofing, paving and more across Strand, Gordon\'s Bay and Somerset West.',
 }
@@ -58,8 +58,8 @@ const tables: Table[] = [
     cols: ['Service', 'Starting price', 'Unit'],
     rows: [
       { label: 'Gutter cleaning & flush', price: 'from R650', note: 'per house (single storey)' },
-      { label: 'Plumbing – basic call-out + 1 hour', price: 'from R850', note: 'Labour only' },
-      { label: 'Electrical – basic call-out + 1 hour', price: 'from R950', note: 'COC extra if required' },
+      { label: 'Plumbing — basic call-out + 1 hour', price: 'from R850', note: 'Labour only' },
+      { label: 'Electrical — basic call-out + 1 hour', price: 'from R950', note: 'COC extra if required' },
       { label: 'Pool fibre lining', price: 'from R450/m²', note: 'Includes surface prep' },
       { label: 'Paving (new)', price: 'from R280/m²', note: 'Supply + lay (Builders Warehouse stock)' },
       { label: 'Steelwork / welding', price: 'from R650/hour', note: '+ materials' },
@@ -74,24 +74,24 @@ const tables: Table[] = [
 function PriceTable({ table }: { table: Table }) {
   return (
     <div className="mb-10">
-      <h2 className="text-xl font-bold mb-3">{table.title}</h2>
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
+      <h2 className="font-heading text-xl font-semibold mb-3 text-paper">{table.title}</h2>
+      <div className="overflow-x-auto rounded-card border border-darkgrey">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-50 text-left">
+            <tr className="bg-cardgrey text-left">
               {table.cols.filter(Boolean).map((c) => (
-                <th key={c} className="px-4 py-2 font-semibold text-gray-700">
+                <th key={c} className="px-4 py-2 font-heading font-semibold text-paper">
                   {c}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="bg-graphite">
             {table.rows.map((r) => (
-              <tr key={r.label} className="border-t border-gray-100">
-                <td className="px-4 py-2">{r.label}</td>
-                <td className="px-4 py-2 font-semibold text-orange-600">{r.price}</td>
-                <td className="px-4 py-2 text-gray-500">{r.note ?? ''}</td>
+              <tr key={r.label} className="border-t border-darkgrey">
+                <td className="px-4 py-2 text-mist">{r.label}</td>
+                <td className="px-4 py-2 font-bold text-orange">{r.price}</td>
+                <td className="px-4 py-2 text-mist opacity-70">{r.note ?? ''}</td>
               </tr>
             ))}
           </tbody>
@@ -103,29 +103,31 @@ function PriceTable({ table }: { table: Table }) {
 
 export default function PriceListPage() {
   return (
-    <main className="max-w-4xl mx-auto px-4 py-12">
-      <h1 className="text-3xl md:text-4xl font-black mb-2">Price List</h1>
-      <p className="text-gray-600 mb-1">Clear starting rates for Strand, Gordon's Bay & Somerset West</p>
-      <p className="text-sm text-gray-500 mb-6">
-        All prices exclude VAT · No callout fee in Strand, Gordon's Bay or Somerset West
-      </p>
+    <main className="bg-jet">
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        <h1 className="font-heading text-3xl md:text-4xl font-bold mb-2 text-paper">Price List</h1>
+        <p className="text-mist mb-1">Clear starting rates for Strand, Gordon's Bay &amp; Somerset West</p>
+        <p className="text-sm text-mist opacity-70 mb-6">
+          All prices exclude VAT · No callout fee in Strand, Gordon's Bay or Somerset West
+        </p>
 
-      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-10 text-sm text-gray-700">
-        <p>These are starting prices for standard residential work in good condition.</p>
-        <p>Every job is measured and quoted properly after a free site assessment.</p>
-        <p className="font-semibold mt-1">10% off your first booking (excludes solar panel cleaning).</p>
-      </div>
+        <div className="bg-cardgrey border border-orange rounded-card p-4 mb-10 text-sm text-mist">
+          <p>These are starting prices for standard residential work in good condition.</p>
+          <p>Every job is measured and quoted properly after a free site assessment.</p>
+          <p className="font-semibold mt-1 text-orange">10% off your first booking (excludes solar panel cleaning).</p>
+        </div>
 
-      {tables.map((t) => (
-        <PriceTable key={t.title} table={t} />
-      ))}
+        {tables.map((t) => (
+          <PriceTable key={t.title} table={t} />
+        ))}
 
-      <div className="mt-10 pt-6 border-t border-gray-200 text-sm text-gray-500 space-y-1">
-        <p>• All prices exclude VAT (15%).</p>
-        <p>• Free written quote after site visit — no obligation.</p>
-        <p>• We use Builders Warehouse as primary supplier for materials.</p>
-        <p>• Rain policy: exterior work is rescheduled at no cost if weather intervenes.</p>
-        <p>• Payment: EFT, cash or card on completion.</p>
+        <div className="mt-10 pt-6 border-t border-darkgrey text-sm text-mist space-y-1 opacity-80">
+          <p>• All prices exclude VAT (15%).</p>
+          <p>• Free written quote after site visit — no obligation.</p>
+          <p>• We use Builders Warehouse as primary supplier for materials.</p>
+          <p>• Rain policy: exterior work is rescheduled at no cost if weather intervenes.</p>
+          <p>• Payment: EFT, cash or card on completion.</p>
+        </div>
       </div>
     </main>
   )
