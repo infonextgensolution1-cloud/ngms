@@ -10,8 +10,8 @@ export function generateMetadata({ params }: { params: { slug: string } }) {
   const service = getService(params.slug)
   if (!service) return {}
   return {
-    title: `${service.name} | NGSMS`,
-    description: service.description,
+    title: service.metaTitle,
+    description: service.metaDescription,
   }
 }
 
