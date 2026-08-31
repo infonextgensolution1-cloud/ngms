@@ -1,5 +1,25 @@
 import Link from 'next/link'
 import { services } from '@/lib/services'
+import { supabase } from '@/lib/supabaseClient'
+import { HeroSlideshow } from '@/components/hero-slideshow'
+
+export const revalidate = 0
+
+type Slide = {
+  id: string
+  image_url: string
+  alt_text: string
+  caption: string | null
+}
+
+async function getHeroSlides(): Promise<Slide[]> {
+  const { data } = await supabase
+    .from('hero_slides')
+    .select('id, image_url, alt_text, caption')
+    .eq('is_active', true)
+    .order('sort_order')
+  return (data as Slide[]) ?? []
+}
 
 const REVIEWS = [
   {
@@ -19,7 +39,9 @@ const REVIEWS = [
   },
 ]
 
-export default function HomePage() {
+export default async function HomePage() {
+  const slides = await getHeroSlides()
+
   return (
     <main className="bg-jet">
       <section className="grid md:grid-cols-2">
@@ -51,20 +73,11 @@ export default function HomePage() {
             </Link>
           </div>
           <p className="text-mist text-xs tracking-widest uppercase mt-10 font-semibold">
-            Serving Strand · Somerset West · Gordon's Bay · Helderberg Basin
+            Serving Strand · Somerset West · Gordon&apos;s Bay · Helderberg Basin
           </p>
         </div>
 
-        <div className="relative bg-graphite overflow-hidden min-h-[320px] md:min-h-[85vh] border-t md:border-t-0 md:border-l border-darkgrey">
-          <div className="absolute -right-16 -top-16 w-72 h-72 bg-orange/10 rotate-45" />
-          <div className="absolute right-10 bottom-0 w-56 h-56 bg-blue/10 rotate-12" />
-          <div className="absolute left-0 top-1/3 w-40 h-40 bg-cardgrey rotate-45 border border-darkgrey" />
-          <div className="absolute inset-0 flex items-center justify-center px-8 text-center">
-            <p className="text-mist text-xs uppercase tracking-widest font-heading font-semibold">
-              Real project photography coming soon
-            </p>
-          </div>
-        </div>
+        <HeroSlideshow slides={slides} />
       </section>
 
       <div className="bg-orange text-white text-center text-sm font-bold py-2">
