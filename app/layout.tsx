@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Oswald, Inter } from 'next/font/google'
 import Link from 'next/link'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { FacebookIcon, WhatsAppIcon } from '@/lib/icons'
 import { LOGO_DATA_URI } from '@/lib/logo'
 import { services } from '@/lib/services'
@@ -92,6 +93,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           <WhatsAppIcon className="h-7 w-7 text-white" />
         </a>
+        <SpeedInsights />
       </body>
     </html>
   )
