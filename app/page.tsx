@@ -1,5 +1,44 @@
 import Link from 'next/link'
 import { services } from '@/lib/services'
+import { supabase } from '@/lib/supabaseClient'
+import { HeroSlideshow } from '@/components/hero-slideshow'
+
+export const revalidate = 0
+
+type Slide = {
+  id: string
+  image_url: string
+  alt_text: string
+  caption: string | null
+}
+
+type BeforeAfter = {
+  id: string
+  service_slug: string | null
+  location: string
+  caption: string | null
+  before_image_url: string
+  after_image_url: string
+}
+
+async function getHeroSlides(): Promise<Slide[]> {
+  const { data } = await supabase
+    .from('hero_slides')
+    .select('id, image_url, alt_text, caption')
+    .eq('is_active', true)
+    .order('sort_order')
+  return (data as Slide[]) ?? []
+}
+
+async function getBeforeAfter(): Promise<BeforeAfter[]> {
+  const { data } = await supabase
+    .from('before_after_photos')
+    .select('id, service_slug, location, caption, before_image_url, after_image_url')
+    .eq('is_active', true)
+    .order('sort_order')
+    .limit(3)
+  return (data as BeforeAfter[]) ?? []
+}
 
 const REVIEWS = [
   {
@@ -19,7 +58,9 @@ const REVIEWS = [
   },
 ]
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [slides, projects] = await Promise.all([getHeroSlides(), getBeforeAfter()])
+
   return (
     <main className="bg-jet">
       <section className="grid md:grid-cols-2">
@@ -51,20 +92,11 @@ export default function HomePage() {
             </Link>
           </div>
           <p className="text-mist text-xs tracking-widest uppercase mt-10 font-semibold">
-            Serving Strand · Somerset West · Gordon's Bay · Helderberg Basin
+            Serving Strand · Somerset West · Gordon&apos;s Bay · Helderberg Basin
           </p>
         </div>
 
-        <div className="relative bg-graphite overflow-hidden min-h-[320px] md:min-h-[85vh] border-t md:border-t-0 md:border-l border-darkgrey">
-          <div className="absolute -right-16 -top-16 w-72 h-72 bg-orange/10 rotate-45" />
-          <div className="absolute right-10 bottom-0 w-56 h-56 bg-blue/10 rotate-12" />
-          <div className="absolute left-0 top-1/3 w-40 h-40 bg-cardgrey rotate-45 border border-darkgrey" />
-          <div className="absolute inset-0 flex items-center justify-center px-8 text-center">
-            <p className="text-mist text-xs uppercase tracking-widest font-heading font-semibold">
-              Real project photography coming soon
-            </p>
-          </div>
-        </div>
+        <HeroSlideshow slides={slides} />
       </section>
 
       <div className="bg-orange text-white text-center text-sm font-bold py-2">
@@ -130,9 +162,37 @@ export default function HomePage() {
       <section className="bg-jet text-white py-14 text-center">
         <p className="text-blue font-bold text-sm mb-2 font-heading tracking-wide">SEE THE DIFFERENCE</p>
         <h2 className="font-heading text-3xl sm:text-4xl font-bold mb-4 text-paper">Before &amp; After</h2>
-        <p className="text-mist text-lg max-w-xl mx-auto mb-8">
-          Real before-and-after results from recent NGSMS jobs — photos loading soon.
-        </p>
+        {projects.length > 0 ? (
+          <>
+            <p className="text-mist text-lg max-w-xl mx-auto mb-8">
+              Real results from recent NGSMS jobs across the Helderberg Basin.
+            </p>
+            <div className="max-w-5xl mx-auto px-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-6 text-left mb-10">
+              {projects.map((p) => (
+                <div key={p.id} className="bg-cardgrey border border-darkgrey rounded-card overflow-hidden">
+                  <div className="grid grid-cols-2">
+                    <div className="relative">
+                      <img src={p.before_image_url} alt="Before" className="h-36 w-full object-cover" />
+                      <span className="absolute top-2 left-2 bg-jet/80 text-paper text-[10px] uppercase tracking-wide px-2 py-1 rounded-btn">Before</span>
+                    </div>
+                    <div className="relative">
+                      <img src={p.after_image_url} alt="After" className="h-36 w-full object-cover" />
+                      <span className="absolute top-2 left-2 bg-orange/90 text-white text-[10px] uppercase tracking-wide px-2 py-1 rounded-btn">After</span>
+                    </div>
+                  </div>
+                  <div className="p-5">
+                    <p className="font-heading font-semibold text-paper">{p.caption || 'Completed Project'}</p>
+                    <p className="text-blue text-sm mt-1">&#128205; {p.location}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <p className="text-mist text-lg max-w-xl mx-auto mb-8">
+            Real before-and-after results from recent NGSMS jobs — photos loading soon.
+          </p>
+        )}
         <Link href="/portfolio" className="inline-block bg-orange hover:bg-orange-dark text-white font-heading font-semibold px-6 py-3 rounded-btn">
           View All Projects
         </Link>
