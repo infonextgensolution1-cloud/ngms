@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import type { Session } from '@supabase/supabase-js'
+import { useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { services } from '@/lib/services'
+import { useAdminAuth } from '@/hooks/useAdminAuth'
 
 type Slide = {
   id: string
@@ -25,8 +25,7 @@ type BeforeAfter = {
 }
 
 export default function AdminPage() {
-  const [session, setSession] = useState<Session | null>(null)
-  const [checking, setChecking] = useState(true)
+  const { session, checking } = useAdminAuth()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -45,22 +44,6 @@ export default function AdminPage() {
   const [beforeFile, setBeforeFile] = useState<File | null>(null)
   const [afterFile, setAfterFile] = useState<File | null>(null)
   const [uploadingBA, setUploadingBA] = useState(false)
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-      setChecking(false)
-    })
-    const { data: listener } = supabase.auth.onAuthStateChange((_e, newSession) => setSession(newSession))
-    return () => listener.subscription.unsubscribe()
-  }, [])
-
-  useEffect(() => {
-    if (session) {
-      fetchSlides()
-      fetchBeforeAfter()
-    }
-  }, [session])
 
   async function fetchSlides() {
     const { data, error } = await supabase.from('hero_slides').select('*').order('sort_order')
