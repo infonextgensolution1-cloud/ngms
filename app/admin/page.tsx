@@ -24,6 +24,14 @@ type BeforeAfter = {
   is_active: boolean
 }
 
+type GalleryPhoto = {
+  id: string
+  image_url: string
+  caption: string | null
+  service_slug: string | null
+  is_active: boolean
+}
+
 export default function AdminPage() {
   const { session, checking } = useAdminAuth()
 
@@ -45,6 +53,9 @@ export default function AdminPage() {
   const [afterFile, setAfterFile] = useState<File | null>(null)
   const [uploadingBA, setUploadingBA] = useState(false)
 
+  // Gallery
+  const [gallery, setGallery] = useState<GalleryPhoto[]>([])
+
   async function fetchSlides() {
     const { data, error } = await supabase.from('hero_slides').select('*').order('sort_order')
     if (error) console.error(error)
@@ -55,6 +66,18 @@ export default function AdminPage() {
     const { data, error } = await supabase.from('before_after_photos').select('*').order('sort_order')
     if (error) console.error(error)
     setItems((data as BeforeAfter[]) ?? [])
+  }
+
+  async function fetchGallery() {
+    const { data, error } = await supabase.from('gallery_photos').select('*').order('sort_order')
+    if (error) console.error(error)
+    setGallery((data as GalleryPhoto[]) ?? [])
+  }
+
+  if (session && slides.length === 0 && items.length === 0 && gallery.length === 0) {
+    fetchSlides()
+    fetchBeforeAfter()
+    fetchGallery()
   }
 
   async function handleLogin(e: React.FormEvent) {
@@ -160,6 +183,17 @@ export default function AdminPage() {
     await fetchBeforeAfter()
   }
 
+  async function toggleGalleryPhoto(photo: GalleryPhoto) {
+    await supabase.from('gallery_photos').update({ is_active: !photo.is_active }).eq('id', photo.id)
+    await fetchGallery()
+  }
+
+  async function deleteGalleryPhoto(photo: GalleryPhoto) {
+    if (!confirm('Delete this gallery photo?')) return
+    await supabase.from('gallery_photos').delete().eq('id', photo.id)
+    await fetchGallery()
+  }
+
   const inputClass = 'w-full bg-jet border border-darkgrey text-paper rounded-btn px-4 py-3'
 
   if (checking) {
@@ -204,7 +238,8 @@ export default function AdminPage() {
 
         {/* HERO SLIDES */}
         <section className="mb-14">
-          <h2 className="font-heading text-xl font-bold text-paper mb-4">Hero Slides</h2>
+          <h2 className="font-heading text-xl font-bold text-paper">Hero Slides</h2>
+          <p className="text-mist text-xs uppercase tracking-wide mb-4">Appears in the rotating photo on the Homepage</p>
           <div className="bg-cardgrey border border-darkgrey rounded-card p-6 mb-6 space-y-4">
             <div>
               <label className="block text-sm font-bold mb-1 text-paper font-heading">Description (optional)</label>
@@ -242,8 +277,9 @@ export default function AdminPage() {
         </section>
 
         {/* BEFORE & AFTER */}
-        <section>
-          <h2 className="font-heading text-xl font-bold text-paper mb-4">Before &amp; After Photos</h2>
+        <section className="mb-14">
+          <h2 className="font-heading text-xl font-bold text-paper">Before &amp; After Photos</h2>
+          <p className="text-mist text-xs uppercase tracking-wide mb-4">Appears on the Projects page</p>
           <form onSubmit={handleBeforeAfterUpload} className="bg-cardgrey border border-darkgrey rounded-card p-6 mb-6 space-y-4">
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
@@ -330,7 +366,40 @@ export default function AdminPage() {
             {items.length === 0 && <p className="text-mist text-sm">No before/after pairs yet.</p>}
           </div>
         </section>
+
+        {/* GALLERY */}
+        <section>
+          <h2 className="font-heading text-xl font-bold text-paper">Gallery Photos</h2>
+          <p className="text-mist text-xs uppercase tracking-wide mb-4">Appears on the Gallery page</p>
+          <div className="mb-6">
+            <GalleryUploadForm onSuccess={fetchGallery} />
+          </div>
+
+          <div className="space-y-3">
+            {gallery.map((photo) => (
+              <div key={photo.id} className="bg-cardgrey border border-darkgrey rounded-card p-4 flex items-center gap-4">
+                <img src={photo.image_url} alt={photo.caption ?? ''} className="h-16 w-24 object-cover rounded-btn shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-paper text-sm font-semibold truncate">{photo.caption || photo.service_slug || 'Untitled'}</p>
+                  <p className="text-mist text-xs">{photo.is_active ? 'Active' : 'Hidden'}</p>
+                </div>
+                <button onClick={() => toggleGalleryPhoto(photo)} className="text-blue text-sm font-semibold shrink-0">
+                  {photo.is_active ? 'Hide' : 'Show'}
+                </button>
+                <button onClick={() => deleteGalleryPhoto(photo)} className="text-orange text-sm font-semibold shrink-0">
+                  Delete
+                </button>
+              </div>
+            ))}
+            {gallery.length === 0 && <p className="text-mist text-sm">No gallery photos yet.</p>}
+          </div>
+        </section>
       </div>
     </main>
   )
+}
+
+function GalleryUploadForm({ onSuccess }: { onSuccess: () => void }) {
+  const GalleryUpload = require('@/components/admin/GalleryUpload').default
+  return <GalleryUpload onSuccess={onSuccess} />
 }
