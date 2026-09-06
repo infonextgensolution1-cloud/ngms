@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { services } from '@/lib/services'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
+import GalleryUpload from '@/components/admin/GalleryUpload'
 
 type Slide = {
   id: string
@@ -74,11 +75,14 @@ export default function AdminPage() {
     setGallery((data as GalleryPhoto[]) ?? [])
   }
 
-  if (session && slides.length === 0 && items.length === 0 && gallery.length === 0) {
-    fetchSlides()
-    fetchBeforeAfter()
-    fetchGallery()
-  }
+  useEffect(() => {
+    if (session) {
+      fetchSlides()
+      fetchBeforeAfter()
+      fetchGallery()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -372,7 +376,7 @@ export default function AdminPage() {
           <h2 className="font-heading text-xl font-bold text-paper">Gallery Photos</h2>
           <p className="text-mist text-xs uppercase tracking-wide mb-4">Appears on the Gallery page</p>
           <div className="mb-6">
-            <GalleryUploadForm onSuccess={fetchGallery} />
+            <GalleryUpload onSuccess={fetchGallery} />
           </div>
 
           <div className="space-y-3">
@@ -397,9 +401,4 @@ export default function AdminPage() {
       </div>
     </main>
   )
-}
-
-function GalleryUploadForm({ onSuccess }: { onSuccess: () => void }) {
-  const GalleryUpload = require('@/components/admin/GalleryUpload').default
-  return <GalleryUpload onSuccess={onSuccess} />
 }
