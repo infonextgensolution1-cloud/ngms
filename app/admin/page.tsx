@@ -33,12 +33,26 @@ type GalleryPhoto = {
   is_active: boolean
 }
 
+type Lead = {
+  id: string
+  name: string
+  phone: string
+  suburb: string | null
+  service_slug: string | null
+  message: string | null
+  status: string
+  created_at: string
+}
+
 export default function AdminPage() {
   const { session, checking } = useAdminAuth()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState('')
+
+  // Leads
+  const [leads, setLeads] = useState<Lead[]>([])
 
   // Hero slides
   const [slides, setSlides] = useState<Slide[]>([])
@@ -56,6 +70,12 @@ export default function AdminPage() {
 
   // Gallery
   const [gallery, setGallery] = useState<GalleryPhoto[]>([])
+
+  async function fetchLeads() {
+    const { data, error } = await supabase.from('leads').select('*').order('created_at', { ascending: false })
+    if (error) console.error(error)
+    setLeads((data as Lead[]) ?? [])
+  }
 
   async function fetchSlides() {
     const { data, error } = await supabase.from('hero_slides').select('*').order('sort_order')
@@ -77,6 +97,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (session) {
+      fetchLeads()
       fetchSlides()
       fetchBeforeAfter()
       fetchGallery()
@@ -93,6 +114,17 @@ export default function AdminPage() {
 
   async function handleLogout() {
     await supabase.auth.signOut()
+  }
+
+  async function markLeadContacted(lead: Lead) {
+    await supabase.from('leads').update({ status: lead.status === 'contacted' ? 'new' : 'contacted' }).eq('id', lead.id)
+    await fetchLeads()
+  }
+
+  async function deleteLead(lead: Lead) {
+    if (!confirm('Delete this lead?')) return
+    await supabase.from('leads').delete().eq('id', lead.id)
+    await fetchLeads()
   }
 
   async function handleSlideUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -230,6 +262,8 @@ export default function AdminPage() {
     )
   }
 
+  const newLeadCount = leads.filter((l) => l.status === 'new').length
+
   return (
     <main className="bg-jet min-h-screen px-4 py-10">
       <div className="max-w-3xl mx-auto">
@@ -239,6 +273,54 @@ export default function AdminPage() {
             Log out
           </button>
         </div>
+
+        {/* LEADS */}
+        <section className="mb-14">
+          <div className="flex items-center gap-2 mb-1">
+            <h2 className="font-heading text-xl font-bold text-paper">Leads</h2>
+            {newLeadCount > 0 && (
+              <span className="bg-whatsapp text-white text-xs font-bold px-2 py-0.5 rounded-full">{newLeadCount} new</span>
+            )}
+          </div>
+          <p className="text-mist text-xs uppercase tracking-wide mb-4">
+            Every quote request, saved here even if the visitor never hits Send on WhatsApp
+          </p>
+          <div className="space-y-3">
+            {leads.map((lead) => (
+              <div key={lead.id} className="bg-cardgrey border border-darkgrey rounded-card p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-paper text-sm font-semibold">
+                      {lead.name} — <a href={`tel:${lead.phone}`} className="text-blue">{lead.phone}</a>
+                    </p>
+                    <p className="text-mist text-xs mt-0.5">
+                      {[lead.suburb, services.find((s) => s.slug === lead.service_slug)?.name ?? lead.service_slug]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </p>
+                    {lead.message && <p className="text-mist text-sm mt-2">{lead.message}</p>}
+                    <p className="text-mist text-xs mt-2 opacity-70">{new Date(lead.created_at).toLocaleString()}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                    <a
+                      href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`}
+                      className="bg-whatsapp text-white text-xs font-bold px-3 py-1.5 rounded-btn"
+                    >
+                      WhatsApp
+                    </a>
+                    <button onClick={() => markLeadContacted(lead)} className="text-blue text-xs font-semibold">
+                      {lead.status === 'contacted' ? 'Mark as new' : 'Mark contacted'}
+                    </button>
+                    <button onClick={() => deleteLead(lead)} className="text-orange text-xs font-semibold">
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {leads.length === 0 && <p className="text-mist text-sm">No leads yet.</p>}
+          </div>
+        </section>
 
         {/* HERO SLIDES */}
         <section className="mb-14">
