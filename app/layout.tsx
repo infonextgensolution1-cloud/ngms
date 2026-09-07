@@ -6,6 +6,7 @@ import { FacebookIcon, WhatsAppIcon } from '@/lib/icons'
 import { LOGO_DATA_URI } from '@/lib/logo'
 import { services } from '@/lib/services'
 import { SiteHeader } from '@/components/site-header'
+import AdminLink from '@/components/AdminLink'
 import './globals.css'
 
 const oswald = Oswald({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-oswald' })
@@ -84,8 +85,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
 
-          <div className="max-w-6xl mx-auto px-4 mt-10 pt-6 border-t border-darkgrey text-xs opacity-70">
-            &copy; {new Date().getFullYear()} NextGen Solar &amp; Maintenance Solutions. All rights reserved.
+          <div className="max-w-6xl mx-auto px-4 mt-10 pt-6 border-t border-darkgrey text-xs flex flex-wrap items-center justify-between gap-3">
+            <span className="opacity-70">
+              &copy; {new Date().getFullYear()} NextGen Solar &amp; Maintenance Solutions. All rights reserved.
+            </span>
+            <AdminLink />
           </div>
         </footer>
 
