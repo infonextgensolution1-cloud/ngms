@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { services } from '@/lib/services'
+import { supabase } from '@/lib/supabaseClient'
 
 const SUBURBS = ['Strand', 'Gordon’s Bay', 'Somerset West', 'Other Helderberg area']
 
@@ -12,10 +13,28 @@ export default function QuotePage() {
   const [service, setService] = useState(services[0].slug)
   const [message, setMessage] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [sending, setSending] = useState(false)
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setSending(true)
     const serviceName = services.find((s) => s.slug === service)?.name ?? service
+
+    // Always capture the lead in the database first, so nothing is lost even if the
+    // visitor closes WhatsApp without hitting send.
+    try {
+      await supabase.from('leads').insert({
+        name,
+        phone,
+        suburb,
+        service_slug: service,
+        message: message || null,
+        status: 'new',
+      })
+    } catch (err) {
+      console.error('Failed to save lead:', err)
+    }
+
     const lines = [
       'New quote request from the NGSMS website:',
       `Name: ${name}`,
@@ -26,6 +45,7 @@ export default function QuotePage() {
     ].filter(Boolean)
     const text = encodeURIComponent(lines.join('\n'))
     setSubmitted(true)
+    setSending(false)
     window.open(`https://wa.me/27631387945?text=${text}`, '_blank')
   }
 
@@ -104,9 +124,10 @@ export default function QuotePage() {
               </div>
               <button
                 type="submit"
-                className="w-full bg-orange hover:bg-orange-dark text-white font-heading font-semibold px-6 py-4 rounded-btn"
+                disabled={sending}
+                className="w-full bg-whatsapp hover:bg-whatsapp-dark text-white font-heading font-semibold px-6 py-4 rounded-btn disabled:opacity-50"
               >
-                Send via WhatsApp
+                {sending ? 'Sending...' : 'Send via WhatsApp'}
               </button>
               <p className="text-xs text-mist text-center opacity-80">
                 This opens WhatsApp with your details pre-filled. Prefer email? Write to{' '}
