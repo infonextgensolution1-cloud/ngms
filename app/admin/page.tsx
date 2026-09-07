@@ -37,6 +37,7 @@ type Lead = {
   id: string
   name: string
   phone: string
+  email: string | null
   suburb: string | null
   service_slug: string | null
   message: string | null
@@ -293,6 +294,11 @@ export default function AdminPage() {
                     <p className="text-paper text-sm font-semibold">
                       {lead.name} — <a href={`tel:${lead.phone}`} className="text-blue">{lead.phone}</a>
                     </p>
+                    {lead.email && (
+                      <p className="text-xs mt-0.5">
+                        <a href={`mailto:${lead.email}`} className="text-blue break-all">{lead.email}</a>
+                      </p>
+                    )}
                     <p className="text-mist text-xs mt-0.5">
                       {[lead.suburb, services.find((s) => s.slug === lead.service_slug)?.name ?? lead.service_slug]
                         .filter(Boolean)
