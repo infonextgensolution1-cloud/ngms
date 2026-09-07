@@ -25,7 +25,7 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
     serviceType: service.name,
     name: `${service.name} | NextGen Solar & Maintenance Solutions`,
     description: service.metaDescription,
-    areaServed: ['Strand', 'Gordon\u2019s Bay', 'Somerset West', 'Helderberg Basin'],
+    areaServed: ['Strand', 'Gordon’s Bay', 'Somerset West', 'Helderberg Basin'],
     provider: {
       '@type': 'LocalBusiness',
       name: 'NextGen Solar & Maintenance Solutions',
@@ -76,7 +76,7 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
           </div>
 
           <p className="text-sm text-mist mt-6 opacity-80">
-            Serving Strand, Somerset West, Gordon\u2019s Bay and the Helderberg Basin. See our{' '}
+            Serving Strand, Somerset West, Gordon’s Bay and the Helderberg Basin. See our{' '}
             <Link href="/price-list" className="text-orange font-semibold">
               price list
             </Link>{' '}
