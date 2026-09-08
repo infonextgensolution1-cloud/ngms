@@ -10,24 +10,24 @@ export type SolarLandingProps = {
 
 const tiers = [
   { size: 'Up to 10 panels', price: 'from R550' },
-  { size: '11\u201320 panels', price: 'from R950' },
-  { size: '21\u201330 panels', price: 'from R1 350' },
-  { size: '31\u201340 panels', price: 'from R1 700' },
+  { size: '11–20 panels', price: 'from R950' },
+  { size: '21–30 panels', price: 'from R1 350' },
+  { size: '31–40 panels', price: 'from R1 700' },
   { size: '41+ panels', price: 'from R50/panel' },
 ]
 
 const faqs = [
   {
     q: 'How often should solar panels be cleaned?',
-    a: 'Every 4\u20136 months for most Helderberg homes. Coastal salt, summer wind-blown dust and spring pollen build up faster here than inland, and that film costs you output before you notice it.',
+    a: 'Every 4–6 months for most Helderberg homes. Coastal salt, summer wind-blown dust and spring pollen build up faster here than inland, and that film costs you output before you notice it.',
   },
   {
     q: 'Will cleaning damage my panels?',
-    a: 'No. We use purified water and soft-brush methods \u2014 no harsh chemicals, no abrasive pads, no high pressure on the panel face. Safe for all major panel brands.',
+    a: 'No. We use purified water and soft-brush methods — no harsh chemicals, no abrasive pads, no high pressure on the panel face. Safe for all major panel brands.',
   },
   {
     q: 'Do you charge a callout fee?',
-    a: 'Not in Strand, Gordon\u2019s Bay or Somerset West. Outside that zone it\u2019s a flat R350.',
+    a: 'Not in Strand, Gordon’s Bay or Somerset West. Outside that zone it’s a flat R350.',
   },
   {
     q: 'Do you clean commercial and farm installations?',
@@ -71,8 +71,8 @@ export default function SolarLandingPage({ town, areaLine, heading, intro, nearb
           <div className="bg-cardgrey border border-darkgrey rounded-card p-6">
             <h2 className="font-heading text-lg font-semibold mb-2 text-paper">Local {town} team</h2>
             <p className="text-mist text-sm">
-              We work this coastline every week. We know what the southeaster and the salt air do to a roof in
-              {' '}{town} \u2014 and how fast output drops because of it.
+              We work this coastline every week — we know what the southeaster and the salt air do to a roof in{' '}
+              {town}, and how fast output drops because of it.
             </p>
           </div>
           <div className="bg-cardgrey border border-darkgrey rounded-card p-6">
@@ -91,7 +91,7 @@ export default function SolarLandingPage({ town, areaLine, heading, intro, nearb
             Solar cleaning prices in {town}
           </h2>
           <p className="text-mist text-sm mb-6">
-            All prices exclude VAT. No callout fee in Strand, Gordon\u2019s Bay or Somerset West \u2014 flat R350 outside
+            All prices exclude VAT. No callout fee in Strand, Gordon’s Bay or Somerset West — flat R350 outside
             that zone.
           </p>
           <div className="overflow-x-auto rounded-card border border-darkgrey">
@@ -113,8 +113,8 @@ export default function SolarLandingPage({ town, areaLine, heading, intro, nearb
             </table>
           </div>
           <p className="text-mist text-sm mt-4">
-            On a maintenance plan (every 4\u20136 months) you get <span className="text-orange font-bold">15% off</span>
-            {' '}every clean plus priority booking.
+            On a maintenance plan (every 4–6 months) you get <span className="text-orange font-bold">15% off</span>{' '}
+            every clean plus priority booking.
           </p>
         </div>
       </section>
@@ -135,7 +135,7 @@ export default function SolarLandingPage({ town, areaLine, heading, intro, nearb
 
       <section className="bg-jet py-12 px-4 text-center">
         <h2 className="font-heading text-xl font-bold text-paper mb-3">Where we work</h2>
-        <p className="text-mist text-sm max-w-2xl mx-auto">{nearby.join(' \u00b7 ')}</p>
+        <p className="text-mist text-sm max-w-2xl mx-auto">{nearby.join(' · ')}</p>
       </section>
 
       <section className="bg-graphite text-center py-12 px-4 border-t border-darkgrey">
@@ -143,7 +143,7 @@ export default function SolarLandingPage({ town, areaLine, heading, intro, nearb
           Getting less out of your system than you used to?
         </h2>
         <p className="text-mist text-lg mb-6">
-          Send us a photo of your roof on WhatsApp and we\u2019ll come back with a price.
+          Send us a photo of your roof on WhatsApp and we’ll come back with a price.
         </p>
         <div className="flex gap-4 justify-center flex-wrap">
           <Link
