@@ -1,27 +1,23 @@
-import { createClient } from '@supabaseClient.ts'
+import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+// Supabase project: NGMS (dfwwpqtsbaytfqptancj)
+//
+// The anon/publishable key is PUBLIC by design — it is shipped to the browser
+// on every page load regardless. Access is controlled by Row Level Security
+// policies on the database, not by keeping this string secret.
+//
+// Env vars are still read first, so you can override these per-environment
+// later without touching code. If the env vars are missing or misconfigured,
+// these values are used instead — which is why the admin login no longer
+// breaks with "Invalid API key" when a Vercel variable goes missing.
 
-// Build-safe placeholders: a missing env var must never crash the production
-// build. But unlike a silent fallback, this shouts loudly in the browser
-// console at runtime so a misconfiguration can't hide as "the form just
-// doesn't work" — which is exactly how the VITE_PUBLIC_ prefix bug went
-// unnoticed and quietly dropped every incoming lead.
-const isConfigured = Boolean(supabaseUrl && supabaseAnonKey)
+const SUPABASE_URL =
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dfwwpqtsbaytfqptancj.supabase.co'
 
-if (!isConfigured && typeof window !== 'undefined') {
-  console.error(
-    '[NGMS] Supabase is NOT configured. NEXT_PUBLIC_SUPABASE_URL and/or ' +
-      'NEXT_PUBLIC_SUPABASE_ANON_KEY are missing from this build. Lead capture, ' +
-      'admin login and all gallery data WILL fail. Set them in Vercel, then redeploy ' +
-      '(NEXT_PUBLIC_ vars are baked in at build time).'
-  )
-}
+const SUPABASE_ANON_KEY =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRmd3dwcXRzYmF5dGZxcHRhbmNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc0OTUwNjIsImV4cCI6MjEwMzA3MTA2Mn0.TYVt_DWr0jVhYOaeNFAyEFfv-_HpCqCzwDzdi3h0b6Y'
 
-export const supabaseConfigured = isConfigured
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-anon-key'
-)
+export default supabase
