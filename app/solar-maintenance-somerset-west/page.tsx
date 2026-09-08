@@ -11,7 +11,7 @@ export default function Page() {
     <SolarLandingPage
       town="Somerset West"
       areaLine="Serving Somerset West · Helderberg Village · Heldervue · Strand"
-      heading="Solar Panel Cleaning &amp; Maintenance in Somerset West"
+      heading="Solar Panel Cleaning & Maintenance in Somerset West"
       intro="Keep your system producing what it should. Regular cleaning and a proper visual check of panels and mounting — for homes, estates and business premises around Somerset West."
       nearby={[
         'Somerset West',
