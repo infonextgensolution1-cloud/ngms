@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+lib/supabaseClient.tsimport { createClient } from '@supabase/supabase-js'
 
 // Supabase project: NGMS (dfwwpqtsbaytfqptancj)
 //
