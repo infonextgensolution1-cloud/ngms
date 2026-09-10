@@ -1,10 +1,11 @@
 import Link from 'next/link'
-import { services } from '@/lib/services'
+import ServiceGrid from '@/components/ServiceGrid'
+import Calculators from '@/components/Calculators'
 
 export const metadata = {
   title: 'Our Services | NGSMS',
   description:
-    '12 trade services across Strand, Somerset West, Gordon’s Bay and the Helderberg Basin — one call, all solutions.',
+    'Solar panel cleaning specialists plus 11 more trades across Strand, Somerset West, Gordon’s Bay and the Helderberg Basin — one call, all solutions.',
 }
 
 export default function ServicesPage() {
@@ -14,25 +15,19 @@ export default function ServicesPage() {
         <p className="text-blue font-bold text-sm mb-2 uppercase tracking-wide font-heading">What We Do</p>
         <h1 className="font-heading text-4xl sm:text-6xl font-bold text-paper">Everything Your Property Needs</h1>
         <p className="text-mist text-lg max-w-xl mx-auto mt-4">
-          One call covers 12 trade services across Strand, Somerset West, Gordon’s Bay and the Helderberg Basin.
+          Solar panel cleaning is what we’re known for — and one call covers 11 more trades
+          across Strand, Somerset West, Gordon’s Bay and the Helderberg Basin.
         </p>
       </section>
 
       <section className="bg-graphite py-14 border-y border-darkgrey">
-        <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {services.map((service) => (
-            <Link
-              key={service.slug}
-              href={`/services/${service.slug}`}
-              className="block bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-orange transition"
-            >
-              <h2 className="font-heading text-lg font-semibold mb-1 text-paper">{service.name}</h2>
-              <p className="text-orange text-sm font-bold mb-3">{service.tagline}</p>
-              <p className="text-mist text-sm">{service.description}</p>
-              <span className="inline-block mt-4 text-sm font-bold text-blue">Learn more &rarr;</span>
-            </Link>
-          ))}
+        <div className="max-w-6xl mx-auto px-4">
+          <ServiceGrid />
         </div>
+      </section>
+
+      <section className="bg-jet border-b border-darkgrey">
+        <Calculators />
       </section>
 
       <section className="bg-jet text-white text-center py-12 px-4">
