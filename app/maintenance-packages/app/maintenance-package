@@ -135,7 +135,17 @@ const COMMERCIAL_COMBOS = [
   },
 ]
 
-function PackageGrid({ packages }) {
+type Package = {
+  name: string
+  frequency: string
+  price: string
+  unit: string
+  features: string[]
+  featured?: boolean
+  badge?: string
+}
+
+function PackageGrid({ packages }: { packages: Package[] }) {
   return (
     <div className="max-w-5xl mx-auto px-4 grid sm:grid-cols-3 gap-6">
       {packages.map((pkg) => (
