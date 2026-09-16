@@ -65,8 +65,12 @@ export default function QuotePage() {
     const text = encodeURIComponent(lines.join('\n'))
     setSubmitted(true)
     setSending(false)
-    window.open(`https://wa.me/27631387945?text=${text}`, '_blank')
-  }
+    window.open(`https://wa.me/27631387945?text=${text}`, '_blank
+or our Bookings line on{' '}
+<a href="tel:+27627007509" className="text-blue font-bold">
+  062 700 7509
+</a>
+.
 
   const inputClass =
     'w-full bg-cardgrey border border-darkgrey text-paper placeholder-mist rounded-btn px-4 py-3 focus:outline-none focus:border-blue'
