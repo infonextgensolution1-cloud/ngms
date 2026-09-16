@@ -29,6 +29,13 @@ export default function ContactPage() {
             href="tel:+27631387945"
             className="bg-cardgrey border border-darkgrey rounded-card p-8 hover:border-blue transition"
           >
+<a
+  href="tel:+27627007509"
+  className="bg-cardgrey border border-darkgrey rounded-card p-8 hover:border-blue transition"
+>
+  <p className="font-heading font-semibold text-lg mb-1 text-paper">Bookings</p>
+  <p className="text-blue text-sm">062 700 7509</p>
+</a>
             <p className="font-heading font-semibold text-lg mb-1 text-paper">Call</p>
             <p className="text-blue text-sm">063 138 7945</p>
           </a>
