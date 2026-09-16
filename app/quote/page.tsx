@@ -222,6 +222,10 @@ or our Bookings line on{' '}
                 <a href="tel:+27631387945" className="text-blue font-semibold">
                   063 138 7945
                 </a>{' '}
+or Bookings{' '}
+<a href="tel:+27627007509" className="text-blue font-semibold">
+  062 700 7509
+</a>{' '}
                 anytime. Prefer email?{' '}
                 <a href="mailto:info.nextgensolution1@gmail.com" className="text-blue font-semibold">
                   info.nextgensolution1@gmail.com
