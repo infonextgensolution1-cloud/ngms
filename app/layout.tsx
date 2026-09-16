@@ -78,6 +78,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <p className="font-heading font-bold text-paper mb-4 uppercase tracking-wide">Contact Us</p>
               <ul className="space-y-2">
                 <li>063 138 7945</li>
+<li>Bookings: 062 700 7509</li>
                 <li className="break-all">info.nextgensolution1@gmail.com</li>
                 <li>Strand &middot; Gordon’s Bay &middot; Somerset West</li>
                 <li>Mon &ndash; Sat: 07:00 &ndash; 18:00</li>
