@@ -1,10 +1,51 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import { supabase } from '@/lib/supabaseClient'
 import { Loader2, Image as ImageIcon, LogOut } from 'lucide-react'
+
+// Read-only view of the same 'site-visitors' presence channel the public
+// site tracks itself into (see components/VisitorPresence.tsx). This tab
+// never calls channel.track() itself, so it never counts as a visitor.
+function LiveVisitors() {
+  const [state, setState] = useState<Record<string, { path?: string }[]>>({})
+
+  useEffect(() => {
+    const channel = supabase.channel('site-visitors')
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        setState(channel.presenceState() as Record<string, { path?: string }[]>)
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
+  const entries = Object.values(state).flat()
+  const count = entries.length
+
+  return (
+    <div className="bg-cardgrey border border-darkgrey rounded-card p-6 mb-6">
+      <div className="flex items-center gap-2 mb-2">
+        <span className={`h-2 w-2 rounded-full ${count > 0 ? 'bg-whatsapp animate-pulse' : 'bg-darkgrey'}`} />
+        <p className="font-heading font-bold text-paper">
+          {count} {count === 1 ? 'person' : 'people'} on the site right now
+        </p>
+      </div>
+      {entries.length > 0 && (
+        <ul className="text-sm text-mist space-y-1 mt-2">
+          {entries.map((e, i) => (
+            <li key={i}>{e.path || '/'}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
 
 export default function AdminPage() {
   const { session, checking } = useAdminAuth()
@@ -97,6 +138,8 @@ export default function AdminPage() {
             <LogOut className="w-4 h-4" /> Sign out
           </button>
         </div>
+
+        <LiveVisitors />
 
         <Link
           href="/admin/media"
