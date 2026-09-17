@@ -21,10 +21,14 @@ export default function QuotePage() {
 
   const emailRequired = preferredContact === 'Email'
 
-  async function handleSubmit(e: React.FormEvent) {
+  asyasync function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSending(true)
     const serviceName = services.find((s) => s.slug === service)?.name ?? service
+
+    // Open the tab immediately, in direct response to the click,
+    // so mobile/desktop pop-up blockers don't swallow it
+    const waWindow = window.open('', '_blank')
 
     // Always capture the lead in the database first
     try {
@@ -62,11 +66,15 @@ export default function QuotePage() {
       firstBookingDiscount ? '10% first-booking discount requested' : null,
       message ? `Details: ${message}` : null,
     ].filter(Boolean)
-    const text = encodeURIComponent(lines.join('\n'))
+    const waUrl = `https://wa.me/27631387945?text=${encodeURIComponent(lines.join('\n'))}`
+
+    if (waWindow) waWindow.location.href = waUrl
+    else window.location.href = waUrl
+
     setSubmitted(true)
     setSending(false)
-    window.open(`https://wa.me/27631387945?text=${text}`, '_blank')
   }
+  
 
   const inputClass =
     'w-full bg-cardgrey border border-darkgrey text-paper placeholder-mist rounded-btn px-4 py-3 focus:outline-none focus:border-blue'
