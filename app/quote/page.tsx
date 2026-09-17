@@ -55,6 +55,24 @@ export default function QuotePage() {
       console.error('Failed to save lead:', err)
     }
 
+    // Fire-and-forget: don't let a slow/failed notify call hold up the
+    // WhatsApp redirect the customer is waiting on.
+    fetch('/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        phone,
+        email: email.trim() || undefined,
+        suburb,
+        service: serviceName,
+        sizeDetails,
+        preferredContact,
+        firstBookingDiscount,
+        message,
+      }),
+    }).catch((err) => console.error('Failed to send lead notification:', err))
+
     track('quote_submitted', { service: service, suburb })
 
     const lines = [
@@ -93,6 +111,22 @@ export default function QuotePage() {
         <p className="text-orange text-sm font-bold mt-3">
           10% OFF your first booking · Solar cleaning from R50/panel
         </p>
+
+        {/* TODO(Jacques): once confirmed, add "Fully Insured" and/or
+            "COC-Compliant Electrical Work" as extra badges here — left out
+            for now since those are specific legal/compliance claims and
+            shouldn't go live unverified. */}
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mt-6 text-xs font-semibold text-mist uppercase tracking-wide">
+          <span className="flex items-center gap-1.5">
+            <span className="text-whatsapp">&#10003;</span> 100% Helderberg-Based
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="text-whatsapp">&#10003;</span> No Callout Fee in the Basin
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="text-whatsapp">&#10003;</span> Free, No-Obligation Quotes
+          </span>
+        </div>
       </section>
 
       <section className="bg-graphite py-14 border-t border-darkgrey">
@@ -245,4 +279,4 @@ or Bookings{' '}
       </section>
     </main>
   )
-}
+          }
