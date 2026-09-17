@@ -7,6 +7,7 @@ import { LOGO_DATA_URI } from '@/lib/logo'
 import { services } from '@/lib/services'
 import { SiteHeader } from '@/components/site-header'
 import AdminLink from '@/components/AdminLink'
+import VisitorPresence from '@/components/VisitorPresence'
 import './globals.css'
 
 const oswald = Oswald({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-oswald' })
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${oswald.variable} ${inter.variable}`}>
       <body className="bg-jet font-body">
+        <VisitorPresence />
         <SiteHeader />
 
         {children}
