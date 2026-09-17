@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 
 type Slide = { id: string; image_url: string; alt_text: string; caption: string | null }
 
@@ -28,22 +29,31 @@ export function HeroSlideshow({ slides }: { slides: Slide[] }) {
     )
   }
 
+  const slide = slides[index]
+
   return (
     <div className="relative bg-graphite overflow-hidden min-h-[320px] md:min-h-[85vh] border-t md:border-t-0 md:border-l border-darkgrey">
-      {slides.map((slide, i) => (
-        <img
-          key={slide.id}
-          src={slide.image_url}
-          alt={slide.alt_text}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
-            i === index ? 'opacity-100' : 'opacity-0'
-          }`}
-        />
-      ))}
+      {/* Fix: only the slide currently on screen gets loaded, and it goes
+          through next/image so it's resized/compressed instead of served
+          full-size. The old version mounted every hero slide as a raw
+          <img> on first paint, so a visitor's browser was downloading all
+          of them at once before the page could settle — that's almost
+          certainly what tanked the Real Experience Score / LCP. */}
+      <Image
+        key={slide.id}
+        src={slide.image_url}
+        alt={slide.alt_text}
+        fill
+        sizes="100vw"
+        quality={70}
+        priority={index === 0}
+        className="object-cover"
+      />
+
       <div className="absolute inset-0 bg-gradient-to-t from-jet/80 via-jet/10 to-transparent" />
-      {slides[index]?.caption && (
+      {slide.caption && (
         <p className="absolute bottom-6 left-6 right-6 text-paper font-heading font-semibold text-sm">
-          {slides[index].caption}
+          {slide.caption}
         </p>
       )}
       {slides.length > 1 && (
