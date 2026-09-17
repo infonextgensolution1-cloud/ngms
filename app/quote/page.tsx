@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { services } from '@/lib/services'
 import { supabase } from '@/lib/supabaseClient'
+import { track } from '@vercel/analytics'
 
 const SUBURBS = ['Strand', "Gordon's Bay", 'Somerset West', 'Other Helderberg area']
 
@@ -53,6 +54,8 @@ export default function QuotePage() {
     } catch (err) {
       console.error('Failed to save lead:', err)
     }
+
+    track('quote_submitted', { service: service, suburb })
 
     const lines = [
       'New quote request from the NGSMS website:',
