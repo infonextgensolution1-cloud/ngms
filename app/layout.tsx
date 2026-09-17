@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Oswald, Inter } from 'next/font/google'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { Analytics } from '@vercel/analytics/next'
 import Link from 'next/link'
 import { FacebookIcon, WhatsAppIcon } from '@/lib/icons'
 import { LOGO_DATA_URI } from '@/lib/logo'
@@ -8,6 +9,7 @@ import { services } from '@/lib/services'
 import { SiteHeader } from '@/components/site-header'
 import AdminLink from '@/components/AdminLink'
 import VisitorPresence from '@/components/VisitorPresence'
+import ClickTracking from '@/components/ClickTracking'
 import './globals.css'
 
 const oswald = Oswald({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-oswald' })
@@ -27,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${oswald.variable} ${inter.variable}`}>
       <body className="bg-jet font-body">
         <VisitorPresence />
+        <ClickTracking />
         <SiteHeader />
 
         {children}
@@ -105,6 +108,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
 
         <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   )
