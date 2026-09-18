@@ -15,9 +15,17 @@ export function generateMetadata({ params }: { params: { slug: string } }) {
   }
 }
 
+const CALCULATOR_SLUGS: Record<string, string> = {
+  paving: 'paving',
+  painting: 'painting',
+  'pool-fibre-lining': 'pool',
+}
+
 export default function ServiceDetailPage({ params }: { params: { slug: string } }) {
   const service = getService(params.slug)
   if (!service) notFound()
+
+  const calcKey = CALCULATOR_SLUGS[params.slug]
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -74,6 +82,15 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
               WhatsApp NGSMS
             </a>
           </div>
+
+          {calcKey && (
+            <Link
+              href={`/services?calc=${calcKey}#calculator`}
+              className="inline-flex items-center gap-2 text-orange font-heading font-semibold text-sm mt-6 hover:underline"
+            >
+              Get an instant estimate for this job &rarr;
+            </Link>
+          )}
 
           <p className="text-sm text-mist mt-6 opacity-80">
             Serving Strand, Somerset West, Gordon’s Bay and the Helderberg Basin. See our{' '}
