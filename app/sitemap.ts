@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { services } from '@/lib/services'
+import { solarLocations } from '@/lib/solar-locations'
 
 const BASE_URL = 'https://www.nextgensolarmaintenance.co.za'
 
@@ -16,6 +17,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/faq`, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${BASE_URL}/contact`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/quote`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE_URL}/solar-panel-cleaning-helderberg`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE_URL}/solar-maintenance-somerset-west`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE_URL}/solar-cleaning-gordons-bay-overberg`, changeFrequency: 'monthly', priority: 0.8 },
   ]
 
   const servicePages: MetadataRoute.Sitemap = services.map((service) => ({
@@ -24,5 +28,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: service.slug === 'solar-panel-cleaning' ? 0.9 : 0.8,
   }))
 
-  return [...staticPages, ...servicePages]
+  // Per-town solar pages, e.g. /solar-panel-cleaning/somerset-west
+  const solarLocationPages: MetadataRoute.Sitemap = solarLocations.map((loc) => ({
+    url: `${BASE_URL}/solar-panel-cleaning/${loc.slug}`,
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  }))
+
+  return [...staticPages, ...servicePages, ...solarLocationPages]
 }
