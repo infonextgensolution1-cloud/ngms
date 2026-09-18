@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
 
-// Runs server-side only — this is the one place in the app allowed to hold
-// a secret key. RESEND_API_KEY must be added in Vercel → Project Settings →
-// Environment Variables (never commit it to the repo).
-const resend = new Resend(process.env.RESEND_API_KEY)
-
+// RESEND_API_KEY must be added in Vercel → Project Settings → Environment
+// Variables (never commit it to the repo). The Resend client is created
+// inside the POST handler below, not up here — creating it at module load
+// time makes Next.js's build step crash if the key isn't set, which takes
+// down the WHOLE site's deploy, not just this one endpoint.
 const NOTIFY_TO = 'info.nextgensolution1@gmail.com'
 const FROM = 'NGSMS Website <leads@nextgensolarmaintenance.co.za>'
 
@@ -54,6 +54,7 @@ export async function POST(request: Request) {
   ].filter(Boolean) as string[]
 
   try {
+    const resend = new Resend(process.env.RESEND_API_KEY)
     await resend.emails.send({
       from: FROM,
       to: NOTIFY_TO,
