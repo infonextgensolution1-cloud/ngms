@@ -11,9 +11,12 @@ const WHATSAPP_URL = 'https://wa.me/27631387945'
 const LINKS = [
   { href: '/', label: 'Home' },
   { href: '/services', label: 'Services' },
+  { href: '/maintenance-packages', label: 'Packages' },
+  { href: '/roi-calculator', label: 'ROI Calculator' },
   { href: '/portfolio', label: 'Projects' },
   { href: '/gallery', label: 'Gallery' },
   { href: '/price-list', label: 'Catalog' },
+  { href: '/faq', label: 'FAQ' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
 ]
@@ -28,7 +31,7 @@ export function SiteHeader() {
           <img src={LOGO_DATA_URI} alt="NGSMS logo" className="h-16 lg:h-20 w-auto" />
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-6 text-base font-semibold font-heading uppercase tracking-wide">
+        <nav className="hidden xl:flex items-center gap-3.5 text-sm font-semibold font-heading uppercase tracking-wide whitespace-nowrap">
           {LINKS.map((l) => (
             <Link key={l.href} href={l.href} className="text-mist hover:text-orange">
               {l.label}
@@ -36,7 +39,7 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="hidden lg:flex items-center gap-4">
+        <div className="hidden xl:flex items-center gap-4">
           <a href={FACEBOOK_URL} aria-label="NGSMS on Facebook" className="text-blue hover:opacity-80">
             <FacebookIcon className="h-7 w-7" />
           </a>
@@ -55,7 +58,7 @@ export function SiteHeader() {
           type="button"
           aria-label="Toggle menu"
           onClick={() => setOpen((v) => !v)}
-          className="lg:hidden flex flex-col justify-center items-center gap-1.5 h-11 w-11 shrink-0"
+          className="xl:hidden flex flex-col justify-center items-center gap-1.5 h-11 w-11 shrink-0"
         >
           <span className={`block h-0.5 w-6 bg-white transition ${open ? 'rotate-45 translate-y-2' : ''}`} />
           <span className={`block h-0.5 w-6 bg-white transition ${open ? 'opacity-0' : ''}`} />
@@ -64,7 +67,7 @@ export function SiteHeader() {
       </div>
 
       {open && (
-        <nav className="lg:hidden border-t border-darkgrey px-4 py-5 flex flex-col gap-5 text-base font-semibold font-heading uppercase tracking-wide">
+        <nav className="xl:hidden border-t border-darkgrey px-4 py-5 flex flex-col gap-5 text-base font-semibold font-heading uppercase tracking-wide">
           {LINKS.map((l) => (
             <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="text-mist hover:text-orange">
               {l.label}
