@@ -327,7 +327,7 @@ export default function Calculators({ initial = 'solar' }: { initial?: Calc }) {
   const [tab, setTab] = useState<Calc>(initial)
 
   return (
-    <section className="max-w-2xl mx-auto px-4 py-10">
+    <section id="calculator" className="max-w-2xl mx-auto px-4 py-10 scroll-mt-24">
       <p className="text-orange font-semibold text-sm uppercase tracking-wide mb-2">
         Work it out yourself
       </p>
@@ -371,4 +371,4 @@ export default function Calculators({ initial = 'solar' }: { initial?: Calc }) {
       </div>
     </section>
   )
-}
+            }
