@@ -8,7 +8,18 @@ export const metadata = {
     'Solar panel cleaning specialists plus 11 more trades across Strand, Somerset West, Gordon’s Bay and the Helderberg Basin — one call, all solutions.',
 }
 
-export default function ServicesPage() {
+const CALC_TABS = ['solar', 'paving', 'painting', 'pool'] as const
+
+export default function ServicesPage({
+  searchParams,
+}: {
+  searchParams?: { calc?: string }
+}) {
+  const requested = searchParams?.calc
+  const initialCalc = (CALC_TABS as readonly string[]).includes(requested ?? '')
+    ? (requested as (typeof CALC_TABS)[number])
+    : 'solar'
+
   return (
     <main className="bg-jet">
       <section className="bg-jet text-white py-14 text-center px-4">
@@ -27,7 +38,7 @@ export default function ServicesPage() {
       </section>
 
       <section className="bg-jet border-b border-darkgrey">
-        <Calculators />
+        <Calculators initial={initialCalc} />
       </section>
 
       <section className="bg-jet text-white text-center py-12 px-4">
