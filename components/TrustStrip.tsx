@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import type { BeforeAfter } from "@/lib/queries";
 
+// Real reviews only. Add new Google reviews to the TOP of this list,
+// e.g. { quote: "...", name: "Trustee, Cosmos Mews", source: "Google Review — 5 stars" },
 const REVIEWS = [
   {
     quote: "Reasonable price. Professional cleaning on 3 of my commercial buildings.",
@@ -43,7 +45,7 @@ export default function TrustStrip({ beforeAfter }: { beforeAfter: BeforeAfter[]
                 <div key={idx} className="card !p-0 overflow-hidden text-left">
                   <BeforeAfterSlider before={item.before_image_url} after={item.after_image_url} />
                   <div className="p-3">
-                    <p className="text-sm">{item.caption || "Another Project Successfully Completed"}</p>
+                    <p className="text-sm">{item.caption || item.location}</p>
                     <p className="tag">{item.location}</p>
                   </div>
                 </div>
