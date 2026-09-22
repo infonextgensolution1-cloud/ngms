@@ -7,7 +7,36 @@ import { SERVICES } from "@/lib/services";
 
 type Status = "idle" | "sending" | "done" | "error";
 
-export default function QuoteForm({ initialService }: { initialService?: string }) {
+const AREA_OPTIONS = [
+  "Strand",
+  "Gordon's Bay",
+  "Somerset West",
+  "Overberg (Kleinmond / Grabouw / Elgin / Bot River)",
+  "Other Helderberg area",
+];
+
+// Maps an incoming suburb name (e.g. from a suburb-specific service page)
+// onto the fixed set of options this select offers.
+function matchArea(initialArea?: string) {
+  if (!initialArea) return undefined;
+  const exact = AREA_OPTIONS.find((a) => a === initialArea);
+  if (exact) return exact;
+  const overbergTowns = ["Kleinmond", "Grabouw", "Elgin", "Bot River"];
+  if (overbergTowns.some((t) => initialArea.includes(t))) {
+    return "Overberg (Kleinmond / Grabouw / Elgin / Bot River)";
+  }
+  return undefined;
+}
+
+export default function QuoteForm({
+  initialService,
+  initialArea,
+  initialSize,
+}: {
+  initialService?: string;
+  initialArea?: string;
+  initialSize?: string;
+}) {
   const [status, setStatus] = useState<Status>("idle");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -81,12 +110,10 @@ export default function QuoteForm({ initialService }: { initialService?: string 
         <input type="email" name="email" placeholder="you@example.com" className="field" />
       </Field>
       <Field label="Area">
-        <select name="area" className="field">
-          <option>Strand</option>
-          <option>Gordon&rsquo;s Bay</option>
-          <option>Somerset West</option>
-          <option>Overberg (Kleinmond / Grabouw / Elgin / Bot River)</option>
-          <option>Other Helderberg area</option>
+        <select name="area" defaultValue={matchArea(initialArea)} className="field">
+          {AREA_OPTIONS.map((a) => (
+            <option key={a}>{a}</option>
+          ))}
         </select>
       </Field>
       <Field label="Service">
@@ -97,7 +124,7 @@ export default function QuoteForm({ initialService }: { initialService?: string 
         </select>
       </Field>
       <Field label="Size / details">
-        <input name="size" placeholder="e.g. 20 panels, 3-bed exterior" className="field" />
+        <input name="size" defaultValue={initialSize} placeholder="e.g. 20 panels, 3-bed exterior" className="field" />
       </Field>
       <Field label="Preferred contact">
         <select name="pref" className="field">
