@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
+import BusinessSummary from '@/components/admin/BusinessSummary'
 import { supabase } from '@/lib/supabaseClient'
 import { Loader2, Image as ImageIcon, LogOut } from 'lucide-react'
 
@@ -125,7 +126,7 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-[70vh] bg-jet px-4 py-16">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="font-heading text-2xl font-bold text-paper">Admin Dashboard</h1>
@@ -138,6 +139,8 @@ export default function AdminPage() {
             <LogOut className="w-4 h-4" /> Sign out
           </button>
         </div>
+
+        <BusinessSummary />
 
         <LiveVisitors />
 
