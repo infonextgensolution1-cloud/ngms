@@ -8,6 +8,8 @@ import SolarRoiCalculator from '@/components/SolarRoiCalculator'
 import PavingCalculator from '@/components/PavingCalculator'
 import StatsStrip from '@/components/StatsStrip'
 import HomeServices from '@/components/HomeServices'
+import BodyCorporateSection from '@/components/BodyCorporateSection'
+import { whatsappLink } from '@/lib/site'
 import { getBeforeAfter } from '@/lib/queries'
 
 export const revalidate = 0
@@ -40,27 +42,41 @@ export default async function HomePage() {
       <section className="grid md:grid-cols-2">
         <div className="flex flex-col justify-center px-6 sm:px-12 py-16 md:py-0 min-h-[70vh] md:min-h-[85vh]">
           <p className="text-blue text-xs tracking-[0.2em] uppercase font-bold mb-4 font-heading">
-            NextGen Solar &amp; Maintenance Solutions
+            One Call. All Solutions.
           </p>
-          <h1 className="font-heading font-bold text-5xl sm:text-6xl leading-[1.05] text-paper animate-fade-up">
-            ONE CALL.
+          <h1 className="font-heading font-bold text-4xl sm:text-6xl leading-[1.05] text-paper animate-fade-up">
+            DIRTY PANELS COST YOU
             <br />
-            <span className="text-orange">ALL SOLUTIONS.</span>
+            <span className="text-orange">UP TO 25% OUTPUT.</span>
           </h1>
           <p className="text-mist text-lg mt-6 max-w-md">
-            Professional property maintenance across the Helderberg Basin — solar, painting,
-            waterproofing, paving and more, coordinated by one team.
+            Professional solar panel cleaning across Strand, Somerset West and Gordon&apos;s Bay. Purified water and
+            soft brushes, no callout fee in the Helderberg Basin. From R550.
           </p>
           <div className="flex gap-4 mt-8 flex-wrap">
-            <Link href="/portfolio" className="btn-outline">
-              VIEW PROJECTS
-            </Link>
-            <Link href="/quote" className="btn-wa">
+            <Link
+              href="/quote?service=Solar%20Panel%20Cleaning"
+              className="btn bg-orange text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-orange/20"
+            >
               GET FREE QUOTE
             </Link>
+            <a
+              href={whatsappLink("Hi NextGen, I'd like a quote for solar panel cleaning please.")}
+              className="btn-wa"
+              target="_blank"
+              rel="noreferrer"
+            >
+              WHATSAPP US
+            </a>
           </div>
-          <p className="text-mist text-xs tracking-widest uppercase mt-10 font-semibold">
-            Serving Strand · Somerset West · Gordon&apos;s Bay · Helderberg Basin
+          <p className="text-mist text-sm mt-6">
+            Also painting, waterproofing, paving and 8 more trades.{' '}
+            <Link href="/services" className="text-blue font-semibold hover:underline">
+              See all services &rarr;
+            </Link>
+          </p>
+          <p className="text-mist text-xs tracking-widest uppercase mt-8 font-semibold">
+            Serving Strand · Somerset West · Gordon&apos;s Bay · Overberg
           </p>
         </div>
 
@@ -68,8 +84,15 @@ export default async function HomePage() {
       </section>
 
       <div className="bg-orange text-white text-center text-sm font-bold py-2">
-        10% OFF your first booking · Solar panel cleaning from R50/panel
+        Solar panel cleaning from R550 (up to 10 panels) · 10% off your first booking on all other services
       </div>
+
+      {/* Solar ROI calculator — the best selling tool, straight under the hero */}
+      <section className="bg-jet py-12 px-4">
+        <div className="max-w-[520px] mx-auto">
+          <SolarRoiCalculator />
+        </div>
+      </section>
 
       {/* Scrolling service ticker — quick, always-moving proof of breadth */}
       <div className="bg-jet border-b border-darkgrey overflow-hidden py-3">
@@ -97,13 +120,14 @@ export default async function HomePage() {
         <p className="text-mist text-lg max-w-xl mx-auto mb-8">
           Drag the sliders for a rough idea, then request the exact price — no obligation.
         </p>
-        <div className="grid md:grid-cols-2 gap-4 max-w-[760px] mx-auto px-4 text-left">
-          <SolarRoiCalculator />
+        <div className="max-w-[520px] mx-auto px-4 text-left">
           <PavingCalculator />
         </div>
       </section>
 
       <StatsStrip />
+
+      <BodyCorporateSection />
 
       <HomeServices services={services} />
 
