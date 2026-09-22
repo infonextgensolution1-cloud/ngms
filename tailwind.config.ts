@@ -1,5 +1,7 @@
 import type { Config } from 'tailwindcss'
 
+// Ember Grid theme — black/grey/white with Solar Orange as the only accent.
+// Spec: docs/ember-grid-theme.md
 const config: Config = {
   content: [
     './app/**/*.{ts,tsx}',
@@ -8,29 +10,32 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Deep Black — primary page background
-        jet: '#050608',
-        // Graphite — section/band background
-        graphite: '#101318',
-        // Dark Grey — borders / dividers
-        darkgrey: '#1B2027',
-        // Card Grey — card/panel background
-        cardgrey: '#151A20',
-        // Light Grey — secondary text on dark
-        mist: '#AEB6C0',
-        // near-white for primary text on dark
-        paper: '#F7F9FB',
-        // NGMS Orange — sparing accent (stat numbers, prices, secondary highlights)
+        // Jet Black — primary page background
+        jet: '#0A0A0A',
+        // Graphite — section/band background, hover cards
+        graphite: '#1F2023',
+        // Steel Line — borders / dividers
+        darkgrey: '#2E3035',
+        // Carbon — card/panel background
+        cardgrey: '#141517',
+        // Ash — secondary text on dark
+        mist: '#9A9CA1',
+        // Chalk — primary text on dark
+        paper: '#F4F4F2',
+        // Concrete — one light block per page
+        concrete: '#D6D6D3',
+        // Solar Orange — the single accent (CTAs, icons, markers, split panels)
         orange: {
-          DEFAULT: '#FF7A18',
-          dark: '#E0680E',
+          DEFAULT: '#F57C1B',
+          dark: '#FF5A1F',
         },
-        // NGMS Blue — trust, links, location
+        // Legacy 'blue' token now maps to the orange accent so existing
+        // kickers/links switch to the one-accent look without component edits
         blue: {
-          DEFAULT: '#1688FF',
-          dark: '#0F6FDB',
+          DEFAULT: '#F57C1B',
+          dark: '#FF5A1F',
         },
-        // WhatsApp Green — WhatsApp icon/CTA/floating button, primary quote CTA
+        // WhatsApp Green — WhatsApp buttons only (functional, kept)
         whatsapp: {
           DEFAULT: '#25D366',
           dark: '#1DA851',
@@ -41,8 +46,8 @@ const config: Config = {
         body: ['var(--font-inter)', 'sans-serif'],
       },
       borderRadius: {
-        card: '12px',
-        btn: '8px',
+        card: '2px',
+        btn: '2px',
       },
     },
   },
