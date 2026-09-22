@@ -2,6 +2,11 @@ import Link from 'next/link'
 import { services } from '@/lib/services'
 import { supabase } from '@/lib/supabaseClient'
 import { HeroSlideshow } from '@/components/hero-slideshow'
+import SeasonalBanner from '@/components/SeasonalBanner'
+import TrustStrip from '@/components/TrustStrip'
+import SolarRoiCalculator from '@/components/SolarRoiCalculator'
+import PavingCalculator from '@/components/PavingCalculator'
+import { getBeforeAfter } from '@/lib/queries'
 
 export const revalidate = 0
 
@@ -21,29 +26,13 @@ async function getHeroSlides(): Promise<Slide[]> {
   return (data as Slide[]) ?? []
 }
 
-const REVIEWS = [
-  {
-    name: 'Alewyn Bronn',
-    source: 'Google Review — 5 stars',
-    quote: 'Reasonable price. Professional cleaning on 3 of my commercial buildings.',
-  },
-  {
-    name: 'Marlene Bronn',
-    source: 'Facebook',
-    quote: 'Impressive guys, a job well done!',
-  },
-  {
-    name: 'Cornellskop Animal Encounters',
-    source: 'Facebook',
-    quote: 'Fantastic service, great communication! No hidden costs — did really great work at heights I avoid.',
-  },
-]
-
 export default async function HomePage() {
-  const slides = await getHeroSlides()
+  const [slides, beforeAfter] = await Promise.all([getHeroSlides(), getBeforeAfter()])
 
   return (
     <main className="bg-jet">
+      <SeasonalBanner />
+
       <section className="grid md:grid-cols-2">
         <div className="flex flex-col justify-center px-6 sm:px-12 py-16 md:py-0 min-h-[70vh] md:min-h-[85vh]">
           <p className="text-blue text-xs tracking-[0.2em] uppercase font-bold mb-4 font-heading">
@@ -84,7 +73,22 @@ export default async function HomePage() {
         10% OFF your first booking · Solar panel cleaning from R50/panel
       </div>
 
-      <section className="bg-graphite text-white py-10 border-b border-darkgrey">
+      {/* Before/after + reviews, right under the hero — not buried further down the page */}
+      <TrustStrip beforeAfter={beforeAfter} />
+
+      <section className="bg-jet text-white py-14 text-center">
+        <p className="text-blue font-bold text-sm mb-2 font-heading tracking-wide">INSTANT ESTIMATE</p>
+        <h2 className="font-heading text-3xl sm:text-4xl font-bold mb-2 text-paper">See A Ballpark Number In Seconds</h2>
+        <p className="text-mist text-lg max-w-xl mx-auto mb-8">
+          Drag the sliders for a rough idea, then request the exact price — no obligation.
+        </p>
+        <div className="grid md:grid-cols-2 gap-4 max-w-[760px] mx-auto px-4 text-left">
+          <SolarRoiCalculator />
+          <PavingCalculator />
+        </div>
+      </section>
+
+      <section className="bg-graphite text-white py-10 border-y border-darkgrey">
         <div className="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
           <div>
             <p className="font-heading text-3xl font-bold text-orange">12</p>
@@ -122,32 +126,6 @@ export default async function HomePage() {
         </div>
         <Link href="/services" className="inline-block mt-8 text-blue font-bold text-sm">
           View all 12 services &rarr;
-        </Link>
-      </section>
-
-      <section className="bg-graphite text-white py-14 text-center border-y border-darkgrey">
-        <p className="text-blue font-bold text-sm mb-2 font-heading tracking-wide">REVIEWS</p>
-        <h2 className="font-heading text-3xl sm:text-4xl font-bold mb-10 text-paper">What Our Clients Say</h2>
-        <div className="max-w-5xl mx-auto px-4 grid sm:grid-cols-3 gap-6 text-left">
-          {REVIEWS.map((review) => (
-            <div key={review.name} className="bg-cardgrey border border-darkgrey rounded-card p-6">
-              <p className="text-orange text-lg mb-3">&#9733;&#9733;&#9733;&#9733;&#9733;</p>
-              <p className="text-mist text-sm mb-4">&ldquo;{review.quote}&rdquo;</p>
-              <p className="font-heading font-semibold text-sm text-paper">{review.name}</p>
-              <p className="text-mist text-xs mt-1 opacity-70">{review.source}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="bg-jet text-white py-14 text-center">
-        <p className="text-blue font-bold text-sm mb-2 font-heading tracking-wide">SEE THE DIFFERENCE</p>
-        <h2 className="font-heading text-3xl sm:text-4xl font-bold mb-4 text-paper">Before &amp; After</h2>
-        <p className="text-mist text-lg max-w-xl mx-auto mb-8">
-          Real before-and-after results from recent NGSMS jobs — photos loading soon.
-        </p>
-        <Link href="/portfolio" className="inline-block bg-orange hover:bg-orange-dark text-white font-heading font-semibold px-6 py-3 rounded-btn">
-          View All Projects
         </Link>
       </section>
     </main>
