@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { FacebookIcon, WhatsAppIcon } from '@/lib/icons'
 import { LOGO_DATA_URI } from '@/lib/logo'
@@ -23,17 +23,37 @@ const LINKS = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
-    <header className="bg-jet text-white sticky top-0 z-50 border-b border-darkgrey">
-      <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-2 gap-3">
+    <header
+      className={`bg-jet/95 backdrop-blur text-white sticky top-0 z-50 border-b transition-shadow duration-300 ${
+        scrolled ? 'border-darkgrey shadow-lg shadow-black/30' : 'border-transparent'
+      }`}
+    >
+      <div
+        className={`max-w-6xl mx-auto flex items-center justify-between px-4 gap-3 transition-[padding] duration-300 ${
+          scrolled ? 'py-1' : 'py-2'
+        }`}
+      >
         <Link href="/" className="flex items-center shrink-0" onClick={() => setOpen(false)}>
-          <img src={LOGO_DATA_URI} alt="NGSMS logo" className="h-16 lg:h-20 w-auto" />
+          <img
+            src={LOGO_DATA_URI}
+            alt="NGSMS logo"
+            className={`w-auto transition-all duration-300 ${scrolled ? 'h-12 lg:h-14' : 'h-16 lg:h-20'}`}
+          />
         </Link>
 
         <nav className="hidden xl:flex items-center gap-3.5 text-sm font-semibold font-heading uppercase tracking-wide whitespace-nowrap">
           {LINKS.map((l) => (
-            <Link key={l.href} href={l.href} className="text-mist hover:text-orange">
+            <Link key={l.href} href={l.href} className="text-mist hover:text-orange transition-colors">
               {l.label}
             </Link>
           ))}
@@ -46,10 +66,7 @@ export function SiteHeader() {
           <a href={WHATSAPP_URL} aria-label="WhatsApp NGSMS" className="text-whatsapp hover:opacity-80">
             <WhatsAppIcon className="h-7 w-7" />
           </a>
-          <Link
-            href="/quote"
-            className="bg-whatsapp hover:bg-whatsapp-dark text-white font-bold text-xs px-4 py-2.5 rounded-btn uppercase"
-          >
+          <Link href="/quote" className="btn-wa !text-xs !px-4 !py-2.5">
             Get A Quote
           </Link>
         </div>
@@ -81,11 +98,7 @@ export function SiteHeader() {
               <WhatsAppIcon className="h-7 w-7" />
             </a>
           </div>
-          <Link
-            href="/quote"
-            onClick={() => setOpen(false)}
-            className="bg-whatsapp hover:bg-whatsapp-dark text-white font-bold text-sm px-4 py-3 rounded-btn text-center"
-          >
+          <Link href="/quote" onClick={() => setOpen(false)} className="btn-wa text-center">
             Get A Quote
           </Link>
         </nav>
