@@ -31,7 +31,7 @@ export default function SolarRoiCalculator() {
   return (
     <div className="card text-left">
       <p className="tag">Solar ROI estimate</p>
-      <h3 className="text-lg mt-1">What&apos;s dirty panels costing you?</h3>
+      <h3 className="text-lg mt-1">What are dirty panels costing you?</h3>
 
       <div className="grid gap-3 mt-4">
         <NumberField label="Number of panels" value={panels} onChange={setPanels} min={1} max={200} />
