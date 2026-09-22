@@ -75,6 +75,24 @@ export default function QuoteForm({
       return;
     }
 
+    // Email ping to Jacques via Resend (/api/notify). Fire-and-forget: the
+    // lead is already saved, so a failed email must never block the customer.
+    fetch("/api/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      keepalive: true,
+      body: JSON.stringify({
+        name,
+        phone,
+        email,
+        suburb,
+        service: serviceName,
+        sizeDetails: size,
+        preferredContact: pref,
+        message: notes,
+      }),
+    }).catch(() => {});
+
     setStatus("done");
     const waMsg = `Hi NGSMS, quote request from ${name}.\nPhone: ${phone}\nArea: ${suburb}\nService: ${serviceName}`;
     window.open(waLink(waMsg), "_blank");
