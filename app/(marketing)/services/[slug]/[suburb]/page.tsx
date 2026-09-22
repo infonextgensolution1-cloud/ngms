@@ -22,7 +22,7 @@ export function generateMetadata({
   if (!s || !sub) return {};
   return {
     title: `${s.name} in ${sub.name}`,
-    description: `${s.name} in ${sub.name}, ${sub.region} — ${s.price}. Free written quote from NextGen Solar & Maintenance Solutions.`,
+    description: `${s.name} in ${sub.name}, ${sub.region}. Free written quote from NextGen Solar & Maintenance Solutions.`,
   };
 }
 
@@ -41,7 +41,7 @@ export default function ServiceSuburbPage({
     serviceType: s.name,
     provider: {
       "@type": "LocalBusiness",
-      name: SITE.legalName,
+      name: SITE.name,
       telephone: SITE.phone,
       email: SITE.email,
     },
@@ -49,7 +49,7 @@ export default function ServiceSuburbPage({
       "@type": "Place",
       name: `${sub.name}, Western Cape, South Africa`,
     },
-    description: s.summary,
+    description: s.description,
   };
 
   const otherSuburbs = SUBURBS.filter((x) => x.slug !== sub.slug);
@@ -63,29 +63,21 @@ export default function ServiceSuburbPage({
         <h1 className="text-3xl md:text-5xl">
           {s.name} in {sub.name}
         </h1>
-        <p className="text-mist mt-2">{s.tag} · {s.price}</p>
+        <p className="text-mist mt-2">{s.tagline}</p>
       </div>
 
       <div className="wrap max-w-[720px] py-10">
-        <p className="text-mist leading-relaxed">{s.summary}</p>
+        <p className="text-mist leading-relaxed">{s.description}</p>
         <p className="text-mist leading-relaxed mt-4">{sub.blurb}</p>
-        <p className="text-mist leading-relaxed mt-4">{s.body}</p>
 
-        <h2 className="text-xl mt-8 mb-3">Pricing guide</h2>
+        <h2 className="text-xl mt-8 mb-3">What&rsquo;s included</h2>
         <ul className="space-y-2">
-          {s.pricingNotes.map((p) => (
+          {s.whatsIncluded.map((p) => (
             <li key={p} className="card !py-3 !px-4 text-sm text-mist">{p}</li>
           ))}
         </ul>
         <p className="text-mist text-xs mt-3">Prices exclude VAT. Free written quote after a site visit.</p>
         <p className="text-orange text-sm font-semibold mt-2">{sub.calloutNote}</p>
-
-        {s.seasonalNote && (
-          <p className="mt-6 border border-line rounded-lg p-4 text-sm text-mist">
-            <span className="text-orange font-semibold">Seasonal note: </span>
-            {s.seasonalNote}
-          </p>
-        )}
 
         <p className="mt-8">
           <Link
