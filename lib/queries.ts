@@ -89,3 +89,18 @@ export async function getPost(slug: string): Promise<Post | null> {
   if (error || !data) return null;
   return data as Post;
 }
+
+// Service card photos, set per service in Admin → Media → Service images.
+// Returns { slug: imageUrl } for every service that has one.
+export async function getServiceImages(): Promise<Record<string, string>> {
+  const { data, error } = await supabase
+    .from("services")
+    .select("slug, hero_image")
+    .not("hero_image", "is", null);
+  if (error || !data) return {};
+  const map: Record<string, string> = {};
+  for (const row of data as { slug: string; hero_image: string | null }[]) {
+    if (row.hero_image) map[row.slug] = row.hero_image;
+  }
+  return map;
+}
