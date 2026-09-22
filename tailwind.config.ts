@@ -42,8 +42,10 @@ const config: Config = {
         },
       },
       fontFamily: {
-        heading: ['var(--font-oswald)', 'sans-serif'],
-        body: ['var(--font-inter)', 'sans-serif'],
+        // Big Shoulders Display — set in app/layout.tsx
+        heading: ['var(--font-heading)', 'sans-serif'],
+        // IBM Plex Sans — set in app/layout.tsx
+        body: ['var(--font-body)', 'sans-serif'],
       },
       borderRadius: {
         card: '2px',
