@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { services } from '@/lib/services'
 import { Trash2, Upload, Loader2, ArrowLeft } from 'lucide-react'
 
-type Tab = 'hero' | 'beforeafter' | 'gallery'
+type Tab = 'hero' | 'beforeafter' | 'gallery' | 'services'
 
 // --- helpers ---------------------------------------------------------------
 
@@ -421,6 +421,130 @@ function Gallery() {
   )
 }
 
+// --- Service images ------------------------------------------------------------
+// One photo per service card on /services. Stored in services.hero_image.
+
+function ServiceImages() {
+  const [images, setImages] = useState<Record<string, string | null>>({})
+  const [busySlug, setBusySlug] = useState<string | null>(null)
+  const [msg, setMsg] = useState('')
+
+  const load = async () => {
+    const { data } = await supabase.from('services').select('slug, hero_image')
+    const map: Record<string, string | null> = {}
+    for (const r of data ?? []) map[r.slug] = r.hero_image
+    setImages(map)
+  }
+  useEffect(() => {
+    load()
+  }, [])
+
+  const setImage = async (slug: string, url: string | null) => {
+    const { data, error } = await supabase
+      .from('services')
+      .update({ hero_image: url })
+      .eq('slug', slug)
+      .select('slug')
+    if (error) throw error
+    if (!data || data.length === 0) throw new Error(`Service "${slug}" not found in the database.`)
+  }
+
+  const upload = async (slug: string, file: File) => {
+    setBusySlug(slug)
+    setMsg('')
+    try {
+      const ext = file.name.split('.').pop() ?? 'jpg'
+      const path = `services/${slug}-${Date.now()}.${ext}`
+      const { error } = await supabase.storage
+        .from('site-media')
+        .upload(path, file, { cacheControl: '3600', upsert: false })
+      if (error) throw error
+      const { data } = supabase.storage.from('site-media').getPublicUrl(path)
+      await setImage(slug, data.publicUrl)
+      setMsg('Image updated — live on the Services page within a minute.')
+      load()
+    } catch (e: any) {
+      setMsg(e.message ?? 'Upload failed.')
+    } finally {
+      setBusySlug(null)
+    }
+  }
+
+  const clear = async (slug: string) => {
+    setBusySlug(slug)
+    setMsg('')
+    try {
+      await setImage(slug, null)
+      setMsg('Image removed.')
+      load()
+    } catch (e: any) {
+      setMsg(e.message ?? 'Could not remove image.')
+    } finally {
+      setBusySlug(null)
+    }
+  }
+
+  return (
+    <div>
+      <p className="text-sm text-gray-400 mb-4">
+        The photo on each service card on the Services page. Landscape photos work best
+        (they&apos;re cropped to 16:10).
+      </p>
+      {msg && <p className="text-sm mb-4 text-gray-300">{msg}</p>}
+
+      <div className="space-y-2">
+        {services.map((s) => {
+          const url = images[s.slug]
+          const busy = busySlug === s.slug
+          return (
+            <div
+              key={s.slug}
+              className="flex items-center gap-3 border border-gray-800 rounded-lg p-2 bg-graphite"
+            >
+              {url ? (
+                <img src={url} alt="" className="w-24 h-16 object-cover rounded" />
+              ) : (
+                <div className="w-24 h-16 rounded bg-jet border border-dashed border-gray-700 flex items-center justify-center text-[10px] text-gray-500">
+                  No image
+                </div>
+              )}
+              <p className="flex-1 min-w-0 text-sm text-white truncate">{s.name}</p>
+              <label
+                className={`bg-orange text-white font-semibold px-3 py-1.5 rounded-full text-xs inline-flex items-center gap-1 cursor-pointer ${
+                  busy ? 'opacity-50 pointer-events-none' : ''
+                }`}
+              >
+                {busy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                {url ? 'Replace' : 'Upload'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    e.target.value = ''
+                    if (f) upload(s.slug, f)
+                  }}
+                />
+              </label>
+              {url && (
+                <button
+                  onClick={() => clear(s.slug)}
+                  disabled={busy}
+                  className="text-red-400 p-2 disabled:opacity-50"
+                  aria-label={`Remove ${s.name} image`}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // --- Page --------------------------------------------------------------------
 
 export default function AdminMediaPage() {
@@ -450,6 +574,7 @@ export default function AdminMediaPage() {
     { key: 'hero', label: 'Hero slides' },
     { key: 'beforeafter', label: 'Before / After' },
     { key: 'gallery', label: 'Gallery' },
+    { key: 'services', label: 'Service images' },
   ]
 
   return (
@@ -463,12 +588,12 @@ export default function AdminMediaPage() {
 
       <h1 className="text-2xl font-black mb-6 text-white">Media</h1>
 
-      <div className="flex gap-2 mb-6 border-b border-gray-800">
+      <div className="flex gap-2 mb-6 border-b border-gray-800 overflow-x-auto">
         {tabs.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`px-4 py-2 text-sm font-semibold border-b-2 -mb-px transition ${
+            className={`px-4 py-2 text-sm font-semibold border-b-2 -mb-px transition whitespace-nowrap ${
               tab === t.key
                 ? 'border-orange text-orange'
                 : 'border-transparent text-gray-400 hover:text-white'
@@ -482,6 +607,7 @@ export default function AdminMediaPage() {
       {tab === 'hero' && <HeroSlides />}
       {tab === 'beforeafter' && <BeforeAfter />}
       {tab === 'gallery' && <Gallery />}
+      {tab === 'services' && <ServiceImages />}
     </main>
   )
 }
