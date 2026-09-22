@@ -98,7 +98,7 @@ export default function QuoteForm({
   return (
     <form className="grid gap-3.5 max-w-[520px] mx-auto" onSubmit={onSubmit}>
       <div className="bg-orange rounded-lg text-white text-center font-bold text-sm py-2.5 px-3">
-        10% OFF your first booking (excludes solar) · Solar panel cleaning from R550
+        Solar panel cleaning from R550 (up to 10 panels) · 10% off your first booking on all other services
       </div>
       <Field label="Full name">
         <input required name="name" placeholder="Your name" className="field" />
