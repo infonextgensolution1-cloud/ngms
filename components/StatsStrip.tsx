@@ -15,16 +15,23 @@ const STATS: Stat[] = [
   { value: 7, suffix: "-Step", label: "Simple Process" },
 ];
 
-// Animated count-up stat strip. Numbers sit at 0 until the section is
-// scrolled into view, then count up together — a small bit of motion
-// that gives the dashboard-style stat cards some life on first sight.
+// Animated count-up stat strip. The server-rendered HTML always carries the
+// real numbers (so Google, link previews and slow connections never see "0").
+// Once JS loads, if the strip is still below the fold, the numbers reset to 0
+// out of sight and count up when scrolled into view.
 export default function StatsStrip() {
   const ref = useRef<HTMLDivElement>(null);
+  const [armed, setArmed] = useState(false);
   const [started, setStarted] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const rect = el.getBoundingClientRect();
+    const alreadyVisible = rect.top < window.innerHeight && rect.bottom > 0;
+    if (reduceMotion || alreadyVisible) return; // keep the real numbers, no animation
+    setArmed(true);
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
@@ -42,18 +49,32 @@ export default function StatsStrip() {
     <section ref={ref} className="bg-graphite text-white py-12 sm:py-14 border-y border-darkgrey">
       <div className="wrap grid grid-cols-2 sm:grid-cols-4 gap-4">
         {STATS.map((stat, i) => (
-          <StatCard key={stat.label} stat={stat} started={started} delayMs={i * 120} />
+          <StatCard key={stat.label} stat={stat} armed={armed} started={started} delayMs={i * 120} />
         ))}
       </div>
     </section>
   );
 }
 
-function StatCard({ stat, started, delayMs }: { stat: Stat; started: boolean; delayMs: number }) {
-  const [display, setDisplay] = useState(0);
+function StatCard({
+  stat,
+  armed,
+  started,
+  delayMs,
+}: {
+  stat: Stat;
+  armed: boolean;
+  started: boolean;
+  delayMs: number;
+}) {
+  const [display, setDisplay] = useState(stat.value);
 
   useEffect(() => {
-    if (!started) return;
+    if (armed && !started) setDisplay(0);
+  }, [armed, started]);
+
+  useEffect(() => {
+    if (!armed || !started) return;
     let raf: number;
     const duration = 1200;
     const startTime = performance.now() + delayMs;
@@ -71,7 +92,7 @@ function StatCard({ stat, started, delayMs }: { stat: Stat; started: boolean; de
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [started, stat.value, delayMs]);
+  }, [armed, started, stat.value, delayMs]);
 
   return (
     <div className="card text-center hover:border-orange/50 transition-colors">
