@@ -4,6 +4,7 @@
 
 html {
   font-size: 18px;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -16,4 +17,120 @@ h2,
 h3 {
   text-transform: uppercase;
   letter-spacing: 0.01em;
+}
+
+@layer components {
+  /* Page container */
+  .wrap {
+    @apply max-w-6xl mx-auto px-4;
+  }
+  .max-w-wrap {
+    @apply max-w-6xl mx-auto;
+  }
+
+  /* Small eyebrow label above a heading */
+  .kicker {
+    @apply inline-block text-blue font-heading font-bold text-xs sm:text-sm uppercase tracking-[0.2em] mb-2;
+  }
+
+  /* Generic dark panel used across cards, testimonials, calculators */
+  .card {
+    @apply bg-cardgrey border border-darkgrey rounded-card p-5;
+  }
+
+  /* Small uppercase meta label (locations, categories) */
+  .tag {
+    @apply text-mist text-xs uppercase tracking-wide font-semibold;
+  }
+
+  /* Divider / border alias kept for back-compat */
+  .border-line {
+    @apply border-darkgrey;
+  }
+
+  /* Big stat / price display, kept as alias to the heading font */
+  .font-display {
+    @apply font-heading;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-heading font-bold text-sm uppercase tracking-wide px-6 py-3 rounded-btn transition-all duration-200;
+  }
+  .btn-wa {
+    @apply btn bg-whatsapp text-white hover:bg-whatsapp-dark hover:-translate-y-0.5 hover:shadow-lg hover:shadow-whatsapp/20;
+  }
+  .btn-outline {
+    @apply btn border border-mist/40 text-paper hover:border-orange hover:text-orange hover:-translate-y-0.5;
+  }
+  .btn-dark {
+    @apply btn bg-cardgrey border border-darkgrey text-paper hover:border-orange hover:text-orange;
+  }
+}
+
+/* Scroll-reveal + ambient motion, used across the homepage */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee 28s linear infinite;
+}
+
+@keyframes wa-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  75%,
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+.animate-wa-ping {
+  animation: wa-ping 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+.animate-floaty {
+  animation: floaty 4.5s ease-in-out infinite;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .animate-wa-ping,
+  .animate-floaty,
+  .animate-fade-up {
+    animation: none !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
 }
