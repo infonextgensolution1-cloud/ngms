@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import ServiceCard from "@/components/ServiceCard";
 import { SERVICES } from "@/lib/services";
+import { getServiceImages } from "@/lib/queries";
+
+// Re-check Supabase for new service photos at most once a minute.
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Services",
@@ -22,14 +26,16 @@ const PRICING: Record<string, string> = {
   "subcontractor-work": "Custom quote",
 };
 
-// Real job photos, keyed by service slug — add more here as photos get tagged
-// with a service_slug in the gallery_photos table.
-const IMAGES: Record<string, string> = {
+// Fallback photos, used only when a service has no image set in
+// Admin → Media → Service images.
+const FALLBACK_IMAGES: Record<string, string> = {
   "solar-panel-cleaning":
     "https://dfwwpqtsbaytfqptancj.supabase.co/storage/v1/object/public/gallery-photos/1788906733722-ig0pgfcjwv.jpg",
 };
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const dbImages = await getServiceImages();
+  const images = { ...FALLBACK_IMAGES, ...dbImages };
   return (
     <section>
       <div className="bg-graphite border-b border-darkgrey py-16 px-4 text-center">
@@ -45,7 +51,7 @@ export default function ServicesPage() {
       <div className="max-w-5xl mx-auto px-4 py-12">
         <div className="grid sm:grid-cols-2 gap-5">
           {SERVICES.map((s) => (
-            <ServiceCard key={s.slug} s={s} price={PRICING[s.slug]} image={IMAGES[s.slug]} />
+            <ServiceCard key={s.slug} s={s} price={PRICING[s.slug]} image={images[s.slug]} />
           ))}
         </div>
       </div>
