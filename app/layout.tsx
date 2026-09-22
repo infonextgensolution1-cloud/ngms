@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Oswald, Inter } from 'next/font/google'
+import { Big_Shoulders_Display, IBM_Plex_Sans } from 'next/font/google'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Analytics } from '@vercel/analytics/next'
 import Link from 'next/link'
@@ -13,8 +13,9 @@ import VisitorPresence from '@/components/VisitorPresence'
 import ClickTracking from '@/components/ClickTracking'
 import './globals.css'
 
-const oswald = Oswald({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-oswald' })
-const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-inter' })
+// Ember Grid typography — Big Shoulders Display (headings) + IBM Plex Sans (body)
+const heading = Big_Shoulders_Display({ subsets: ['latin'], weight: ['600', '700', '800'], variable: '--font-heading' })
+const body = IBM_Plex_Sans({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-body' })
 
 const FACEBOOK_URL = 'https://www.facebook.com/p/Nextgen-Solar-Maintenance-Solutions-61590183304623/'
 const WHATSAPP_URL = 'https://wa.me/27631387945'
@@ -83,7 +84,7 @@ const LOCAL_BUSINESS_JSONLD = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${oswald.variable} ${inter.variable}`}>
+    <html lang="en" className={`${heading.variable} ${body.variable}`}>
       <body className="bg-jet font-body">
         <script
           type="application/ld+json"
