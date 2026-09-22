@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/next'
 import Link from 'next/link'
 import { FacebookIcon, WhatsAppIcon } from '@/lib/icons'
 import { LOGO_DATA_URI } from '@/lib/logo'
+import { SITE } from '@/lib/site'
 import { services } from '@/lib/services'
 import { SiteHeader } from '@/components/site-header'
 import AdminLink from '@/components/AdminLink'
@@ -18,16 +19,76 @@ const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600'], variabl
 const FACEBOOK_URL = 'https://www.facebook.com/p/Nextgen-Solar-Maintenance-Solutions-61590183304623/'
 const WHATSAPP_URL = 'https://wa.me/27631387945'
 
+const SITE_TITLE = 'NextGen Solar Clean & Maintenance Solutions | Solar Cleaning, Pressure Cleaning & Handyman Helderberg'
+const SITE_DESCRIPTION =
+  'Professional solar panel cleaning, pressure cleaning, painting, waterproofing, plumbing, electrical & handyman services in Strand, Gordon’s Bay & Somerset West. Reliable local team. Free quotes.'
+
 export const metadata: Metadata = {
-  title: 'NextGen Solar & Maintenance Solutions | Solar Cleaning, Pressure Cleaning & Handyman Helderberg',
-  description:
-    'Professional solar panel cleaning, pressure cleaning, painting, waterproofing, plumbing, electrical & handyman services in Strand, Gordon’s Bay & Somerset West. Reliable local team. Free quotes.',
+  metadataBase: new URL(SITE.url),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    title: SITE_TITLE,
+    description: 'One call, all solutions — solar panel cleaning and multi-trade property maintenance across the Helderberg Basin.',
+    siteName: SITE.name,
+    locale: 'en_ZA',
+    type: 'website',
+  },
+  twitter: { card: 'summary_large_image' },
+}
+
+// LocalBusiness structured data — helps Google show NGSMS in Maps / local results.
+const LOCAL_BUSINESS_JSONLD = {
+  '@context': 'https://schema.org',
+  '@type': 'HomeAndConstructionBusiness',
+  '@id': `${SITE.url}/#business`,
+  name: SITE.name,
+  alternateName: SITE.shortName,
+  url: SITE.url,
+  logo: `${SITE.url}/opengraph-image`,
+  image: `${SITE.url}/opengraph-image`,
+  telephone: SITE.phone,
+  email: SITE.email,
+  slogan: 'One Call. All Solutions.',
+  priceRange: 'R550+',
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Strand',
+    addressRegion: 'Western Cape',
+    addressCountry: 'ZA',
+  },
+  areaServed: SITE.serviceAreas.map((name) => ({ '@type': 'Place', name: `${name}, Western Cape` })),
+  openingHoursSpecification: [
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      opens: '07:00',
+      closes: '18:00',
+    },
+  ],
+  contactPoint: [
+    { '@type': 'ContactPoint', telephone: SITE.phone, contactType: 'customer service', areaServed: 'ZA' },
+    { '@type': 'ContactPoint', telephone: '+27627007509', contactType: 'reservations', areaServed: 'ZA' },
+  ],
+  sameAs: [FACEBOOK_URL],
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Property maintenance services',
+    itemListElement: services.map((s) => ({
+      '@type': 'Offer',
+      itemOffered: { '@type': 'Service', name: s.name, url: `${SITE.url}/services/${s.slug}` },
+    })),
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${oswald.variable} ${inter.variable}`}>
       <body className="bg-jet font-body">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(LOCAL_BUSINESS_JSONLD) }}
+        />
         <VisitorPresence />
         <ClickTracking />
         <SiteHeader />
@@ -91,9 +152,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div>
               <p className="font-heading font-bold text-paper mb-4 uppercase tracking-wide">Contact Us</p>
               <ul className="space-y-2">
-                <li>063 138 7945</li>
-<li>Bookings: 062 700 7509</li>
-                <li className="break-all">info.nextgensolution1@gmail.com</li>
+                <li>
+                  <a href="tel:+27631387945" className="hover:text-orange">063 138 7945</a>
+                </li>
+                <li>
+                  Bookings:{' '}
+                  <a href="tel:+27627007509" className="hover:text-orange">062 700 7509</a>
+                </li>
+                <li className="break-all">
+                  <a href="mailto:info.nextgensolution1@gmail.com" className="hover:text-orange">
+                    info.nextgensolution1@gmail.com
+                  </a>
+                </li>
                 <li>Strand &middot; Gordon’s Bay &middot; Somerset West</li>
                 <li>Mon &ndash; Sat: 07:00 &ndash; 18:00</li>
               </ul>
@@ -102,7 +172,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
           <div className="max-w-6xl mx-auto px-4 mt-10 pt-6 border-t border-darkgrey text-xs flex flex-wrap items-center justify-between gap-3">
             <span className="opacity-70">
-              &copy; {new Date().getFullYear()} NextGen Solar &amp; Maintenance Solutions. All rights reserved.
+              &copy; {new Date().getFullYear()} NextGen Solar Clean &amp; Maintenance Solutions. All rights reserved.
             </span>
             <AdminLink />
           </div>
