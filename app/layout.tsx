@@ -34,7 +34,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {children}
 
-        <footer className="bg-jet text-mist text-sm pt-14 pb-8 mt-10 border-t border-darkgrey">
+        <div className="bg-graphite border-t border-darkgrey py-10 text-center px-4">
+          <p className="font-heading font-bold text-2xl sm:text-3xl text-paper">
+            ONE CALL. <span className="text-orange">ALL SOLUTIONS.</span>
+          </p>
+          <p className="text-mist text-sm uppercase tracking-widest font-semibold mt-2">
+            Across the Helderberg Basin
+          </p>
+        </div>
+
+        <footer className="bg-jet text-mist text-sm pt-14 pb-8 border-t border-darkgrey">
           <div className="max-w-6xl mx-auto px-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
             <div>
               <img src={LOGO_DATA_URI} alt="NGSMS logo" className="h-12 w-auto mb-4" />
@@ -102,9 +111,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a
           href={WHATSAPP_URL}
           aria-label="WhatsApp NGSMS"
-          className="fixed bottom-5 right-5 z-50 flex items-center justify-center h-14 w-14 rounded-full shadow-lg bg-whatsapp"
+          className="fixed bottom-5 right-5 z-50 flex items-center justify-center h-14 w-14"
         >
-          <WhatsAppIcon className="h-7 w-7 text-white" />
+          <span aria-hidden className="absolute inset-0 rounded-full bg-whatsapp animate-wa-ping" />
+          <span className="relative flex items-center justify-center h-14 w-14 rounded-full shadow-lg bg-whatsapp">
+            <WhatsAppIcon className="h-7 w-7 text-white" />
+          </span>
         </a>
 
         <SpeedInsights />
