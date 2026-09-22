@@ -50,7 +50,7 @@ export default function TrustStrip({ beforeAfter }: { beforeAfter: BeforeAfter[]
               ))}
             </div>
             <p className="mt-6">
-              <Link href="/projects" className="text-blue font-bold hover:underline">
+              <Link href="/portfolio" className="text-blue font-bold hover:underline">
                 View all projects &rarr;
               </Link>
             </p>
