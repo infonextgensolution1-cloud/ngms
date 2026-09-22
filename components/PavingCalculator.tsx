@@ -14,6 +14,12 @@ export default function PavingCalculator() {
 
   const quoteHref = `/quote?service=${encodeURIComponent("Paving")}&size=${encodeURIComponent(`${length}m x ${width}m (~${area}m²)`)}`;
 
+  // Purely decorative footprint preview: scales with the ratio the
+  // sliders describe, and its width nudges up with total area so a
+  // bigger job visibly reads as a bigger swatch.
+  const ratio = length / width;
+  const previewWidthPct = Math.min(100, 45 + (area / (60 * 30)) * 55);
+
   return (
     <div className="card text-left">
       <p className="tag">Paving estimate</p>
@@ -24,20 +30,34 @@ export default function PavingCalculator() {
         <NumberField label="Width (m)" value={width} onChange={setWidth} min={1} max={30} />
       </div>
 
-      <div className="mt-5 rounded-lg border border-orange/40 bg-orange/10 p-4 text-center">
+      <div className="mt-5 flex justify-center">
+        <div
+          className="transition-all duration-500 ease-out rounded-md border border-orange/40 overflow-hidden"
+          style={{
+            width: `${previewWidthPct}%`,
+            aspectRatio: `${ratio}`,
+            backgroundColor: "#1B2027",
+            backgroundImage:
+              "repeating-linear-gradient(0deg, rgba(255,122,24,0.35) 0 2px, transparent 2px 18px), repeating-linear-gradient(90deg, rgba(255,122,24,0.35) 0 2px, transparent 2px 18px)",
+          }}
+          aria-hidden
+        />
+      </div>
+
+      <div className="mt-4 rounded-lg border border-orange/40 bg-orange/10 p-4 text-center">
         <p className="text-mist text-xs uppercase tracking-wider">Approx. area</p>
-        <p className="text-3xl font-display text-orange mt-1">{area}m²</p>
+        <p className="text-3xl font-heading font-bold text-orange mt-1">{area}m²</p>
         <p className="text-mist text-sm mt-2">
           From <strong className="text-paper">R{estimate.toLocaleString("en-ZA")}</strong> at R{FROM_PRICE_PER_M2}/m²
         </p>
       </div>
 
       <p className="text-mist text-[11px] mt-3">
-        "From" pricing on new interlocking paving over a compacted base. Final price depends on base condition,
-        access and paver choice — confirmed on a free site visit.
+        &quot;From&quot; pricing on new interlocking paving over a compacted base. Final price depends on base
+        condition, access and paver choice — confirmed on a free site visit.
       </p>
 
-      <Link href={quoteHref} className="btn btn-wa mt-4 w-full text-center">
+      <Link href={quoteHref} className="btn-wa mt-4 w-full text-center">
         Get an exact quote for {area}m²
       </Link>
     </div>
