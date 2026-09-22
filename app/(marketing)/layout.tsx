@@ -1,13 +1,6 @@
 import type { Metadata } from "next";
-import { Inter, Oswald } from "next/font/google";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import WhatsAppFab from "@/components/WhatsAppFab";
 import SeasonalBanner from "@/components/SeasonalBanner";
 import { SITE } from "@/lib/site";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const oswald = Oswald({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-oswald", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -27,19 +20,17 @@ export const metadata: Metadata = {
   },
 };
 
-// This layout only wraps routes inside app/(marketing)/ — the folder name in
-// parentheses is a Next.js "route group": it groups pages under one layout
-// without adding anything to the URL. It does NOT touch app/layout.tsx (the
-// true root layout), so anything outside this group — including /admin — is
-// completely unaffected by the header, footer, fonts and WhatsApp button below.
+// This layout only wraps routes inside app/(marketing)/ — services, prices, packages.
+// The ROOT layout (app/layout.tsx) already renders the real site header, footer and
+// floating WhatsApp button for every route, including these. This layout previously
+// ALSO rendered its own Header/Footer/WhatsAppFab, which stacked a second, unstyled
+// header and footer on top of the real ones on every page in this group. Do not add
+// them back here — anything global belongs in the root layout only.
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`${inter.variable} ${oswald.variable} font-sans bg-jet text-paper min-h-screen flex flex-col`}>
-      <Header />
+    <>
       <SeasonalBanner />
-      <main className="flex-1">{children}</main>
-      <Footer />
-      <WhatsAppFab />
-    </div>
+      {children}
+    </>
   );
 }
