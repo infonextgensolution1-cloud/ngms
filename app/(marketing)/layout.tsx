@@ -13,7 +13,6 @@ export const metadata: Metadata = {
   openGraph: {
     title: `${SITE.name} | Helderberg`,
     description: "One call, all solutions — multi-trade property maintenance across the Helderberg Basin.",
-    url: SITE.url,
     siteName: SITE.shortName,
     locale: "en_ZA",
     type: "website",
