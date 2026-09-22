@@ -31,4 +31,5 @@ export function whatsappLink(
 export const SITE = site;
 export const siteConfig = site;
 export const WHATSAPP_URL = whatsappLink();
+export const waLink = whatsappLink;
 export default site;
