@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { BeforeAfter } from "@/lib/queries";
@@ -30,26 +33,15 @@ export default function TrustStrip({ beforeAfter }: { beforeAfter: BeforeAfter[]
     <section className="py-14 px-4 bg-graphite border-y border-line">
       <div className="wrap">
         {pairs.length > 0 && (
-          <div className="text-center mb-10">
-            <p className="kicker">See the difference</p>
+          <div className="text-center mb-14">
+            <p className="kicker">Drag to compare</p>
             <h2 className="text-3xl md:text-4xl">Real Jobs, Real Results</h2>
-            <div className={`grid gap-4 mt-6 ${pairs.length === 1 ? "max-w-[520px] mx-auto" : "sm:grid-cols-2 md:grid-cols-3"}`}>
+            <div
+              className={`grid gap-5 mt-8 ${pairs.length === 1 ? "max-w-[420px] mx-auto" : "sm:grid-cols-2 md:grid-cols-3"}`}
+            >
               {pairs.map((item, idx) => (
                 <div key={idx} className="card !p-0 overflow-hidden text-left">
-                  <div className="grid grid-cols-2">
-                    <div className="relative h-[150px]">
-                      <Image src={item.before_image_url} alt="Before" fill className="object-cover" />
-                      <span className="absolute top-1.5 left-1.5 bg-jet/80 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded">
-                        Before
-                      </span>
-                    </div>
-                    <div className="relative h-[150px]">
-                      <Image src={item.after_image_url} alt="After" fill className="object-cover" />
-                      <span className="absolute top-1.5 left-1.5 bg-orange/90 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded">
-                        After
-                      </span>
-                    </div>
-                  </div>
+                  <BeforeAfterSlider before={item.before_image_url} after={item.after_image_url} />
                   <div className="p-3">
                     <p className="text-sm">{item.caption || "Another Project Successfully Completed"}</p>
                     <p className="tag">{item.location}</p>
@@ -58,7 +50,9 @@ export default function TrustStrip({ beforeAfter }: { beforeAfter: BeforeAfter[]
               ))}
             </div>
             <p className="mt-6">
-              <Link href="/projects" className="text-blue font-bold">View all projects →</Link>
+              <Link href="/projects" className="text-blue font-bold hover:underline">
+                View all projects &rarr;
+              </Link>
             </p>
           </div>
         )}
@@ -66,18 +60,124 @@ export default function TrustStrip({ beforeAfter }: { beforeAfter: BeforeAfter[]
         <div className="text-center">
           <p className="kicker">Reviews</p>
           <h2 className="text-3xl md:text-4xl">What Our Clients Say</h2>
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 text-left max-w-wrap mx-auto mt-6">
-            {REVIEWS.map((r) => (
-              <div key={r.name} className="card">
-                <p className="text-orange">★★★★★</p>
-                <p className="text-mist my-3">&ldquo;{r.quote}&rdquo;</p>
-                <strong>{r.name}</strong>
-                <p className="text-mist text-xs">{r.source}</p>
-              </div>
-            ))}
-          </div>
+          <TestimonialCarousel />
         </div>
       </div>
     </section>
+  );
+}
+
+// Draggable / tappable before-after comparison. Pure client-side CSS
+// clip-path, no libraries — works with mouse drag, touch drag and a
+// click-anywhere jump.
+function BeforeAfterSlider({ before, after }: { before: string; after: string }) {
+  const [pos, setPos] = useState(50);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const draggingRef = useRef(false);
+
+  const updateFromClientX = (clientX: number) => {
+    const el = containerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const pct = ((clientX - rect.left) / rect.width) * 100;
+    setPos(Math.min(100, Math.max(0, pct)));
+  };
+
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      if (!draggingRef.current) return;
+      updateFromClientX(e.clientX);
+    };
+    const onUp = () => {
+      draggingRef.current = false;
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative h-[190px] select-none cursor-ew-resize touch-none"
+      onPointerDown={(e) => {
+        draggingRef.current = true;
+        updateFromClientX(e.clientX);
+      }}
+    >
+      <div className="absolute inset-0">
+        <Image src={after} alt="After" fill className="object-cover pointer-events-none" />
+        <span className="absolute top-1.5 right-1.5 bg-orange/90 text-white text-[10px] uppercase tracking-wider px-2 py-0.5 rounded">
+          After
+        </span>
+      </div>
+
+      <div className="absolute inset-0 overflow-hidden" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
+        <Image src={before} alt="Before" fill className="object-cover pointer-events-none" />
+        <span className="absolute top-1.5 left-1.5 bg-jet/80 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded">
+          Before
+        </span>
+      </div>
+
+      <div className="absolute top-0 bottom-0 w-0.5 bg-paper/90 pointer-events-none" style={{ left: `${pos}%` }}>
+        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 left-1/2 h-8 w-8 rounded-full bg-paper flex items-center justify-center shadow-lg">
+          <span className="text-jet text-xs">&#8596;</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Auto-rotating testimonial carousel — advances every 5s, pauses on
+// hover/focus so people can actually read one before it moves on.
+function TestimonialCarousel() {
+  const [active, setActive] = useState(0);
+  const pausedRef = useRef(false);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (!pausedRef.current) {
+        setActive((v) => (v + 1) % REVIEWS.length);
+      }
+    }, 5000);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <div
+      className="max-w-2xl mx-auto mt-8"
+      onMouseEnter={() => (pausedRef.current = true)}
+      onMouseLeave={() => (pausedRef.current = false)}
+    >
+      <div className="card min-h-[180px] flex flex-col justify-center relative overflow-hidden">
+        {REVIEWS.map((r, i) => (
+          <div
+            key={r.name}
+            className={`transition-opacity duration-500 ${i === active ? "opacity-100" : "opacity-0 absolute inset-0 p-5 pointer-events-none"}`}
+            aria-hidden={i !== active}
+          >
+            <p className="text-orange">★★★★★</p>
+            <p className="text-mist my-3">&ldquo;{r.quote}&rdquo;</p>
+            <strong className="text-paper">{r.name}</strong>
+            <p className="text-mist text-xs">{r.source}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-center gap-2 mt-4">
+        {REVIEWS.map((r, i) => (
+          <button
+            key={r.name}
+            type="button"
+            aria-label={`Show review from ${r.name}`}
+            onClick={() => setActive(i)}
+            className={`h-2 rounded-full transition-all ${i === active ? "w-6 bg-orange" : "w-2 bg-mist/40 hover:bg-mist"}`}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
