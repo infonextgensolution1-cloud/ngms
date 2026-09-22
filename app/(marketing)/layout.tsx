@@ -3,6 +3,7 @@ import { Inter, Oswald } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WhatsAppFab from "@/components/WhatsAppFab";
+import SeasonalBanner from "@/components/SeasonalBanner";
 import { SITE } from "@/lib/site";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -11,13 +12,13 @@ const oswald = Oswald({ subsets: ["latin"], weight: ["500", "600", "700"], varia
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
   title: {
-    default: `${SITE.legalName} | Helderberg`,
+    default: `${SITE.name} | Helderberg`,
     template: `%s | ${SITE.shortName}`,
   },
   description:
     "Solar panel cleaning, painting, waterproofing, paving, plumbing, electrical, pool fibre lining, high-pressure cleaning, rubble removal, steelwork and handyman services in Strand, Gordon's Bay & Somerset West. Free quotes.",
   openGraph: {
-    title: `${SITE.legalName} | Helderberg`,
+    title: `${SITE.name} | Helderberg`,
     description: "One call, all solutions — multi-trade property maintenance across the Helderberg Basin.",
     url: SITE.url,
     siteName: SITE.shortName,
@@ -35,6 +36,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
   return (
     <div className={`${inter.variable} ${oswald.variable} font-sans bg-jet text-paper min-h-screen flex flex-col`}>
       <Header />
+      <SeasonalBanner />
       <main className="flex-1">{children}</main>
       <Footer />
       <WhatsAppFab />
