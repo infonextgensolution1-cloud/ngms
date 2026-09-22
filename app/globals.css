@@ -5,6 +5,7 @@
 html {
   font-size: 18px;
   scroll-behavior: smooth;
+  color-scheme: dark;
 }
 
 body {
@@ -17,6 +18,63 @@ h2,
 h3 {
   text-transform: uppercase;
   letter-spacing: 0.01em;
+}
+
+/* ---------- Form fields: always readable on the dark theme ----------
+   Fixes white-on-white / white-on-grey text in the quote form and admin
+   edit forms (Android renders native selects light by default). */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="color"]),
+select,
+textarea {
+  background-color: #161616 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  padding: 0.55rem 0.75rem;
+  font-size: 16px; /* stops iOS zoom-on-focus */
+  line-height: 1.4;
+  caret-color: #f58220;
+}
+
+select option,
+select optgroup {
+  background-color: #161616;
+  color: #ffffff;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8a8a8a !important;
+  -webkit-text-fill-color: #8a8a8a;
+  opacity: 1;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #f58220 !important;
+  box-shadow: 0 0 0 2px rgba(245, 130, 32, 0.25);
+}
+
+/* Chrome/Android autofill paints a light-blue box - keep it dark */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: #ffffff !important;
+  -webkit-box-shadow: 0 0 0 1000px #161616 inset !important;
+  box-shadow: 0 0 0 1000px #161616 inset !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 @layer components {
