@@ -7,7 +7,7 @@ export default function Footer() {
     <footer className="bg-graphite border-t border-line text-mist pt-14 pb-6">
       <div className="wrap grid gap-8 md:grid-cols-4 mb-8">
         <div>
-          <Image src="/logo.png" alt={SITE.legalName} width={64} height={56} />
+          <Image src="/logo.png" alt={SITE.name} width={64} height={56} />
           <p className="mt-3 text-sm leading-relaxed">
             Professional property maintenance across the Helderberg Basin. Quality work, done safely and properly.
           </p>
@@ -35,15 +35,15 @@ export default function Footer() {
           <ul className="space-y-1 text-sm">
             <li><a href={`tel:${SITE.phone}`} className="hover:text-orange">{SITE.phoneDisplay}</a></li>
             <li><a href={`mailto:${SITE.email}`} className="hover:text-orange break-all">{SITE.email}</a></li>
-            <li>{SITE.areas.join(" · ")}</li>
-            <li>Also serving the Overberg — {SITE.outOfBasinFee} out-of-basin callout</li>
-            <li>{SITE.hours}</li>
+            <li>{SITE.serviceAreas.slice(0, 3).join(" · ")}</li>
+            <li>Also serving the Overberg — R350 out-of-basin callout</li>
+            <li>Mon – Sat: 07:00 – 18:00</li>
           </ul>
         </div>
       </div>
       <div className="wrap flex flex-wrap justify-between gap-3 border-t border-line pt-4 text-xs">
-        <p>© {new Date().getFullYear()} {SITE.legalName}. All rights reserved.</p>
-        <p className="text-mist/70">{SITE.tagline}</p>
+        <p>© {new Date().getFullYear()} {SITE.name}. All rights reserved.</p>
+        <p className="text-mist/70">One Call. All Solutions.</p>
       </div>
     </footer>
   );
