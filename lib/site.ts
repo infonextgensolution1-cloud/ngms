@@ -1,8 +1,8 @@
-// lib/site.ts — central business details for NGMS
+// lib/site.ts — central business details for NGSMS
 
 export const site = {
   name: "NextGen Solar Clean & Maintenance Solutions",
-  shortName: "NGMS",
+  shortName: "NGSMS",
   domain: "nextgensolarmaintenance.co.za",
   url: "https://www.nextgensolarmaintenance.co.za",
   phone: "+27631387945",
