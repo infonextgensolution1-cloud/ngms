@@ -47,7 +47,7 @@ export function SiteHeader() {
           <img
             src={LOGO_DATA_URI}
             alt="NGSMS logo"
-            className={`w-auto transition-all duration-300 ${scrolled ? 'h-12 lg:h-14' : 'h-16 lg:h-20'}`}
+            className={`w-auto transition-all duration-300 ${scrolled ? 'h-12 lg:h-14' : 'h-14 sm:h-16 lg:h-20'}`}
           />
         </Link>
 
@@ -84,23 +84,29 @@ export function SiteHeader() {
       </div>
 
       {open && (
-        <nav className="xl:hidden border-t border-darkgrey px-4 py-5 flex flex-col gap-5 text-base font-semibold font-heading uppercase tracking-wide">
+        // Scrolls inside itself so every link (and the quote button) stays reachable on short phone screens.
+        <nav className="xl:hidden border-t border-darkgrey px-4 pt-4 pb-5 flex flex-col text-base font-semibold font-heading uppercase tracking-wide max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain">
+          <Link href="/quote" onClick={() => setOpen(false)} className="btn-wa text-center mb-2">
+            Get A Quote
+          </Link>
           {LINKS.map((l) => (
-            <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="text-mist hover:text-orange">
+            <Link
+              key={l.href}
+              href={l.href}
+              onClick={() => setOpen(false)}
+              className="text-mist hover:text-orange flex items-center min-h-11"
+            >
               {l.label}
             </Link>
           ))}
-          <div className="flex items-center gap-5 pt-1">
-            <a href={FACEBOOK_URL} aria-label="NGSMS on Facebook" className="text-blue">
+          <div className="flex items-center gap-2 pt-2">
+            <a href={FACEBOOK_URL} aria-label="NGSMS on Facebook" className="text-blue p-2.5 -ml-2.5">
               <FacebookIcon className="h-7 w-7" />
             </a>
-            <a href={WHATSAPP_URL} aria-label="WhatsApp NGSMS" className="text-whatsapp">
+            <a href={WHATSAPP_URL} aria-label="WhatsApp NGSMS" className="text-whatsapp p-2.5">
               <WhatsAppIcon className="h-7 w-7" />
             </a>
           </div>
-          <Link href="/quote" onClick={() => setOpen(false)} className="btn-wa text-center">
-            Get A Quote
-          </Link>
         </nav>
       )}
     </header>
