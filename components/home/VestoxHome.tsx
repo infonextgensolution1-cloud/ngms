@@ -53,30 +53,11 @@ function Tape({ children, className = '' }: { children: ReactNode; className?: s
   )
 }
 
-// Wraps the letter O in a slashed Ø — the headline signature.
-function Slashed({ text }: { text: string }) {
-  return (
-    <>
-      {text.split('').map((ch, i) =>
-        ch === 'O' ? (
-          <span key={i} aria-hidden>
-            Ø
-          </span>
-        ) : (
-          <span key={i} aria-hidden>
-            {ch}
-          </span>
-        ),
-      )}
-    </>
-  )
-}
-
 /* ---------- output chart (illustrative soiling curve) ---------- */
 
 // Typical 5 kW home system in the Helderberg: ~24 kWh/day clean, losing
-// output as dust and salt build up, recovering after each clean.
-const CURVE = [24, 22.6, 21.2, 19.8, 24, 22.8, 21.3, 19.9, 24, 23, 21.7, 20.4]
+// up to ~10% as dust and salt build up, recovering after each clean.
+const CURVE = [24, 23.2, 22.4, 21.6, 24, 23.2, 22.4, 21.7, 24, 23.3, 22.6, 21.9]
 const MONTHS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D']
 const CLEANS = [4, 8]
 
@@ -87,8 +68,8 @@ function OutputChart() {
   const right = 10
   const top = 14
   const bottom = 24
-  const yMin = 18
-  const yMax = 25
+  const yMin = 20.5
+  const yMax = 24.6
   const x = (i: number) => left + (i * (W - left - right)) / (CURVE.length - 1)
   const y = (v: number) => top + ((yMax - v) * (H - top - bottom)) / (yMax - yMin)
 
@@ -96,15 +77,15 @@ function OutputChart() {
   let d = `M ${x(0)} ${y(CURVE[0])}`
   for (let i = 1; i < CURVE.length; i++) {
     if (CLEANS.includes(i)) {
-      d += ` L ${x(i)} ${y(CURVE[i - 1] - 0.9)} L ${x(i)} ${y(CURVE[i])}`
+      d += ` L ${x(i)} ${y(CURVE[i - 1] - 0.4)} L ${x(i)} ${y(CURVE[i])}`
     } else {
       d += ` L ${x(i)} ${y(CURVE[i])}`
     }
   }
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="Illustrative chart: solar output drops from 24 to about 19 kWh a day as panels get dirty, and jumps back after each clean">
-      {[18, 21, 24].map((t) => (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="Illustrative chart: solar output drops about 10%, from 24 to 21.6 kWh a day, as panels get dirty, and jumps back after each clean">
+      {[21.6, 24].map((t) => (
         <g key={t}>
           <line x1={left} x2={W - right} y1={y(t)} y2={y(t)} stroke="#0A0A0A" strokeOpacity={t === 24 ? 0.35 : 0.1} strokeDasharray={t === 24 ? '4 4' : undefined} />
           <text x={left - 6} y={y(t) + 4} textAnchor="end" fontSize="10" fill="#6B6D72">
@@ -141,15 +122,15 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
           <p className="font-heading font-bold uppercase tracking-[0.2em] text-xs sm:text-sm text-orange mb-4">
             Solar panel cleaning · Helderberg Basin
           </p>
-          <h1 className="font-heading font-extrabold leading-[0.86] text-[4.2rem] sm:text-[7rem] lg:text-[8rem] tracking-tight animate-fade-up">
-            <span className="sr-only">Stop the solar slump.</span>
-            <span className="block"><Slashed text="STOP THE" /></span>
-            <span className="block"><Slashed text="SOLAR" /></span>
-            <span className="block italic text-orange">SLUMP.</span>
+          <h1 className="font-heading font-bold leading-[0.92] text-[3rem] sm:text-[4.5rem] lg:text-[5rem] tracking-[-0.035em] animate-fade-up">
+            <span className="block">Dirty panels</span>
+            <span className="block">can cost you</span>
+            <span className="block text-orange">up to 10%</span>
+            <span className="block">output.</span>
           </h1>
           <div className="mt-6 grid sm:grid-cols-[1fr_auto] gap-6 items-end">
             <p className="text-[#3A3C40] text-base sm:text-lg max-w-md">
-              Dust, salt spray and bird droppings cut panel output by up to 25%. We wash it back with purified water
+              Dust, salt spray and bird droppings can cut panel output by up to 10%. We wash it back with purified water
               and soft brushes — Strand, Somerset West and Gordon&apos;s Bay, from R550.
             </p>
           </div>
@@ -200,7 +181,7 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
           </div>
           <div className="relative flex-1 p-5 sm:p-6 flex flex-col justify-between gap-5">
             <div className="text-right">
-              <p className="font-heading font-extrabold text-6xl sm:text-7xl leading-none text-jet">25%</p>
+              <p className="font-heading font-extrabold text-6xl sm:text-7xl leading-none text-jet">10%</p>
               <p className="text-jet/80 text-xs sm:text-sm font-semibold mt-1">of output lost to dirty panels</p>
             </div>
             <div>
@@ -465,15 +446,12 @@ export function PostTrio({ left, right }: { left?: Photo; right?: Photo }) {
             className="group relative aspect-square rounded-lg bg-orange p-5 flex flex-col justify-between overflow-hidden"
             style={{ backgroundImage: 'linear-gradient(rgba(10,10,10,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(10,10,10,0.07) 1px, transparent 1px)', backgroundSize: '28px 28px' }}
           >
-            <p className="font-heading font-extrabold text-jet text-4xl leading-[0.88]">
-              <span className="sr-only">Stop the solar slump.</span>
-              <span aria-hidden>
-                STØP THE
-                <br />
-                SØLAR
-                <br />
-                <span className="italic">SLUMP.</span>
-              </span>
+            <p className="font-heading font-bold text-jet text-[2rem] leading-[0.95] tracking-[-0.03em] uppercase">
+              Dirty panels?
+              <br />
+              Up to 10%
+              <br />
+              output lost.
             </p>
             <div className="flex items-end justify-between gap-3">
               <p className="text-jet text-sm font-semibold max-w-[14rem]">Free quote, usually same day. From R550 for up to 10 panels.</p>
