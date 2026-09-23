@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Plumbing">
+  <title>Plumbing</title>
+  <rect x="6" y="18" width="8" height="12" rx="2"/>
+  <path d="M14 24H42C47 24 50 27 50 32V36"/>
+  <rect x="45" y="36" width="10" height="5" rx="1.5"/>
+  <path d="M27 24V15M19 15H35"/>
+  <path d="M50 46C50 46 45.5 51.5 45.5 54.5A4.5 4.5 0 0 0 54.5 54.5C54.5 51.5 50 46 50 46Z" fill="#F57C1B" stroke="#F57C1B" stroke-width="1.2"/>
+</svg>
