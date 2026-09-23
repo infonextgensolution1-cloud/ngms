@@ -60,13 +60,13 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden xl:flex items-center gap-4">
-          <a href={FACEBOOK_URL} aria-label="NGSMS on Facebook" className="text-blue hover:opacity-80">
+          <a href={FACEBOOK_URL} aria-label="NGSMS on Facebook" className="text-facebook hover:opacity-80">
             <FacebookIcon className="h-7 w-7" />
           </a>
           <a href={WHATSAPP_URL} aria-label="WhatsApp NGSMS" className="text-whatsapp hover:opacity-80">
             <WhatsAppIcon className="h-7 w-7" />
           </a>
-          <Link href="/quote" className="btn-wa !text-xs !px-4 !py-2.5">
+          <Link href="/quote" className="btn-quote !text-xs !px-4 !py-2.5">
             Get A Quote
           </Link>
         </div>
@@ -86,7 +86,7 @@ export function SiteHeader() {
       {open && (
         // Scrolls inside itself so every link (and the quote button) stays reachable on short phone screens.
         <nav className="xl:hidden border-t border-darkgrey px-4 pt-4 pb-5 flex flex-col text-base font-semibold font-heading uppercase tracking-wide max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain">
-          <Link href="/quote" onClick={() => setOpen(false)} className="btn-wa text-center mb-2">
+          <Link href="/quote" onClick={() => setOpen(false)} className="btn-quote text-center mb-2">
             Get A Quote
           </Link>
           {LINKS.map((l) => (
@@ -100,7 +100,7 @@ export function SiteHeader() {
             </Link>
           ))}
           <div className="flex items-center gap-2 pt-2">
-            <a href={FACEBOOK_URL} aria-label="NGSMS on Facebook" className="text-blue p-2.5 -ml-2.5">
+            <a href={FACEBOOK_URL} aria-label="NGSMS on Facebook" className="text-facebook p-2.5 -ml-2.5">
               <FacebookIcon className="h-7 w-7" />
             </a>
             <a href={WHATSAPP_URL} aria-label="WhatsApp NGSMS" className="text-whatsapp p-2.5">
