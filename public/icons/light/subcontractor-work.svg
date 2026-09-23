@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="#0A0A0A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Subcontractor Work">
+  <title>Subcontractor Work</title>
+  <path d="M10 38C10 22 20 14 32 14C44 14 54 22 54 38Z" fill="#F57C1B"/>
+  <path d="M26 15V38M38 15V38"/>
+  <rect x="6" y="38" width="52" height="8" rx="3"/>
+</svg>
