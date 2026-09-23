@@ -1,6 +1,7 @@
 import { Space_Grotesk } from 'next/font/google'
 import { services } from '@/lib/services'
 import SeasonalBanner from '@/components/SeasonalBanner'
+import DiscountPopup from '@/components/DiscountPopup'
 import TrustStrip from '@/components/TrustStrip'
 import TrustBadges from '@/components/TrustBadges'
 import HowItWorks from '@/components/HowItWorks'
@@ -50,6 +51,7 @@ export default async function HomePage() {
   return (
     <main className={`bg-jet ${techHeading.variable}`}>
       <SeasonalBanner />
+      <DiscountPopup />
 
       <HeroBento solar={solar(0)} avatars={[pick(1), pick(2), pick(3)].filter(Boolean) as Photo[]} feature={pick(0)} />
 
