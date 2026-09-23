@@ -126,6 +126,14 @@ textarea:disabled {
   .btn-wa {
     @apply btn bg-whatsapp text-white hover:bg-whatsapp-dark hover:-translate-y-0.5 hover:shadow-lg hover:shadow-whatsapp/20;
   }
+  /* Every "Get a quote" button: Power Purple */
+  .btn-quote {
+    @apply btn bg-purple text-white hover:bg-purple-dark hover:-translate-y-0.5 hover:shadow-lg hover:shadow-purple/30;
+  }
+  /* "Book a site walk-through": Facebook blue, same as the Facebook icon */
+  .btn-facebook {
+    @apply btn bg-facebook text-white hover:bg-facebook-dark hover:-translate-y-0.5 hover:shadow-lg hover:shadow-facebook/30;
+  }
   .btn-outline {
     @apply btn border border-mist/40 text-paper hover:border-orange hover:text-orange hover:-translate-y-0.5;
   }
