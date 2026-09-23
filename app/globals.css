@@ -181,11 +181,118 @@ textarea:disabled {
   animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* ---------- Bold & immersive hero/section motion (homepage redesign) ---------- */
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.animate-pulse-soft {
+  animation: pulse-soft 2.2s ease-in-out infinite;
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin-slow {
+  animation: spin-slow 42s linear infinite;
+}
+
+@keyframes spin-slow-reverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+.animate-spin-slow-reverse {
+  animation: spin-slow-reverse 58s linear infinite;
+}
+
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-40%);
+  }
+  100% {
+    transform: translateX(340%);
+  }
+}
+.animate-shimmer {
+  animation: shimmer-sweep 3.4s ease-in-out infinite;
+}
+
+@keyframes grid-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 48px 48px;
+  }
+}
+.animate-grid-drift {
+  animation: grid-drift 14s linear infinite;
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+.animate-glow-pulse {
+  animation: glow-pulse 5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes cell-flicker {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+.animate-cell-flicker {
+  animation: cell-flicker 3.6s ease-in-out infinite;
+}
+
+/* Bespoke stagger delays for hero headline words — used with .animate-fade-up */
+.delay-1 {
+  animation-delay: 0.08s;
+}
+.delay-2 {
+  animation-delay: 0.18s;
+}
+.delay-3 {
+  animation-delay: 0.3s;
+}
+.delay-4 {
+  animation-delay: 0.42s;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee,
   .animate-wa-ping,
   .animate-floaty,
-  .animate-fade-up {
+  .animate-fade-up,
+  .animate-pulse-soft,
+  .animate-spin-slow,
+  .animate-spin-slow-reverse,
+  .animate-shimmer,
+  .animate-grid-drift,
+  .animate-glow-pulse,
+  .animate-cell-flicker {
     animation: none !important;
   }
   html {
