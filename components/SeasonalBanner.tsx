@@ -35,14 +35,14 @@ export default function SeasonalBanner() {
       <div className="wrap flex items-center justify-between gap-3 py-2.5">
         <p className="flex-1">
           {msg.text}{" "}
-          <Link href={msg.ctaHref} className="underline font-semibold whitespace-nowrap">
+          <Link href={msg.ctaHref} className="inline-block py-2 -my-2 underline font-semibold whitespace-nowrap">
             {msg.ctaLabel} →
           </Link>
         </p>
         <button
           onClick={onDismiss}
           aria-label="Dismiss"
-          className="shrink-0 w-6 h-6 grid place-items-center rounded hover:bg-white/15 transition-colors"
+          className="shrink-0 w-11 h-11 -my-2 -mr-3 grid place-items-center rounded hover:bg-white/15 transition-colors"
         >
           ✕
         </button>
