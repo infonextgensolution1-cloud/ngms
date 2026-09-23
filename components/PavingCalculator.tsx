@@ -57,7 +57,7 @@ export default function PavingCalculator() {
         condition, access and paver choice — confirmed on a free site visit.
       </p>
 
-      <Link href={quoteHref} className="btn-wa mt-4 w-full text-center">
+      <Link href={quoteHref} className="btn-quote mt-4 w-full text-center">
         Get an exact quote for {area}m²
       </Link>
     </div>
