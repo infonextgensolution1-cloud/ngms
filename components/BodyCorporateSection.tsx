@@ -34,7 +34,7 @@ export default function BodyCorporateSection() {
           <div className="flex gap-4 flex-wrap mt-8">
             <Link
               href="/quote?service=Solar%20Panel%20Cleaning"
-              className="btn bg-orange text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-orange/20"
+              className="btn-facebook"
             >
               BOOK A SITE WALK-THROUGH
             </Link>
