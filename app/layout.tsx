@@ -124,7 +124,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 properly.
               </p>
               <div className="flex items-center gap-1 mt-3 -ml-2">
-                <a href={FACEBOOK_URL} aria-label="NGSMS on Facebook" className="text-blue hover:opacity-80 p-2.5">
+                <a href={FACEBOOK_URL} aria-label="NGSMS on Facebook" className="text-facebook hover:opacity-80 p-2.5">
                   <FacebookIcon className="h-7 w-7" />
                 </a>
                 <a href={WHATSAPP_URL} aria-label="WhatsApp NGSMS" className="text-whatsapp hover:opacity-80 p-2.5">
@@ -173,10 +173,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <li>
                   <a href="tel:+27631387945" className="hover:text-orange inline-block py-2 sm:py-1">063 138 7945</a>
                 </li>
-                <li>
-                  Bookings:{' '}
-                  <a href="tel:+27627007509" className="hover:text-orange inline-block py-2 sm:py-1">062 700 7509</a>
-                </li>
                 <li className="break-all">
                   <a href="mailto:info.nextgensolution1@gmail.com" className="hover:text-orange inline-block py-2 sm:py-1">
                     info.nextgensolution1@gmail.com
@@ -192,6 +188,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <span className="opacity-70">
               &copy; {new Date().getFullYear()} NextGen Solar Clean &amp; Maintenance Solutions. All rights reserved.
             </span>
+            <Link href="/terms" className="hover:text-orange inline-flex items-center min-h-10 sm:min-h-0 sm:py-1 font-semibold uppercase tracking-wide">
+              Terms &amp; Conditions
+            </Link>
             <AdminLink />
           </div>
         </footer>
