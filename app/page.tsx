@@ -6,6 +6,8 @@ import TrustBadges from '@/components/TrustBadges'
 import HowItWorks from '@/components/HowItWorks'
 import SolarRoiCalculator from '@/components/SolarRoiCalculator'
 import BodyCorporateSection from '@/components/BodyCorporateSection'
+import DiyTips from '@/components/home/DiyTips'
+import HelderbergToday from '@/components/home/HelderbergToday'
 import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages } from '@/lib/queries'
 import { HeroBento, JobReel, MissionBand, PostTrio, ServicePhotoGrid, type Photo } from '@/components/home/VestoxHome'
 
@@ -87,6 +89,11 @@ export default async function HomePage() {
       <HowItWorks />
 
       <ServicePhotoGrid services={services} images={serviceImages} />
+
+      {/* DIY tips + live Helderberg weather and local news */}
+      <DiyTips />
+
+      <HelderbergToday />
 
       <BodyCorporateSection />
 
