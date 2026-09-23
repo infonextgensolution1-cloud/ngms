@@ -2,7 +2,7 @@ import PlusCluster from "@/components/motion/PlusCluster";
 import Reveal from "@/components/motion/Reveal";
 
 // Ember Grid signature element #3 — numbered process steps in outlined
-// squares. Copy reflects how NGMS already describes its own process
+// squares. Copy reflects how NGSMS already describes its own process
 // elsewhere on the site (free site walk-through → written quote →
 // before/after photos), just gathered into one "how it works" strip.
 const STEPS = [
@@ -28,14 +28,17 @@ const STEPS = [
   },
 ];
 
+// Ember Grid's one deliberate light break in an otherwise dark page — white
+// background, black (jet) text, Signal Blue accents. Gives the scroll some
+// contrast/rhythm instead of an unbroken run of dark sections.
 export default function ProcessSteps() {
   return (
-    <section className="bg-graphite border-y border-darkgrey py-16 sm:py-20 px-4">
+    <section className="bg-white border-y border-jet/10 py-16 sm:py-20 px-4">
       <div className="wrap">
         <Reveal className="text-center mb-12">
           <PlusCluster className="mx-auto mb-4" />
           <p className="kicker">How It Works</p>
-          <h2 className="font-heading text-3xl sm:text-4xl font-bold text-paper">
+          <h2 className="font-heading text-3xl sm:text-4xl font-bold text-jet">
             FROM MESSAGE TO SIGN-OFF
           </h2>
         </Reveal>
@@ -48,14 +51,14 @@ export default function ProcessSteps() {
                   {step.n}
                 </div>
                 <div>
-                  <h3 className="font-heading font-bold text-paper text-lg">{step.title}</h3>
-                  <p className="text-mist mt-1.5 text-sm leading-relaxed">{step.body}</p>
+                  <h3 className="font-heading font-bold text-jet text-lg">{step.title}</h3>
+                  <p className="text-jet/70 mt-1.5 text-sm leading-relaxed">{step.body}</p>
                 </div>
               </div>
               {i < STEPS.length - 1 && (
                 <span
                   aria-hidden
-                  className="hidden lg:block absolute top-6 -right-3 w-6 h-px bg-darkgrey"
+                  className="hidden lg:block absolute top-6 -right-3 w-6 h-px bg-jet/15"
                 />
               )}
             </Reveal>
