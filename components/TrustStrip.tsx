@@ -176,7 +176,7 @@ function TestimonialCarousel() {
             type="button"
             aria-label={`Show review from ${r.name}`}
             onClick={() => setActive(i)}
-            className={`h-2 rounded-full transition-all ${i === active ? "w-6 bg-orange" : "w-2 bg-mist/40 hover:bg-mist"}`}
+            className={`relative h-2 rounded-full transition-all after:absolute after:-inset-3 after:content-[''] ${i === active ? "w-6 bg-orange" : "w-2 bg-mist/40 hover:bg-mist"}`}
           />
         ))}
       </div>
