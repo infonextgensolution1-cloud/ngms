@@ -1,3 +1,6 @@
+import type { ReactNode } from 'react'
+import ContactForm from '@/components/ContactForm'
+
 export const metadata = {
   title: 'Contact Us | NGSMS',
   description: 'Get in touch with NextGen Solar & Maintenance Solutions — Strand, Gordon’s Bay, Somerset West.',
@@ -5,76 +8,239 @@ export const metadata = {
 
 const AREAS = ['Strand', 'Gordon’s Bay', 'Somerset West', 'Helderberg Basin']
 
+const RIBBON_ORANGE = ['One call', 'All solutions', 'Solar panel cleaning', 'Helderberg Basin']
+const RIBBON_LIGHT = [
+  'Painting',
+  'Waterproofing',
+  'Paving',
+  'Plumbing',
+  'Electrical',
+  'Pool fibre lining',
+  'High-pressure cleaning',
+  'Rubble removal',
+  'Steelwork & welding',
+  'Handyman',
+]
+
+// Each ribbon renders two identical halves so the -50% marquee loop is
+// seamless. Items repeat inside a half so one half is always wider than
+// the screen.
+function RibbonTrack({ items, repeat }: { items: string[]; repeat: number }) {
+  const loop = Array.from({ length: repeat }).flatMap(() => items)
+  return (
+    <>
+      {[0, 1].map((half) => (
+        <div key={half} className="flex shrink-0 items-center">
+          {loop.map((t, i) => (
+            <span key={`${t}-${i}`} className="flex items-center whitespace-nowrap">
+              <span className="px-5 font-heading text-2xl font-bold uppercase sm:px-7 sm:text-4xl">{t}</span>
+              <span className="text-xl sm:text-3xl">✱</span>
+            </span>
+          ))}
+        </div>
+      ))}
+    </>
+  )
+}
+
+function Icon({ children }: { children: ReactNode }) {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {children}
+    </svg>
+  )
+}
+
+const PhoneIcon = () => (
+  <Icon>
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+  </Icon>
+)
+
+const ChatIcon = () => (
+  <Icon>
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+  </Icon>
+)
+
+const CalendarIcon = () => (
+  <Icon>
+    <rect x="3" y="4" width="18" height="18" rx="2" />
+    <path d="M16 2v4M8 2v4M3 10h18" />
+  </Icon>
+)
+
+const MailIcon = () => (
+  <Icon>
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+    <path d="M22 6l-10 7L2 6" />
+  </Icon>
+)
+
+function ContactCard({
+  href,
+  label,
+  value,
+  icon,
+  external,
+}: {
+  href: string
+  label: string
+  value: string
+  icon: ReactNode
+  external?: boolean
+}) {
+  return (
+    <a
+      href={href}
+      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+      className="group flex items-center justify-between gap-4 rounded-card border border-darkgrey bg-cardgrey px-5 py-4 transition hover:border-orange"
+    >
+      <span className="min-w-0">
+        <span className="block font-heading text-xl font-bold uppercase tracking-wide text-paper">{label}</span>
+        <span className="block break-all text-sm text-mist">{value}</span>
+      </span>
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-orange text-jet transition group-hover:bg-orange-dark">
+        {icon}
+      </span>
+    </a>
+  )
+}
+
 export default function ContactPage() {
   return (
     <main className="bg-jet">
-      <section className="bg-jet text-white py-14 px-4 text-center">
-        <p className="text-blue font-bold text-sm uppercase tracking-wide mb-2 font-heading">Get In Touch</p>
-        <h1 className="font-heading text-4xl sm:text-6xl font-bold text-paper">Contact NGSMS</h1>
-        <p className="text-mist text-lg max-w-xl mx-auto mt-4">
+      {/* Hero */}
+      <section
+        className="relative overflow-hidden bg-jet px-4 pb-4 pt-16 text-center sm:pt-24"
+        style={{
+          backgroundImage:
+            'radial-gradient(ellipse at 50% 0%, rgba(245,124,27,0.20), transparent 62%), linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)',
+          backgroundSize: 'auto, 56px 56px, 56px 56px',
+        }}
+      >
+        <p className="kicker animate-fade-up">Get in touch</p>
+        <h1 className="animate-fade-up font-heading text-7xl font-bold leading-[0.9] text-paper sm:text-8xl lg:text-9xl">
+          Contact <span className="text-mist">us.</span>
+        </h1>
+        <p className="mx-auto mt-5 max-w-xl text-lg text-mist">
           One call for all your property maintenance needs across the Helderberg Basin.
         </p>
       </section>
 
-      <section className="bg-graphite py-14 border-y border-darkgrey">
-        <div className="max-w-2xl mx-auto px-4 grid sm:grid-cols-2 gap-6 text-center">
-          <a
-            href="https://wa.me/27631387945"
-            className="bg-cardgrey border border-darkgrey rounded-card p-8 hover:border-blue transition"
-          >
-            <p className="font-heading font-semibold text-lg mb-1 text-paper">WhatsApp</p>
-            <p className="text-blue text-sm">063 138 7945</p>
-          </a>
-          <a
-            href="tel:+27631387945"
-            className="bg-cardgrey border border-darkgrey rounded-card p-8 hover:border-blue transition"
-          >
-<a
-  href="tel:+27627007509"
-  className="bg-cardgrey border border-darkgrey rounded-card p-8 hover:border-blue transition"
->
-  <p className="font-heading font-semibold text-lg mb-1 text-paper">Bookings</p>
-  <p className="text-blue text-sm">062 700 7509</p>
-</a>
-            <p className="font-heading font-semibold text-lg mb-1 text-paper">Call</p>
-            <p className="text-blue text-sm">063 138 7945</p>
-          </a>
-          <a
-            href="mailto:info.nextgensolution1@gmail.com"
-            className="bg-cardgrey border border-darkgrey rounded-card p-8 hover:border-blue transition sm:col-span-2"
-          >
-            <p className="font-heading font-semibold text-lg mb-1 text-paper">Email</p>
-            <p className="text-blue text-sm">info.nextgensolution1@gmail.com</p>
-          </a>
+      {/* Crossing service ribbons */}
+      <div className="relative overflow-hidden py-10 sm:py-14" aria-hidden="true">
+        <div className="-rotate-2 scale-[1.05] bg-orange text-jet">
+          <div className="flex w-max animate-marquee py-3">
+            <RibbonTrack items={RIBBON_ORANGE} repeat={3} />
+          </div>
+        </div>
+        <div className="relative -mt-3 rotate-1 scale-[1.05] bg-paper text-jet shadow-lg">
+          <div className="flex w-max animate-marquee py-3" style={{ animationDirection: 'reverse' }}>
+            <RibbonTrack items={RIBBON_LIGHT} repeat={2} />
+          </div>
+        </div>
+      </div>
+
+      {/* Contact details + inquiry form */}
+      <section className="wrap grid gap-10 py-12 lg:grid-cols-2 lg:gap-14 lg:py-16">
+        <div>
+          <p className="kicker">★ Helderberg-based team</p>
+          <h2 className="font-heading text-4xl font-bold leading-none text-paper sm:text-6xl">
+            Get in touch with NGSMS!
+          </h2>
+          <p className="mt-4 max-w-md text-mist">
+            Message us on WhatsApp, call, or send an enquiry. We reply the same day &mdash; usually within a few
+            hours.
+          </p>
+
+          <div className="mt-8 grid gap-3">
+            <ContactCard href="tel:+27631387945" label="Call" value="063 138 7945" icon={<PhoneIcon />} />
+            <ContactCard
+              href="https://wa.me/27631387945"
+              label="WhatsApp"
+              value="063 138 7945"
+              icon={<ChatIcon />}
+              external
+            />
+            <ContactCard href="tel:+27627007509" label="Bookings" value="062 700 7509" icon={<CalendarIcon />} />
+            <ContactCard
+              href="mailto:info.nextgensolution1@gmail.com"
+              label="Email"
+              value="info.nextgensolution1@gmail.com"
+              icon={<MailIcon />}
+            />
+          </div>
+        </div>
+
+        <div className="rounded-card border border-darkgrey bg-graphite p-6 sm:p-8">
+          <h2 className="mb-6 font-heading text-3xl font-bold uppercase text-paper">General inquiries</h2>
+          <ContactForm />
         </div>
       </section>
 
-      <section className="bg-jet py-14">
-        <div className="max-w-4xl mx-auto px-4">
-          <p className="text-blue font-bold text-sm mb-4 uppercase tracking-wide text-center font-heading">Areas We Serve</p>
-          <div className="flex flex-wrap justify-center gap-3 mb-10">
+      {/* Areas + map */}
+      <section className="border-t border-darkgrey bg-jet py-14">
+        <div className="mx-auto max-w-4xl px-4">
+          <p className="kicker mb-4 block text-center">Areas we serve</p>
+          <div className="mb-10 flex flex-wrap justify-center gap-3">
             {AREAS.map((a) => (
-              <span key={a} className="bg-cardgrey border border-darkgrey rounded-full px-4 py-2 text-sm text-paper">
+              <span key={a} className="rounded-full border border-darkgrey bg-cardgrey px-4 py-2 text-sm text-paper">
                 {a}
               </span>
             ))}
           </div>
-          <div className="rounded-card overflow-hidden border border-darkgrey">
+          <div className="overflow-hidden rounded-card border border-darkgrey">
             <iframe
               title="NGSMS service area — Helderberg Basin"
               src="https://maps.google.com/maps?q=Somerset+West,+Western+Cape&z=11&output=embed"
-              className="w-full h-80"
+              className="h-80 w-full"
               loading="lazy"
             />
           </div>
         </div>
       </section>
 
-      <section className="bg-graphite text-white text-center py-10 px-4 border-t border-darkgrey">
-        <p className="text-mist text-lg mb-4">Serving Strand, Gordon’s Bay, Somerset West and the Helderberg Basin</p>
-        <a href="/quote" className="bg-orange hover:bg-orange-dark text-white font-heading font-semibold px-6 py-3 rounded-btn inline-block">
-          Get a Free Quote
-        </a>
+      {/* Big number strip */}
+      <section className="border-t border-darkgrey bg-graphite">
+        <div className="wrap grid gap-8 py-14 lg:grid-cols-2 lg:items-end">
+          <div>
+            <p className="kicker">Prefer to talk?</p>
+            <a
+              href="tel:+27631387945"
+              className="block font-heading text-6xl font-bold leading-none text-paper transition hover:text-orange sm:text-8xl"
+            >
+              063 138 7945
+            </a>
+            <a
+              href="mailto:info.nextgensolution1@gmail.com"
+              className="mt-4 block break-all font-heading text-xl font-bold text-paper transition hover:text-orange sm:text-3xl"
+            >
+              info.nextgensolution1@gmail.com
+            </a>
+          </div>
+          <div className="lg:text-right">
+            <p className="mb-4 text-lg text-mist">
+              Serving Strand, Gordon’s Bay, Somerset West and the Helderberg Basin
+            </p>
+            <a
+              href="/quote"
+              className="inline-block rounded-full bg-orange px-9 py-3 font-heading text-base font-bold uppercase tracking-wide text-jet transition hover:bg-orange-dark"
+            >
+              Get a Free Quote
+            </a>
+          </div>
+        </div>
       </section>
     </main>
   )
