@@ -5,6 +5,7 @@ import { SERVICES, getService } from "@/lib/services";
 import { SUBURBS } from "@/lib/suburbs";
 import { SOLAR_TIERS, SOLAR_SUBURB_TO_LOCATION } from "@/lib/solar-pricing";
 import { whatsappLink } from "@/lib/site";
+import TrustBadges from "@/components/TrustBadges";
 
 export function generateStaticParams() {
   return SERVICES.map((s) => ({ slug: s.slug }));
@@ -43,6 +44,9 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
         <h1 className="text-3xl md:text-5xl">{s.name}</h1>
         <p className="text-mist mt-2">{s.tagline}</p>
       </div>
+
+      <TrustBadges />
+
       <div className="wrap max-w-[720px] py-10">
         <p className="text-mist leading-relaxed">{s.description}</p>
 
