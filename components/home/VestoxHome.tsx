@@ -135,7 +135,7 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
             </p>
           </div>
           <div className="flex gap-3 mt-7 flex-wrap">
-            <Link href="/quote?service=Solar%20Panel%20Cleaning" className="btn bg-jet text-paper hover:bg-orange hover:text-jet">
+            <Link href="/quote?service=Solar%20Panel%20Cleaning" className="btn-quote">
               Get a free quote &rarr;
             </Link>
             <a
@@ -320,15 +320,9 @@ export function MissionBand({ photo, side }: { photo?: Photo; side?: Photo }) {
               {photo?.caption ?? 'Painting, waterproofing & repairs'}
             </p>
           </div>
+          {/* The 10% first-booking offer now lives in the DiscountPopup on the homepage */}
           <div className="col-span-5 sm:col-span-2 grid gap-4">
-            <div className="relative rounded-2xl bg-orange text-jet p-5 flex flex-col justify-between min-h-[150px]">
-              <p className="text-[10px] uppercase tracking-widest font-bold">First booking</p>
-              <div>
-                <p className="font-heading font-extrabold text-5xl leading-none">10%</p>
-                <p className="text-sm font-semibold">off all other services</p>
-              </div>
-            </div>
-            <div className="relative rounded-2xl overflow-hidden min-h-[150px] bg-graphite">
+            <div className="relative rounded-2xl overflow-hidden min-h-[240px] sm:min-h-[150px] bg-graphite">
               <PhotoFill photo={side} sizes="(max-width: 640px) 100vw, 25vw" className="grayscale" />
               <div className="absolute inset-0 bg-jet/35" />
               <p className="absolute left-4 bottom-3 right-4 text-[11px] uppercase tracking-widest font-bold">
@@ -480,7 +474,7 @@ export function PostTrio({ left, right }: { left?: Photo; right?: Photo }) {
           Strand · Somerset West · Gordon&apos;s Bay · Overberg
         </p>
         <div className="flex gap-3 flex-wrap">
-          <Link href="/quote" className="btn bg-jet text-paper hover:bg-orange hover:text-jet">
+          <Link href="/quote" className="btn-quote">
             Get a free quote
           </Link>
           <a href={whatsappLink()} className="btn-wa" target="_blank" rel="noreferrer">
