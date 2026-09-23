@@ -1,4 +1,6 @@
 import Link from "next/link";
+import PlusCluster from "@/components/motion/PlusCluster";
+import Reveal from "@/components/motion/Reveal";
 
 // Homepage block for trustees and managing agents — most of them arrive
 // from the body corporate outreach emails and need to see themselves on
@@ -22,7 +24,8 @@ export default function BodyCorporateSection() {
   return (
     <section className="bg-jet border-t border-darkgrey py-16 px-4">
       <div className="wrap grid gap-10 md:grid-cols-2 md:items-center">
-        <div>
+        <Reveal direction="left">
+          <PlusCluster className="mb-4" />
           <p className="kicker">For Body Corporates &amp; Security Complexes</p>
           <h2 className="font-heading text-3xl sm:text-4xl font-bold text-paper">
             Maintenance Your Trustees Don&apos;t Have To Chase
@@ -42,14 +45,16 @@ export default function BodyCorporateSection() {
               COMPLEX PACKAGES
             </Link>
           </div>
-        </div>
+        </Reveal>
 
         <div className="grid gap-4">
-          {POINTS.map((p) => (
-            <div key={p.title} className="card hover:border-orange/50 transition-colors">
-              <h3 className="font-heading font-bold text-paper text-lg">{p.title}</h3>
-              <p className="text-mist mt-1">{p.body}</p>
-            </div>
+          {POINTS.map((p, i) => (
+            <Reveal key={p.title} direction="right" delayMs={i * 100}>
+              <div className="card hover:border-orange/50 transition-colors">
+                <h3 className="font-heading font-bold text-paper text-lg">{p.title}</h3>
+                <p className="text-mist mt-1">{p.body}</p>
+              </div>
+            </Reveal>
           ))}
         </div>
       </div>
