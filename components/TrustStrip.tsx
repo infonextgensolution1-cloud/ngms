@@ -37,7 +37,10 @@ export default function TrustStrip({ beforeAfter }: { beforeAfter: BeforeAfter[]
         {pairs.length > 0 && (
           <div className="text-center mb-14">
             <p className="kicker">Drag to compare</p>
-            <h2 className="text-3xl md:text-4xl">Real Jobs, Real Results</h2>
+            <h2 className="text-3xl md:text-4xl">
+              Real Jobs, Real Proof
+              <span className="block text-orange text-xl md:text-2xl mt-2">Helderberg &amp; Overberg Area</span>
+            </h2>
             <div
               className={`grid gap-5 mt-8 ${pairs.length === 1 ? "max-w-[420px] mx-auto" : "sm:grid-cols-2 md:grid-cols-3"}`}
             >
