@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="#0A0A0A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Rubble Removal">
+  <title>Rubble Removal</title>
+  <path d="M14 26H46L41 42H19Z"/>
+  <path d="M18 26L21 17L29 15L32 26Z" fill="#F57C1B"/>
+  <path d="M30 26L34 18L42 20L44 26Z" fill="#F57C1B"/>
+  <circle cx="12" cy="49" r="7"/>
+  <circle cx="12" cy="49" r="1.6" fill="#0A0A0A" stroke="none"/>
+  <path d="M19 42L12 49"/>
+  <path d="M41 38L58 32M46 41L52 55M48 55H57"/>
+</svg>
