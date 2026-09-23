@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="#0A0A0A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Paving">
+  <title>Paving</title>
+  <rect x="8" y="14" width="48" height="36" rx="3"/>
+  <path d="M8 26H56M8 38H56"/>
+  <path d="M24 14V26M40 14V26M16 26V38M32 26V38M48 26V38M24 38V50M40 38V50"/>
+  <rect x="16" y="26" width="16" height="12" fill="#F57C1B" stroke="#F57C1B" stroke-width="1.5"/>
+  <path d="M16 26V38M32 26V38"/>
+</svg>
