@@ -2,6 +2,8 @@ import { Space_Grotesk } from 'next/font/google'
 import { services } from '@/lib/services'
 import SeasonalBanner from '@/components/SeasonalBanner'
 import TrustStrip from '@/components/TrustStrip'
+import TrustBadges from '@/components/TrustBadges'
+import HowItWorks from '@/components/HowItWorks'
 import SolarRoiCalculator from '@/components/SolarRoiCalculator'
 import BodyCorporateSection from '@/components/BodyCorporateSection'
 import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages } from '@/lib/queries'
@@ -49,6 +51,8 @@ export default async function HomePage() {
 
       <HeroBento solar={solar(0)} avatars={[pick(1), pick(2), pick(3)].filter(Boolean) as Photo[]} feature={pick(0)} />
 
+      <TrustBadges />
+
       {/* Scrolling service ticker */}
       <div className="bg-jet overflow-hidden py-3">
         <div className="flex w-max animate-marquee">
@@ -79,6 +83,8 @@ export default async function HomePage() {
 
       {/* Before/after sliders + real reviews */}
       <TrustStrip beforeAfter={beforeAfter} />
+
+      <HowItWorks />
 
       <ServicePhotoGrid services={services} images={serviceImages} />
 

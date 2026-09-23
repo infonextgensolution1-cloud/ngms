@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import ServiceCard from "@/components/ServiceCard";
+import TrustBadges from "@/components/TrustBadges";
+import HowItWorks from "@/components/HowItWorks";
 import { SERVICES } from "@/lib/services";
 import { getServiceImages } from "@/lib/queries";
 
@@ -48,6 +50,11 @@ export default async function ServicesPage() {
           Helderberg-based crew.
         </p>
       </div>
+
+      <TrustBadges />
+
+      <HowItWorks />
+
       <div className="max-w-5xl mx-auto px-4 py-12">
         <div className="grid sm:grid-cols-2 gap-5">
           {SERVICES.map((s) => (
