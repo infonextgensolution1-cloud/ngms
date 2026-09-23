@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="#0A0A0A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Painting">
+  <title>Painting</title>
+  <rect x="9" y="9" width="38" height="15" rx="3" fill="#F57C1B"/>
+  <path d="M47 16.5H55V33H32V40"/>
+  <rect x="27" y="40" width="10" height="16" rx="2.5"/>
+</svg>
