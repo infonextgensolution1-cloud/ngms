@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Service } from "@/lib/services";
+import Reveal from "@/components/motion/Reveal";
 
 // Small inline line icons, keyed by service slug. The services data has
 // no icon field, so these live here — just the six shown on the homepage
@@ -67,55 +68,64 @@ export default function HomeServices({ services }: { services: Service[] }) {
 
   return (
     <section className="bg-jet text-white py-16 sm:py-20 text-center">
-      <p className="kicker">What We Do</p>
-      <h2 className="font-heading text-3xl sm:text-4xl font-bold mb-10 text-paper">
-        EVERYTHING YOUR PROPERTY NEEDS
-      </h2>
+      <Reveal>
+        <p className="kicker">What We Do</p>
+        <h2 className="font-heading text-3xl sm:text-4xl font-bold mb-10 text-paper">
+          EVERYTHING YOUR PROPERTY NEEDS
+        </h2>
+      </Reveal>
 
       <div className="wrap grid grid-cols-2 md:grid-cols-4 gap-4 text-left">
         {featured && (
-          <Link
-            href={`/services/${featured.slug}`}
-            className="group relative overflow-hidden col-span-2 md:col-span-2 md:row-span-2 bg-cardgrey border border-darkgrey rounded-card p-6 flex flex-col justify-between min-h-[220px] hover:border-orange transition-colors"
-          >
-            <div
-              aria-hidden
-              className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-orange/10 blur-2xl group-hover:bg-orange/20 transition-colors"
-            />
-            <div className="relative">
-              <div className="h-12 w-12 rounded-btn bg-orange/10 text-orange flex items-center justify-center mb-6 group-hover:bg-orange group-hover:text-jet transition-colors">
-                <ServiceIcon slug={featured.slug} className="h-6 w-6" />
+          <Reveal className="col-span-2 md:col-span-2 md:row-span-2" delayMs={0}>
+            <Link
+              href={`/services/${featured.slug}`}
+              className="group relative overflow-hidden block h-full bg-cardgrey border border-darkgrey rounded-card p-6 flex flex-col justify-between min-h-[220px] hover:border-orange transition-colors"
+            >
+              <div
+                aria-hidden
+                className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-orange/10 blur-2xl group-hover:bg-orange/20 transition-colors"
+              />
+              {/* Signature element — outlined icon box, top-right corner of the card */}
+              <div className="absolute top-5 right-5 h-11 w-11 rounded-btn border border-orange text-orange flex items-center justify-center group-hover:bg-orange group-hover:text-jet transition-colors">
+                <ServiceIcon slug={featured.slug} className="h-5 w-5" />
               </div>
-              <p className="font-heading font-bold text-xl sm:text-2xl text-paper">{featured.name}</p>
-              <p className="text-orange text-sm font-bold mt-2">{featured.tagline}</p>
-            </div>
-            <span className="relative mt-6 inline-flex items-center gap-2 text-mist text-xs uppercase tracking-widest font-semibold group-hover:text-orange transition-colors">
-              Learn more
-              <span aria-hidden className="transition-transform group-hover:translate-x-1">
-                &rarr;
+              <div className="relative">
+                <p className="font-heading font-bold text-xl sm:text-2xl text-paper pr-14">{featured.name}</p>
+                <p className="text-orange text-sm font-bold mt-2">{featured.tagline}</p>
+              </div>
+              <span className="relative mt-6 inline-flex items-center gap-2 text-mist text-xs uppercase tracking-widest font-semibold group-hover:text-orange transition-colors">
+                Learn more
+                <span aria-hidden className="transition-transform group-hover:translate-x-1">
+                  &rarr;
+                </span>
               </span>
-            </span>
-          </Link>
+            </Link>
+          </Reveal>
         )}
 
-        {rest.map((service) => (
-          <Link
-            key={service.slug}
-            href={`/services/${service.slug}`}
-            className="group relative bg-cardgrey border border-darkgrey rounded-card p-4 flex flex-col justify-between hover:border-orange transition-colors"
-          >
-            <div className="h-10 w-10 rounded-btn bg-orange/10 text-orange flex items-center justify-center mb-4 group-hover:bg-orange group-hover:text-jet transition-colors">
-              <ServiceIcon slug={service.slug} className="h-5 w-5" />
-            </div>
-            <p className="font-heading font-semibold text-sm text-paper">{service.name}</p>
-            <p className="text-orange text-xs font-bold mt-1">{service.tagline}</p>
-          </Link>
+        {rest.map((service, i) => (
+          <Reveal key={service.slug} delayMs={(i + 1) * 70}>
+            <Link
+              href={`/services/${service.slug}`}
+              className="group relative block h-full bg-cardgrey border border-darkgrey rounded-card p-4 flex flex-col justify-between hover:border-orange transition-colors"
+            >
+              {/* Signature element — 36px outlined icon box, top-right corner of the card */}
+              <div className="absolute top-4 right-4 h-9 w-9 rounded-btn border border-orange text-orange flex items-center justify-center group-hover:bg-orange group-hover:text-jet transition-colors">
+                <ServiceIcon slug={service.slug} className="h-4 w-4" />
+              </div>
+              <p className="font-heading font-semibold text-sm text-paper pr-11 mt-1">{service.name}</p>
+              <p className="text-orange text-xs font-bold mt-1">{service.tagline}</p>
+            </Link>
+          </Reveal>
         ))}
       </div>
 
-      <Link href="/services" className="btn-outline inline-flex mt-10">
-        View All 12 Services &rarr;
-      </Link>
+      <Reveal>
+        <Link href="/services" className="btn-outline inline-flex mt-10">
+          View All 12 Services &rarr;
+        </Link>
+      </Reveal>
     </section>
   );
 }
