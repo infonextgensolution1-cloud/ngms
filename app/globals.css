@@ -11,6 +11,9 @@ html {
 body {
   background-color: #0a0a0a;
   color: #ffffff;
+  /* Mobile-first safety net: nothing may push the page wider than the screen.
+     (clip, not hidden, so the sticky header keeps working.) */
+  overflow-x: clip;
 }
 
 h1,
@@ -86,6 +89,11 @@ textarea:disabled {
     @apply max-w-6xl mx-auto;
   }
 
+  /* Form controls (quote form etc.): full column width, never wider than it */
+  .field {
+    @apply block w-full min-w-0 max-w-full;
+  }
+
   /* Small eyebrow label above a heading */
   .kicker {
     @apply inline-block text-blue font-heading font-bold text-xs sm:text-sm uppercase tracking-[0.2em] mb-2;
@@ -123,6 +131,21 @@ textarea:disabled {
   }
   .btn-dark {
     @apply btn bg-cardgrey border border-darkgrey text-paper hover:border-orange hover:text-orange;
+  }
+}
+
+/* ---------- Phone touch + legibility ---------- */
+/* Slider inputs (calculators): a finger-sized touch area on touch screens */
+@media (pointer: coarse) {
+  input[type="range"] {
+    min-height: 2.75rem;
+  }
+}
+/* 9-10px micro-labels are unreadable on a phone: lift them to 11px below the sm breakpoint */
+@media (max-width: 639px) {
+  .text-\[9px\],
+  .text-\[10px\] {
+    font-size: 11px;
   }
 }
 
