@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="#0A0A0A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Solar Panel Cleaning">
+  <title>Solar Panel Cleaning</title>
+  <path d="M16 24H48L56 46H8Z"/>
+  <path d="M26.7 24L24 46M37.3 24L40 46M12 35H52"/>
+  <path d="M32 46V54M22 54H42"/>
+  <path d="M48 3L50.6 9.4L57 12L50.6 14.6L48 21L45.4 14.6L39 12L45.4 9.4Z" fill="#F57C1B" stroke="#F57C1B" stroke-width="1.5"/>
+  <path d="M15 8L16.6 11.4L20 13L16.6 14.6L15 18L13.4 14.6L10 13L13.4 11.4Z" fill="#F57C1B" stroke="#F57C1B" stroke-width="1.2"/>
+</svg>
