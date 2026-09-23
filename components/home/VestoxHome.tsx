@@ -188,17 +188,17 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
         {/* Orange photo tile */}
         <Link
           href="/services/solar-panel-cleaning"
-          className="group lg:col-span-7 relative overflow-hidden rounded-2xl bg-orange min-h-[260px] sm:min-h-[300px] flex"
+          className="group lg:col-span-7 relative overflow-hidden rounded-2xl bg-orange sm:min-h-[300px] flex flex-col sm:flex-row"
         >
           <div
             aria-hidden
             className="absolute inset-0 opacity-25"
             style={{ backgroundImage: 'repeating-linear-gradient(-55deg, transparent 0 14px, rgba(255,255,255,0.55) 14px 16px)' }}
           />
-          <div className="relative w-[48%] sm:w-[44%] shrink-0 m-3 rounded-xl overflow-hidden">
-            <PhotoFill photo={solar} sizes="(max-width: 1024px) 45vw, 30vw" priority className="transition-transform duration-500 group-hover:scale-105" />
+          <div className="relative h-56 sm:h-auto sm:w-[44%] shrink-0 m-3 mb-0 sm:mb-3 rounded-xl overflow-hidden">
+            <PhotoFill photo={solar} sizes="(max-width: 640px) 100vw, (max-width: 1024px) 45vw, 30vw" priority className="transition-transform duration-500 group-hover:scale-105" />
           </div>
-          <div className="relative flex-1 p-4 sm:p-6 flex flex-col justify-between">
+          <div className="relative flex-1 p-5 sm:p-6 flex flex-col justify-between gap-5">
             <div className="text-right">
               <p className="font-heading font-extrabold text-6xl sm:text-7xl leading-none text-jet">25%</p>
               <p className="text-jet/80 text-xs sm:text-sm font-semibold mt-1">of output lost to dirty panels</p>
