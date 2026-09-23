@@ -34,7 +34,7 @@ textarea {
   padding: 0.55rem 0.75rem;
   font-size: 16px; /* stops iOS zoom-on-focus */
   line-height: 1.4;
-  caret-color: #f58220;
+  caret-color: #2e6bff;
 }
 
 select option,
@@ -54,8 +54,8 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: #f58220 !important;
-  box-shadow: 0 0 0 2px rgba(245, 130, 32, 0.25);
+  border-color: #2e6bff !important;
+  box-shadow: 0 0 0 2px rgba(46, 107, 255, 0.25);
 }
 
 /* Chrome/Android autofill paints a light-blue box - keep it dark */
