@@ -69,7 +69,6 @@ const LOCAL_BUSINESS_JSONLD = {
   ],
   contactPoint: [
     { '@type': 'ContactPoint', telephone: SITE.phone, contactType: 'customer service', areaServed: 'ZA' },
-    { '@type': 'ContactPoint', telephone: '+27627007509', contactType: 'reservations', areaServed: 'ZA' },
   ],
   sameAs: [FACEBOOK_URL],
   hasOfferCatalog: {
@@ -155,10 +154,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <ul className="space-y-2">
                 <li>
                   <a href="tel:+27631387945" className="hover:text-orange">063 138 7945</a>
-                </li>
-                <li>
-                  Bookings:{' '}
-                  <a href="tel:+27627007509" className="hover:text-orange">062 700 7509</a>
                 </li>
                 <li className="break-all">
                   <a href="mailto:info.nextgensolution1@gmail.com" className="hover:text-orange">
