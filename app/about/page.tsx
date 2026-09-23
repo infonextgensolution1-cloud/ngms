@@ -33,19 +33,34 @@ export default function AboutPage() {
 
       <section className="bg-jet py-14">
         <div className="max-w-4xl mx-auto px-4">
-          <p className="text-blue font-bold text-sm mb-6 uppercase tracking-wide text-center font-heading">The Team</p>
-          <div className="grid sm:grid-cols-3 gap-6 text-center">
-            <div className="border-t-4 border-orange bg-cardgrey rounded-card p-6">
-              <p className="font-heading font-semibold text-lg text-paper">Jacques Gordon</p>
-              <p className="text-sm text-mist font-semibold">Owner &amp; Project Manager</p>
-            </div>
-            <div className="border-t-4 border-blue bg-cardgrey rounded-card p-6">
-              <p className="font-heading font-semibold text-lg text-paper">Mitch Ludick</p>
-              <p className="text-sm text-mist font-semibold">Paving Specialist</p>
-            </div>
-            <div className="border-t-4 border-blue bg-cardgrey rounded-card p-6">
-              <p className="font-heading font-semibold text-lg text-paper">Henry Matthews</p>
-              <p className="text-sm text-mist font-semibold">Plumbing &amp; Maintenance Specialist</p>
+          <p className="text-blue font-bold text-sm mb-6 uppercase tracking-wide text-center font-heading">Meet the Owner</p>
+          <div className="border-t-4 border-orange bg-cardgrey rounded-card overflow-hidden grid md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+            <img
+              src="/jacques-gordon.webp"
+              alt="Jacques Gordon, owner and project manager of NGSMS"
+              width={720}
+              height={900}
+              loading="lazy"
+              className="w-full aspect-[4/5] md:aspect-auto md:h-full object-cover object-top"
+            />
+            <div className="p-6 sm:p-8 space-y-4 text-mist text-lg leading-relaxed">
+              <div>
+                <p className="font-heading font-semibold text-2xl text-paper">Jacques Gordon</p>
+                <p className="text-sm text-orange font-semibold uppercase tracking-wide">Owner &amp; Project Manager</p>
+              </div>
+              <p>
+                Jacques founded NGSMS to give property owners one reliable contractor to call. Solar panel cleaning
+                is the core of the business, backed by painting, waterproofing, paving, plumbing, electrical work
+                and more.
+              </p>
+              <p>
+                With a background in managing maintenance teams and running crews on site, he stays hands-on: he
+                quotes the job, plans it and works on it himself.
+              </p>
+              <p>
+                Based in the Helderberg Basin, Jacques looks after homeowners, body corporates, security complexes
+                and light commercial clients across Strand, Gordon’s Bay and Somerset West.
+              </p>
             </div>
           </div>
         </div>
