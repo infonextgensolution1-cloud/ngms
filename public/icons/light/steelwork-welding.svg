@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="#0A0A0A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Steelwork &amp; Welding">
+  <title>Steelwork &amp; Welding</title>
+  <path d="M10 30C10 17 17 9 27 9C37 9 44 17 44 30V46C44 52 40 57 34 57H20C14 57 10 52 10 46Z"/>
+  <path d="M10.5 21H43.5"/>
+  <rect x="15" y="28" width="24" height="11" rx="2" fill="#F57C1B"/>
+  <path d="M50 14L55 9M52 24H60M50 34L55 39" stroke="#F57C1B" stroke-width="3.5"/>
+</svg>
