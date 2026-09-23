@@ -8,41 +8,6 @@ export const metadata = {
 
 const AREAS = ['Strand', 'Gordon’s Bay', 'Somerset West', 'Helderberg Basin']
 
-const RIBBON_ORANGE = ['One call', 'All solutions', 'Solar panel cleaning', 'Helderberg Basin']
-const RIBBON_LIGHT = [
-  'Painting',
-  'Waterproofing',
-  'Paving',
-  'Plumbing',
-  'Electrical',
-  'Pool fibre lining',
-  'High-pressure cleaning',
-  'Rubble removal',
-  'Steelwork & welding',
-  'Handyman',
-]
-
-// Each ribbon renders two identical halves so the -50% marquee loop is
-// seamless. Items repeat inside a half so one half is always wider than
-// the screen.
-function RibbonTrack({ items, repeat }: { items: string[]; repeat: number }) {
-  const loop = Array.from({ length: repeat }).flatMap(() => items)
-  return (
-    <>
-      {[0, 1].map((half) => (
-        <div key={half} className="flex shrink-0 items-center">
-          {loop.map((t, i) => (
-            <span key={`${t}-${i}`} className="flex items-center whitespace-nowrap">
-              <span className="px-5 font-heading text-2xl font-bold uppercase sm:px-7 sm:text-4xl">{t}</span>
-              <span className="text-xl sm:text-3xl">✱</span>
-            </span>
-          ))}
-        </div>
-      ))}
-    </>
-  )
-}
-
 function Icon({ children }: { children: ReactNode }) {
   return (
     <svg
@@ -137,20 +102,6 @@ export default function ContactPage() {
           One call for all your property maintenance needs across the Helderberg Basin.
         </p>
       </section>
-
-      {/* Crossing service ribbons */}
-      <div className="relative overflow-hidden py-10 sm:py-14" aria-hidden="true">
-        <div className="-rotate-2 scale-[1.05] bg-orange text-jet">
-          <div className="flex w-max animate-marquee py-3">
-            <RibbonTrack items={RIBBON_ORANGE} repeat={3} />
-          </div>
-        </div>
-        <div className="relative -mt-3 rotate-1 scale-[1.05] bg-paper text-jet shadow-lg">
-          <div className="flex w-max animate-marquee py-3" style={{ animationDirection: 'reverse' }}>
-            <RibbonTrack items={RIBBON_LIGHT} repeat={2} />
-          </div>
-        </div>
-      </div>
 
       {/* Contact details + inquiry form */}
       <section className="wrap grid gap-10 py-12 lg:grid-cols-2 lg:gap-14 lg:py-16">
