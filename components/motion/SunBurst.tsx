@@ -17,7 +17,7 @@ export default function SunBurst({ className = '' }: { className?: string }) {
               width="3"
               height="46"
               rx="1.5"
-              fill="#F57C1B"
+              fill="#2E6BFF"
               opacity={i % 2 === 0 ? 0.55 : 0.25}
               transform={`rotate(${i * 22.5} 200 200)`}
             />
@@ -30,15 +30,15 @@ export default function SunBurst({ className = '' }: { className?: string }) {
               cx={200 + 150 * Math.cos((i * Math.PI * 2) / 24)}
               cy={200 + 150 * Math.sin((i * Math.PI * 2) / 24)}
               r="2.2"
-              fill="#F57C1B"
+              fill="#2E6BFF"
               opacity={0.35}
             />
           ))}
         </g>
         <circle cx="200" cy="200" r="86" fill="none" stroke="#2E3035" strokeWidth="1.5" />
         <circle cx="200" cy="200" r="120" fill="none" stroke="#2E3035" strokeWidth="1" />
-        <circle cx="200" cy="200" r="64" fill="#F57C1B" opacity="0.08" className="animate-glow-pulse origin-center" />
-        <circle cx="200" cy="200" r="40" fill="#F57C1B" opacity="0.14" className="animate-glow-pulse origin-center" />
+        <circle cx="200" cy="200" r="64" fill="#2E6BFF" opacity="0.08" className="animate-glow-pulse origin-center" />
+        <circle cx="200" cy="200" r="40" fill="#2E6BFF" opacity="0.14" className="animate-glow-pulse origin-center" />
       </svg>
     </div>
   )
