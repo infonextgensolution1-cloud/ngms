@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { BeforeAfter } from "@/lib/queries";
+import PlusCluster from "@/components/motion/PlusCluster";
+import Reveal from "@/components/motion/Reveal";
 
 // Real reviews only. Add new Google reviews to the TOP of this list,
 // e.g. { quote: "...", name: "Trustee, Cosmos Mews", source: "Google Review — 5 stars" },
@@ -36,19 +38,24 @@ export default function TrustStrip({ beforeAfter }: { beforeAfter: BeforeAfter[]
       <div className="wrap">
         {pairs.length > 0 && (
           <div className="text-center mb-14">
-            <p className="kicker">Drag to compare</p>
-            <h2 className="text-3xl md:text-4xl">Real Jobs, Real Results</h2>
+            <Reveal>
+              <PlusCluster className="mx-auto mb-4" />
+              <p className="kicker">Drag to compare</p>
+              <h2 className="text-3xl md:text-4xl">Real Jobs, Real Results</h2>
+            </Reveal>
             <div
               className={`grid gap-5 mt-8 ${pairs.length === 1 ? "max-w-[420px] mx-auto" : "sm:grid-cols-2 md:grid-cols-3"}`}
             >
               {pairs.map((item, idx) => (
-                <div key={idx} className="card !p-0 overflow-hidden text-left">
-                  <BeforeAfterSlider before={item.before_image_url} after={item.after_image_url} />
-                  <div className="p-3">
-                    <p className="text-sm">{item.caption || item.location}</p>
-                    <p className="tag">{item.location}</p>
+                <Reveal key={idx} delayMs={idx * 100}>
+                  <div className="card !p-0 overflow-hidden text-left">
+                    <BeforeAfterSlider before={item.before_image_url} after={item.after_image_url} />
+                    <div className="p-3">
+                      <p className="text-sm">{item.caption || item.location}</p>
+                      <p className="tag">{item.location}</p>
+                    </div>
                   </div>
-                </div>
+                </Reveal>
               ))}
             </div>
             <p className="mt-6">
@@ -59,11 +66,12 @@ export default function TrustStrip({ beforeAfter }: { beforeAfter: BeforeAfter[]
           </div>
         )}
 
-        <div className="text-center">
+        <Reveal className="text-center">
+          <PlusCluster className="mx-auto mb-4" />
           <p className="kicker">Reviews</p>
           <h2 className="text-3xl md:text-4xl">What Our Clients Say</h2>
           <TestimonialCarousel />
-        </div>
+        </Reveal>
       </div>
     </section>
   );
