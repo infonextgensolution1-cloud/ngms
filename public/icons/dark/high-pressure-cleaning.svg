@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="High-Pressure Cleaning">
+  <title>High-Pressure Cleaning</title>
+  <rect x="9" y="17" width="26" height="13" rx="3.5"/>
+  <path d="M35 21H40V26H35"/>
+  <path d="M15 30V45A2.5 2.5 0 0 0 17.5 47.5H21.5A2.5 2.5 0 0 0 24 45V30"/>
+  <path d="M29 30L27 38"/>
+  <path d="M9 23.5C3 23.5 3 41 9 44"/>
+  <path d="M45 19L58 12M46 23.5H60M45 28L58 35" stroke="#F57C1B" stroke-width="3.5"/>
+  <circle cx="52" cy="44" r="1.8" fill="#F57C1B" stroke="none"/>
+  <circle cx="44" cy="40" r="1.8" fill="#F57C1B" stroke="none"/>
+  <circle cx="55" cy="52" r="1.8" fill="#F57C1B" stroke="none"/>
+</svg>
