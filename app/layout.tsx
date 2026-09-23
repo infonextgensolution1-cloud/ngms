@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Big_Shoulders_Display, IBM_Plex_Sans } from 'next/font/google'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Analytics } from '@vercel/analytics/next'
@@ -36,6 +36,16 @@ export const metadata: Metadata = {
     type: 'website',
   },
   twitter: { card: 'summary_large_image' },
+}
+
+// Mobile-first: full-width viewport, dark browser chrome on Android, and draw under the notch / home bar
+// (safe-area insets keep the floating WhatsApp button clear of them).
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#0A0A0A',
+  colorScheme: 'dark',
 }
 
 // LocalBusiness structured data — helps Google show NGSMS in Maps / local results.
@@ -105,7 +115,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </p>
         </div>
 
-        <footer className="bg-jet text-mist text-sm pt-14 pb-8 border-t border-darkgrey">
+        <footer className="bg-jet text-mist text-sm pt-10 sm:pt-14 pb-24 sm:pb-8 border-t border-darkgrey">
           <div className="max-w-6xl mx-auto px-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
             <div>
               <img src={LOGO_DATA_URI} alt="NGSMS logo" className="h-12 w-auto mb-4" />
@@ -113,11 +123,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 Professional property maintenance across the Helderberg Basin. Quality work, done safely and
                 properly.
               </p>
-              <div className="flex items-center gap-4 mt-5">
-                <a href={FACEBOOK_URL} aria-label="NGSMS on Facebook" className="text-blue hover:opacity-80">
+              <div className="flex items-center gap-1 mt-3 -ml-2">
+                <a href={FACEBOOK_URL} aria-label="NGSMS on Facebook" className="text-blue hover:opacity-80 p-2.5">
                   <FacebookIcon className="h-7 w-7" />
                 </a>
-                <a href={WHATSAPP_URL} aria-label="WhatsApp NGSMS" className="text-whatsapp hover:opacity-80">
+                <a href={WHATSAPP_URL} aria-label="WhatsApp NGSMS" className="text-whatsapp hover:opacity-80 p-2.5">
                   <WhatsAppIcon className="h-7 w-7" />
                 </a>
               </div>
@@ -125,10 +135,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
             <div>
               <p className="font-heading font-bold text-paper mb-4 uppercase tracking-wide">Our Services</p>
-              <ul className="space-y-2 uppercase text-xs tracking-wide font-semibold">
+              <ul className="uppercase text-xs tracking-wide font-semibold">
                 {services.slice(0, 5).map((s) => (
                   <li key={s.slug}>
-                    <Link href={`/services/${s.slug}`} className="hover:text-orange">{s.name}</Link>
+                    <Link href={`/services/${s.slug}`} className="hover:text-orange inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">{s.name}</Link>
                   </li>
                 ))}
               </ul>
@@ -136,32 +146,39 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
             <div>
               <p className="font-heading font-bold text-paper mb-4 uppercase tracking-wide">Quick Links</p>
-              <ul className="space-y-2 uppercase text-xs tracking-wide font-semibold">
-                <li><Link href="/" className="hover:text-orange">Home</Link></li>
-                <li><Link href="/services" className="hover:text-orange">Services</Link></li>
-                <li><Link href="/portfolio" className="hover:text-orange">Projects</Link></li>
-                <li><Link href="/gallery" className="hover:text-orange">Gallery</Link></li>
-                <li><Link href="/price-list" className="hover:text-orange">Catalog</Link></li>
-                <li><Link href="/maintenance-packages" className="hover:text-orange">Maintenance Packages</Link></li>
-                <li><Link href="/roi-calculator" className="hover:text-orange">ROI Calculator</Link></li>
-                <li><Link href="/about" className="hover:text-orange">About</Link></li>
-                <li><Link href="/faq" className="hover:text-orange">FAQ</Link></li>
-                <li><Link href="/contact" className="hover:text-orange">Contact</Link></li>
+              {/* Two columns on phones keeps the footer short while every link stays a full-size tap target */}
+              <ul className="grid grid-cols-2 sm:grid-cols-1 gap-x-3 uppercase text-xs tracking-wide font-semibold">
+                {[
+                  ['/', 'Home'],
+                  ['/services', 'Services'],
+                  ['/portfolio', 'Projects'],
+                  ['/gallery', 'Gallery'],
+                  ['/price-list', 'Catalog'],
+                  ['/maintenance-packages', 'Maintenance Packages'],
+                  ['/roi-calculator', 'ROI Calculator'],
+                  ['/about', 'About'],
+                  ['/faq', 'FAQ'],
+                  ['/contact', 'Contact'],
+                ].map(([href, label]) => (
+                  <li key={href}>
+                    <Link href={href} className="hover:text-orange inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">{label}</Link>
+                  </li>
+                ))}
               </ul>
             </div>
 
             <div>
               <p className="font-heading font-bold text-paper mb-4 uppercase tracking-wide">Contact Us</p>
-              <ul className="space-y-2">
+              <ul className="space-y-1">
                 <li>
-                  <a href="tel:+27631387945" className="hover:text-orange">063 138 7945</a>
+                  <a href="tel:+27631387945" className="hover:text-orange inline-block py-2 sm:py-1">063 138 7945</a>
                 </li>
                 <li>
                   Bookings:{' '}
-                  <a href="tel:+27627007509" className="hover:text-orange">062 700 7509</a>
+                  <a href="tel:+27627007509" className="hover:text-orange inline-block py-2 sm:py-1">062 700 7509</a>
                 </li>
                 <li className="break-all">
-                  <a href="mailto:info.nextgensolution1@gmail.com" className="hover:text-orange">
+                  <a href="mailto:info.nextgensolution1@gmail.com" className="hover:text-orange inline-block py-2 sm:py-1">
                     info.nextgensolution1@gmail.com
                   </a>
                 </li>
@@ -182,11 +199,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a
           href={WHATSAPP_URL}
           aria-label="WhatsApp NGSMS"
-          className="fixed bottom-5 right-5 z-50 flex items-center justify-center h-14 w-14"
+          className="fixed z-50 flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14"
+          style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom))', right: 'calc(1rem + env(safe-area-inset-right))' }}
         >
           <span aria-hidden className="absolute inset-0 rounded-full bg-whatsapp animate-wa-ping" />
-          <span className="relative flex items-center justify-center h-14 w-14 rounded-full shadow-lg bg-whatsapp">
-            <WhatsAppIcon className="h-7 w-7 text-white" />
+          <span className="relative flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-lg bg-whatsapp">
+            <WhatsAppIcon className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
           </span>
         </a>
 
