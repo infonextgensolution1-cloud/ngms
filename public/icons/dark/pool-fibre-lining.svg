@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Pool Fibre Lining">
+  <title>Pool Fibre Lining</title>
+  <path d="M18 44V14A8 8 0 0 1 34 14V44"/>
+  <path d="M18 25H34M18 35H34"/>
+  <path d="M6 34V50C6 55 10 58 15 58H49C54 58 58 55 58 50V34"/>
+  <path d="M6 42Q12.5 37 19 42T32 42T45 42T58 42" stroke="#F57C1B" stroke-width="3.5"/>
+</svg>
