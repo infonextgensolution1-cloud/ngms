@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Waterproofing">
+  <title>Waterproofing</title>
+  <path d="M32 6L52 13V30C52 43 43 52 32 58C21 52 12 43 12 30V13Z"/>
+  <path d="M32 21C32 21 23.5 30.5 23.5 36.5A8.5 8.5 0 0 0 40.5 36.5C40.5 30.5 32 21 32 21Z" fill="#F57C1B" stroke="#F57C1B" stroke-width="1.5"/>
+</svg>
