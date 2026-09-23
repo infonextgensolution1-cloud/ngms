@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="#0A0A0A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Handyman">
+  <title>Handyman</title>
+  <g transform="rotate(45 32 32)">
+    <rect x="29" y="22" width="6" height="34" rx="2"/>
+    <rect x="20" y="8" width="24" height="14" rx="2" fill="#F57C1B"/>
+  </g>
+  <g transform="rotate(-45 32 32)">
+    <rect x="29" y="36" width="6" height="20" rx="2"/>
+    <path d="M32 36V10"/>
+  </g>
+</svg>
