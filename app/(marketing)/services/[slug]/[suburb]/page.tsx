@@ -82,7 +82,7 @@ export default function ServiceSuburbPage({
         <p className="mt-8">
           <Link
             href={`/quote?service=${encodeURIComponent(s.name)}&area=${encodeURIComponent(sub.name)}`}
-            className="btn"
+            className="btn-quote"
           >
             Get A Quote for {sub.name}
           </Link>

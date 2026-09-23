@@ -91,7 +91,7 @@ export default function SolarRoiCalculator() {
         depends on panel angle, dust and pollen.
       </p>
 
-      <Link href={quoteHref} className="btn-wa mt-4 w-full text-center">
+      <Link href={quoteHref} className="btn-quote mt-4 w-full text-center">
         Get an exact quote for {panels} panels
       </Link>
     </div>

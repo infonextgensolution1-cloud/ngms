@@ -60,7 +60,7 @@ export default function AboutPage() {
       <section className="bg-graphite text-white text-center py-12 px-4 border-t border-darkgrey">
         <h2 className="font-heading text-2xl font-bold mb-3 text-paper">Ready to get started?</h2>
         <div className="flex gap-4 justify-center flex-wrap mt-4">
-          <a href="/quote" className="bg-orange hover:bg-orange-dark text-white font-heading font-semibold px-6 py-3 rounded-btn">
+          <a href="/quote" className="bg-purple hover:bg-purple-dark text-white font-heading font-semibold px-6 py-3 rounded-btn">
             Get a Free Quote
           </a>
           <a href="https://wa.me/27631387945" className="border border-mist text-paper font-heading font-semibold px-6 py-3 rounded-btn hover:border-blue hover:text-blue">

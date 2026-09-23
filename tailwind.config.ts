@@ -40,6 +40,16 @@ const config: Config = {
           DEFAULT: '#25D366',
           dark: '#1DA851',
         },
+        // Power Purple — "Get a quote" buttons (brand colour, used for quote CTAs only)
+        purple: {
+          DEFAULT: '#8B1BF5',
+          dark: '#7212D0',
+        },
+        // Facebook Blue — Facebook icon and the "Book a site walk-through" button
+        facebook: {
+          DEFAULT: '#1877F2',
+          dark: '#1465CF',
+        },
       },
       fontFamily: {
         // Big Shoulders Display — set in app/layout.tsx

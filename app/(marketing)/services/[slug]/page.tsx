@@ -106,7 +106,7 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
         )}
 
         <p className="mt-8">
-          <Link href={`/quote?service=${encodeURIComponent(s.name)}`} className="btn">Get A Quote</Link>
+          <Link href={`/quote?service=${encodeURIComponent(s.name)}`} className="btn-quote">Get A Quote</Link>
         </p>
 
         <div className="mt-12 pt-8 border-t border-line">

@@ -79,7 +79,7 @@ export default async function PortfolioPage() {
             : 'We’re currently uploading before-and-after photos from recent jobs. Check back shortly, or get in touch for references from recent clients.'}
         </p>
         <div className="flex gap-4 justify-center flex-wrap mt-8">
-          <Link href="/quote" className="bg-whatsapp hover:bg-whatsapp-dark text-white font-heading font-semibold px-6 py-3 rounded-btn">
+          <Link href="/quote" className="bg-purple hover:bg-purple-dark text-white font-heading font-semibold px-6 py-3 rounded-btn">
             Get a Free Quote
           </Link>
           <Link href="/services" className="border border-mist text-paper font-heading font-semibold px-6 py-3 rounded-btn hover:border-blue hover:text-blue">

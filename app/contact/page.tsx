@@ -186,7 +186,7 @@ export default function ContactPage() {
             </p>
             <a
               href="/quote"
-              className="inline-block rounded-full bg-orange px-9 py-3 font-heading text-base font-bold uppercase tracking-wide text-jet transition hover:bg-orange-dark"
+              className="inline-block rounded-full bg-purple px-9 py-3 font-heading text-base font-bold uppercase tracking-wide text-white transition hover:bg-purple-dark"
             >
               Get a Free Quote
             </a>

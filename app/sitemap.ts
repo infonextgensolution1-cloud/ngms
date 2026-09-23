@@ -15,6 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/roi-calculator`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/about`, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${BASE_URL}/faq`, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${BASE_URL}/terms`, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${BASE_URL}/contact`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/quote`, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE_URL}/solar-panel-cleaning-helderberg`, changeFrequency: 'monthly', priority: 0.8 },
