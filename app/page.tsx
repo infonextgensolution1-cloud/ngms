@@ -1,3 +1,4 @@
+import { Space_Grotesk } from 'next/font/google'
 import { services } from '@/lib/services'
 import SeasonalBanner from '@/components/SeasonalBanner'
 import TrustStrip from '@/components/TrustStrip'
@@ -7,6 +8,10 @@ import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages } fro
 import { HeroBento, JobReel, MissionBand, PostTrio, ServicePhotoGrid, type Photo } from '@/components/home/VestoxHome'
 
 export const revalidate = 0
+
+// Homepage display font: Space Grotesk Bold (modern / tech look).
+// Sets --font-heading on <main>, so every font-heading class on the homepage uses it.
+const techHeading = Space_Grotesk({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-heading' })
 
 const TICKER_ITEMS = services.map((s) => s.name)
 
@@ -39,7 +44,7 @@ export default async function HomePage() {
   const solar = (i: number) => solarPhotos[i] ?? pick(i)
 
   return (
-    <main className="bg-jet">
+    <main className={`bg-jet ${techHeading.variable}`}>
       <SeasonalBanner />
 
       <HeroBento solar={solar(0)} avatars={[pick(1), pick(2), pick(3)].filter(Boolean) as Photo[]} feature={pick(0)} />
