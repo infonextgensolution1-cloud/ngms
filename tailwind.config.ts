@@ -1,6 +1,6 @@
 import type { Config } from 'tailwindcss'
 
-// Ember Grid theme — black/grey/white with Solar Orange as the only accent.
+// Ember Grid theme — black/grey/white with Signal Blue as the only accent.
 // Spec: docs/ember-grid-theme.md
 const config: Config = {
   content: [
@@ -24,16 +24,18 @@ const config: Config = {
         paper: '#F4F4F2',
         // Concrete — one light block per page
         concrete: '#D6D6D3',
-        // Solar Orange — the single accent (CTAs, icons, markers, split panels)
+        // Signal Blue — the single accent (CTAs, icons, markers, split panels).
+        // Token key kept as 'orange' so existing bg-orange/text-orange/border-orange
+        // classes across the app don't need touching — only the hex changes.
         orange: {
-          DEFAULT: '#F57C1B',
-          dark: '#FF5A1F',
+          DEFAULT: '#2E6BFF',
+          dark: '#1948CC',
         },
-        // Legacy 'blue' token now maps to the orange accent so existing
-        // kickers/links switch to the one-accent look without component edits
+        // 'blue' token kept as an alias of the same accent so existing
+        // kickers/links stay in sync with the one-accent look
         blue: {
-          DEFAULT: '#F57C1B',
-          dark: '#FF5A1F',
+          DEFAULT: '#2E6BFF',
+          dark: '#1948CC',
         },
         // WhatsApp Green — WhatsApp buttons only (functional, kept)
         whatsapp: {
