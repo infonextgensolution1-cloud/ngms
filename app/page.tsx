@@ -54,7 +54,7 @@ export default async function HomePage() {
           className="absolute inset-0 opacity-[0.05] animate-grid-drift"
           style={{
             backgroundImage:
-              'linear-gradient(#F57C1B 1px, transparent 1px), linear-gradient(90deg, #F57C1B 1px, transparent 1px)',
+              'linear-gradient(#2E6BFF 1px, transparent 1px), linear-gradient(90deg, #2E6BFF 1px, transparent 1px)',
             backgroundSize: '48px 48px',
           }}
         />
