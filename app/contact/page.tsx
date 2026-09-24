@@ -154,12 +154,19 @@ export default function ContactPage() {
       <section className="border-t border-darkgrey bg-jet py-14">
         <div className="mx-auto max-w-4xl px-4">
           <p className="kicker mb-4 block text-center">Areas we serve</p>
-          <div className="mb-10 flex flex-wrap justify-center gap-3">
+          <div className="mb-6 flex flex-wrap justify-center gap-3">
             {AREAS.map((a) => (
               <span key={a} className="rounded-full border border-darkgrey bg-cardgrey px-4 py-2 text-sm text-paper">
                 {a}
               </span>
             ))}
+          </div>
+          <div className="mb-10 rounded-card border-2 border-[#C4560A] bg-graphite px-5 py-4 text-center">
+            <p className="font-heading text-xl font-bold uppercase text-orange">R350 callout fee outside the Helderberg</p>
+            <p className="mt-1 text-sm text-mist">
+              Applies to the Overberg, Stellenbosch, Paarl, Worcester and Cape Town. No callout fee in Strand,
+              Gordon’s Bay or Somerset West.
+            </p>
           </div>
           <div className="overflow-hidden rounded-card border border-darkgrey">
             <iframe
