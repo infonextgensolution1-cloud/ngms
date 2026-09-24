@@ -480,9 +480,14 @@ export function PostTrio({ left, right }: { left?: Photo; right?: Photo }) {
       </div>
 
       <div className="max-w-6xl mx-auto mt-10 flex flex-wrap items-center justify-between gap-4">
-        <p className="font-heading font-bold uppercase text-jet text-xl">
-          Strand · Somerset West · Gordon&apos;s Bay · Overberg · Stellenbosch · Paarl · Worcester · Cape Town
-        </p>
+        <div>
+          <p className="font-heading font-bold uppercase text-jet text-xl">
+            Strand · Somerset West · Gordon&apos;s Bay · Overberg · Stellenbosch · Paarl · Worcester · Cape Town
+          </p>
+          <p className="mt-1 text-sm font-bold uppercase tracking-wide text-ember-deep">
+            R350 callout fee outside the Helderberg
+          </p>
+        </div>
         <div className="flex gap-3 flex-wrap">
           <Link href="/quote" className="btn-quote">
             Get a free quote
