@@ -1,7 +1,12 @@
 import type { Config } from 'tailwindcss'
 
-// Ember Grid theme — black/grey/white with Solar Orange as the only accent.
-// Spec: docs/ember-grid-theme.md
+// Solar Forge theme — one grey ramp (dark to light) with Solar Orange as the only accent.
+// Builds on Ember Grid: every existing token keeps its name and value, and three are new
+// (slate, fog, ember-deep). Spec: docs/solar-forge-theme.md
+//
+//   Dark greys:   jet  cardgrey  graphite  darkgrey
+//   Mid greys:    slate (text on light)   mist (text on dark)
+//   Light greys:  concrete  fog  paper
 const config: Config = {
   content: [
     './app/**/*.{ts,tsx}',
@@ -18,12 +23,19 @@ const config: Config = {
         darkgrey: '#2E3035',
         // Carbon — card/panel background
         cardgrey: '#141517',
+        // Slate — secondary text on light bands (4.9:1 on Concrete, 5.8:1 on Fog)
+        slate: '#55585E',
         // Ash — secondary text on dark
         mist: '#9A9CA1',
-        // Chalk — primary text on dark
+        // Chalk — primary text on dark, cards on light bands
         paper: '#F4F4F2',
-        // Concrete — one light block per page
+        // Fog — the main light band background
+        fog: '#E7E7E4',
+        // Concrete — light tiles, borders and dividers on light bands
         concrete: '#D6D6D3',
+        // Ember Deep — orange TEXT on light bands only (Chalk 5.5:1, Fog 4.9:1).
+        // Bright Solar Orange fails contrast as small text on light greys.
+        'ember-deep': '#A84300',
         // Solar Orange — the single accent (CTAs, icons, markers, split panels)
         orange: {
           DEFAULT: '#F57C1B',
