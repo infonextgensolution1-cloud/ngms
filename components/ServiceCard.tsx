@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Service } from "@/lib/services";
+import { serviceIcon } from "@/lib/service-icons";
 
 export default function ServiceCard({
   s,
@@ -10,6 +11,7 @@ export default function ServiceCard({
   price?: string;
   image?: string;
 }) {
+  const icon = serviceIcon(s.slug, "dark");
   return (
     <Link
       href={`/services/${s.slug}`}
@@ -25,8 +27,13 @@ export default function ServiceCard({
         </div>
       )}
       <div className="p-5">
-        <h3 className="font-heading font-bold text-lg text-paper">{s.name}</h3>
-        <p className="text-orange text-sm font-semibold mt-1">{s.tagline}</p>
+        <div className="flex items-center gap-3">
+          {icon && (
+            <img src={icon} alt="" aria-hidden="true" width={44} height={44} className="h-11 w-11 shrink-0" />
+          )}
+          <h3 className="font-heading font-bold text-lg text-paper">{s.name}</h3>
+        </div>
+        <p className="text-orange text-sm font-semibold mt-3">{s.tagline}</p>
         <p className="text-mist text-sm mt-3 line-clamp-2">{s.description}</p>
         <div className="flex items-center justify-between mt-5 pt-4 border-t border-darkgrey">
           {price ? (
