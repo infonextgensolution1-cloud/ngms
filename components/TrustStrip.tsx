@@ -32,7 +32,7 @@ export default function TrustStrip({ beforeAfter }: { beforeAfter: BeforeAfter[]
   const pairs = beforeAfter.slice(0, 3);
 
   return (
-    <section className="py-14 px-4 bg-graphite border-y border-line">
+    <section className="band-light py-14 px-4 bg-fog border-y border-concrete">
       <div className="wrap">
         {pairs.length > 0 && (
           <div className="text-center mb-14">
@@ -122,7 +122,7 @@ function BeforeAfterSlider({ before, after }: { before: string; after: string })
 
       <div className="absolute inset-0 overflow-hidden" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
         <Image src={before} alt="Before" fill className="object-cover pointer-events-none" />
-        <span className="absolute top-1.5 left-1.5 bg-jet/80 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded">
+        <span className="absolute top-1.5 left-1.5 bg-jet/80 text-white text-[10px] uppercase tracking-wider px-2 py-0.5 rounded">
           Before
         </span>
       </div>
@@ -165,8 +165,8 @@ function TestimonialCarousel() {
             aria-hidden={i !== active}
           >
             <p className="text-orange">★★★★★</p>
-            <p className="text-mist my-3">&ldquo;{r.quote}&rdquo;</p>
-            <strong className="text-paper">{r.name}</strong>
+            <p className="my-3 text-graphite">&ldquo;{r.quote}&rdquo;</p>
+            <strong className="text-graphite">{r.name}</strong>
             <p className="text-mist text-xs">{r.source}</p>
           </div>
         ))}
@@ -179,7 +179,7 @@ function TestimonialCarousel() {
             type="button"
             aria-label={`Show review from ${r.name}`}
             onClick={() => setActive(i)}
-            className={`relative h-2 rounded-full transition-all after:absolute after:-inset-3 after:content-[''] ${i === active ? "w-6 bg-orange" : "w-2 bg-mist/40 hover:bg-mist"}`}
+            className={`relative h-2 rounded-full transition-all after:absolute after:-inset-3 after:content-[''] ${i === active ? "w-6 bg-orange" : "w-2 bg-slate/40 hover:bg-slate"}`}
           />
         ))}
       </div>

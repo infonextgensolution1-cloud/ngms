@@ -120,7 +120,7 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
       <div className="max-w-6xl mx-auto grid gap-4 lg:grid-cols-12">
         {/* Headline */}
         <div className="lg:col-span-7 flex flex-col justify-center py-2">
-          <p className="font-heading font-bold uppercase tracking-[0.2em] text-xs sm:text-sm text-orange mb-4">
+          <p className="font-heading font-bold uppercase tracking-[0.2em] text-xs sm:text-sm text-ember-deep mb-4">
             Solar panel cleaning · Helderberg Basin
           </p>
           <h1 className="font-heading font-bold leading-[0.92] text-[3rem] sm:text-[4.5rem] lg:text-[5rem] tracking-[-0.035em] animate-fade-up">
@@ -164,7 +164,7 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
           <div className="mt-3">
             <OutputChart />
           </div>
-          <p className="text-[10px] uppercase tracking-widest text-[#8A8C90] mt-1">Illustrative · coastal soiling rate</p>
+          <p className="text-[10px] uppercase tracking-widest text-slate mt-1">Illustrative · coastal soiling rate</p>
         </div>
 
         {/* Orange photo tile */}
@@ -199,7 +199,7 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
 
         {/* Sand "one call" tile */}
         <div className="lg:col-span-5 grid grid-cols-2 gap-4">
-          <div className="relative rounded-2xl bg-[#E4DED2] p-5 pt-7 flex flex-col justify-between min-h-[260px]">
+          <div className="relative rounded-2xl bg-concrete p-5 pt-7 flex flex-col justify-between min-h-[260px]">
             <TabNotch ground={GROUND_LIGHT} width="40%" />
             <p className="font-heading font-bold uppercase text-xl leading-[1.05]">
               One call.
@@ -209,12 +209,12 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
             <div>
               <div className="flex -space-x-3">
                 {avatars.slice(0, 3).map((p, i) => (
-                  <span key={i} className="relative h-11 w-11 rounded-full overflow-hidden border-2 border-[#E4DED2] bg-graphite">
+                  <span key={i} className="relative h-11 w-11 rounded-full overflow-hidden border-2 border-concrete bg-graphite">
                     <PhotoFill photo={p} sizes="44px" />
                   </span>
                 ))}
               </div>
-              <Link href="/services" className="mt-3 inline-block text-[10px] uppercase tracking-widest font-bold leading-tight hover:text-orange">
+              <Link href="/services" className="mt-3 inline-block text-[10px] uppercase tracking-widest font-bold leading-tight hover:text-ember-deep">
                 Painting, paving,
                 <br />
                 waterproofing &amp; more &rarr;
@@ -239,15 +239,15 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
 export function JobReel({ photos }: { photos: Photo[] }) {
   if (photos.length === 0) return null
   return (
-    <section className="bg-[#E9E9E6] text-jet py-14 sm:py-16">
+    <section className="bg-fog text-jet py-14 sm:py-16">
       <div className="max-w-6xl mx-auto px-4 flex flex-wrap items-end justify-between gap-4 mb-8">
         <div>
-          <p className="font-heading font-bold uppercase tracking-[0.2em] text-xs text-orange mb-2">Recent work</p>
+          <p className="font-heading font-bold uppercase tracking-[0.2em] text-xs text-ember-deep mb-2">Recent work</p>
           <h2 className="font-heading font-extrabold text-4xl sm:text-5xl leading-[0.95]">
             Real jobs, <span className="italic">real roofs</span>
           </h2>
         </div>
-        <Link href="/gallery" className="font-heading font-bold uppercase text-xs tracking-widest hover:text-orange">
+        <Link href="/gallery" className="font-heading font-bold uppercase text-xs tracking-widest hover:text-ember-deep">
           Full gallery &rarr;
         </Link>
       </div>
@@ -351,7 +351,7 @@ export function ServicePhotoGrid({
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
           <div>
-            <p className="font-heading font-bold uppercase tracking-[0.2em] text-xs text-orange mb-2">What we do</p>
+            <p className="font-heading font-bold uppercase tracking-[0.2em] text-xs text-ember-deep mb-2">What we do</p>
             <h2 className="font-heading font-extrabold text-4xl sm:text-5xl leading-[0.95]">
               Everything your property needs
             </h2>
@@ -369,7 +369,7 @@ export function ServicePhotoGrid({
               <Link
                 key={s.slug}
                 href={`/services/${s.slug}`}
-                className={`group relative overflow-hidden rounded-2xl ${img ? 'bg-jet' : 'bg-[#E4DED2]'} ${
+                className={`group relative overflow-hidden rounded-2xl ${img ? 'bg-jet' : 'bg-concrete'} ${
                   big ? 'col-span-2 row-span-2 min-h-[320px]' : 'min-h-[150px] sm:min-h-[190px]'
                 }`}
               >
@@ -398,7 +398,7 @@ export function ServicePhotoGrid({
                   <p className={`font-heading font-bold uppercase leading-tight ${big ? 'text-2xl sm:text-3xl' : 'text-base sm:text-lg'}`}>
                     {s.name}
                   </p>
-                  <p className={`text-xs mt-1 ${img ? 'text-paper/75' : 'text-[#5A5C60]'} ${big ? 'sm:text-sm' : 'hidden sm:block'}`}>
+                  <p className={`text-xs mt-1 ${img ? 'text-paper/75' : 'text-slate'} ${big ? 'sm:text-sm' : 'hidden sm:block'}`}>
                     {s.tagline}
                   </p>
                 </div>
@@ -427,7 +427,7 @@ export function PostTrio({ left, right }: { left?: Photo; right?: Photo }) {
   )
 
   return (
-    <section className="bg-[#E9E9E6] py-16 sm:py-20 px-4">
+    <section className="bg-fog py-16 sm:py-20 px-4">
       <div className="max-w-6xl mx-auto grid gap-4 sm:grid-cols-3">
         <Post>
           <div className="relative aspect-square rounded-lg overflow-hidden bg-jet">
