@@ -358,7 +358,7 @@ export default function Calculators({ initial = 'solar' }: { initial?: Calc }) {
       <div className="mt-6 flex gap-3 flex-wrap">
         <a
           href="/quote"
-          className="bg-purple hover:bg-purple-dark text-white font-semibold px-6 py-3 rounded-full text-sm"
+          className="btn-glow font-semibold px-6 py-3 rounded-full text-sm"
         >
           Get an exact quote
         </a>
