@@ -54,7 +54,7 @@ export default function PricesPage() {
         </div>
         <p className="text-mist text-sm mt-8">
           NGX10 — 10% off your first booking on any service except solar panel cleaning. Free written quote after a
-          site visit. Free callout inside the Helderberg Basin; R350 out-of-basin callout for the Overberg.
+          site visit. Free callout inside the Helderberg Basin; R350 callout outside it (Overberg, Stellenbosch, Paarl, Worcester, Cape Town).
         </p>
         <p className="mt-6">
           <Link

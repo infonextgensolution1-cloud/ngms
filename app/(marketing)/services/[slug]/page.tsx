@@ -72,8 +72,8 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
               </table>
             </div>
             <p className="text-mist text-xs mt-3">
-              Prices exclude VAT. No callout fee in Strand, Gordon&rsquo;s Bay or Somerset West &mdash; R350 in the
-              Overberg. Maintenance plan (every 4&ndash;6 months) gets 15% off with priority booking.
+              Prices exclude VAT. No callout fee in Strand, Gordon&rsquo;s Bay or Somerset West &mdash; R350 callout
+              outside the Helderberg (Overberg, Stellenbosch, Paarl, Worcester, Cape Town). Maintenance plan (every 4&ndash;6 months) gets 15% off with priority booking.
             </p>
             <div className="card mt-6 text-center">
               <p className="font-semibold text-paper">No site visit needed for most homes</p>
