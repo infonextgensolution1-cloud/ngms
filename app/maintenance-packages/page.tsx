@@ -241,7 +241,7 @@ export default function MaintenancePackagesPage() {
       <section className="bg-jet text-white text-center py-14 px-4">
         <h2 className="font-heading text-2xl font-bold mb-3 text-paper">Not sure which package fits?</h2>
         <div className="flex gap-4 justify-center flex-wrap mt-4">
-          <a href="https://wa.me/27631387945" className="btn-wa">
+          <a href="https://wa.me/27631387945" className="btn-wa-price">
             WhatsApp us about price
           </a>
           <Link href="/price-list" className="border border-mist text-paper font-heading font-semibold px-6 py-3 rounded-btn hover:border-orange hover:text-orange">
