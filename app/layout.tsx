@@ -180,6 +180,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </li>
                 <li>Strand &middot; Gordon’s Bay &middot; Somerset West</li>
                 <li>Also serving: Overberg &middot; Stellenbosch &middot; Paarl &middot; Worcester &middot; Cape Town</li>
+                <li className="text-orange font-semibold">R350 callout fee outside the Helderberg</li>
                 <li>Mon &ndash; Sat: 07:00 &ndash; 18:00</li>
               </ul>
             </div>
