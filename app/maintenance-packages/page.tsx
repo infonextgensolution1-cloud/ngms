@@ -156,7 +156,7 @@ function PackageGrid({ packages }: { packages: Package[] }) {
           }`}
         >
           {pkg.featured && (
-            <span className="self-start bg-orange text-white text-[10px] uppercase tracking-wide px-2 py-1 rounded-btn mb-3 font-heading font-semibold">
+            <span className="btn-popular self-start mb-4 px-3 py-1.5 text-xs font-heading">
               {pkg.badge || 'Most Popular'}
             </span>
           )}
@@ -241,8 +241,8 @@ export default function MaintenancePackagesPage() {
       <section className="bg-jet text-white text-center py-14 px-4">
         <h2 className="font-heading text-2xl font-bold mb-3 text-paper">Not sure which package fits?</h2>
         <div className="flex gap-4 justify-center flex-wrap mt-4">
-          <a href="https://wa.me/27631387945" className="bg-whatsapp hover:bg-whatsapp-dark text-white font-heading font-semibold px-6 py-3 rounded-btn">
-            WhatsApp Us
+          <a href="https://wa.me/27631387945" className="btn-wa">
+            WhatsApp us about price
           </a>
           <Link href="/price-list" className="border border-mist text-paper font-heading font-semibold px-6 py-3 rounded-btn hover:border-orange hover:text-orange">
             View Full Catalog
