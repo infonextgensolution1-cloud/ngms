@@ -124,18 +124,45 @@ textarea:disabled {
     @apply inline-flex items-center justify-center gap-2 font-heading font-bold text-sm uppercase tracking-wide px-6 py-3 rounded-btn transition-all duration-200;
   }
 
-  /* "WhatsApp us about price": white fill, glowing grey text, green border */
+  /* Every WhatsApp button: green, bold caps, raised 3D edge, green glow */
   .btn-wa {
     @apply btn hover:-translate-y-0.5;
-    background-color: #ffffff;
-    color: #55585e;
-    border: 2px solid #25d366;
-    text-shadow: 0 0 4px rgba(85, 88, 94, 0.45), 0 0 10px rgba(85, 88, 94, 0.25);
-    box-shadow: 0 0 10px rgba(37, 211, 102, 0.45);
+    background-color: #15913f;
+    background-image: linear-gradient(#1fab50, #117a37);
+    color: #ffffff;
+    font-weight: 800;
+    border: 2px solid #0c5c29;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45), 0 0 8px rgba(255, 255, 255, 0.35);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 0 #0a4a21, 0 6px 10px rgba(0, 0, 0, 0.5),
+      0 0 14px rgba(37, 211, 102, 0.7), 0 0 30px rgba(37, 211, 102, 0.35);
   }
   .btn-wa:hover {
-    background-color: #ffffff;
-    box-shadow: 0 0 18px rgba(37, 211, 102, 0.75);
+    background-image: linear-gradient(#27c25c, #148a3f);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 4px 0 #0a4a21, 0 6px 10px rgba(0, 0, 0, 0.5),
+      0 0 20px rgba(37, 211, 102, 0.95), 0 0 42px rgba(37, 211, 102, 0.5);
+  }
+  .btn-wa:active {
+    transform: translateY(3px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 1px 0 #0a4a21, 0 0 12px rgba(37, 211, 102, 0.7);
+  }
+
+  /* "WhatsApp us about price": dark orange, black border, white bold caps, raised 3D edge */
+  .btn-wa-price {
+    @apply btn hover:-translate-y-0.5;
+    background-color: #b84e06;
+    background-image: linear-gradient(#d2600c, #a84300);
+    color: #ffffff;
+    font-weight: 800;
+    border: 2px solid #000000;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 4px 0 #000000, 0 6px 10px rgba(0, 0, 0, 0.45);
+  }
+  .btn-wa-price:hover {
+    background-image: linear-gradient(#df6a10, #b34a00);
+  }
+  .btn-wa-price:active {
+    transform: translateY(3px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 0 #000000;
   }
 
   /* "Get a quote": matte black fill, glowing orange text, blue border.
