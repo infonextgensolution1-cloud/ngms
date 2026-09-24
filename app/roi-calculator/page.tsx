@@ -108,7 +108,7 @@ export default function RoiCalculatorPage() {
       <section className="bg-jet text-white text-center py-14 px-4">
         <h2 className="font-heading text-2xl font-bold mb-3 text-paper">Ready to stop losing power to dirty panels?</h2>
         <div className="flex gap-4 justify-center flex-wrap mt-4">
-          <Link href="/quote" className="bg-purple hover:bg-purple-dark text-white font-heading font-semibold px-6 py-3 rounded-btn">
+          <Link href="/quote" className="btn-glow font-heading font-semibold px-6 py-3 rounded-btn">
             Get a Free Quote
           </Link>
           <Link href="/maintenance-packages" className="border border-mist text-paper font-heading font-semibold px-6 py-3 rounded-btn hover:border-orange hover:text-orange">
