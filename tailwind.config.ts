@@ -45,6 +45,13 @@ const config: Config = {
           DEFAULT: '#8B1BF5',
           dark: '#7212D0',
         },
+        // Luminous Orange — "Get a quote" / CTA buttons (black text, Eco Green border)
+        glow: {
+          DEFAULT: '#FF8A1F',
+          bright: '#FFA033',
+        },
+        // Eco Green — CTA button border
+        ecogreen: '#39D353',
         // Facebook Blue — Facebook icon and the "Book a site walk-through" button
         facebook: {
           DEFAULT: '#1877F2',
