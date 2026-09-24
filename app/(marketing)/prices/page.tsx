@@ -59,7 +59,7 @@ export default function PricesPage() {
         <p className="mt-6">
           <Link
             href="/quote"
-            className="inline-block bg-purple hover:bg-purple-dark text-white font-bold text-sm px-6 py-3 rounded-btn"
+            className="btn-glow inline-block font-bold text-sm px-6 py-3 rounded-btn"
           >
             Get A Quote
           </Link>
