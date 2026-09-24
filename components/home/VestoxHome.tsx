@@ -145,7 +145,7 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
               target="_blank"
               rel="noreferrer"
             >
-              WhatsApp us
+              WhatsApp us about price
             </a>
           </div>
         </div>
@@ -481,7 +481,7 @@ export function PostTrio({ left, right }: { left?: Photo; right?: Photo }) {
 
       <div className="max-w-6xl mx-auto mt-10 flex flex-wrap items-center justify-between gap-4">
         <p className="font-heading font-bold uppercase text-jet text-xl">
-          Strand · Somerset West · Gordon&apos;s Bay · Overberg
+          Strand · Somerset West · Gordon&apos;s Bay · Overberg · Stellenbosch · Paarl · Worcester · Cape Town
         </p>
         <div className="flex gap-3 flex-wrap">
           <Link href="/quote" className="btn-quote">
