@@ -145,6 +145,43 @@ textarea:disabled {
   .btn-dark {
     @apply btn bg-cardgrey border border-darkgrey text-paper hover:border-orange hover:text-orange;
   }
+  /* Buttons for the orange panel: black fill, or black outline */
+  .btn-jet {
+    @apply btn bg-jet text-paper hover:bg-graphite hover:-translate-y-0.5;
+  }
+  .btn-outline-jet {
+    @apply btn border border-jet text-jet hover:bg-jet hover:text-paper hover:-translate-y-0.5;
+  }
+}
+
+/* ---------- Solar Forge: light bands ----------
+   Put .band-light plus a light background (bg-fog, or bg-paper) on a section and the
+   dark-theme text and card colours inside it flip to their light-band versions.
+   Note: text-paper is NOT remapped (it is also used on dark chips inside light sections),
+   so set text-graphite on any light-band text that used text-paper.
+   Orange text becomes Ember Deep (5.5:1 on Chalk, 4.9:1 on Fog), including decorative glyphs. */
+.band-light {
+  color: theme('colors.graphite');
+}
+.band-light :is(h1, h2, h3, h4) {
+  color: theme('colors.graphite');
+}
+.band-light .text-mist,
+.band-light .tag {
+  color: theme('colors.slate');
+}
+.band-light .text-orange,
+.band-light .text-blue,
+.band-light .kicker {
+  color: theme('colors.ember-deep');
+}
+.band-light .card {
+  background-color: theme('colors.paper');
+  border-color: theme('colors.concrete');
+}
+.band-light .border-darkgrey,
+.band-light .border-line {
+  border-color: theme('colors.concrete');
 }
 
 /* ---------- Phone touch + legibility ---------- */
