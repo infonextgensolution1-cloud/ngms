@@ -115,14 +115,14 @@ function BeforeAfterSlider({ before, after }: { before: string; after: string })
     >
       <div className="absolute inset-0">
         <Image src={after} alt="After" fill className="object-cover pointer-events-none" />
-        <span className="absolute top-1.5 right-1.5 bg-orange/90 text-white text-[10px] uppercase tracking-wider px-2 py-0.5 rounded">
+        <span className="badge-glow absolute top-1.5 right-1.5 bg-orange/90 text-white text-[10px] uppercase tracking-wider px-2 py-0.5 rounded">
           After
         </span>
       </div>
 
       <div className="absolute inset-0 overflow-hidden" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
         <Image src={before} alt="Before" fill className="object-cover pointer-events-none" />
-        <span className="absolute top-1.5 left-1.5 bg-jet/80 text-white text-[10px] uppercase tracking-wider px-2 py-0.5 rounded">
+        <span className="badge-glow absolute top-1.5 left-1.5 bg-jet/80 text-white text-[10px] uppercase tracking-wider px-2 py-0.5 rounded">
           Before
         </span>
       </div>
