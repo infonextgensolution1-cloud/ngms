@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { whatsappLink } from '@/lib/site'
+import { serviceIcon } from '@/lib/service-icons'
 
 // Homepage building blocks — "folder tab" layout (light sand/chalk ground,
 // black + Solar Orange tiles, real job photos from Supabase).
@@ -363,6 +364,7 @@ export function ServicePhotoGrid({
           {services.map((s, i) => {
             const img = images[s.slug]
             const big = i === 0
+            const icon = serviceIcon(s.slug, img ? 'dark' : 'light')
             return (
               <Link
                 key={s.slug}
@@ -383,6 +385,14 @@ export function ServicePhotoGrid({
                   </>
                 ) : (
                   <div aria-hidden className="absolute -right-6 -bottom-6 h-24 w-24 rounded-full border-[10px] border-orange/30" />
+                )}
+                {icon && (
+                  <span
+                    aria-hidden
+                    className={`absolute left-3 top-3 z-10 ${img ? 'rounded-xl bg-jet/70 p-1.5 backdrop-blur-sm' : ''}`}
+                  >
+                    <img src={icon} alt="" className={big ? 'h-12 w-12 sm:h-14 sm:w-14' : 'h-9 w-9 sm:h-10 sm:w-10'} />
+                  </span>
                 )}
                 <div className={`absolute left-0 right-0 bottom-0 p-4 ${img ? 'text-paper' : 'text-jet'}`}>
                   <p className={`font-heading font-bold uppercase leading-tight ${big ? 'text-2xl sm:text-3xl' : 'text-base sm:text-lg'}`}>
