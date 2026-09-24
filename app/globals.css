@@ -126,9 +126,14 @@ textarea:disabled {
   .btn-wa {
     @apply btn bg-whatsapp text-white hover:bg-whatsapp-dark hover:-translate-y-0.5 hover:shadow-lg hover:shadow-whatsapp/20;
   }
-  /* Every "Get a quote" button: Power Purple */
+  /* Luminous orange CTA colours: black text, Eco Green border, soft glow.
+     Colours only, so it can sit on any button shape (.btn, rounded-full, etc.) */
+  .btn-glow {
+    @apply bg-glow text-jet border-2 border-ecogreen shadow-[0_0_18px_rgba(255,138,31,0.35)] hover:bg-glow-bright hover:shadow-[0_0_28px_rgba(255,138,31,0.6)];
+  }
+  /* Every "Get a quote" button: luminous orange */
   .btn-quote {
-    @apply btn bg-purple text-white hover:bg-purple-dark hover:-translate-y-0.5 hover:shadow-lg hover:shadow-purple/30;
+    @apply btn btn-glow hover:-translate-y-0.5;
   }
   /* "Book a site walk-through": Facebook blue, same as the Facebook icon */
   .btn-facebook {
