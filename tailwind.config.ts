@@ -40,11 +40,6 @@ const config: Config = {
           DEFAULT: '#25D366',
           dark: '#1DA851',
         },
-        // Power Purple — "Get a quote" buttons (brand colour, used for quote CTAs only)
-        purple: {
-          DEFAULT: '#8B1BF5',
-          dark: '#7212D0',
-        },
         // Luminous Orange — "Get a quote" / CTA buttons (black text, Eco Green border)
         glow: {
           DEFAULT: '#FF8A1F',
