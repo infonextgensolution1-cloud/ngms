@@ -6,7 +6,17 @@ export const metadata = {
   description: 'Get in touch with NextGen Solar & Maintenance Solutions — Strand, Gordon’s Bay, Somerset West.',
 }
 
-const AREAS = ['Strand', 'Gordon’s Bay', 'Somerset West', 'Helderberg Basin']
+const AREAS = [
+  'Strand',
+  'Gordon’s Bay',
+  'Somerset West',
+  'Helderberg Basin',
+  'Overberg',
+  'Stellenbosch',
+  'Paarl',
+  'Worcester',
+  'Cape Town',
+]
 
 function Icon({ children }: { children: ReactNode }) {
   return (
@@ -69,10 +79,10 @@ function ContactCard({
     <a
       href={href}
       {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-      className="group flex items-center justify-between gap-4 rounded-card border border-darkgrey bg-cardgrey px-5 py-4 transition hover:border-orange"
+      className="btn-touch group flex items-center justify-between gap-4 rounded-card px-5 py-4 transition"
     >
       <span className="min-w-0">
-        <span className="block font-heading text-xl font-bold uppercase tracking-wide text-paper">{label}</span>
+        <span className="glow-white block font-heading text-xl font-bold uppercase tracking-wide text-white">{label}</span>
         <span className="block break-all text-sm text-mist">{value}</span>
       </span>
       <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-orange text-jet transition group-hover:bg-orange-dark">
@@ -103,7 +113,7 @@ export default function ContactPage() {
         </p>
       </section>
 
-      {/* Contact details + inquiry form */}
+      {/* Contact details + enquiry form */}
       <section className="wrap grid gap-10 py-12 lg:grid-cols-2 lg:gap-14 lg:py-16">
         <div>
           <p className="kicker">★ Helderberg-based team</p>
@@ -134,8 +144,8 @@ export default function ContactPage() {
           </div>
         </div>
 
-        <div className="rounded-card border border-darkgrey bg-graphite p-6 sm:p-8">
-          <h2 className="mb-6 font-heading text-3xl font-bold uppercase text-paper">General inquiries</h2>
+        <div className="rounded-card border-2 border-[#C4560A] bg-graphite p-6 sm:p-8">
+          <h2 className="mb-6 font-heading text-3xl font-bold uppercase text-paper">General enquiries</h2>
           <ContactForm />
         </div>
       </section>
@@ -182,7 +192,8 @@ export default function ContactPage() {
           </div>
           <div className="lg:text-right">
             <p className="mb-4 text-lg text-mist">
-              Serving Strand, Gordon’s Bay, Somerset West and the Helderberg Basin
+              Serving Strand, Gordon’s Bay, Somerset West and the Helderberg Basin — plus the Overberg,
+              Stellenbosch, Paarl, Worcester and Cape Town
             </p>
             <a
               href="/quote"
