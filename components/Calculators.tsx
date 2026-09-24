@@ -364,7 +364,7 @@ export default function Calculators({ initial = 'solar' }: { initial?: Calc }) {
         </a>
         <a
           href="https://wa.me/27631387945"
-          className="bg-eco text-white font-semibold px-6 py-3 rounded-full text-sm"
+          className="btn-wa rounded-full"
         >
           WhatsApp us
         </a>

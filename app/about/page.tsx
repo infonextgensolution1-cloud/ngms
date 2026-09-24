@@ -63,7 +63,7 @@ export default function AboutPage() {
           <a href="/quote" className="btn-glow font-heading font-semibold px-6 py-3 rounded-btn">
             Get a Free Quote
           </a>
-          <a href="https://wa.me/27631387945" className="border border-mist text-paper font-heading font-semibold px-6 py-3 rounded-btn hover:border-blue hover:text-blue">
+          <a href="https://wa.me/27631387945" className="btn-wa">
             WhatsApp NGSMS
           </a>
         </div>

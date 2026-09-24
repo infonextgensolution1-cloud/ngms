@@ -141,7 +141,7 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
             </Link>
             <a
               href={whatsappLink("Hi NextGen, I'd like a quote for solar panel cleaning please.")}
-              className="btn-wa"
+              className="btn-wa-price"
               target="_blank"
               rel="noreferrer"
             >

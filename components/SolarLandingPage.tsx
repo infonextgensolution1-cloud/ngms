@@ -123,8 +123,7 @@ export default async function SolarLandingPage({
     })),
   }
 
-  const primaryBtn =
-    'inline-flex items-center justify-center gap-2 bg-orange hover:bg-orange-dark text-white font-heading font-semibold px-6 py-3.5 rounded-btn transition-colors'
+  const primaryBtn = 'btn-wa py-3.5'
   const secondaryBtn =
     'inline-flex items-center justify-center gap-2 border border-mist text-paper font-heading font-semibold px-6 py-3.5 rounded-btn hover:border-orange hover:text-orange transition-colors'
 
@@ -351,7 +350,7 @@ export default async function SolarLandingPage({
           href={waHref}
           target="_blank"
           rel="noreferrer"
-          className="flex-[2] inline-flex items-center justify-center gap-1.5 bg-orange text-white font-heading font-semibold text-sm py-3 rounded-btn"
+          className="btn-wa flex-[2] gap-1.5"
         >
           <WhatsAppIcon className="w-4 h-4" />
           Free Quote
