@@ -35,7 +35,7 @@ export default async function PortfolioPage() {
         <p className="text-blue font-bold text-sm uppercase tracking-wide mb-2 font-heading">Our Work</p>
         <h1 className="font-heading text-4xl sm:text-6xl font-bold text-paper">Recent Projects</h1>
         <p className="text-mist text-lg max-w-xl mx-auto mt-4">
-          Real jobs across Strand, Gordon’s Bay and Somerset West.
+          Real jobs across Strand, Gordon’s Bay, Somerset West and the Overberg.
         </p>
       </section>
 
@@ -47,11 +47,11 @@ export default async function PortfolioPage() {
                 <div className="grid grid-cols-2">
                   <div className="relative">
                     <img src={p.before_image_url} alt="Before" className="h-36 w-full object-cover" />
-                    <span className="absolute top-2 left-2 bg-jet/80 text-paper text-[10px] uppercase tracking-wide px-2 py-1 rounded-btn">Before</span>
+                    <span className="badge-glow absolute top-2 left-2 bg-jet/80 text-paper text-[10px] uppercase tracking-wide px-2 py-1 rounded-btn">Before</span>
                   </div>
                   <div className="relative">
                     <img src={p.after_image_url} alt="After" className="h-36 w-full object-cover" />
-                    <span className="absolute top-2 left-2 bg-orange/90 text-white text-[10px] uppercase tracking-wide px-2 py-1 rounded-btn">After</span>
+                    <span className="badge-glow absolute top-2 left-2 bg-orange/90 text-white text-[10px] uppercase tracking-wide px-2 py-1 rounded-btn">After</span>
                   </div>
                 </div>
                 <div className="p-5">
