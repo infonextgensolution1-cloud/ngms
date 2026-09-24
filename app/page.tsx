@@ -58,7 +58,7 @@ export default async function HomePage() {
       <TrustBadges />
 
       {/* Scrolling service ticker */}
-      <div className="bg-jet overflow-hidden py-3">
+      <div className="bg-graphite overflow-hidden py-3">
         <div className="flex w-max animate-marquee">
           {[...TICKER_ITEMS, ...TICKER_ITEMS].map((name, i) => (
             <span
