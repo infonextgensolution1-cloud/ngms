@@ -18,6 +18,11 @@ export const site = {
     "Grabouw",
     "Elgin",
     "Bot River",
+    "Overberg",
+    "Stellenbosch",
+    "Paarl",
+    "Worcester",
+    "Cape Town",
   ],
 };
 
