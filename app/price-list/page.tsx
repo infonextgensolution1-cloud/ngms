@@ -119,7 +119,7 @@ export default function PriceListPage() {
 
         <a
           href="https://wa.me/27631387945?text=Hi%2C%20I%27d%20like%20a%20quote%20based%20on%20the%20price%20list"
-          className="flex items-center justify-center gap-2 bg-blue hover:bg-blue-dark text-white font-heading font-semibold px-6 py-3 rounded-btn mb-10"
+          className="btn-wa-price flex mb-10"
         >
           WhatsApp us about a price
         </a>
