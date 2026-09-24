@@ -168,7 +168,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
 
             <div>
-              <p className="font-heading font-bold text-paper mb-4 uppercase tracking-wide">Contact Us</p>
+              <p className="font-heading font-bold text-paper mb-4 uppercase tracking-wide">CONTACT US</p>
               <ul className="space-y-1">
                 <li>
                   <a href="tel:+27631387945" className="hover:text-orange inline-block py-2 sm:py-1">063 138 7945</a>
@@ -179,6 +179,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   </a>
                 </li>
                 <li>Strand &middot; Gordon’s Bay &middot; Somerset West</li>
+                <li>Also serving: Overberg &middot; Stellenbosch &middot; Paarl &middot; Worcester &middot; Cape Town</li>
                 <li>Mon &ndash; Sat: 07:00 &ndash; 18:00</li>
               </ul>
             </div>
