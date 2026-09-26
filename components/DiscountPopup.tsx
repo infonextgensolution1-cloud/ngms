@@ -94,7 +94,7 @@ export default function DiscountPopup() {
             Excludes solar panel cleaning.
           </p>
 
-          <Link href="/quote" onClick={close} className="btn-quote mt-5 w-full">
+          <Link href="/quote" onClick={close} className="btn-quote-popup mt-5 w-full">
             Claim 10% off &rarr; get a free quote
           </Link>
           <button

@@ -9,7 +9,7 @@ import SolarRoiCalculator from '@/components/SolarRoiCalculator'
 import BodyCorporateSection from '@/components/BodyCorporateSection'
 import DiyTips from '@/components/home/DiyTips'
 import HelderbergToday from '@/components/home/HelderbergToday'
-import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages } from '@/lib/queries'
+import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages, getSlotPhotos } from '@/lib/queries'
 import { HeroBento, JobReel, MissionBand, PostTrio, ServicePhotoGrid, type Photo } from '@/components/home/VestoxHome'
 
 export const revalidate = 0
@@ -21,11 +21,12 @@ const techHeading = Space_Grotesk({ subsets: ['latin'], weight: ['500', '600', '
 const TICKER_ITEMS = services.map((s) => s.name)
 
 export default async function HomePage() {
-  const [slides, gallery, beforeAfter, serviceImages] = await Promise.all([
+  const [slides, gallery, beforeAfter, serviceImages, slotPhotos] = await Promise.all([
     getHeroSlides(),
     getGalleryPhotos(24),
     getBeforeAfter(),
     getServiceImages(),
+    getSlotPhotos(['mission_left', 'mission_right']),
   ])
 
   // All photos come from Admin → Media, so new uploads show up here automatically.
@@ -49,6 +50,14 @@ export default async function HomePage() {
   const pool = [...jobPhotos, ...afterPhotos, ...servicePhotos]
   const pick = (i: number) => pool.length ? pool[i % pool.length] : undefined
   const solar = (i: number) => solarPhotos[i] ?? pick(i)
+
+  // Pinned from Admin → Media → Homepage slot; falls back to the usual auto-pick.
+  const missionLeft: Photo | undefined = slotPhotos.mission_left
+    ? { src: slotPhotos.mission_left.image_url, caption: slotPhotos.mission_left.caption || 'Recent job' }
+    : undefined
+  const missionRight: Photo | undefined = slotPhotos.mission_right
+    ? { src: slotPhotos.mission_right.image_url, caption: slotPhotos.mission_right.caption || 'Recent job' }
+    : undefined
 
   return (
     <main className={`bg-jet ${techHeading.variable}`}>
@@ -85,7 +94,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <MissionBand photo={pick(4) ?? pick(0)} side={afterPhotos[0] ?? pick(2)} />
+      <MissionBand photo={missionLeft ?? pick(4) ?? pick(0)} side={missionRight ?? afterPhotos[0] ?? pick(2)} />
 
       {/* Before/after sliders + real reviews */}
       <TrustStrip beforeAfter={beforeAfter} />

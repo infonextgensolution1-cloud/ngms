@@ -136,7 +136,7 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
             </p>
           </div>
           <div className="flex gap-3 mt-7 flex-wrap">
-            <Link href="/quote?service=Solar%20Panel%20Cleaning" className="btn-quote">
+            <Link href="/quote?service=Solar%20Panel%20Cleaning" className="btn-quote-hero">
               Get a free quote &rarr;
             </Link>
             <a

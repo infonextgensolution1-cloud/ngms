@@ -59,6 +59,23 @@ export async function getGalleryPhotos(limit = 24): Promise<GalleryPhoto[]> {
   return data as GalleryPhoto[];
 }
 
+// Photos pinned to a fixed homepage spot from Admin → Media (e.g. the two Mission
+// section tiles), keyed by slot. Falls back to {} so the caller can use its usual
+// auto-picked photo when nothing has been pinned yet.
+export async function getSlotPhotos(slots: string[]): Promise<Record<string, GalleryPhoto>> {
+  const { data, error } = await supabase
+    .from("gallery_photos")
+    .select("image_url, caption, service_slug, slot")
+    .eq("is_active", true)
+    .in("slot", slots);
+  if (error || !data) return {};
+  const map: Record<string, GalleryPhoto> = {};
+  for (const row of data as (GalleryPhoto & { slot: string })[]) {
+    map[row.slot] = row;
+  }
+  return map;
+}
+
 export async function getBeforeAfter(): Promise<BeforeAfter[]> {
   const { data, error } = await supabase
     .from("before_after_photos")
