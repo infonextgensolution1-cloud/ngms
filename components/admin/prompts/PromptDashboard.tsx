@@ -47,6 +47,7 @@ import {
 } from '@/lib/prompt-library'
 import { GENERATORS, GENERATORS_CHECKED } from '@/lib/image-generators'
 import { supabase } from '@/lib/supabaseClient'
+import { callAi } from '@/lib/ai/client'
 import './prompt-dashboard.css'
 
 /* ---------- Static lookups ---------- */
@@ -554,7 +555,8 @@ function PromptModal(p: ModalProps) {
   const { cat, item } = INDEX.get(p.id)!
   const current = p.savedTemplate ?? item.template
   const [draft, setDraft] = useState(current)
-  const [tab, setTab] = useState<'edit' | 'preview'>('edit')
+  const [tab, setTab] = useState<'edit' | 'preview' | 'answer'>('edit')
+  const [run, setRun] = useState<{ busy: boolean; text: string; error: string } | null>(null)
   const copy = useCopy()
 
   const names = useMemo(() => extractVars(draft), [draft])
@@ -587,6 +589,18 @@ function PromptModal(p: ModalProps) {
     )
 
   const exportMarkdown = () => `## ${cat.title}: ${item.label}\n\n${output}\n`
+
+  async function runHere() {
+    setTab('answer')
+    setRun({ busy: true, text: '', error: '' })
+    p.onUsed(item.id, 'run_claude')
+    try {
+      const { text } = await callAi<{ text: string }>('run-prompt', { prompt: output })
+      setRun({ busy: false, text, error: '' })
+    } catch (e) {
+      setRun({ busy: false, text: '', error: (e as Error).message })
+    }
+  }
 
   return (
     <ModalShell labelId="pd-dlg-title" descId="pd-dlg-desc" accentLabel={cat.title} onClose={p.onClose}>
@@ -640,13 +654,48 @@ function PromptModal(p: ModalProps) {
             >
               Ready to paste
             </button>
+            {run && (
+              <button
+                id="pd-tab-answer"
+                role="tab"
+                aria-selected={tab === 'answer'}
+                aria-controls="pd-panel-prompt"
+                onClick={() => setTab('answer')}
+              >
+                Claude&apos;s answer
+              </button>
+            )}
           </div>
           <div
             id="pd-panel-prompt"
             role="tabpanel"
-            aria-labelledby={tab === 'edit' ? 'pd-tab-edit' : 'pd-tab-preview'}
+            aria-labelledby={`pd-tab-${tab}`}
           >
-            {tab === 'edit' ? (
+            {tab === 'answer' && run ? (
+              run.busy ? (
+                <p className="pd-run-wait" role="status">
+                  <Loader2 size={18} className="pd-spin" aria-hidden="true" /> Claude is working on it. Longer prompts
+                  can take a minute.
+                </p>
+              ) : run.error ? (
+                <p className="pd-run-error" role="alert">
+                  {run.error}
+                </p>
+              ) : (
+                <>
+                  <textarea
+                    id="pd-m-answer"
+                    className="pd-editor pd-preview"
+                    value={run.text}
+                    readOnly
+                    aria-label="Claude's answer"
+                  />
+                  <button className="pd-btn pd-run-copy" onClick={() => copy.send(run.text, 'Answer copied')}>
+                    <Copy size={16} aria-hidden="true" /> Copy answer
+                  </button>
+                </>
+              )
+            ) : tab === 'edit' ? (
               <textarea
                 id="pd-m-editor"
                 className="pd-editor"
@@ -714,6 +763,12 @@ function PromptModal(p: ModalProps) {
         >
           <Copy size={16} aria-hidden="true" /> Copy prompt
         </button>
+        {!isImageCat(cat) && (
+          <button className="pd-btn pd-btn-primary" disabled={run?.busy} onClick={runHere}>
+            {run?.busy ? <Loader2 size={16} className="pd-spin" aria-hidden="true" /> : <Sparkles size={16} aria-hidden="true" />}
+            Run here
+          </button>
+        )}
         <a
           className="pd-btn pd-btn-primary"
           href={output.length <= CLAUDE_URL_MAX ? CLAUDE_URL + encodeURIComponent(output) : 'https://claude.ai/new'}
