@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Loader2, Plus, Trash2, ArrowLeft, AlertTriangle, Sun, Search, Check } from 'lucide-react'
+import { Loader2, Plus, Trash2, ArrowLeft, AlertTriangle, Sun, Search, Check, Sparkles } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import { supabase } from '@/lib/supabaseClient'
 import { handlersA } from '@/lib/ngms-ops/handlers-a'
 import { rand, OVERBERG, DEFAULT_DEPOSIT_PERCENT } from '@/lib/ngms-ops/core'
 import { RATE_CARD, CALLOUT_FEE, solarPrice } from '@/lib/rate-card'
+import { callAi, type QuoteDraft } from '@/lib/ai/client'
 
 type Line = { key: number; description: string; quantity: string; unit: string; unit_price: string; service_slug?: string }
 type ClientRow = { id: string; name: string; phone: string | null; suburb: string | null }
@@ -51,6 +52,12 @@ function Builder() {
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  // Claude draft from rough site notes
+  const [siteNotes, setSiteNotes] = useState('')
+  const [drafting, setDrafting] = useState(false)
+  const [draftMsg, setDraftMsg] = useState('')
+  const [questions, setQuestions] = useState<string[]>([])
 
   // Open leads for the "From lead" tab; ?lead=<id> preselects one.
   useEffect(() => {
@@ -109,6 +116,30 @@ function Builder() {
       service_slug: 'solar-panel-cleaning',
     })
     setPanels('')
+  }
+
+  async function draftFromNotes() {
+    setDrafting(true)
+    setDraftMsg('')
+    try {
+      const d = await callAi<QuoteDraft>('quote-lines', { notes: siteNotes, suburb })
+      d.lines.forEach((l) =>
+        addLine({
+          description: l.description,
+          quantity: String(l.quantity),
+          unit: l.unit,
+          unit_price: String(l.unit_price),
+          ...(l.service_slug !== 'other' ? { service_slug: l.service_slug } : {}),
+        }),
+      )
+      if (d.scope_notes.trim()) setNotes((n) => (n.trim() ? `${n.trim()}\n${d.scope_notes.trim()}` : d.scope_notes.trim()))
+      setQuestions(d.questions)
+      setDraftMsg(`Added ${d.lines.length} line${d.lines.length === 1 ? '' : 's'} and scope notes. Check every price before saving.`)
+    } catch (e) {
+      setDraftMsg((e as Error).message)
+    } finally {
+      setDrafting(false)
+    }
   }
 
   async function save(status: 'draft') {
@@ -245,6 +276,36 @@ function Builder() {
         {/* Lines */}
         <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-4">
           <h2 className="font-heading font-bold text-paper mb-3">Work & prices (ex VAT)</h2>
+
+          <div className="bg-jet border border-darkgrey rounded-card p-3 mb-3">
+            <p className="text-xs text-mist mb-2 flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5 text-orange" /> Draft from site notes
+            </p>
+            <textarea
+              className={`${input} min-h-[88px]`}
+              value={siteNotes}
+              onChange={(e) => setSiteNotes(e.target.value)}
+              placeholder={lead?.message ? `e.g. ${lead.message.slice(0, 80)}` : 'e.g. Double-storey, exterior walls ~180 m², hairline cracks by windows, flat roof over garage 24 m² leaking'}
+            />
+            <button
+              onClick={draftFromNotes}
+              disabled={drafting || siteNotes.trim().length < 10}
+              className="mt-2 inline-flex items-center gap-1.5 bg-orange text-white text-sm font-semibold px-4 py-2 rounded-btn disabled:opacity-50"
+            >
+              {drafting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />} {drafting ? 'Drafting…' : 'Draft lines'}
+            </button>
+            {draftMsg && <p className="text-[11px] text-mist mt-2">{draftMsg}</p>}
+            {questions.length > 0 && (
+              <div className="mt-2 text-[11px] text-orange">
+                <p className="font-semibold">Confirm with the client:</p>
+                <ul className="list-disc pl-4">
+                  {questions.map((q) => (
+                    <li key={q}>{q}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
 
           <div className="bg-jet border border-darkgrey rounded-card p-3 mb-3">
             <p className="text-xs text-mist mb-2 flex items-center gap-1">

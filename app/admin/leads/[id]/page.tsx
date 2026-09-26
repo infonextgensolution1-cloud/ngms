@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Loader2, AlertTriangle, MessageCircle, Receipt, Save, Mail, Phone as PhoneIcon } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
+import LeadReplyDraft from '@/components/admin/LeadReplyDraft'
 import { supabase } from '@/lib/supabaseClient'
 import { LEAD_COLUMNS, STATUSES, STATUS_LABEL, appendNote, normalisePhone, sast, waLink, type Lead, type LeadStatus } from '@/lib/ngms-leads-ui'
 
@@ -250,6 +251,8 @@ function LeadView() {
             {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Add note
           </button>
         </section>
+
+        <LeadReplyDraft lead={lead} />
 
         <Link
           href={`/admin/quotes/new?lead=${lead.id}`}
