@@ -203,9 +203,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           className="fixed z-50 flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14"
           style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom))', right: 'calc(1rem + env(safe-area-inset-right))' }}
         >
-          <span aria-hidden className="absolute inset-0 rounded-full bg-whatsapp animate-wa-ping" />
-          <span className="relative flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-lg bg-whatsapp">
-            <WhatsAppIcon className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+          <span aria-hidden className="absolute inset-0 rounded-full bg-[#8B5CF6] animate-wa-ping" />
+          <span className="relative flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-lg bg-[#8B5CF6]">
+            <WhatsAppIcon className="h-6 w-6 sm:h-7 sm:w-7 text-jet" />
           </span>
         </a>
 
