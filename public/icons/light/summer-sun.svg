@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="#0A0A0A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Summer Sun">
+  <title>Summer Sun</title>
+  <circle cx="32" cy="32" r="11" fill="#F57C1B" stroke="#F57C1B" stroke-width="1.5"/>
+  <path d="M32 5V13M32 51V59M5 32H13M51 32H59M12.9 12.9L18.6 18.6M45.4 45.4L51.1 51.1M12.9 51.1L18.6 45.4M45.4 18.6L51.1 12.9"/>
+</svg>

@@ -389,7 +389,8 @@ export function ServicePhotoGrid({
                 {icon && (
                   <span
                     aria-hidden
-                    className={`absolute left-3 top-3 z-10 ${img ? 'rounded-xl bg-jet/70 p-1.5 backdrop-blur-sm' : ''}`}
+                    className={`ngms-icon absolute left-3 top-3 z-10 ${img ? 'rounded-xl bg-jet/70 p-1.5 backdrop-blur-sm' : ''}`}
+                    style={{ animationDelay: `${-(i * 0.45).toFixed(2)}s` }}
                   >
                     <img src={icon} alt="" className={big ? 'h-12 w-12 sm:h-14 sm:w-14' : 'h-9 w-9 sm:h-10 sm:w-10'} />
                   </span>

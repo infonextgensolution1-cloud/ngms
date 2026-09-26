@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SERVICES } from "@/lib/services";
+import NgmsIcon from "@/components/NgmsIcon";
 
 export const metadata: Metadata = {
   title: "Price List",
@@ -34,14 +35,17 @@ export default function PricesPage() {
       </div>
       <div className="max-w-3xl mx-auto px-4 py-10">
         <div className="grid gap-3">
-          {SERVICES.map((s) => (
+          {SERVICES.map((s, i) => (
             <div
               key={s.slug}
-              className="bg-cardgrey border border-darkgrey rounded-card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+              className="group bg-cardgrey border border-darkgrey rounded-card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 hover:border-orange transition-colors"
             >
-              <div>
-                <h3 className="font-heading font-semibold text-paper">{s.name}</h3>
-                <p className="text-mist text-sm">{s.tagline}</p>
+              <div className="flex items-center gap-3">
+                <NgmsIcon name={s.slug} index={i} className="h-10 w-10 shrink-0" />
+                <div>
+                  <h3 className="font-heading font-semibold text-paper">{s.name}</h3>
+                  <p className="text-mist text-sm">{s.tagline}</p>
+                </div>
               </div>
               <div className="flex items-center gap-4 shrink-0">
                 <span className="text-orange font-heading font-bold text-sm">{PRICING[s.slug]}</span>

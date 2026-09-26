@@ -1,17 +1,18 @@
 import Link from "next/link";
 import type { Service } from "@/lib/services";
-import { serviceIcon } from "@/lib/service-icons";
+import NgmsIcon from "@/components/NgmsIcon";
 
 export default function ServiceCard({
   s,
   price,
   image,
+  index = 0,
 }: {
   s: Service;
   price?: string;
   image?: string;
+  index?: number;
 }) {
-  const icon = serviceIcon(s.slug, "dark");
   return (
     <Link
       href={`/services/${s.slug}`}
@@ -28,9 +29,7 @@ export default function ServiceCard({
       )}
       <div className="p-5">
         <div className="flex items-center gap-3">
-          {icon && (
-            <img src={icon} alt="" aria-hidden="true" width={44} height={44} className="h-11 w-11 shrink-0" />
-          )}
+          <NgmsIcon name={s.slug} index={index} className="h-11 w-11 shrink-0" />
           <h3 className="font-heading font-bold text-lg text-paper">{s.name}</h3>
         </div>
         <p className="text-orange text-sm font-semibold mt-3">{s.tagline}</p>

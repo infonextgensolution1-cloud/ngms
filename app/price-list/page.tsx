@@ -1,3 +1,5 @@
+import NgmsIcon from '@/components/NgmsIcon'
+
 export const metadata = {
   title: 'Price List | NGSMS — NextGen Solar & Maintenance Solutions',
   description:
@@ -5,11 +7,12 @@ export const metadata = {
 }
 
 type Row = { label: string; price: string; note?: string }
-type Table = { title: string; rows: Row[]; cols: [string, string, string?] }
+type Table = { title: string; icon: string; rows: Row[]; cols: [string, string, string?] }
 
 const tables: Table[] = [
   {
     title: 'Solar Panel Cleaning',
+    icon: 'solar-panel-cleaning',
     cols: ['System size', 'Price', 'Notes'],
     rows: [
       { label: 'Up to 10 panels', price: 'from R550', note: 'Soft brush + pure water' },
@@ -22,6 +25,7 @@ const tables: Table[] = [
   },
   {
     title: 'High-Pressure Cleaning',
+    icon: 'high-pressure-cleaning',
     cols: ['Service', 'Price', 'Notes'],
     rows: [
       { label: 'Driveway / paving', price: 'from R28/m²', note: 'Light to medium soiling' },
@@ -33,6 +37,7 @@ const tables: Table[] = [
   },
   {
     title: 'Painting (Labour + Standard Materials)',
+    icon: 'painting',
     cols: ['Surface', 'Price per m²', 'Notes'],
     rows: [
       { label: 'Interior walls (2 coats)', price: 'R75 – R110', note: 'Good condition, mid-range acrylic' },
@@ -44,6 +49,7 @@ const tables: Table[] = [
   },
   {
     title: 'Waterproofing',
+    icon: 'waterproofing',
     cols: ['System', 'Price per m²', 'Notes'],
     rows: [
       { label: 'Acrylic / liquid membrane', price: 'R180 – R280', note: 'Balconies, parapets, light roofs' },
@@ -55,6 +61,7 @@ const tables: Table[] = [
   },
   {
     title: 'Other Core Services',
+    icon: 'handyman',
     cols: ['Service', 'Starting price', 'Unit'],
     rows: [
       { label: 'Gutter cleaning & flush', price: 'from R650', note: 'per house (single storey)' },
@@ -73,8 +80,11 @@ const tables: Table[] = [
 
 function PriceTable({ table }: { table: Table }) {
   return (
-    <div className="mb-10">
-      <h2 className="font-heading text-xl font-semibold mb-3 text-paper">{table.title}</h2>
+    <div className="group mb-10">
+      <h2 className="font-heading text-xl font-semibold mb-3 text-paper flex items-center gap-3">
+        <NgmsIcon name={table.icon} className="h-10 w-10 shrink-0" />
+        {table.title}
+      </h2>
       <div className="overflow-x-auto rounded-card border border-darkgrey">
         <table className="w-full text-sm">
           <thead>

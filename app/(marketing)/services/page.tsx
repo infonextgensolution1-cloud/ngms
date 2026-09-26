@@ -57,8 +57,8 @@ export default async function ServicesPage() {
 
       <div className="max-w-5xl mx-auto px-4 py-12">
         <div className="grid sm:grid-cols-2 gap-5">
-          {SERVICES.map((s) => (
-            <ServiceCard key={s.slug} s={s} price={PRICING[s.slug]} image={images[s.slug]} />
+          {SERVICES.map((s, i) => (
+            <ServiceCard key={s.slug} s={s} price={PRICING[s.slug]} image={images[s.slug]} index={i} />
           ))}
         </div>
       </div>

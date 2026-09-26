@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Walkthrough">
+  <title>Walkthrough</title>
+  <path d="M6 31L32 9L58 31"/>
+  <path d="M13 25V56H51V25"/>
+  <path d="M21 39L29 47L44 32" stroke="#F57C1B" stroke-width="4.5"/>
+</svg>

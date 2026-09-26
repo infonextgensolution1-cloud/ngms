@@ -1,21 +1,27 @@
+import NgmsIcon from "@/components/NgmsIcon";
+
 const STEPS = [
   {
     n: "01",
+    icon: "send-photo",
     title: "Send The Job",
     body: "WhatsApp a photo or call us — tell us what needs doing and where.",
   },
   {
     n: "02",
+    icon: "quote",
     title: "Get A Straight Quote",
     body: "Fixed, itemised price — often the same day. No site visit needed for most jobs.",
   },
   {
     n: "03",
+    icon: "subcontractor-work",
     title: "We Get It Done",
     body: "One scheduled crew, right tools for the trade, worked around Cape weather when it matters.",
   },
   {
     n: "04",
+    icon: "walkthrough",
     title: "Walkthrough & Follow-Up",
     body: "We check the work with you. Ask about a maintenance plan for priority booking and a discount.",
   },
@@ -34,11 +40,12 @@ export default function HowItWorks() {
         </div>
         <div className="relative grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="hidden lg:block absolute top-6 left-[12.5%] right-[12.5%] h-px bg-darkgrey" aria-hidden />
-          {STEPS.map((step) => (
-            <div key={step.n} className="relative text-center">
+          {STEPS.map((step, i) => (
+            <div key={step.n} className="group relative text-center">
               <div className="relative z-10 w-12 h-12 rounded-full bg-orange text-jet font-heading font-bold text-lg grid place-items-center mx-auto mb-4">
                 {step.n}
               </div>
+              <NgmsIcon name={step.icon} index={i} className="h-12 w-12 mx-auto mb-3" />
               <h3 className="font-heading font-bold text-base text-paper uppercase tracking-wide">{step.title}</h3>
               <p className="text-mist text-sm mt-2 leading-relaxed">{step.body}</p>
             </div>
