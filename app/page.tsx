@@ -37,7 +37,9 @@ export default async function HomePage() {
     .map((g) => ({ src: g.image_url, caption: g.caption || 'Solar panel cleaning' }))
   const afterPhotos: Photo[] = beforeAfter.map((b) => ({
     src: b.after_image_url,
-    caption: `${b.caption || 'Completed job'} — ${b.location}`,
+    caption: b.location && !(b.caption ?? '').includes(b.location)
+      ? `${b.caption || 'Completed job'} — ${b.location}`
+      : b.caption || 'Completed job',
   }))
   const servicePhotos: Photo[] = Object.entries(serviceImages).map(([slug, src]) => ({
     src,
