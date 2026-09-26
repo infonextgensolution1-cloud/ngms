@@ -9,7 +9,7 @@ import {
   ExternalLink,
   Loader2,
 } from 'lucide-react'
-import { StaffGate } from '@/components/admin/StaffGate'
+import StaffGate from '@/components/admin/StaffGate'
 import type { VercelProject } from '@/lib/vercel-client'
 
 const STATUS_COLORS: Record<VercelProject['status'], string> = {
@@ -55,7 +55,7 @@ function formatDate(dateString: string): string {
 
 export default function VercelProjectsPage() {
   return (
-    <StaffGate>
+    <StaffGate title="Vercel Projects">
       <VercelProjectsList />
     </StaffGate>
   )
