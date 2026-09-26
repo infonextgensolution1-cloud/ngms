@@ -94,12 +94,15 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
             </div>
           </>
         ) : (
-          <p className="text-mist text-xs mt-3">Prices exclude VAT. Free written quote after a site visit.</p>
+          <p className="text-mist text-xs mt-3">
+            Prices exclude VAT. Most jobs are priced from WhatsApp photos, usually the same day; bigger jobs get a free
+            site visit and a written quote.
+          </p>
         )}
 
         {s.faqs.length > 0 && (
           <div className="mt-8 space-y-4">
-            <h2 className="text-xl mb-3">FAQs</h2>
+            <h2 className="text-xl mb-3">Questions</h2>
             {s.faqs.map((f) => (
               <div key={f.question} className="border-t border-line pt-4">
                 <p className="font-semibold text-paper">{f.question}</p>
@@ -110,7 +113,7 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
         )}
 
         <p className="mt-8">
-          <Link href={`/quote?service=${encodeURIComponent(s.name)}`} className="btn-quote">Get A Quote</Link>
+          <Link href={`/quote?service=${encodeURIComponent(s.name)}`} className="btn-quote">Get a quote</Link>
         </p>
 
         <div className="mt-12 pt-8 border-t border-line">
