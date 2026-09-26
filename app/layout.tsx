@@ -11,6 +11,7 @@ import { SiteHeader } from '@/components/site-header'
 import AdminLink from '@/components/AdminLink'
 import VisitorPresence from '@/components/VisitorPresence'
 import ClickTracking from '@/components/ClickTracking'
+import ChatWidget from '@/components/ChatWidget'
 import './globals.css'
 
 // Ember Grid typography — Big Shoulders Display (headings) + IBM Plex Sans (body)
@@ -208,6 +209,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <WhatsAppIcon className="h-6 w-6 sm:h-7 sm:w-7 text-jet" />
           </span>
         </a>
+
+        <ChatWidget />
 
         <SpeedInsights />
         <Analytics />

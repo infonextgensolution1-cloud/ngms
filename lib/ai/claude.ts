@@ -20,7 +20,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/supabaseClient'
 export const MODEL = process.env.CLAUDE_MODEL || 'claude-opus-5'
 
 // If Claude declines a request, the API re-runs it on a fallback model inside the same call.
-const FALLBACK_BETA = 'server-side-fallback-2026-07-01'
+export const FALLBACK_BETA = 'server-side-fallback-2026-07-01'
 
 export const SYSTEM = `${CONTEXT_HEADER}
 
@@ -59,7 +59,7 @@ export async function requireStaff(request: Request): Promise<SupabaseClient> {
 let client: Anthropic | null = null
 
 // Created on first use, not at import: a missing key must not break the site build (same as /api/notify).
-function claude(): Anthropic {
+export function claude(): Anthropic {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new HttpError(503, 'ANTHROPIC_API_KEY is missing in Vercel env vars. Add it, then redeploy.')
   }
