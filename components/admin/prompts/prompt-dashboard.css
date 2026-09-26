@@ -795,6 +795,61 @@ a.pd-chip {
   color: var(--pd-orange);
 }
 
+button.pd-chip {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ---------- Backup and sync ---------- */
+.pd-backup-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 860px) {
+  .pd-backup-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.pd-backup-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--pd-steel);
+  border-radius: 2px;
+  background: var(--pd-carbon);
+}
+
+.pd-backup-card h3 {
+  margin: 0;
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.1;
+  color: var(--pd-chalk);
+}
+
+.pd-backup-card .pd-gen-top svg {
+  color: var(--pd-orange);
+  flex: none;
+}
+
+.pd-backup-card code {
+  color: var(--pd-glow);
+  font-size: 12.5px;
+}
+
+.pd-backup-status {
+  margin: 0;
+  color: var(--pd-ash);
+  font-size: 12.5px;
+}
+
 /* ---------- Dialog ---------- */
 .pd-overlay {
   position: fixed;

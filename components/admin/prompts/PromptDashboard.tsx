@@ -41,6 +41,9 @@ import {
   type PromptItem,
 } from '@/lib/prompt-library'
 import { GENERATORS, GENERATORS_CHECKED } from '@/lib/image-generators'
+import type { Snapshot } from '@/lib/prompt-backup'
+import ClaudeStrip from './ClaudeStrip'
+import BackupPanel from './BackupPanel'
 import './prompt-dashboard.css'
 
 /* ---------- Static lookups ---------- */
@@ -69,10 +72,13 @@ const INDEX = new Map<string, Ref>()
 CATEGORIES.forEach((cat) => cat.prompts.forEach((item) => INDEX.set(item.id, { cat, item })))
 const TOTAL_PROMPTS = INDEX.size
 
-type View = 'dashboard' | 'saved' | 'combo'
+type View = 'dashboard' | 'saved' | 'combo' | 'backup'
 
 const KEY_SAVED = 'ngms.admin.prompts.saved.v1'
 const KEY_CTX = 'ngms.admin.prompts.ctx.v1'
+const KEY_DRAFTS = 'ngms.admin.prompts.drafts.v1'
+const KEY_VARS = 'ngms.admin.prompts.vars.v1'
+const KEY_COMBO = 'ngms.admin.prompts.combo.v1'
 
 /* ---------- Browser storage (per-device convenience only) ---------- */
 
@@ -439,6 +445,8 @@ interface ModalProps {
   ctxHeader: boolean
   onCtxHeader: (v: boolean) => void
   savedTemplate: string | undefined
+  draft: string | undefined
+  onDraft: (id: string, draft: string) => void
   onSave: (id: string, template: string) => void
   onReset: (id: string) => void
   inCombo: boolean
@@ -449,9 +457,15 @@ interface ModalProps {
 function PromptModal(p: ModalProps) {
   const { cat, item } = INDEX.get(p.id)!
   const current = p.savedTemplate ?? item.template
-  const [draft, setDraft] = useState(current)
+  const [draft, setDraft] = useState(p.draft ?? current)
   const [tab, setTab] = useState<'edit' | 'preview'>('edit')
   const copy = useCopy()
+
+  // Unsaved edits autosave as a draft, so closing the window or the tab loses nothing.
+  const { onDraft } = p
+  useEffect(() => {
+    onDraft(item.id, draft)
+  }, [onDraft, item.id, draft])
 
   const names = useMemo(() => extractVars(draft), [draft])
   const emptyCount = names.filter((n) => !(p.values[n] ?? '').trim()).length
@@ -460,7 +474,7 @@ function PromptModal(p: ModalProps) {
   const output = (p.ctxHeader ? CONTEXT_HEADER + '\n\n' : '') + fillTemplate(draft, p.values)
 
   const stateText = dirty
-    ? 'Unsaved changes'
+    ? 'Edits autosaved as a draft'
     : p.savedTemplate !== undefined
       ? 'Your saved version'
       : emptyCount > 0
@@ -565,6 +579,7 @@ function PromptModal(p: ModalProps) {
             Write <code>{'{{field_name}}'}</code> anywhere in the template to add a field. Empty fields show as
             [brackets] in the finished prompt.
           </p>
+          <ClaudeStrip text={output} onCopy={copy.send} />
           {cat.id === 'images' && (
             <GeneratorStrip onCopy={(name) => copy.send(output, `Prompt copied. Paste it into ${name}.`)} />
           )}
@@ -702,7 +717,9 @@ export default function PromptDashboard() {
   const [ctxHeader, setCtxHeader] = useState(true)
   const [vars, setVars] = useState<Record<string, string>>({})
   const [saved, setSaved] = useState<Record<string, string>>({})
+  const [drafts, setDrafts] = useState<Record<string, string>>({})
   const [combo, setCombo] = useState<string[]>([])
+  const [autosavedAt, setAutosavedAt] = useState<string | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
   const [hydrated, setHydrated] = useState(false)
   const listCopy = useCopy()
@@ -714,16 +731,42 @@ export default function PromptDashboard() {
     if ((AREAS as readonly string[]).includes(ctx.area)) setArea(ctx.area)
     setCtxHeader(ctx.header !== false)
     setSaved(load<Record<string, string>>(KEY_SAVED, {}))
+    setDrafts(load<Record<string, string>>(KEY_DRAFTS, {}))
+    setVars(load<Record<string, string>>(KEY_VARS, {}))
+    setCombo(load<string[]>(KEY_COMBO, []).filter((id) => INDEX.has(id)))
     setHydrated(true)
   }, [])
 
+  // Autosave everything on this device, half a second after the last change.
   useEffect(() => {
-    if (hydrated) store(KEY_CTX, { service, area, header: ctxHeader })
-  }, [hydrated, service, area, ctxHeader])
+    if (!hydrated) return
+    const t = window.setTimeout(() => {
+      store(KEY_CTX, { service, area, header: ctxHeader })
+      store(KEY_SAVED, saved)
+      store(KEY_DRAFTS, drafts)
+      store(KEY_VARS, vars)
+      store(KEY_COMBO, combo)
+      setAutosavedAt(new Date().toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' }))
+    }, 500)
+    return () => window.clearTimeout(t)
+  }, [hydrated, service, area, ctxHeader, saved, drafts, vars, combo])
 
+  // Flush straight away if the tab closes inside that half second.
+  const latest = useRef({ service, area, ctxHeader, saved, drafts, vars, combo })
+  latest.current = { service, area, ctxHeader, saved, drafts, vars, combo }
   useEffect(() => {
-    if (hydrated) store(KEY_SAVED, saved)
-  }, [hydrated, saved])
+    if (!hydrated) return
+    const flush = () => {
+      const l = latest.current
+      store(KEY_CTX, { service: l.service, area: l.area, header: l.ctxHeader })
+      store(KEY_SAVED, l.saved)
+      store(KEY_DRAFTS, l.drafts)
+      store(KEY_VARS, l.vars)
+      store(KEY_COMBO, l.combo)
+    }
+    window.addEventListener('pagehide', flush)
+    return () => window.removeEventListener('pagehide', flush)
+  }, [hydrated])
 
   const values = useMemo(() => ({ ...vars, service, area }), [vars, service, area])
 
@@ -735,22 +778,45 @@ export default function PromptDashboard() {
 
   const templateFor = (id: string) => saved[id] ?? INDEX.get(id)!.item.template
 
+  const clearDraft = useCallback((id: string) => {
+    setDrafts((prev) => {
+      if (!(id in prev)) return prev
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+  }, [])
+
+  // Keep a draft only while it differs from what the prompt would show without it.
+  const draftRef = useRef(saved)
+  draftRef.current = saved
+  const updateDraft = useCallback(
+    (id: string, text: string) => {
+      const base = draftRef.current[id] ?? INDEX.get(id)!.item.template
+      if (text === base) clearDraft(id)
+      else setDrafts((prev) => (prev[id] === text ? prev : { ...prev, [id]: text }))
+    },
+    [clearDraft],
+  )
+
   const save = useCallback((id: string, template: string) => {
+    clearDraft(id)
     setSaved((prev) => {
       const next = { ...prev }
       if (template === INDEX.get(id)!.item.template) delete next[id]
       else next[id] = template
       return next
     })
-  }, [])
+  }, [clearDraft])
 
   const reset = useCallback((id: string) => {
+    clearDraft(id)
     setSaved((prev) => {
       const next = { ...prev }
       delete next[id]
       return next
     })
-  }, [])
+  }, [clearDraft])
 
   const toggleCombo = useCallback((id: string) => {
     setCombo((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
@@ -785,6 +851,35 @@ export default function PromptDashboard() {
       .join('\n\n')
   }
 
+  const snapshot = (): Snapshot => ({
+    app: 'ngms-prompt-dashboard',
+    version: 1,
+    savedAt: new Date().toISOString(),
+    saved,
+    drafts,
+    vars,
+    combo,
+    ctx: { service, area, header: ctxHeader },
+  })
+
+  const backupVersion = useMemo(
+    () => JSON.stringify([saved, drafts, vars, combo, service, area, ctxHeader]),
+    [saved, drafts, vars, combo, service, area, ctxHeader],
+  )
+
+  const restore = (snap: Snapshot) => {
+    const known = (rec: Record<string, string>) =>
+      Object.fromEntries(Object.entries(rec).filter(([id, v]) => INDEX.has(id) && typeof v === 'string'))
+    setOpenId(null)
+    setSaved(known(snap.saved))
+    setDrafts(known(snap.drafts))
+    setVars(snap.vars)
+    setCombo(snap.combo.filter((id) => INDEX.has(id)))
+    if ((SERVICES as readonly string[]).includes(snap.ctx.service)) setService(snap.ctx.service)
+    if ((AREAS as readonly string[]).includes(snap.ctx.area)) setArea(snap.ctx.area)
+    setCtxHeader(snap.ctx.header)
+  }
+
   const switchView = (v: View) => {
     listCopy.clear()
     setView(v)
@@ -812,6 +907,9 @@ export default function PromptDashboard() {
           <button aria-current={view === 'combo' ? 'page' : undefined} onClick={() => switchView('combo')}>
             Combo {combo.length > 0 && <span className="pd-count">{combo.length}</span>}
           </button>
+          <button aria-current={view === 'backup' ? 'page' : undefined} onClick={() => switchView('backup')}>
+            Backup
+          </button>
         </nav>
       </header>
 
@@ -831,6 +929,7 @@ export default function PromptDashboard() {
           </label>
           <span className="pd-stat">
             {CATEGORIES.length} categories · {TOTAL_PROMPTS} prompts
+            {autosavedAt && <> · Autosaved {autosavedAt}</>}
           </span>
         </div>
       </div>
@@ -948,6 +1047,7 @@ export default function PromptDashboard() {
             )}
           </div>
           <CopyNotice copy={listCopy} variant="panel" />
+          {combo.length > 0 && <ClaudeStrip text={comboText()} onCopy={listCopy.send} />}
           {combo.length === 0 ? (
             <div className="pd-empty">
               <p>
@@ -994,6 +1094,11 @@ export default function PromptDashboard() {
         </section>
       )}
 
+      {/* Always mounted so file and Drive autosave keep running on every view. */}
+      <div hidden={view !== 'backup'}>
+        {hydrated && <BackupPanel data={snapshot} version={backupVersion} onRestore={restore} />}
+      </div>
+
       {openId && INDEX.has(openId) && (
         <PromptModal
           key={openId}
@@ -1003,6 +1108,8 @@ export default function PromptDashboard() {
           ctxHeader={ctxHeader}
           onCtxHeader={setCtxHeader}
           savedTemplate={saved[openId]}
+          draft={drafts[openId]}
+          onDraft={updateDraft}
           onSave={save}
           onReset={reset}
           inCombo={combo.includes(openId)}
