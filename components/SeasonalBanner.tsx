@@ -31,7 +31,7 @@ export default function SeasonalBanner() {
   }
 
   return (
-    <div className="bg-blue text-white text-sm">
+    <div className="bg-power text-white text-sm">
       <div className="wrap flex items-center justify-between gap-3 py-2.5">
         <p className="flex-1">
           {msg.text}{" "}

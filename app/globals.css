@@ -193,17 +193,11 @@ textarea:disabled {
     box-shadow: 0 0 18px rgba(168, 85, 247, 0.85), 0 0 36px rgba(168, 85, 247, 0.5);
   }
 
-  /* One-off discount-popup CTA treatment: purple, black text, white glow.
-     Scoped to this button only. */
+  /* Power Purple buttons: discount-popup CTA and the "Complex packages" button */
+  .btn-power,
   .btn-quote-popup {
-    @apply btn;
-    background-color: #8b5cf6;
-    color: #0a0a0a;
-    box-shadow: 0 0 14px rgba(255, 255, 255, 0.65), 0 0 28px rgba(255, 255, 255, 0.35);
-  }
-  .btn-quote-popup:hover {
-    background-color: #9d72f7;
-    box-shadow: 0 0 18px rgba(255, 255, 255, 0.85), 0 0 36px rgba(255, 255, 255, 0.5);
+    @apply btn bg-power text-white border-power hover:bg-power-dark hover:border-power-dark;
+    box-shadow: 0 0 14px rgba(255, 255, 255, 0.55), 0 0 28px rgba(139, 27, 245, 0.35);
   }
 }
 
@@ -347,4 +341,41 @@ textarea:disabled {
   html {
     scroll-behavior: auto;
   }
+}
+
+/* ---------- Homepage soiling chart (components/home/SoilingChart.tsx) ---------- */
+.soiling-chart .sc-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.soiling-chart .sc-fade,
+.soiling-chart .sc-pop {
+  opacity: 0;
+}
+.soiling-chart.is-shown .sc-draw {
+  animation: sc-draw 1.4s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+.soiling-chart.is-shown .sc-fade {
+  animation: sc-fade 0.8s ease-out 0.6s forwards;
+}
+.soiling-chart.is-shown .sc-pop {
+  transform-box: fill-box;
+  animation: sc-fade 0.4s ease-out forwards;
+}
+.soiling-chart .sc-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: sc-pulse 2.4s ease-in-out infinite;
+}
+@keyframes sc-draw { to { stroke-dashoffset: 0; } }
+@keyframes sc-fade { to { opacity: 1; } }
+@keyframes sc-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.18; }
+  50% { transform: scale(1.6); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .soiling-chart .sc-draw { stroke-dasharray: none; stroke-dashoffset: 0; animation: none !important; }
+  .soiling-chart .sc-fade,
+  .soiling-chart .sc-pop { opacity: 1; animation: none !important; }
+  .soiling-chart .sc-pulse { animation: none; }
 }

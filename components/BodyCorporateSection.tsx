@@ -45,7 +45,7 @@ export default function BodyCorporateSection() {
             >
               Book a site walk-through
             </Link>
-            <Link href="/maintenance-packages" className="btn-outline-jet">
+            <Link href="/maintenance-packages" className="btn-power">
               Complex packages
             </Link>
           </div>

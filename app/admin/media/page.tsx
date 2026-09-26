@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { services } from '@/lib/services'
 import { Trash2, Upload, Loader2, ArrowLeft } from 'lucide-react'
 
-type Tab = 'hero' | 'beforeafter' | 'gallery' | 'services'
+type Tab = 'hero' | 'homepage' | 'beforeafter' | 'gallery' | 'services'
 
 // --- helpers ---------------------------------------------------------------
 
@@ -41,126 +41,322 @@ function Field({
 const inputCls =
   'w-full bg-jet border border-gray-700 rounded-lg px-3 py-2 text-sm text-white'
 
-// --- Hero slides -------------------------------------------------------------
+// --- Landing slides ------------------------------------------------------------
+// The slideshow at the top of the homepage. 12 active slides max (the database
+// enforces this too). Hidden slides stay here but don't show on the site.
+
+const MAX_SLIDES = 12
 
 function HeroSlides() {
   const [rows, setRows] = useState<any[]>([])
-  const [file, setFile] = useState<File | null>(null)
-  const [alt, setAlt] = useState('')
-  const [caption, setCaption] = useState('')
+  const [files, setFiles] = useState<FileList | null>(null)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
 
   const load = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('hero_slides')
       .select('*')
       .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: true })
+    if (error) setMsg(error.message)
     setRows(data ?? [])
   }
   useEffect(() => {
     load()
   }, [])
 
+  const active = rows.filter((r) => r.is_active)
+  const free = MAX_SLIDES - active.length
+
   const add = async () => {
-    if (!file) return setMsg('Choose an image first.')
+    if (!files || files.length === 0) return setMsg('Choose one or more photos first.')
+    const list = Array.from(files).slice(0, Math.max(free, 0))
+    if (list.length === 0) return setMsg('Slideshow is full (12 of 12). Hide or delete a slide first.')
     setBusy(true)
     setMsg('')
+    let done = 0
     try {
-      const url = await uploadToBucket('hero-slides', file)
-      const { error } = await supabase.from('hero_slides').insert({
-        image_url: url,
-        alt_text: alt || 'NGSMS',
-        caption: caption || null,
-        sort_order: rows.length,
-      })
-      if (error) throw error
-      setFile(null)
-      setAlt('')
-      setCaption('')
-      setMsg('Slide added.')
-      load()
+      const nextOrder = rows.reduce((m, r) => Math.max(m, r.sort_order ?? 0), -1) + 1
+      for (const f of list) {
+        setMsg(`Uploading ${done + 1} of ${list.length}...`)
+        const url = await uploadToBucket('hero-slides', f)
+        const name = f.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ')
+        const { error } = await supabase.from('hero_slides').insert({
+          image_url: url,
+          alt_text: name || 'NextGen job',
+          caption: null,
+          sort_order: nextOrder + done,
+          is_active: true,
+        })
+        if (error) throw error
+        done++
+      }
+      const skipped = files.length - list.length
+      setMsg(`${done} slide${done === 1 ? '' : 's'} added${skipped ? ` — ${skipped} skipped, slideshow is full` : ''}. Add captions below.`)
+      setFiles(null)
     } catch (e: any) {
       setMsg(e.message ?? 'Upload failed.')
     } finally {
       setBusy(false)
+      load()
     }
   }
 
+  const update = async (id: string, patch: Record<string, any>) => {
+    const { error } = await supabase.from('hero_slides').update(patch).eq('id', id)
+    if (error) setMsg(error.message)
+    load()
+  }
+
+  // Swap with the neighbour above/below, then renumber everything 0..n.
+  const move = async (i: number, dir: -1 | 1) => {
+    const j = i + dir
+    if (j < 0 || j >= rows.length) return
+    const next = [...rows]
+    ;[next[i], next[j]] = [next[j], next[i]]
+    setRows(next)
+    await Promise.all(
+      next.map((r, n) => (r.sort_order === n ? null : supabase.from('hero_slides').update({ sort_order: n }).eq('id', r.id))),
+    )
+    load()
+  }
+
   const remove = async (id: string) => {
+    if (!confirm('Delete this slide?')) return
     await supabase.from('hero_slides').delete().eq('id', id)
     load()
   }
 
   return (
     <div>
-      <p className="text-sm text-gray-400 mb-4">
-        {rows.length} of 12 slides. Order is set by the number in each row.
-      </p>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm text-gray-300">
+          <span className="font-bold text-white">{active.length} of 12</span> slides live on the homepage
+        </p>
+        <a href="/" target="_blank" rel="noreferrer" className="text-xs text-orange font-semibold">
+          View site &rarr;
+        </a>
+      </div>
+      <div className="grid grid-cols-12 gap-1 mb-5" aria-hidden>
+        {Array.from({ length: MAX_SLIDES }).map((_, i) => (
+          <span key={i} className={`h-1.5 rounded-full ${i < active.length ? 'bg-[#8B1BF5]' : 'bg-gray-800'}`} />
+        ))}
+      </div>
 
       <div className="border border-gray-700 rounded-xl p-4 mb-6 bg-graphite">
-        <Field label="Image">
+        <Field label={`Add photos (you can pick several — ${Math.max(free, 0)} spot${free === 1 ? '' : 's'} left)`}>
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            multiple
+            disabled={free <= 0}
+            onChange={(e) => setFiles(e.target.files)}
             className="text-sm text-gray-300"
           />
         </Field>
-        <Field label="Alt text (for accessibility & SEO)">
-          <input
-            className={inputCls}
-            value={alt}
-            onChange={(e) => setAlt(e.target.value)}
-            placeholder="Solar panel clean in Strand"
-          />
-        </Field>
-        <Field label="Caption (optional, shows on the slide)">
-          <input
-            className={inputCls}
-            value={caption}
-            onChange={(e) => setCaption(e.target.value)}
-          />
-        </Field>
+        <p className="text-xs text-gray-500 mb-3">
+          Landscape photos work best (wide, at least 1600px). Bright, full-colour job shots — solar arrays, finished
+          paint, paving.
+        </p>
         <button
           onClick={add}
-          disabled={busy}
-          className="bg-orange text-white font-semibold px-5 py-2 rounded-full text-sm inline-flex items-center gap-2 disabled:opacity-50"
+          disabled={busy || free <= 0}
+          className="bg-[#8B1BF5] text-white font-semibold px-5 py-2 rounded-full text-sm inline-flex items-center gap-2 disabled:opacity-50"
         >
           {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-          Add slide
+          Add to slideshow
         </button>
         {msg && <p className="text-sm mt-3 text-gray-300">{msg}</p>}
       </div>
 
       <div className="space-y-2">
-        {rows.map((r) => (
+        {rows.map((r, i) => (
           <div
             key={r.id}
-            className="flex items-center gap-3 border border-gray-800 rounded-lg p-2 bg-graphite"
+            className={`flex items-start gap-3 border rounded-lg p-2 bg-graphite ${
+              r.is_active ? 'border-gray-800' : 'border-gray-800 opacity-50'
+            }`}
           >
-            <img src={r.image_url} alt="" className="w-20 h-14 object-cover rounded" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-white truncate">{r.alt_text}</p>
-              <p className="text-xs text-gray-500 truncate">{r.caption}</p>
+            <div className="flex flex-col items-center gap-1 pt-1">
+              <button onClick={() => move(i, -1)} disabled={i === 0} className="text-gray-400 disabled:opacity-20 text-xs px-1" aria-label="Move up">
+                ▲
+              </button>
+              <span className="text-xs font-bold text-white w-5 text-center">{i + 1}</span>
+              <button onClick={() => move(i, 1)} disabled={i === rows.length - 1} className="text-gray-400 disabled:opacity-20 text-xs px-1" aria-label="Move down">
+                ▼
+              </button>
             </div>
-            <input
-              type="number"
-              defaultValue={r.sort_order}
-              onBlur={async (e) => {
-                await supabase
-                  .from('hero_slides')
-                  .update({ sort_order: Number(e.target.value) })
-                  .eq('id', r.id)
-                load()
-              }}
-              className="w-14 bg-jet border border-gray-700 rounded px-2 py-1 text-sm text-white"
-            />
-            <button onClick={() => remove(r.id)} className="text-red-400 p-2">
-              <Trash2 className="w-4 h-4" />
-            </button>
+            <img src={r.image_url} alt="" className="w-24 h-16 object-cover rounded shrink-0" />
+            <div className="flex-1 min-w-0 space-y-1">
+              <input
+                defaultValue={r.caption ?? ''}
+                placeholder="Caption on the slide, e.g. 24-panel clean — Strand"
+                onBlur={(e) => e.target.value !== (r.caption ?? '') && update(r.id, { caption: e.target.value.trim() || null })}
+                className="w-full bg-jet border border-gray-700 rounded px-2 py-1 text-sm text-white"
+              />
+              <input
+                defaultValue={r.alt_text ?? ''}
+                placeholder="Alt text (SEO)"
+                onBlur={(e) => e.target.value !== (r.alt_text ?? '') && update(r.id, { alt_text: e.target.value.trim() || 'NextGen job' })}
+                className="w-full bg-jet border border-gray-800 rounded px-2 py-1 text-xs text-gray-400"
+              />
+            </div>
+            <div className="flex flex-col items-end gap-1">
+              <button
+                onClick={() => update(r.id, { is_active: !r.is_active })}
+                disabled={!r.is_active && free <= 0}
+                className={`text-[11px] font-bold px-2 py-1 rounded-full disabled:opacity-40 ${
+                  r.is_active ? 'bg-[#8B1BF5] text-white' : 'bg-gray-800 text-gray-300'
+                }`}
+              >
+                {r.is_active ? 'Live' : 'Hidden'}
+              </button>
+              <button onClick={() => remove(r.id)} className="text-red-400 p-1" aria-label="Delete slide">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         ))}
+      </div>
+    </div>
+  )
+}
+
+// --- Homepage photos (fixed spots) --------------------------------------------
+// Each slot pins one photo to a fixed spot on the homepage. Stored in
+// gallery_photos.slot; uploading a new photo retires the old one.
+
+const SLOTS: { key: string; label: string; hint: string }[] = [
+  { key: 'hero_solar', label: 'Orange solar tile', hint: 'Top of the page, next to “Purified-water soft wash”. Use a solar job photo.' },
+  { key: 'hero_feature', label: 'Photo tile beside “One call. Twelve trades.”', hint: 'Shown in full colour. Portrait or square works best.' },
+  { key: 'mission_left', label: 'Mission section — big photo', hint: 'Under “Your roof should earn, not rust.”' },
+  { key: 'mission_right', label: 'Mission section — small photo', hint: 'Right-hand tile in the Mission section.' },
+]
+
+function HomepagePhotos() {
+  const [current, setCurrent] = useState<Record<string, any>>({})
+  const [captions, setCaptions] = useState<Record<string, string>>({})
+  const [busy, setBusy] = useState<string | null>(null)
+  const [msg, setMsg] = useState('')
+
+  const load = async () => {
+    const { data } = await supabase
+      .from('gallery_photos')
+      .select('*')
+      .eq('is_active', true)
+      .in('slot', SLOTS.map((s) => s.key))
+    const map: Record<string, any> = {}
+    for (const r of data ?? []) map[r.slot] = r
+    setCurrent(map)
+  }
+  useEffect(() => {
+    load()
+  }, [])
+
+  const upload = async (slot: string, file: File) => {
+    setBusy(slot)
+    setMsg('')
+    try {
+      const url = await uploadToBucket('gallery-photos', file)
+      // Retire the photo currently in this spot (only one live photo per slot).
+      await supabase.from('gallery_photos').update({ is_active: false }).eq('slot', slot).eq('is_active', true)
+      const { error } = await supabase.from('gallery_photos').insert({
+        image_url: url,
+        caption: captions[slot]?.trim() || null,
+        service_slug: slot === 'hero_solar' ? 'solar-panel-cleaning' : null,
+        slot,
+        sort_order: 0,
+        is_active: true,
+      })
+      if (error) throw error
+      setCaptions((c) => ({ ...c, [slot]: '' }))
+      setMsg('Photo is live on the homepage.')
+      load()
+    } catch (e: any) {
+      setMsg(e.message ?? 'Upload failed.')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const saveCaption = async (row: any, caption: string) => {
+    await supabase.from('gallery_photos').update({ caption: caption.trim() || null }).eq('id', row.id)
+    load()
+  }
+
+  const clear = async (slot: string) => {
+    setBusy(slot)
+    await supabase.from('gallery_photos').update({ is_active: false }).eq('slot', slot).eq('is_active', true)
+    setBusy(null)
+    setMsg('Removed — that spot goes back to an auto-picked photo.')
+    load()
+  }
+
+  return (
+    <div>
+      <p className="text-sm text-gray-400 mb-4">
+        Pin your own photo to each spot. Empty spots use an auto-picked job photo.
+      </p>
+      {msg && <p className="text-sm mb-4 text-gray-300">{msg}</p>}
+      <div className="grid sm:grid-cols-2 gap-3">
+        {SLOTS.map((s) => {
+          const row = current[s.key]
+          const isBusy = busy === s.key
+          return (
+            <div key={s.key} className="border border-gray-800 rounded-xl p-3 bg-graphite flex flex-col gap-2">
+              <p className="text-sm font-bold text-white">{s.label}</p>
+              <p className="text-xs text-gray-500 -mt-1">{s.hint}</p>
+              {row ? (
+                <img src={row.image_url} alt="" className="w-full h-36 object-cover rounded" />
+              ) : (
+                <div className="w-full h-36 rounded bg-jet border border-dashed border-gray-700 flex items-center justify-center text-xs text-gray-500">
+                  Auto-picked (no photo pinned)
+                </div>
+              )}
+              {row ? (
+                <input
+                  defaultValue={row.caption ?? ''}
+                  placeholder="Caption (optional)"
+                  onBlur={(e) => e.target.value !== (row.caption ?? '') && saveCaption(row, e.target.value)}
+                  className={inputCls}
+                />
+              ) : (
+                <input
+                  value={captions[s.key] ?? ''}
+                  onChange={(e) => setCaptions((c) => ({ ...c, [s.key]: e.target.value }))}
+                  placeholder="Caption (optional), e.g. Solar clean — Somerset West"
+                  className={inputCls}
+                />
+              )}
+              <div className="flex items-center gap-2">
+                <label
+                  className={`flex-1 bg-[#8B1BF5] text-white font-semibold px-3 py-2 rounded-full text-xs inline-flex items-center justify-center gap-1 cursor-pointer ${
+                    isBusy ? 'opacity-50 pointer-events-none' : ''
+                  }`}
+                >
+                  {isBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                  {row ? 'Replace photo' : 'Upload photo'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0]
+                      e.target.value = ''
+                      if (f) upload(s.key, f)
+                    }}
+                  />
+                </label>
+                {row && (
+                  <button onClick={() => clear(s.key)} disabled={isBusy} className="text-red-400 p-2" aria-label="Remove photo">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -325,6 +521,7 @@ function Gallery() {
     const { data } = await supabase
       .from('gallery_photos')
       .select('*')
+      .is('slot', null)
       .order('created_at', { ascending: false })
     setRows(data ?? [])
   }
@@ -571,7 +768,8 @@ export default function AdminMediaPage() {
   }
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: 'hero', label: 'Hero slides' },
+    { key: 'hero', label: 'Landing slides' },
+    { key: 'homepage', label: 'Homepage photos' },
     { key: 'beforeafter', label: 'Before / After' },
     { key: 'gallery', label: 'Gallery' },
     { key: 'services', label: 'Service images' },
@@ -605,6 +803,7 @@ export default function AdminMediaPage() {
       </div>
 
       {tab === 'hero' && <HeroSlides />}
+      {tab === 'homepage' && <HomepagePhotos />}
       {tab === 'beforeafter' && <BeforeAfter />}
       {tab === 'gallery' && <Gallery />}
       {tab === 'services' && <ServiceImages />}

@@ -10,6 +10,7 @@ import BodyCorporateSection from '@/components/BodyCorporateSection'
 import DiyTips from '@/components/home/DiyTips'
 import HelderbergToday from '@/components/home/HelderbergToday'
 import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages, getSlotPhotos } from '@/lib/queries'
+import LandingSlideshow from '@/components/home/LandingSlideshow'
 import { HeroBento, JobReel, MissionBand, PostTrio, ServicePhotoGrid, type Photo } from '@/components/home/VestoxHome'
 
 export const revalidate = 0
@@ -26,7 +27,7 @@ export default async function HomePage() {
     getGalleryPhotos(24),
     getBeforeAfter(),
     getServiceImages(),
-    getSlotPhotos(['mission_left', 'mission_right']),
+    getSlotPhotos(['hero_solar', 'hero_feature', 'mission_left', 'mission_right']),
   ])
 
   // All photos come from Admin → Media, so new uploads show up here automatically.
@@ -52,6 +53,11 @@ export default async function HomePage() {
   const solar = (i: number) => solarPhotos[i] ?? pick(i)
 
   // Pinned from Admin → Media → Homepage slot; falls back to the usual auto-pick.
+  const slot = (key: string): Photo | undefined =>
+    slotPhotos[key] ? { src: slotPhotos[key].image_url, caption: slotPhotos[key].caption || 'Recent job' } : undefined
+  const heroSolar = slot('hero_solar')
+  const heroFeature = slot('hero_feature')
+
   const missionLeft: Photo | undefined = slotPhotos.mission_left
     ? { src: slotPhotos.mission_left.image_url, caption: slotPhotos.mission_left.caption || 'Recent job' }
     : undefined
@@ -64,7 +70,14 @@ export default async function HomePage() {
       <SeasonalBanner />
       <DiscountPopup />
 
-      <HeroBento solar={solar(0)} avatars={[pick(1), pick(2), pick(3)].filter(Boolean) as Photo[]} feature={pick(0)} />
+      {/* Landing slideshow — up to 12 slides from Admin → Media → Landing slides */}
+      <LandingSlideshow slides={slides} />
+
+      <HeroBento
+        solar={heroSolar ?? solar(0)}
+        avatars={[pick(1), pick(2), pick(3)].filter(Boolean) as Photo[]}
+        feature={heroFeature ?? pick(0)}
+      />
 
       <TrustBadges />
 

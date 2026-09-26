@@ -57,6 +57,13 @@ const config: Config = {
           DEFAULT: '#FF8A1F',
           bright: '#FFA033',
         },
+        // Power Purple — brand purple for highlight CTAs, the seasonal banner and price badges
+        // (white text on it is 5.6:1)
+        power: {
+          DEFAULT: '#8B1BF5',
+          dark: '#7210D6',
+          light: '#B77BFA',
+        },
         // Eco Green — CTA button border
         ecogreen: '#39D353',
         // Facebook Blue — Facebook icon and the "Book a site walk-through" button
