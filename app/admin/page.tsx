@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import BusinessSummary from '@/components/admin/BusinessSummary'
 import { supabase } from '@/lib/supabaseClient'
-import { Loader2, Image as ImageIcon, LogOut, Sparkles } from 'lucide-react'
+import { Loader2, Image as ImageIcon, LogOut, Sparkles, Users, Receipt, FileText } from 'lucide-react'
 
 // Read-only view of the same 'site-visitors' presence channel the public
 // site tracks itself into (see components/VisitorPresence.tsx). This tab
@@ -144,31 +144,72 @@ export default function AdminPage() {
 
         <LiveVisitors />
 
-        <Link
-          href="/admin/media"
-          className="flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
-        >
-          <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
-            <ImageIcon className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="font-heading font-bold text-paper">Media</p>
-            <p className="text-sm text-mist">Manage hero slides, before/after pairs &amp; the gallery</p>
-          </div>
-        </Link>
+        <div className="grid gap-4">
+          <Link
+            href="/admin/leads"
+            className="flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
+          >
+            <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
+              <Users className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="font-heading font-bold text-paper">Leads</p>
+              <p className="text-sm text-mist">Work the pipeline: new → contacted → site visit → quoted → won/lost</p>
+            </div>
+          </Link>
 
-        <Link
-          href="/admin/prompts"
-          className="mt-4 flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
-        >
-          <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
-            <Sparkles className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="font-heading font-bold text-paper">Prompt Dashboard</p>
-            <p className="text-sm text-mist">48 ready-made prompts for quotes, marketing, scheduling &amp; more</p>
-          </div>
-        </Link>
+          <Link
+            href="/admin/quotes"
+            className="flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
+          >
+            <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
+              <FileText className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="font-heading font-bold text-paper">Quotes</p>
+              <p className="text-sm text-mist">Build, send &amp; track quotes — branded PDF, ZAR, Capitec banking</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/admin/invoices"
+            className="flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
+          >
+            <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
+              <Receipt className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="font-heading font-bold text-paper">Invoices</p>
+              <p className="text-sm text-mist">Track what&apos;s owed, record payments, chase overdue</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/admin/media"
+            className="flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
+          >
+            <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
+              <ImageIcon className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="font-heading font-bold text-paper">Media</p>
+              <p className="text-sm text-mist">Manage hero slides, before/after pairs &amp; the gallery</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/admin/prompts"
+            className="flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
+          >
+            <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
+              <Sparkles className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="font-heading font-bold text-paper">Prompt Dashboard</p>
+              <p className="text-sm text-mist">48 ready-made prompts for quotes, marketing, scheduling &amp; more</p>
+            </div>
+          </Link>
+        </div>
       </div>
     </main>
   )
