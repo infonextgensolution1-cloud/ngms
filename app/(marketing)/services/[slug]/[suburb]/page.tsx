@@ -23,7 +23,7 @@ export function generateMetadata({
   if (!s || !sub) return {};
   return {
     title: `${s.name} in ${sub.name}`,
-    description: `${s.name} in ${sub.name}, ${sub.region}. Free written quote from NextGen Solar & Maintenance Solutions.`,
+    description: `${s.name} in ${sub.name}, ${sub.region}. Free quote from NextGen Solar Clean & Maintenance Solutions.`,
   };
 }
 
@@ -80,7 +80,10 @@ export default function ServiceSuburbPage({
             <li key={p} className="card !py-3 !px-4 text-sm text-mist">{p}</li>
           ))}
         </ul>
-        <p className="text-mist text-xs mt-3">Prices exclude VAT. Free written quote after a site visit.</p>
+        <p className="text-mist text-xs mt-3">
+          Prices exclude VAT. Most jobs are priced from WhatsApp photos, usually the same day; bigger jobs get a free
+          site visit and a written quote.
+        </p>
         <p className="text-orange text-sm font-semibold mt-2">{sub.calloutNote}</p>
 
         <p className="mt-8">
@@ -88,7 +91,7 @@ export default function ServiceSuburbPage({
             href={`/quote?service=${encodeURIComponent(s.name)}&area=${encodeURIComponent(sub.name)}`}
             className="btn-quote"
           >
-            Get A Quote for {sub.name}
+            Get a quote for {sub.name}
           </Link>
         </p>
 
