@@ -32,7 +32,7 @@ export default function BodyCorporateSection() {
         <div>
           <p className="kicker !text-jet">For Body Corporates &amp; Security Complexes</p>
           <h2 className="font-heading text-3xl sm:text-4xl font-bold text-jet">
-            Maintenance Your Trustees Don&apos;t Have To Chase
+            Maintenance your trustees don&apos;t have to chase
           </h2>
           <p className="text-jet text-lg mt-4 max-w-md">
             Quarterly and annual plans for complexes across Strand, Somerset West and Gordon&apos;s Bay. Recent
@@ -40,13 +40,13 @@ export default function BodyCorporateSection() {
           </p>
           <div className="flex gap-4 flex-wrap mt-8">
             <Link
-              href="/quote?service=Solar%20Panel%20Cleaning"
+              href="/quote"
               className="btn-jet"
             >
-              BOOK A SITE WALK-THROUGH
+              Book a site walk-through
             </Link>
             <Link href="/maintenance-packages" className="btn-outline-jet">
-              COMPLEX PACKAGES
+              Complex packages
             </Link>
           </div>
         </div>
