@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { SERVICES, getService } from "@/lib/services";
 import { SUBURBS, getSuburb } from "@/lib/suburbs";
 import { SITE } from "@/lib/site";
+import NgmsIcon from "@/components/NgmsIcon";
 
 // One thin, genuinely local page per service x suburb combination —
 // catches long-tail searches like "solar panel cleaning strand" or
@@ -59,6 +60,9 @@ export default function ServiceSuburbPage({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <div className="bg-graphite border-b border-line py-14 px-4 text-center">
+        <div className="group flex w-fit mx-auto mb-5 rounded-2xl bg-jet border border-darkgrey p-3 hover:border-orange transition-colors">
+          <NgmsIcon name={s.slug} className="h-14 w-14 md:h-16 md:w-16" />
+        </div>
         <p className="kicker">{sub.region}</p>
         <h1 className="text-3xl md:text-5xl">
           {s.name} in {sub.name}

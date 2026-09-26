@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import NgmsIcon from "@/components/NgmsIcon";
 
 export const metadata: Metadata = {
   title: "Maintenance Packages",
@@ -9,12 +10,14 @@ export const metadata: Metadata = {
 const PACKAGES = [
   {
     name: "Basic Care",
+    icon: "calendar",
     cadence: "Every 6 months",
     price: "From R850",
     items: "Solar clean (up to 20 panels) · gutter flush · exterior inspection · priority booking",
   },
   {
     name: "Standard Care",
+    icon: "recurring",
     cadence: "Every 4 months",
     price: "From R1 450",
     items: "Solar clean · gutters · driveway wash · 30 min handyman · 15% off solar",
@@ -22,6 +25,7 @@ const PACKAGES = [
   },
   {
     name: "Complete Care",
+    icon: "walkthrough",
     cadence: "Every 3 months",
     price: "From R2 200",
     items: "Full exterior wash · handyman hour · waterproofing inspection · fastest response",
@@ -40,11 +44,12 @@ export default function PackagesPage() {
       </div>
       <div className="max-w-5xl mx-auto px-4 py-10">
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {PACKAGES.map((p) => (
+          {PACKAGES.map((p, i) => (
             <div
               key={p.name}
-              className={`bg-cardgrey border rounded-card p-5 ${p.popular ? "border-orange" : "border-darkgrey"}`}
+              className={`group bg-cardgrey border rounded-card p-5 ${p.popular ? "border-orange" : "border-darkgrey hover:border-orange"} transition-colors`}
             >
+              <NgmsIcon name={p.icon} index={i} className="h-12 w-12 mb-3" />
               {p.popular && (
                 <p className="text-orange text-xs font-bold uppercase tracking-wide mb-2">Most Popular</p>
               )}

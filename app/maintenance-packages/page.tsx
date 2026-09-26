@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import NgmsIcon from '@/components/NgmsIcon'
 
 export const metadata = {
   title: 'Maintenance Packages | NGSMS',
@@ -9,6 +10,7 @@ export const metadata = {
 const RECURRING_PACKAGES = [
   {
     name: 'Basic Care',
+    icon: 'calendar',
     frequency: 'Every 6 months',
     price: 'from R850',
     unit: 'per visit',
@@ -21,6 +23,7 @@ const RECURRING_PACKAGES = [
   },
   {
     name: 'Standard Care',
+    icon: 'recurring',
     frequency: 'Every 4 months',
     price: 'from R1 450',
     unit: 'per visit',
@@ -37,6 +40,7 @@ const RECURRING_PACKAGES = [
   },
   {
     name: 'Complete Care',
+    icon: 'walkthrough',
     frequency: 'Every 3 months',
     price: 'from R2 200',
     unit: 'per visit',
@@ -55,6 +59,7 @@ const RECURRING_PACKAGES = [
 const SEASONAL_COMBOS = [
   {
     name: 'Winter Storm-Ready',
+    icon: 'winter-rain',
     frequency: 'May – August',
     price: 'from R2 150',
     unit: 'once-off project',
@@ -67,6 +72,7 @@ const SEASONAL_COMBOS = [
   },
   {
     name: 'Summer Refresh',
+    icon: 'summer-sun',
     frequency: 'September – April',
     price: 'from R2 950',
     unit: 'once-off project',
@@ -81,6 +87,7 @@ const SEASONAL_COMBOS = [
   },
   {
     name: 'Pool & Entertaining Combo',
+    icon: 'pool-fibre-lining',
     frequency: 'September – April',
     price: 'from R2 250',
     unit: 'once-off project',
@@ -96,6 +103,7 @@ const SEASONAL_COMBOS = [
 const COMMERCIAL_COMBOS = [
   {
     name: 'Body Corporate Essentials',
+    icon: 'complex',
     frequency: 'Quarterly',
     price: 'from R3 200',
     unit: 'per visit',
@@ -108,6 +116,7 @@ const COMMERCIAL_COMBOS = [
   },
   {
     name: 'Security Complex Care',
+    icon: 'crew',
     frequency: 'Bi-annual',
     price: 'from R4 800',
     unit: 'per visit',
@@ -123,6 +132,7 @@ const COMMERCIAL_COMBOS = [
   },
   {
     name: 'Light Commercial Facade',
+    icon: 'high-pressure-cleaning',
     frequency: 'Quarterly',
     price: 'from R2 800',
     unit: 'per visit',
@@ -137,6 +147,7 @@ const COMMERCIAL_COMBOS = [
 
 type Package = {
   name: string
+  icon: string
   frequency: string
   price: string
   unit: string
@@ -148,13 +159,14 @@ type Package = {
 function PackageGrid({ packages }: { packages: Package[] }) {
   return (
     <div className="max-w-5xl mx-auto px-4 grid sm:grid-cols-3 gap-6">
-      {packages.map((pkg) => (
+      {packages.map((pkg, i) => (
         <div
           key={pkg.name}
-          className={`bg-cardgrey rounded-card p-6 flex flex-col ${
-            pkg.featured ? 'border-2 border-orange' : 'border border-darkgrey'
+          className={`group bg-cardgrey rounded-card p-6 flex flex-col transition-colors ${
+            pkg.featured ? 'border-2 border-orange' : 'border border-darkgrey hover:border-orange'
           }`}
         >
+          <NgmsIcon name={pkg.icon} index={i} className="h-12 w-12 mb-4" />
           {pkg.featured && (
             <span className="btn-popular self-start mb-4 px-3 py-1.5 text-xs font-heading">
               {pkg.badge || 'Most Popular'}

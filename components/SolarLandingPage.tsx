@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import TrustStrip from '@/components/TrustStrip'
+import NgmsIcon from '@/components/NgmsIcon'
 import { getBeforeAfter } from '@/lib/queries'
 import { getService } from '@/lib/services'
 import { site, waLink } from '@/lib/site'
@@ -39,27 +40,31 @@ const tiers = [
 
 const benefits = [
   {
+    icon: 'solar-panel-cleaning',
     title: 'Get your output back',
     body: 'Salt, dust and pollen build a film you can’t see from the ground. A proper clean lets the sun back in, so you lean less on Eskom.',
   },
   {
+    icon: 'waterproofing',
     title: 'Safe for your panels',
     body: 'Purified water and soft brushes only. No harsh chemicals, no abrasive pads, no high pressure on the glass.',
   },
   {
+    icon: 'fixed-price',
     title: 'Price before we arrive',
     body: 'Tiered pricing by panel count. Send us your numbers and you get a fixed price, not a surprise on the day.',
   },
   {
+    icon: 'recurring',
     title: 'Set it and forget it',
     body: 'Go on a maintenance plan every 4–6 months and every clean is 15% off, with priority booking.',
   },
 ]
 
 const steps = [
-  { n: '1', title: 'WhatsApp us', body: 'Send your panel count, suburb and a photo of the roof if you have one.' },
-  { n: '2', title: 'Get a fixed price', body: 'We come back with a price and a date that suits you.' },
-  { n: '3', title: 'We clean', body: 'Your panels are cleaned safely and you’re back to full sun.' },
+  { n: '1', icon: 'send-photo', title: 'WhatsApp us', body: 'Send your panel count, suburb and a photo of the roof if you have one.' },
+  { n: '2', icon: 'quote', title: 'Get a fixed price', body: 'We come back with a price and a date that suits you.' },
+  { n: '3', icon: 'solar-panel-cleaning', title: 'We clean', body: 'Your panels are cleaned safely and you’re back to full sun.' },
 ]
 
 const faqs = [
@@ -176,8 +181,9 @@ export default async function SolarLandingPage({
             Why {areaName} homeowners book us
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {benefits.map((b) => (
-              <div key={b.title} className="bg-cardgrey border border-darkgrey rounded-card p-6">
+            {benefits.map((b, i) => (
+              <div key={b.title} className="group bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-orange transition-colors">
+                <NgmsIcon name={b.icon} index={i} className="h-12 w-12 mb-4" />
                 <h3 className="font-heading text-lg font-semibold mb-2 text-paper">{b.title}</h3>
                 <p className="text-mist text-sm">{b.body}</p>
               </div>
@@ -199,11 +205,14 @@ export default async function SolarLandingPage({
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="font-heading text-2xl sm:text-3xl font-bold text-paper mb-8">Booking takes two minutes</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 text-left">
-            {steps.map((s) => (
-              <div key={s.n} className="bg-cardgrey border border-darkgrey rounded-card p-6">
-                <span className="inline-flex w-9 h-9 items-center justify-center rounded-full bg-orange text-white font-heading font-bold mb-3">
-                  {s.n}
-                </span>
+            {steps.map((s, i) => (
+              <div key={s.n} className="group bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-orange transition-colors">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="inline-flex w-9 h-9 items-center justify-center rounded-full bg-orange text-white font-heading font-bold">
+                    {s.n}
+                  </span>
+                  <NgmsIcon name={s.icon} index={i} className="h-11 w-11" />
+                </div>
                 <h3 className="font-heading font-semibold text-paper mb-1">{s.title}</h3>
                 <p className="text-mist text-sm">{s.body}</p>
               </div>

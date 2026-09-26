@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="#0A0A0A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Fast Reply">
+  <title>Fast Reply</title>
+  <path d="M10 30C10 18 20 10 32 10C44 10 54 18 54 30C54 42 44 50 32 50C29 50 26.2 49.5 23.6 48.6L11 54L14.6 43.4C11.6 39.6 10 35 10 30Z"/>
+  <path d="M35 17L24 32H31.5L29 43L40.5 27H33Z" fill="#F57C1B" stroke="#F57C1B" stroke-width="1.5"/>
+</svg>
