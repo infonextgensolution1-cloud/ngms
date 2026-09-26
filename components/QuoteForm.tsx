@@ -94,7 +94,7 @@ export default function QuoteForm({
     }).catch(() => {});
 
     setStatus("done");
-    const waMsg = `Hi NGSMS, quote request from ${name}.\nPhone: ${phone}\nArea: ${suburb}\nService: ${serviceName}`;
+    const waMsg = `Hi NextGen, quote request from ${name}.\nPhone: ${phone}\nArea: ${suburb}\nService: ${serviceName}`;
     window.open(waLink(waMsg), "_blank");
   }
 
@@ -106,7 +106,7 @@ export default function QuoteForm({
           We&rsquo;ve logged your request and will reply the same day. If WhatsApp didn&rsquo;t open automatically,
           you can message us directly.
         </p>
-        <a href={waLink("Hi NGSMS, following up on my quote request.")} className="btn btn-wa mt-4 inline-block" target="_blank" rel="noreferrer">
+        <a href={waLink("Hi NextGen, following up on my quote request.")} className="btn btn-wa mt-4 inline-block" target="_blank" rel="noreferrer">
           Message on WhatsApp
         </a>
       </div>
