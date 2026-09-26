@@ -257,7 +257,7 @@ export default function MaintenancePackagesPage() {
             WhatsApp us about price
           </a>
           <Link href="/price-list" className="border border-mist text-paper font-heading font-semibold px-6 py-3 rounded-btn hover:border-orange hover:text-orange">
-            View Full Catalog
+            View full price list
           </Link>
         </div>
       </section>
