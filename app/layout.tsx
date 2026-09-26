@@ -153,7 +153,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   ['/services', 'Services'],
                   ['/portfolio', 'Projects'],
                   ['/gallery', 'Gallery'],
-                  ['/price-list', 'Catalog'],
+                  ['/price-list', 'Price list'],
                   ['/maintenance-packages', 'Maintenance Packages'],
                   ['/roi-calculator', 'ROI Calculator'],
                   ['/about', 'About'],
