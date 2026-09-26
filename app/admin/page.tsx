@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import BusinessSummary from '@/components/admin/BusinessSummary'
 import { supabase } from '@/lib/supabaseClient'
-import { Loader2, Image as ImageIcon, LogOut } from 'lucide-react'
+import { Loader2, Image as ImageIcon, LogOut, Sparkles } from 'lucide-react'
 
 // Read-only view of the same 'site-visitors' presence channel the public
 // site tracks itself into (see components/VisitorPresence.tsx). This tab
@@ -154,6 +154,19 @@ export default function AdminPage() {
           <div>
             <p className="font-heading font-bold text-paper">Media</p>
             <p className="text-sm text-mist">Manage hero slides, before/after pairs &amp; the gallery</p>
+          </div>
+        </Link>
+
+        <Link
+          href="/admin/prompts"
+          className="mt-4 flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
+        >
+          <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
+            <Sparkles className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="font-heading font-bold text-paper">Prompt Dashboard</p>
+            <p className="text-sm text-mist">48 ready-made prompts for quotes, marketing, scheduling &amp; more</p>
           </div>
         </Link>
       </div>
