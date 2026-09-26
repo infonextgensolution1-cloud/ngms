@@ -640,6 +640,161 @@
   gap: 14px 16px;
 }
 
+/* ---------- Free AI image generators ---------- */
+a.pd-btn,
+a.pd-chip {
+  text-decoration: none;
+}
+
+.pd-gens {
+  margin-top: 8px;
+}
+
+.pd-gen-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 720px) {
+  .pd-gen-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1080px) {
+  .pd-gen-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.pd-gen {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--pd-steel);
+  border-radius: 2px;
+  background: var(--pd-carbon);
+}
+
+.pd-gen-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.pd-gen h3 {
+  margin: 0;
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.1;
+  color: var(--pd-chalk);
+}
+
+.pd-tag {
+  padding: 1px 7px;
+  border: 1px solid var(--pd-green);
+  border-radius: 2px;
+  color: var(--pd-green);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pd-gen-best {
+  margin: 0;
+  color: var(--pd-concrete);
+  font-size: 14px;
+}
+
+.pd-gen-line {
+  margin: 0;
+  color: var(--pd-ash);
+  font-size: 13px;
+}
+
+.pd-gen-line span {
+  display: block;
+  margin-bottom: 1px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pd-orange);
+}
+
+.pd-gen-open {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.pd-note {
+  margin: 0;
+  max-width: 78ch;
+  color: var(--pd-ash);
+  font-size: 13px;
+}
+
+/* Copy-and-open buttons inside an image prompt */
+.pd-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 12px;
+  border: 1px solid var(--pd-steel);
+  border-radius: 2px;
+  background: var(--pd-graphite);
+}
+
+.pd-strip-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pd-orange);
+}
+
+.pd-strip-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pd-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--pd-steel-strong);
+  border-radius: 2px;
+  background: var(--pd-carbon);
+  color: var(--pd-chalk);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.pd-chip:hover {
+  border-color: var(--pd-orange);
+  background: var(--pd-graphite-hover);
+}
+
+.pd-chip svg {
+  color: var(--pd-ash);
+}
+
+.pd-chip:hover svg {
+  color: var(--pd-orange);
+}
+
 /* ---------- Dialog ---------- */
 .pd-overlay {
   position: fixed;

@@ -11,6 +11,7 @@ import {
   Check,
   ChevronDown,
   Copy,
+  ExternalLink,
   FileText,
   Globe,
   Image as ImageIcon,
@@ -39,6 +40,7 @@ import {
   type Category,
   type PromptItem,
 } from '@/lib/prompt-library'
+import { GENERATORS, GENERATORS_CHECKED } from '@/lib/image-generators'
 import './prompt-dashboard.css'
 
 /* ---------- Static lookups ---------- */
@@ -355,6 +357,79 @@ function Fields({
   )
 }
 
+/* ---------- Free AI image generators ---------- */
+
+// Inside an image prompt: each button copies the finished prompt, then opens the generator in a
+// new tab. The copy starts inside the click, so the browser allows it before the new tab takes focus.
+function GeneratorStrip({ onCopy }: { onCopy: (generatorName: string) => void }) {
+  return (
+    <div className="pd-strip" role="group" aria-label="Copy the prompt and open a free image generator">
+      <p className="pd-strip-label">Copy prompt and open a free generator</p>
+      <div className="pd-strip-links">
+        {GENERATORS.map((g) => (
+          <a
+            key={g.id}
+            className="pd-chip"
+            href={g.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => onCopy(g.name)}
+          >
+            {g.short}
+            <ExternalLink size={13} aria-hidden="true" />
+            <span className="pd-sr">(copies the prompt, opens in a new tab)</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function GeneratorPanel() {
+  return (
+    <section className="pd-panel pd-gens" aria-labelledby="pd-gens-title">
+      <div className="pd-panel-head">
+        <div>
+          <h2 id="pd-gens-title">Free AI image generators</h2>
+          <p>
+            Open an AI Image Prompt above, copy it, then paste it into one of these. Free plans change often. Last
+            checked {GENERATORS_CHECKED}.
+          </p>
+        </div>
+      </div>
+      <ul className="pd-gen-grid">
+        {GENERATORS.map((g) => (
+          <li className="pd-gen" key={g.id}>
+            <div className="pd-gen-top">
+              <h3>{g.name}</h3>
+              {g.noSignIn && <span className="pd-tag">No sign-in</span>}
+            </div>
+            <p className="pd-gen-best">{g.bestFor}</p>
+            <p className="pd-gen-line">
+              <span>Free plan</span>
+              {g.free}
+            </p>
+            <p className="pd-gen-line">
+              <span>Watch out</span>
+              {g.watch}
+            </p>
+            <a className="pd-btn pd-gen-open" href={g.url} target="_blank" rel="noopener noreferrer">
+              Open {g.name}
+              <ExternalLink size={15} aria-hidden="true" />
+              <span className="pd-sr">(opens in a new tab)</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p className="pd-note">
+        AI tools cannot draw the real NGMS logo or your job photos properly. Generate the background or scene, then add
+        the logo and your real before and after photos on top. Check a tool&apos;s licence before you use its image in
+        paid ads.
+      </p>
+    </section>
+  )
+}
+
 /* ---------- Prompt modal ---------- */
 
 interface ModalProps {
@@ -490,6 +565,9 @@ function PromptModal(p: ModalProps) {
             Write <code>{'{{field_name}}'}</code> anywhere in the template to add a field. Empty fields show as
             [brackets] in the finished prompt.
           </p>
+          {cat.id === 'images' && (
+            <GeneratorStrip onCopy={(name) => copy.send(output, `Prompt copied. Paste it into ${name}.`)} />
+          )}
         </section>
       </div>
 
@@ -764,6 +842,7 @@ export default function PromptDashboard() {
               <CategoryCard key={cat.id} cat={cat} saved={saved} onOpen={setOpenId} />
             ))}
           </ul>
+          <GeneratorPanel />
           <Tips />
         </>
       )}
