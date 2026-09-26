@@ -109,7 +109,7 @@ export const services: Service[] = [
     name: 'Paving',
     tagline: 'Driveways, patios and walkways',
     description:
-      'Paving that’s laid without proper base preparation shifts, sinks and cracks within a season or two — especially on the sandy and clay soils common across parts of the Helderberg Basin. We install new paving and repairs and re-levels existing driveways, patios and walkways, with attention to correct base compaction and drainage falls so the finished surface actually stays flat and stable over time rather than needing redoing.',
+      'Paving that’s laid without proper base preparation shifts, sinks and cracks within a season or two — especially on the sandy and clay soils common across parts of the Helderberg Basin. We install new paving, and repair and re-level existing driveways, patios and walkways, with attention to correct base compaction and drainage falls so the finished surface actually stays flat and stable over time rather than needing redoing.',
     whatsIncluded: [
       'New driveway, patio and walkway paving',
       'Re-levelling and repair of sunken or shifted existing paving',
