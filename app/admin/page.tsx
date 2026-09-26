@@ -5,7 +5,51 @@ import Link from 'next/link'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import BusinessSummary from '@/components/admin/BusinessSummary'
 import { supabase } from '@/lib/supabaseClient'
-import { Loader2, Image as ImageIcon, LogOut, Sparkles, Users, Receipt, FileText, Cloud } from 'lucide-react'
+import { Loader2, Image as ImageIcon, LogOut, Sparkles, Users, Receipt, FileText, Cloud, LucideIcon } from 'lucide-react'
+
+const NAV_ITEMS: Array<{
+  href: string
+  icon: LucideIcon
+  title: string
+  desc: string
+}> = [
+  {
+    href: '/admin/leads',
+    icon: Users,
+    title: 'Leads',
+    desc: 'Work the pipeline: new → contacted → site visit → quoted → won/lost',
+  },
+  {
+    href: '/admin/quotes',
+    icon: FileText,
+    title: 'Quotes',
+    desc: 'Build, send &amp; track quotes — branded PDF, ZAR, Capitec banking',
+  },
+  {
+    href: '/admin/invoices',
+    icon: Receipt,
+    title: 'Invoices',
+    desc: 'Track what&apos;s owed, record payments, chase overdue',
+  },
+  {
+    href: '/admin/media',
+    icon: ImageIcon,
+    title: 'Media',
+    desc: 'Manage hero slides, before/after pairs &amp; the gallery',
+  },
+  {
+    href: '/admin/prompts',
+    icon: Sparkles,
+    title: 'Prompt Dashboard',
+    desc: '48 ready-made prompts for quotes, marketing, scheduling &amp; more',
+  },
+  {
+    href: '/admin/vercel-projects',
+    icon: Cloud,
+    title: 'Vercel Projects',
+    desc: 'Monitor NGMS deployment status &amp; project info on Vercel',
+  },
+]
 
 // Read-only view of the same 'site-visitors' presence channel the public
 // site tracks itself into (see components/VisitorPresence.tsx). This tab
@@ -145,83 +189,21 @@ export default function AdminPage() {
         <LiveVisitors />
 
         <div className="grid gap-4">
-          <Link
-            href="/admin/leads"
-            className="flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
-          >
-            <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
-              <Users className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="font-heading font-bold text-paper">Leads</p>
-              <p className="text-sm text-mist">Work the pipeline: new → contacted → site visit → quoted → won/lost</p>
-            </div>
-          </Link>
-
-          <Link
-            href="/admin/quotes"
-            className="flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
-          >
-            <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
-              <FileText className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="font-heading font-bold text-paper">Quotes</p>
-              <p className="text-sm text-mist">Build, send &amp; track quotes — branded PDF, ZAR, Capitec banking</p>
-            </div>
-          </Link>
-
-          <Link
-            href="/admin/invoices"
-            className="flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
-          >
-            <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
-              <Receipt className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="font-heading font-bold text-paper">Invoices</p>
-              <p className="text-sm text-mist">Track what&apos;s owed, record payments, chase overdue</p>
-            </div>
-          </Link>
-
-          <Link
-            href="/admin/media"
-            className="flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
-          >
-            <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
-              <ImageIcon className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="font-heading font-bold text-paper">Media</p>
-              <p className="text-sm text-mist">Manage hero slides, before/after pairs &amp; the gallery</p>
-            </div>
-          </Link>
-
-          <Link
-            href="/admin/prompts"
-            className="flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
-          >
-            <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
-              <Sparkles className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="font-heading font-bold text-paper">Prompt Dashboard</p>
-              <p className="text-sm text-mist">48 ready-made prompts for quotes, marketing, scheduling &amp; more</p>
-            </div>
-          </Link>
-
-          <Link
-            href="/admin/vercel-projects"
-            className="flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
-          >
-            <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
-              <Cloud className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="font-heading font-bold text-paper">Vercel Projects</p>
-              <p className="text-sm text-mist">Monitor NGMS deployment status &amp; project info on Vercel</p>
-            </div>
-          </Link>
+          {NAV_ITEMS.map(({ href, icon: Icon, title, desc }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
+            >
+              <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
+                <Icon className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="font-heading font-bold text-paper">{title}</p>
+                <p className="text-sm text-mist">{desc}</p>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
     </main>

@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { listProjects } from '@/lib/vercel-client'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabaseClient'
 
 export const dynamic = 'force-dynamic'
 
+const ERROR_MAP: Record<string, { message: string; status: number }> = {
+  'VERCEL_API_TOKEN': { message: 'Vercel API token not configured', status: 500 },
+  'Invalid': { message: 'Invalid Vercel API token', status: 401 },
+  '401': { message: 'Invalid Vercel API token', status: 401 },
+}
+
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-    )
-
     const {
       data: { user },
     } = await supabase.auth.getUser()
@@ -24,24 +25,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ projects })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to fetch projects'
-
-    if (message.includes('VERCEL_API_TOKEN')) {
-      return NextResponse.json(
-        { error: 'Vercel API token not configured' },
-        { status: 500 }
-      )
-    }
-
-    if (message.includes('Invalid') || message.includes('401')) {
-      return NextResponse.json(
-        { error: 'Invalid Vercel API token' },
-        { status: 401 }
-      )
-    }
+    const errorConfig = Object.entries(ERROR_MAP).find(([key]) => message.includes(key))?.[1]
 
     return NextResponse.json(
-      { error: message },
-      { status: 500 }
+      { error: errorConfig?.message || message },
+      { status: errorConfig?.status || 500 }
     )
   }
 }

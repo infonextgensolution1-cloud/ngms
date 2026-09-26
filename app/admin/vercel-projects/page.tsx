@@ -12,8 +12,45 @@ import {
 import { StaffGate } from '@/components/admin/StaffGate'
 import type { VercelProject } from '@/lib/vercel-client'
 
-interface ProjectWithFiltered extends VercelProject {
-  _displayName: string
+const STATUS_COLORS: Record<VercelProject['status'], string> = {
+  deployed: 'bg-whatsapp text-white',
+  building: 'bg-blue-600 text-white',
+  failed: 'bg-orange-600 text-white',
+  queued: 'bg-darkgrey text-mist',
+}
+
+const STATUS_LABELS: Record<VercelProject['status'], string> = {
+  deployed: 'Deployed',
+  building: 'Building',
+  failed: 'Failed',
+  queued: 'Queued',
+}
+
+const FILTER_OPTIONS = [
+  { label: 'All', value: 'all' },
+  { label: 'Deployed', value: 'deployed' },
+  { label: 'Building', value: 'building' },
+  { label: 'Failed', value: 'failed' },
+] as const
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMins < 1) return 'just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays < 30) return `${diffDays}d ago`
+
+  const months = Math.floor(diffDays / 30)
+  if (months < 12) return `${months}mo ago`
+
+  const years = Math.floor(diffDays / 365)
+  return `${years}y ago`
 }
 
 export default function VercelProjectsPage() {
@@ -68,44 +105,6 @@ function VercelProjectsList() {
     return matchesFilter && matchesSearch
   })
 
-  const getStatusColor = (status: VercelProject['status']) => {
-    switch (status) {
-      case 'deployed':
-        return 'bg-whatsapp text-white'
-      case 'building':
-        return 'bg-blue-600 text-white'
-      case 'failed':
-        return 'bg-orange-600 text-white'
-      case 'queued':
-        return 'bg-darkgrey text-mist'
-      default:
-        return 'bg-cardgrey text-mist'
-    }
-  }
-
-  const getStatusLabel = (status: VercelProject['status']) => {
-    return status.charAt(0).toUpperCase() + status.slice(1)
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
-    const diffDays = Math.floor(diffMs / 86400000)
-
-    if (diffMins < 1) return 'just now'
-    if (diffMins < 60) return `${diffMins}m ago`
-    if (diffHours < 24) return `${diffHours}h ago`
-    if (diffDays < 30) return `${diffDays}d ago`
-
-    const months = Math.floor(diffDays / 30)
-    if (months < 12) return `${months}mo ago`
-
-    const years = Math.floor(diffDays / 365)
-    return `${years}y ago`
-  }
 
   return (
     <div className="bg-jet px-4 py-8">
@@ -142,14 +141,7 @@ function VercelProjectsList() {
 
           {/* Filter Buttons */}
           <div className="flex gap-2 flex-wrap">
-            {(
-              [
-                { label: 'All', value: 'all' },
-                { label: 'Deployed', value: 'deployed' },
-                { label: 'Building', value: 'building' },
-                { label: 'Failed', value: 'failed' },
-              ] as const
-            ).map(({ label, value }) => (
+            {FILTER_OPTIONS.map(({ label, value }) => (
               <button
                 key={value}
                 onClick={() => setFilter(value as typeof filter)}
@@ -222,12 +214,8 @@ function VercelProjectsList() {
 
                 <div className="flex items-center gap-3">
                   {/* Status Badge */}
-                  <span
-                    className={`text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-card whitespace-nowrap ${getStatusColor(
-                      project.status
-                    )}`}
-                  >
-                    {getStatusLabel(project.status)}
+                  <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-card whitespace-nowrap ${STATUS_COLORS[project.status]}`}>
+                    {STATUS_LABELS[project.status]}
                   </span>
 
                   {/* External Link */}

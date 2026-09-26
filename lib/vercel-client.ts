@@ -22,19 +22,15 @@ interface VercelAPIProject {
   }
 }
 
+const STATUS_MAP: Record<string, VercelProject['status']> = {
+  'READY': 'deployed',
+  'IN_PROGRESS': 'building',
+  'ERROR': 'failed',
+  'QUEUED': 'queued',
+}
+
 function mapVercelStatus(state: string): VercelProject['status'] {
-  switch (state?.toUpperCase()) {
-    case 'READY':
-      return 'deployed'
-    case 'IN_PROGRESS':
-      return 'building'
-    case 'ERROR':
-      return 'failed'
-    case 'QUEUED':
-      return 'queued'
-    default:
-      return 'queued'
-  }
+  return STATUS_MAP[state?.toUpperCase()] ?? 'queued'
 }
 
 export async function listProjects(): Promise<VercelProject[]> {
