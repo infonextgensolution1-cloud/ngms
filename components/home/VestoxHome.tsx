@@ -3,6 +3,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { whatsappLink } from '@/lib/site'
 import { serviceIcon } from '@/lib/service-icons'
+import SoilingChart from '@/components/home/SoilingChart'
 
 // Homepage building blocks — "folder tab" layout (light sand/chalk ground,
 // black + Solar Orange tiles, real job photos from Supabase).
@@ -54,64 +55,6 @@ function Tape({ children, className = '' }: { children: ReactNode; className?: s
   )
 }
 
-/* ---------- output chart (illustrative soiling curve) ---------- */
-
-// Typical 5 kW home system in the Helderberg: ~24 kWh/day clean, losing
-// up to ~10% as dust and salt build up, recovering after each clean.
-const CURVE = [24, 23.2, 22.4, 21.6, 24, 23.2, 22.4, 21.7, 24, 23.3, 22.6, 21.9]
-const MONTHS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D']
-const CLEANS = [4, 8]
-
-function OutputChart() {
-  const W = 320
-  const H = 170
-  const left = 30
-  const right = 10
-  const top = 14
-  const bottom = 24
-  const yMin = 20.5
-  const yMax = 24.6
-  const x = (i: number) => left + (i * (W - left - right)) / (CURVE.length - 1)
-  const y = (v: number) => top + ((yMax - v) * (H - top - bottom)) / (yMax - yMin)
-
-  // Step up at each clean: drop to the dirty value, then jump back to clean.
-  let d = `M ${x(0)} ${y(CURVE[0])}`
-  for (let i = 1; i < CURVE.length; i++) {
-    if (CLEANS.includes(i)) {
-      d += ` L ${x(i)} ${y(CURVE[i - 1] - 0.4)} L ${x(i)} ${y(CURVE[i])}`
-    } else {
-      d += ` L ${x(i)} ${y(CURVE[i])}`
-    }
-  }
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="Illustrative chart: solar output drops about 10%, from 24 to 21.6 kWh a day, as panels get dirty, and jumps back after each clean">
-      {[21.6, 24].map((t) => (
-        <g key={t}>
-          <line x1={left} x2={W - right} y1={y(t)} y2={y(t)} stroke="#0A0A0A" strokeOpacity={t === 24 ? 0.35 : 0.1} strokeDasharray={t === 24 ? '4 4' : undefined} />
-          <text x={left - 6} y={y(t) + 4} textAnchor="end" fontSize="10" fill="#6B6D72">
-            {t}
-          </text>
-        </g>
-      ))}
-      <path d={d} fill="none" stroke="#0A0A0A" strokeWidth="2.25" strokeLinejoin="round" />
-      {CLEANS.map((i) => (
-        <g key={i}>
-          <circle cx={x(i)} cy={y(CURVE[i])} r="5.5" fill="#F57C1B" stroke="#0A0A0A" strokeWidth="1.5" />
-        </g>
-      ))}
-      <text x={x(CLEANS[0]) + 8} y={y(24) - 4} fontSize="9" fontWeight="700" fill="#0A0A0A" letterSpacing="0.08em">
-        CLEAN
-      </text>
-      {MONTHS.map((m, i) => (
-        <text key={i} x={x(i)} y={H - 6} textAnchor="middle" fontSize="9" fill="#6B6D72">
-          {m}
-        </text>
-      ))}
-    </svg>
-  )
-}
-
 /* ---------- HERO ---------- */
 
 export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars: Photo[]; feature?: Photo }) {
@@ -153,8 +96,8 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
         {/* Output chart card */}
         <div className="lg:col-span-5 relative bg-white rounded-2xl p-5 pt-8 shadow-[0_1px_0_rgba(10,10,10,0.06)] border border-[#E2E2DE]">
           <TabNotch ground={GROUND_LIGHT} width="38%" />
-          <div className="absolute -top-1 left-5 h-[74px] w-[74px] rounded-full bg-jet text-paper flex flex-col items-center justify-center z-20">
-            <span className="text-[9px] uppercase tracking-widest text-mist">From</span>
+          <div className="absolute -top-1 left-5 h-[74px] w-[74px] rounded-full bg-power text-white flex flex-col items-center justify-center z-20 shadow-[0_6px_20px_rgba(139,27,245,0.45)] ring-4 ring-white">
+            <span className="text-[9px] uppercase tracking-widest text-white/80">From</span>
             <span className="font-heading font-extrabold text-xl leading-none">R550</span>
           </div>
           <div className="pl-[88px] min-h-[62px]">
@@ -162,7 +105,7 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
             <p className="text-xs text-[#6B6D72] mt-1">kWh per day, cleaned every 4 months</p>
           </div>
           <div className="mt-3">
-            <OutputChart />
+            <SoilingChart />
           </div>
           <p className="text-[10px] uppercase tracking-widest text-slate mt-1">Illustrative · coastal soiling rate</p>
         </div>
@@ -222,8 +165,8 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
             </div>
           </div>
           <div className="relative rounded-2xl overflow-hidden bg-jet min-h-[260px]">
-            <PhotoFill photo={feature} sizes="(max-width: 1024px) 50vw, 20vw" className="grayscale" />
-            <div className="absolute inset-0 bg-gradient-to-t from-jet/85 via-jet/10 to-transparent" />
+            <PhotoFill photo={feature} sizes="(max-width: 1024px) 50vw, 20vw" />
+            <div className="absolute inset-0 bg-gradient-to-t from-jet/75 via-transparent to-transparent" />
             <p className="absolute left-3 right-3 bottom-3 text-paper text-[11px] uppercase tracking-widest font-bold leading-snug">
               {feature?.caption ?? 'Recent job'}
             </p>
