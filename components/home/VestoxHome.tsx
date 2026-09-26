@@ -288,7 +288,7 @@ export function MissionBand({ photo, side }: { photo?: Photo; side?: Photo }) {
               </svg>
             </span>
             <h2 className="font-heading font-extrabold text-3xl sm:text-4xl leading-[0.95]">
-              Main mission: <span className="text-orange">your roof earns, not rusts.</span>
+              Your roof should <span className="text-orange">earn, not rust.</span>
             </h2>
             <p className="text-mist mt-4 max-w-md">
               We&apos;re a Helderberg crew run by the owner on site. Every job gets a written quote, a fixed start

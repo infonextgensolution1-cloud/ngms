@@ -4,16 +4,17 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 
 // Simple, honest rule-of-thumb estimator: soiling loss builds roughly
-// ~2%/month since the last clean, capped at 25% (matches the "up to 25%"
-// figure already used in the solar panel cleaning copy). Not a precise
+// ~1.25%/month since the last clean, capped at 10% (matches the "up to 10%"
+// figure used in the homepage hero and ROI page). Not a precise
 // engineering model — it's a lead magnet, framed as an estimate throughout.
+const MAX_LOSS_PCT = 10;
 function estimateLossPct(monthsSinceClean: number) {
-  return Math.min(25, Math.round(monthsSinceClean * 2));
+  return Math.min(MAX_LOSS_PCT, Math.round(monthsSinceClean * 1.25));
 }
 
 const GAUGE_RADIUS = 52;
 const GAUGE_CIRCUMFERENCE = 2 * Math.PI * GAUGE_RADIUS;
-const GAUGE_MAX_PCT = 25; // matches the estimator's cap, so the ring can reach full
+const GAUGE_MAX_PCT = MAX_LOSS_PCT; // matches the estimator's cap, so the ring can reach full
 
 export default function SolarRoiCalculator() {
   const [panels, setPanels] = useState(15);

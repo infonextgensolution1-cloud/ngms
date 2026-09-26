@@ -114,7 +114,7 @@ export default async function SolarLandingPage({
   // Pre-filled message: the client only fills in the blanks, and the
   // "(via … page)" tag tells you which landing page the lead came from.
   const waHref = waLink(
-    `Hi NGSMS, I'd like a solar panel cleaning quote.\n\nSuburb: \nNumber of panels: \n\n(via ${areaName} solar page)`
+    `Hi NextGen, I'd like a solar panel cleaning quote.\n\nSuburb: \nNumber of panels: \n\n(via ${areaName} solar page)`
   )
   const telHref = `tel:${site.phone}`
 

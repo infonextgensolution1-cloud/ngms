@@ -15,7 +15,7 @@ const LINKS = [
   { href: '/roi-calculator', label: 'ROI Calculator' },
   { href: '/portfolio', label: 'Projects' },
   { href: '/gallery', label: 'Gallery' },
-  { href: '/price-list', label: 'Catalog' },
+  { href: '/price-list', label: 'Price list' },
   { href: '/faq', label: 'FAQ' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
