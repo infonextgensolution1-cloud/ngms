@@ -11,11 +11,13 @@ import {
   Check,
   ChevronDown,
   Copy,
+  Database,
   ExternalLink,
   FileText,
   Globe,
   Image as ImageIcon,
   Layers,
+  Loader2,
   Megaphone,
   MessageCircle,
   PhoneCall,
@@ -23,9 +25,12 @@ import {
   Receipt,
   RotateCcw,
   Save,
+  Search,
+  Sparkles,
   Star,
   Target,
   Trash2,
+  Wrench,
   X,
   type LucideIcon,
 } from 'lucide-react'
@@ -41,11 +46,15 @@ import {
   type PromptItem,
 } from '@/lib/prompt-library'
 import { GENERATORS, GENERATORS_CHECKED } from '@/lib/image-generators'
+import { supabase } from '@/lib/supabaseClient'
 import './prompt-dashboard.css'
 
 /* ---------- Static lookups ---------- */
 
 const ICONS: Record<string, LucideIcon> = {
+  Layers,
+  Sparkles,
+  Wrench,
   FileText,
   Receipt,
   Calculator,
@@ -67,9 +76,103 @@ interface Ref {
 
 const INDEX = new Map<string, Ref>()
 CATEGORIES.forEach((cat) => cat.prompts.forEach((item) => INDEX.set(item.id, { cat, item })))
-const TOTAL_PROMPTS = INDEX.size
+const BUILTIN_COUNT = INDEX.size
 
-type View = 'dashboard' | 'saved' | 'combo'
+/* ---------- Admin library (Supabase `prompts` table) ---------- */
+
+// Prompts saved in the database are merged into INDEX with ids `db.<uuid>`, so the same modal,
+// combo and search work for both sources. Saving a db prompt writes back to Supabase (shared on
+// every device); built-in prompts keep their per-device saved edits.
+
+const DB_ICON: Record<string, string> = {
+  quotations: 'FileText',
+  marketing: 'Megaphone',
+  'solar-services': 'Sparkles',
+  painting: 'Layers',
+  plumbing: 'Wrench',
+  electrical: 'Target',
+  paving: 'Layers',
+  'property-maintenance': 'Building2',
+  'customer-communication': 'MessageCircle',
+  'ai-image-prompts': 'Image',
+  administration: 'CalendarDays',
+  'business-growth': 'Target',
+}
+
+const slug = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+
+const isDb = (id: string) => id.startsWith('db.')
+const dbUuid = (id: string) => id.slice(3)
+const isImageCat = (cat: Category) => cat.id === 'images' || cat.id === 'db-ai-image-prompts'
+
+interface DbRow {
+  id: string
+  title: string
+  description: string | null
+  prompt_template: string
+  category_id: string | null
+  prompt_categories: { name: string; sort_order: number | null } | null
+}
+
+async function loadDbCategories(): Promise<Category[]> {
+  const { data, error } = await supabase
+    .from('prompts')
+    .select('id,title,description,prompt_template,category_id,prompt_categories(name,sort_order)')
+    .eq('active', true)
+    .order('created_at', { ascending: true })
+  if (error) throw error
+  const groups = new Map<string, { cat: Category; order: number }>()
+  ;((data ?? []) as unknown as DbRow[]).forEach((r) => {
+    const name = r.prompt_categories?.name ?? 'General'
+    const id = `db-${slug(name)}`
+    if (!groups.has(id)) {
+      groups.set(id, {
+        order: r.prompt_categories?.sort_order ?? 999,
+        cat: {
+          id,
+          title: name,
+          blurb: 'Admin library',
+          icon: DB_ICON[slug(name)] ?? 'FileText',
+          accent: 'orange',
+          prompts: [],
+        },
+      })
+    }
+    groups.get(id)!.cat.prompts.push({ id: `db.${r.id}`, label: r.title, template: r.prompt_template })
+  })
+  const cats = Array.from(groups.values())
+    .sort((a, b) => a.order - b.order)
+    .map((g) => g.cat)
+  cats.forEach((cat) => cat.prompts.forEach((item) => INDEX.set(item.id, { cat, item })))
+  return cats
+}
+
+async function logUse(id: string, action: string, values: Record<string, string>) {
+  if (!isDb(id)) return
+  try {
+    const { data } = await supabase.auth.getUser()
+    const uid = data.user?.id
+    if (!uid) return
+    await supabase.from('prompt_activity_logs').insert({
+      user_id: uid,
+      prompt_id: dbUuid(id),
+      action,
+      input_data: values,
+    })
+  } catch {
+    /* logging is best-effort */
+  }
+}
+
+const CLAUDE_URL = 'https://claude.ai/new?q='
+// Long prompts can exceed what a URL carries; past this we copy and open a blank chat instead.
+const CLAUDE_URL_MAX = 6000
+
+type View = 'dashboard' | 'library' | 'saved' | 'combo'
 
 const KEY_SAVED = 'ngms.admin.prompts.saved.v1'
 const KEY_CTX = 'ngms.admin.prompts.ctx.v1'
@@ -444,6 +547,7 @@ interface ModalProps {
   inCombo: boolean
   onToggleCombo: (id: string) => void
   onClose: () => void
+  onUsed: (id: string, action: string) => void
 }
 
 function PromptModal(p: ModalProps) {
@@ -565,7 +669,7 @@ function PromptModal(p: ModalProps) {
             Write <code>{'{{field_name}}'}</code> anywhere in the template to add a field. Empty fields show as
             [brackets] in the finished prompt.
           </p>
-          {cat.id === 'images' && (
+          {isImageCat(cat) && (
             <GeneratorStrip onCopy={(name) => copy.send(output, `Prompt copied. Paste it into ${name}.`)} />
           )}
         </section>
@@ -589,7 +693,7 @@ function PromptModal(p: ModalProps) {
           </button>
         )}
         <button className="pd-btn" disabled={!dirty} onClick={() => p.onSave(item.id, draft)}>
-          <Save size={16} aria-hidden="true" /> Save
+          <Save size={16} aria-hidden="true" /> {isDb(item.id) ? 'Save to library' : 'Save'}
         </button>
         <button className="pd-btn" onClick={() => p.onToggleCombo(item.id)}>
           {p.inCombo ? <Check size={16} aria-hidden="true" /> : <Layers size={16} aria-hidden="true" />}
@@ -601,9 +705,33 @@ function PromptModal(p: ModalProps) {
         <button className="pd-btn" onClick={() => copy.send(exportMarkdown(), 'Markdown copied')}>
           Copy Markdown
         </button>
-        <button className="pd-btn pd-btn-primary" onClick={() => copy.send(output, 'Prompt copied')}>
+        <button
+          className="pd-btn pd-btn-primary"
+          onClick={() => {
+            copy.send(output, 'Prompt copied')
+            p.onUsed(item.id, 'copy')
+          }}
+        >
           <Copy size={16} aria-hidden="true" /> Copy prompt
         </button>
+        <a
+          className="pd-btn pd-btn-primary"
+          href={output.length <= CLAUDE_URL_MAX ? CLAUDE_URL + encodeURIComponent(output) : 'https://claude.ai/new'}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => {
+            copy.send(
+              output,
+              output.length <= CLAUDE_URL_MAX
+                ? 'Opening Claude with the prompt filled in (also copied).'
+                : 'Prompt copied. Paste it into the new Claude chat.',
+            )
+            p.onUsed(item.id, 'open_claude')
+          }}
+        >
+          <Sparkles size={16} aria-hidden="true" /> Open in Claude
+          <span className="pd-sr">(opens in a new tab)</span>
+        </a>
       </footer>
     </ModalShell>
   )
@@ -705,7 +833,27 @@ export default function PromptDashboard() {
   const [combo, setCombo] = useState<string[]>([])
   const [openId, setOpenId] = useState<string | null>(null)
   const [hydrated, setHydrated] = useState(false)
+  const [dbCats, setDbCats] = useState<Category[]>([])
+  const [dbState, setDbState] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [dbMsg, setDbMsg] = useState<string | null>(null)
+  const [, setDbVersion] = useState(0)
+  const [query, setQuery] = useState('')
+  const [libCat, setLibCat] = useState<string>('all')
   const listCopy = useCopy()
+
+  const reloadDb = useCallback(() => {
+    setDbState('loading')
+    loadDbCategories()
+      .then((cats) => {
+        setDbCats(cats)
+        setDbState('ready')
+      })
+      .catch(() => setDbState('error'))
+  }, [])
+
+  useEffect(() => {
+    reloadDb()
+  }, [reloadDb])
 
   // Read browser storage after mount so the first render matches the server.
   useEffect(() => {
@@ -736,6 +884,26 @@ export default function PromptDashboard() {
   const templateFor = (id: string) => saved[id] ?? INDEX.get(id)!.item.template
 
   const save = useCallback((id: string, template: string) => {
+    if (isDb(id)) {
+      const ref = INDEX.get(id)
+      if (!ref) return
+      setDbMsg('Saving to the library…')
+      supabase
+        .from('prompts')
+        .update({ prompt_template: template, updated_at: new Date().toISOString() })
+        .eq('id', dbUuid(id))
+        .select('id')
+        .then(({ data, error }) => {
+          if (error || !data || data.length === 0) {
+            setDbMsg('Could not save to the library. Only prompt admins can change shared prompts.')
+            return
+          }
+          ref.item.template = template
+          setDbVersion((v) => v + 1)
+          setDbMsg(`Saved “${ref.item.label}” to the library. It updates on every device.`)
+        })
+      return
+    }
     setSaved((prev) => {
       const next = { ...prev }
       if (template === INDEX.get(id)!.item.template) delete next[id]
@@ -759,6 +927,33 @@ export default function PromptDashboard() {
   const closeModal = useCallback(() => setOpenId(null), [])
 
   const savedIds = Object.keys(saved).filter((id) => INDEX.has(id))
+
+  const used = useCallback((id: string, action: string) => {
+    logUse(id, action, { ...vars, service, area })
+  }, [vars, service, area])
+
+  const dbCount = dbCats.reduce((n, c) => n + c.prompts.length, 0)
+  const allCats = useMemo(() => [...dbCats, ...CATEGORIES], [dbCats])
+
+  const results = useMemo(() => {
+    const words = query.toLowerCase().split(/\s+/).filter(Boolean)
+    const out: { cat: Category; item: PromptItem; source: 'library' | 'built-in' }[] = []
+    allCats.forEach((cat) => {
+      if (libCat === 'library' && !cat.id.startsWith('db-')) return
+      if (libCat === 'built-in' && cat.id.startsWith('db-')) return
+      if (libCat !== 'all' && libCat !== 'library' && libCat !== 'built-in' && cat.title !== libCat) return
+      cat.prompts.forEach((item) => {
+        const tpl = saved[item.id] ?? item.template
+        const hay = `${cat.title} ${item.label} ${tpl}`.toLowerCase()
+        if (words.every((w) => hay.includes(w))) {
+          out.push({ cat, item, source: cat.id.startsWith('db-') ? 'library' : 'built-in' })
+        }
+      })
+    })
+    return out
+  }, [allCats, query, libCat, saved])
+
+  const catTitles = useMemo(() => Array.from(new Set(allCats.map((c) => c.title))), [allCats])
 
   const comboNames = useMemo(() => {
     const seen: string[] = []
@@ -806,6 +1001,9 @@ export default function PromptDashboard() {
           <button aria-current={view === 'dashboard' ? 'page' : undefined} onClick={() => switchView('dashboard')}>
             Dashboard
           </button>
+          <button aria-current={view === 'library' ? 'page' : undefined} onClick={() => switchView('library')}>
+            <Search size={14} aria-hidden="true" /> Search
+          </button>
           <button aria-current={view === 'saved' ? 'page' : undefined} onClick={() => switchView('saved')}>
             Saved {savedIds.length > 0 && <span className="pd-count">{savedIds.length}</span>}
           </button>
@@ -830,13 +1028,80 @@ export default function PromptDashboard() {
             Add NGMS context line
           </label>
           <span className="pd-stat">
-            {CATEGORIES.length} categories · {TOTAL_PROMPTS} prompts
+            {BUILTIN_COUNT} built-in · {dbState === 'ready' ? dbCount : '…'} in library
           </span>
         </div>
       </div>
 
+      {dbMsg && (
+        <p className="pd-notice pd-db-msg" data-kind={dbMsg.startsWith('Could not') ? 'warn' : 'ok'} role="status">
+          {dbMsg}
+          <button className="pd-icon-btn" onClick={() => setDbMsg(null)} aria-label="Dismiss">
+            <X size={14} />
+          </button>
+        </p>
+      )}
+
       {view === 'dashboard' && (
         <>
+          <form
+            className="pd-search"
+            role="search"
+            onSubmit={(e) => {
+              e.preventDefault()
+              switchView('library')
+            }}
+          >
+            <Search size={18} aria-hidden="true" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search all prompts: quote, solar, WhatsApp, paving…"
+              aria-label="Search all prompts"
+            />
+            <button className="pd-btn" type="submit">
+              Search
+            </button>
+          </form>
+
+          <section className="pd-panel" aria-labelledby="pd-lib-title">
+            <div className="pd-panel-head">
+              <div>
+                <h2 id="pd-lib-title">
+                  <Database size={18} aria-hidden="true" /> Admin library
+                </h2>
+                <p>Shared prompts saved in the database. Edits you save here update on every device.</p>
+              </div>
+              {dbState === 'error' && (
+                <button className="pd-btn" onClick={reloadDb}>
+                  <RotateCcw size={16} aria-hidden="true" /> Retry
+                </button>
+              )}
+            </div>
+            {dbState === 'loading' && (
+              <p className="pd-db-state">
+                <Loader2 size={16} className="pd-spin" aria-hidden="true" /> Loading library…
+              </p>
+            )}
+            {dbState === 'error' && (
+              <p className="pd-db-state">
+                Couldn&apos;t load the library. Check you&apos;re signed in with a prompt-user account, then retry.
+              </p>
+            )}
+            {dbState === 'ready' && dbCats.length === 0 && (
+              <p className="pd-db-state">No active prompts in the library yet.</p>
+            )}
+            {dbState === 'ready' && dbCats.length > 0 && (
+              <ul className="pd-grid" aria-label="Admin library categories">
+                {dbCats.map((cat) => (
+                  <CategoryCard key={cat.id} cat={cat} saved={saved} onOpen={setOpenId} />
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <h2 className="pd-section-label">Built-in prompts</h2>
           <ul className="pd-grid" aria-label="Prompt categories">
             {CATEGORIES.map((cat) => (
               <CategoryCard key={cat.id} cat={cat} saved={saved} onOpen={setOpenId} />
@@ -845,6 +1110,68 @@ export default function PromptDashboard() {
           <GeneratorPanel />
           <Tips />
         </>
+      )}
+
+      {view === 'library' && (
+        <section className="pd-panel" aria-labelledby="pd-search-title">
+          <div className="pd-panel-head">
+            <div>
+              <h2 id="pd-search-title">Search prompts</h2>
+              <p>Searches titles and full prompt text across the admin library and the built-in set.</p>
+            </div>
+          </div>
+          <div className="pd-search" role="search">
+            <Search size={18} aria-hidden="true" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="e.g. solar quote, whatsapp, body corporate"
+              aria-label="Search prompts"
+              autoFocus
+            />
+          </div>
+          <div className="pd-filter" role="group" aria-label="Filter by source or category">
+            {['all', 'library', 'built-in', ...catTitles].map((c) => (
+              <button
+                key={c}
+                className="pd-chip"
+                aria-pressed={libCat === c}
+                onClick={() => setLibCat(c)}
+              >
+                {c === 'all' ? 'All' : c === 'library' ? 'Admin library' : c === 'built-in' ? 'Built-in' : c}
+              </button>
+            ))}
+          </div>
+          <p className="pd-stat" aria-live="polite">
+            {results.length} prompt{results.length === 1 ? '' : 's'}
+            {dbState === 'loading' ? ' (library still loading)' : ''}
+          </p>
+          {results.length === 0 ? (
+            <div className="pd-empty">
+              <p>No prompts match. Try one word, like “quote” or “solar”, or switch the filter to All.</p>
+            </div>
+          ) : (
+            <ul className="pd-list">
+              {results.map(({ cat, item, source }) => (
+                <li className="pd-item" key={item.id}>
+                  <div className="pd-item-main">
+                    <p className="pd-eyebrow">
+                      {cat.title} · {source === 'library' ? 'Admin library' : 'Built-in'}
+                    </p>
+                    <h3>{item.label}</h3>
+                    <p className="pd-snippet">{saved[item.id] ?? item.template}</p>
+                  </div>
+                  <div className="pd-row-actions">
+                    <button className="pd-btn pd-btn-primary" onClick={() => setOpenId(item.id)}>
+                      Open
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       )}
 
       {view === 'saved' && (
@@ -1008,6 +1335,7 @@ export default function PromptDashboard() {
           inCombo={combo.includes(openId)}
           onToggleCombo={toggleCombo}
           onClose={closeModal}
+          onUsed={used}
         />
       )}
     </div>

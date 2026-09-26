@@ -86,6 +86,14 @@ export const VARIABLES: Record<string, VariableMeta> = {
   message_purpose: { label: 'What the message must do', placeholder: 'Confirm, reschedule, apologise, explain', long: true },
   visit_date: { label: 'Visit date and time', placeholder: 'e.g. Tuesday 30 September, 08:00' },
   complaint: { label: 'Complaint', placeholder: 'What the client said, in their words', long: true },
+  customer_name: { label: 'Customer name', placeholder: 'e.g. Mrs van der Merwe' },
+  property_address: { label: 'Property address', placeholder: 'e.g. 12 Beach Road, Strand' },
+  area_size: { label: 'Area / quantity', placeholder: 'e.g. 120 m², 2 bathrooms' },
+  panel_count: { label: 'Number of panels', placeholder: 'e.g. 16' },
+  materials: { label: 'Materials', placeholder: 'Products, brands, colours, quantities', long: true },
+  labour: { label: 'Labour', placeholder: 'e.g. 2 days, 3 workers' },
+  price: { label: 'Price / rate / offer', placeholder: 'e.g. R45 per panel, or R8,500 ex VAT' },
+  notes: { label: 'Notes', placeholder: 'Site access, condition, what the client said', long: true },
   text_to_translate: { label: 'Text to translate', placeholder: 'Paste the English message', long: true },
 }
 
