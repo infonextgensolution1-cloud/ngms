@@ -13,6 +13,8 @@ import { SITE } from '@/lib/site'
 // Vercel env vars:
 //   ANTHROPIC_API_KEY  required (shared with the admin AI tools)
 //   CHAT_MODEL         optional, overrides CLAUDE_MODEL for this public chat only
+//   ZAPIER_BOOKING_WEBHOOK_URL  optional, a Zapier "Catch Hook" URL. Every chat booking is
+//                      POSTed there as JSON so a Zap can add it to Calendar, WhatsApp, Sheets etc.
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -29,18 +31,23 @@ type Booking = { ref: string }
 // Best-effort abuse limits. Per server instance (serverless resets them), which is
 // enough to stop one visitor hammering the API or flooding the leads table.
 const hits = new Map<string, number[]>()
-function limited(key: string, max: number, windowMs: number): boolean {
+function full(key: string, max: number, windowMs: number): boolean {
   const now = Date.now()
   const recent = (hits.get(key) ?? []).filter((t) => now - t < windowMs)
-  if (recent.length >= max) {
-    hits.set(key, recent)
-    return true
-  }
-  recent.push(now)
   hits.set(key, recent)
+  return recent.length >= max
+}
+function record(key: string) {
   if (hits.size > 5000) hits.clear()
+  hits.set(key, [...(hits.get(key) ?? []), Date.now()])
+}
+function limited(key: string, max: number, windowMs: number): boolean {
+  if (full(key, max, windowMs)) return true
+  record(key)
   return false
 }
+const BOOKINGS_PER_DAY = 3
+const DAY_MS = 24 * 60 * 60 * 1000
 
 const BOOKING_TOOL: Anthropic.Beta.BetaTool = {
   name: 'request_booking',
@@ -89,7 +96,10 @@ function checkBooking(b: BookingInput): string | null {
   if (!SERVICE_NAMES.includes(b.service)) return 'Unknown service.'
   if (!/^\d{4}-\d{2}-\d{2}$/.test(b.preferred_date ?? '')) return 'Preferred date must be a real date.'
   const date = new Date(`${b.preferred_date}T12:00:00+02:00`)
-  if (Number.isNaN(date.getTime())) return 'Preferred date must be a real date.'
+  // JS rolls impossible dates over (31 Nov → 1 Dec), so check the date survives the round trip.
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== b.preferred_date) {
+    return `${b.preferred_date} is not a real date. Ask for the date again.`
+  }
   if (b.preferred_date <= sastToday()) return 'Preferred date must be from tomorrow onwards.'
   if (date.getTime() - Date.now() > 120 * 86400000) return 'Preferred date is more than 4 months away; ask for a nearer date.'
   if (date.getUTCDay() === 0) return 'We do not work on Sundays. Ask for a Monday–Saturday date.'
@@ -100,8 +110,9 @@ async function saveBooking(b: BookingInput): Promise<Booking> {
   const phone = normalisePhone(b.phone)
   const svc = services.find((s) => s.name === b.service)
   const when = `${b.preferred_date} (${b.preferred_time})`
+  const ref = `WEB-${b.preferred_date.replace(/-/g, '').slice(2)}-${phone.slice(-4)}`
   const message = [
-    '[Website chat booking request]',
+    `[Website chat booking request] Ref: ${ref}`,
     `Preferred date: ${when}`,
     `Preferred contact: ${b.contact_pref}`,
     `Details: ${b.details}`,
@@ -122,9 +133,9 @@ async function saveBooking(b: BookingInput): Promise<Booking> {
     throw new Error('insert')
   }
 
-  const ref = `WEB-${b.preferred_date.replace(/-/g, '').slice(2)}-${phone.slice(-4)}`
-  try {
-    await sendLeadEmail(
+  // The lead is already saved; a failed email or Zap must not fail the booking.
+  const [email, zap] = await Promise.allSettled([
+    sendLeadEmail(
       `Chat booking — ${b.service} (${b.suburb}) for ${when}`,
       [
         'New booking request from the website chat assistant:',
@@ -142,12 +153,39 @@ async function saveBooking(b: BookingInput): Promise<Booking> {
         'The customer was told you will confirm the date and price. Saved in Leads as "new".',
       ].filter((l): l is string => l !== null),
       b.email,
-    )
-  } catch (e) {
-    // The lead is already saved; a failed email must not fail the booking.
-    console.error('Chat booking email failed', e)
-  }
+    ),
+    sendToZapier({
+      ref,
+      name: b.name.trim(),
+      phone,
+      email: b.email?.trim() || null,
+      suburb: b.suburb.trim(),
+      service: b.service,
+      service_slug: svc?.slug ?? null,
+      details: b.details,
+      preferred_date: b.preferred_date,
+      preferred_time: b.preferred_time,
+      contact_pref: b.contact_pref,
+      whatsapp_link: `https://wa.me/${phone.replace(/\D/g, '')}`,
+      source: 'website-chat',
+      created_at: new Date().toISOString(),
+    }),
+  ])
+  if (email.status === 'rejected') console.error('Chat booking email failed', email.reason)
+  if (zap.status === 'rejected') console.error('Chat booking Zapier webhook failed', zap.reason)
   return { ref }
+}
+
+async function sendToZapier(payload: Record<string, unknown>): Promise<void> {
+  const url = process.env.ZAPIER_BOOKING_WEBHOOK_URL
+  if (!url) return
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(8000),
+  })
+  if (!res.ok) throw new Error(`Zapier responded ${res.status}`)
 }
 
 function parseHistory(body: unknown): Anthropic.Beta.BetaMessageParam[] {
@@ -212,7 +250,7 @@ export async function POST(request: Request) {
           isError = true
         } else if (booking) {
           content = `Already sent in this chat (ref ${booking.ref}). Don't send it again.`
-        } else if (limited(`book:${ip}`, 3, 24 * 60 * 60 * 1000)) {
+        } else if (full(`book:${ip}`, BOOKINGS_PER_DAY, DAY_MS)) {
           content = `Booking limit reached for today. Ask the customer to WhatsApp ${SITE.phoneDisplay} instead.`
           isError = true
         } else {
@@ -224,6 +262,7 @@ export async function POST(request: Request) {
           } else {
             try {
               booking = await saveBooking(input)
+              record(`book:${ip}`)
               content = `Booking request sent. Reference: ${booking.ref}.`
             } catch {
               content = `Saving failed on our side. Ask the customer to WhatsApp the details to ${SITE.phoneDisplay} instead.`
