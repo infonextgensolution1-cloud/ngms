@@ -1,12 +1,16 @@
 export const metadata = {
-  title: 'FAQ | NGSMS',
-  description: 'Frequently asked questions about NextGen Solar & Maintenance Solutions services, pricing and areas served.',
+  title: 'FAQ | NextGen Solar Clean & Maintenance Solutions',
+  description: 'Frequently asked questions about NextGen Solar Clean & Maintenance Solutions services, pricing and areas served.',
 }
 
 const FAQS = [
   {
     q: 'What areas do you service?',
-    a: 'We’re based in and focused on the Helderberg Basin — Strand, Gordon’s Bay and Somerset West. There’s no call-out fee within these areas.',
+    a: 'We’re based in Strand, Gordon’s Bay and Somerset West, with no callout fee there. We also work in the Overberg, Stellenbosch, Paarl, Worcester and Cape Town for a flat R350 callout.',
+  },
+  {
+    q: 'Do you charge a callout fee?',
+    a: 'Not in Strand, Gordon’s Bay or Somerset West. Anywhere outside the Helderberg (Overberg, Stellenbosch, Paarl, Worcester, Cape Town) is a flat R350 callout.',
   },
   {
     q: 'How much does solar panel cleaning cost?',
@@ -14,7 +18,7 @@ const FAQS = [
   },
   {
     q: 'Do your prices include VAT?',
-    a: 'No — all prices on our catalog and quotes exclude VAT (15%), which is added separately.',
+    a: 'No — all prices on our price list and quotes exclude VAT (15%), which is added separately.',
   },
   {
     q: 'How often should solar panels be cleaned?',
@@ -22,15 +26,19 @@ const FAQS = [
   },
   {
     q: 'What happens if it rains on the day of my booking?',
-    a: 'Exterior work (painting, waterproofing, pressure cleaning, paving) is rescheduled at no cost if weather intervenes — no cancellation fees.',
+    a: 'If rain or wind makes outdoor work unsafe, we move your booking to the next suitable day at no charge.',
   },
   {
     q: 'Do you provide free quotes?',
-    a: 'Yes. Every job is measured and quoted properly after a free site assessment — the price list gives you a starting-point estimate in the meantime.',
+    a: 'Yes. Most jobs are priced the same day from WhatsApp photos. Larger jobs get a free site visit and a written quote.',
+  },
+  {
+    q: 'Do you offer a first-booking discount?',
+    a: 'Yes — use code NGX10 for 10% off your first booking on any service except solar panel cleaning.',
   },
   {
     q: 'How do I pay?',
-    a: 'EFT, cash or card on completion of the job.',
+    a: 'EFT or cash. We take a 70% deposit to confirm your booking and cover materials, and the remaining 30% on completion.',
   },
   {
     q: 'What materials do you use?',
@@ -38,7 +46,7 @@ const FAQS = [
   },
   {
     q: 'Can you handle multiple services on the same property?',
-    a: 'Yes — that’s the whole idea behind NGSMS. One call covers all 12 trade services, coordinated by a single point of contact instead of juggling separate contractors.',
+    a: 'Yes — that’s the whole idea behind NextGen. One call covers all 12 trade services, coordinated by a single point of contact instead of juggling separate contractors.',
   },
   {
     q: 'Do you offer recurring maintenance plans?',
@@ -50,8 +58,8 @@ export default function FaqPage() {
   return (
     <main className="bg-jet">
       <section className="bg-jet text-white py-14 px-4 text-center">
-        <p className="text-blue font-bold text-sm uppercase tracking-wide mb-2 font-heading">Questions</p>
-        <h1 className="font-heading text-4xl sm:text-6xl font-bold text-paper">Frequently Asked Questions</h1>
+        <p className="text-orange font-bold text-sm uppercase tracking-wide mb-2 font-heading">Questions</p>
+        <h1 className="font-heading text-4xl sm:text-6xl font-bold text-paper">Frequently asked questions</h1>
         <p className="text-mist text-lg max-w-xl mx-auto mt-4">
           Everything we get asked most about pricing, areas and how we work.
         </p>
@@ -75,10 +83,10 @@ export default function FaqPage() {
         <h2 className="font-heading text-2xl font-bold mb-3 text-paper">Still have a question?</h2>
         <div className="flex gap-4 justify-center flex-wrap mt-4">
           <a href="https://wa.me/27631387945" className="btn-wa">
-            WhatsApp Us
+            WhatsApp us
           </a>
           <a href="/contact" className="border border-mist text-paper font-heading font-semibold px-6 py-3 rounded-btn hover:border-orange hover:text-orange">
-            Contact Page
+            Contact us
           </a>
         </div>
       </section>

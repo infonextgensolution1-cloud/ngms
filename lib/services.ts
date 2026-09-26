@@ -17,7 +17,7 @@ export const services: Service[] = [
     name: 'Solar Panel Cleaning',
     tagline: 'Keep every panel earning its keep',
     description:
-      'Dust, pollen, salt air and bird droppings build up on solar panels faster than most homeowners realise, and that layer of grime sits directly between your panels and the sun. NGSMS provides regular, professional solar panel cleaning across the Helderberg Basin using soft-wash methods and purified water, so panels are cleaned without scratching the glass or voiding manufacturer warranties. This is our flagship service and the one most Strand, Gordon’s Bay and Somerset West homeowners know us for — coastal properties in particular see faster soiling from salt spray, which makes a regular cleaning schedule worth setting up rather than waiting until output visibly drops.',
+      'Dust, pollen, salt air and bird droppings build up on solar panels faster than most homeowners realise, and that layer of grime sits directly between your panels and the sun. We provide regular, professional solar panel cleaning across the Helderberg Basin using soft-wash methods and purified water, so panels are cleaned without scratching the glass or voiding manufacturer warranties. This is our flagship service and the one most Strand, Gordon’s Bay and Somerset West homeowners know us for — coastal properties in particular see faster soiling from salt spray, which makes a regular cleaning schedule worth setting up rather than waiting until output visibly drops.',
     whatsIncluded: [
       'Soft-wash cleaning safe for all panel types and warranties',
       'Purified/deionised water to avoid mineral spotting',
@@ -51,7 +51,7 @@ export const services: Service[] = [
     name: 'Painting',
     tagline: 'Interior and exterior, done properly',
     description:
-      'A paint job is only as good as the prep behind it. NGSMS handles interior and exterior painting for homes, complexes and commercial units across the Helderberg Basin, with proper surface preparation, quality materials and a clean, even finish. Exterior work is scheduled with Cape winter rainfall in mind — we plan around the forecast so paint has time to cure properly rather than being rushed onto damp surfaces, and we’ll always talk you through the right paint system for a coastal environment where salt air and UV exposure are harder on exterior coatings than inland.',
+      'A paint job is only as good as the prep behind it. We handle interior and exterior painting for homes, complexes and commercial units across the Helderberg Basin, with proper surface preparation, quality materials and a clean, even finish. Exterior work is scheduled with Cape winter rainfall in mind — we plan around the forecast so paint has time to cure properly rather than being rushed onto damp surfaces, and we’ll always talk you through the right paint system for a coastal environment where salt air and UV exposure are harder on exterior coatings than inland.',
     whatsIncluded: [
       'Surface prep: cleaning, scraping, sanding and crack filling before any paint goes on',
       'Quality interior and exterior paint systems suited to Western Cape conditions',
@@ -80,12 +80,12 @@ export const services: Service[] = [
     name: 'Waterproofing',
     tagline: 'Stop leaks before they start',
     description:
-      'A leak that starts small in autumn is a ceiling stain by the time winter rains set in properly. NGSMS waterproofs roofs, flat roofs, walls, balconies and parapets across the Helderberg Basin, with workmanship backed by warranty. We look at the whole system — flashing, drainage falls, and membrane condition — rather than just patching the visible symptom, because a proper waterproofing job addresses where water is actually getting in, not just where it’s showing up inside.',
+      'A leak that starts small in autumn is a ceiling stain by the time winter rains set in properly. We waterproof roofs, flat roofs, walls, balconies and parapets across the Helderberg Basin, with a written guarantee on every job. We look at the whole system — flashing, drainage falls, and membrane condition — rather than just patching the visible symptom, because a proper waterproofing job addresses where water is actually getting in, not just where it’s showing up inside.',
     whatsIncluded: [
       'Roof, flat roof, balcony and parapet waterproofing',
       'Leak diagnosis — finding the actual entry point, not just the stain',
       'Torch-on, liquid-applied and cementitious systems depending on the surface',
-      'Warranty-backed workmanship',
+      'Written guarantee — the term depends on the system used and is confirmed on your quote',
       'Pre-winter inspections available for existing waterproofing',
     ],
     faqs: [
@@ -109,7 +109,7 @@ export const services: Service[] = [
     name: 'Paving',
     tagline: 'Driveways, patios and walkways',
     description:
-      'Paving that’s laid without proper base preparation shifts, sinks and cracks within a season or two — especially on the sandy and clay soils common across parts of the Helderberg Basin. NGSMS installs new paving and repairs and re-levels existing driveways, patios and walkways, with attention to correct base compaction and drainage falls so the finished surface actually stays flat and stable over time rather than needing redoing.',
+      'Paving that’s laid without proper base preparation shifts, sinks and cracks within a season or two — especially on the sandy and clay soils common across parts of the Helderberg Basin. We install new paving, and repair and re-level existing driveways, patios and walkways, with attention to correct base compaction and drainage falls so the finished surface actually stays flat and stable over time rather than needing redoing.',
     whatsIncluded: [
       'New driveway, patio and walkway paving',
       'Re-levelling and repair of sunken or shifted existing paving',
@@ -138,10 +138,10 @@ export const services: Service[] = [
     name: 'Plumbing',
     tagline: 'Leaks, geysers, installations and repairs',
     description:
-      'From a dripping tap that’s quietly running up your water bill to a burst geyser that needs sorting the same day, NGSMS provides qualified plumbing for homes, body corporates and complexes across the Helderberg Basin. We handle the everyday repairs as well as full geyser replacements and new installations, and we’re used to working with body corporate maintenance schedules and communal systems in security complexes, not just single residential properties.',
+      'From a dripping tap that’s quietly running up your water bill to a burst geyser that needs sorting the same day, we provide qualified plumbing for homes, body corporates and complexes across the Helderberg Basin, with geyser installations signed off by a PIRB-registered plumber. We handle the everyday repairs as well as full geyser replacements and new installations, and we’re used to working with body corporate maintenance schedules and communal systems in security complexes, not just single residential properties.',
     whatsIncluded: [
       'Leak detection and repair — taps, pipes, toilets, connections',
-      'Geyser repairs, replacements and installations',
+      'Geyser repairs, replacements and installations, with a plumbing COC from a PIRB-registered plumber',
       'New installations for renovations and extensions',
       'Body corporate and complex plumbing maintenance',
       'Blocked drain clearing',
@@ -167,19 +167,19 @@ export const services: Service[] = [
     name: 'Electrical',
     tagline: 'Safe, compliant electrical work',
     description:
-      'Electrical work isn’t somewhere to cut corners — NGSMS carries out repairs, installations and fault-finding to code across the Helderberg Basin, with Certificate of Compliance (COC) issued where required, which matters both for your safety and for property sales or insurance purposes. Whether it’s a DB board that keeps tripping, a new circuit for a renovation, or general fault-finding on an intermittent problem, the work is done properly the first time.',
+      'Electrical work isn’t somewhere to cut corners — we carry out repairs, installations and fault-finding to code across the Helderberg Basin, with a Certificate of Compliance (COC) issued by our registered electrician where required, which matters both for your safety and for property sales or insurance purposes. Whether it’s a DB board that keeps tripping, a new circuit for a renovation, or general fault-finding on an intermittent problem, the work is done properly the first time.',
     whatsIncluded: [
       'Electrical fault-finding and repairs',
       'DB board upgrades and repairs',
       'New circuit installations for renovations and additions',
-      'Certificate of Compliance (COC) issued where required',
+      'Certificate of Compliance (COC) issued by our registered electrician where required',
       'General electrical maintenance for homes and complexes',
     ],
     faqs: [
       {
         question: 'Do I need a COC and when?',
         answer:
-          'A Certificate of Compliance is legally required when selling a property, and is good practice after any significant electrical work. We can issue one once work is inspected and compliant.',
+          'A Certificate of Compliance is legally required when selling a property, and is good practice after any significant electrical work. Our registered electrician issues one once the work is inspected and compliant.',
       },
       {
         question: 'My DB board keeps tripping — can you find out why?',
@@ -196,7 +196,7 @@ export const services: Service[] = [
     name: 'Pool Fibre Lining',
     tagline: 'Restore your pool, don’t replace it',
     description:
-      'A cracked, faded or leaking pool doesn’t always need replacing — fibreglass relining restores the surface with a smooth, durable finish that outlasts standard pool paint by years, not seasons. NGSMS handles fibreglass pool lining and renovation across the Helderberg Basin, addressing the underlying issue (usually a crack or old, porous surface) before applying the new lining, so the fix actually holds rather than needing redoing after one summer.',
+      'A cracked, faded or leaking pool doesn’t always need replacing — fibreglass relining restores the surface with a smooth, durable finish that outlasts standard pool paint by years, not seasons. We handle fibreglass pool lining and renovation across the Helderberg Basin, addressing the underlying issue (usually a crack or old, porous surface) before applying the new lining, so the fix actually holds rather than needing redoing after one summer.',
     whatsIncluded: [
       'Fibreglass relining for cracked, faded or leaking pools',
       'Surface preparation and crack repair before relining',
@@ -225,7 +225,7 @@ export const services: Service[] = [
     name: 'High-Pressure Cleaning',
     tagline: 'Driveways, walls, roofs and more',
     description:
-      'Moss, algae and grime build up fast in the Helderberg’s damp winters and salty coastal air, leaving driveways, walls and roofs looking tired even when nothing is actually wrong with them. NGSMS provides high-pressure cleaning that lifts years of build-up from paving, walls, roof tiles and outdoor areas, with pressure levels adjusted to the surface so delicate finishes aren’t damaged in the process.',
+      'Moss, algae and grime build up fast in the Helderberg’s damp winters and salty coastal air, leaving driveways, walls and roofs looking tired even when nothing is actually wrong with them. We provide high-pressure cleaning that lifts years of build-up from paving, walls, roof tiles and outdoor areas, with pressure levels adjusted to the surface so delicate finishes aren’t damaged in the process.',
     whatsIncluded: [
       'Driveway and paving pressure cleaning',
       'Exterior wall and facade cleaning',
@@ -254,7 +254,7 @@ export const services: Service[] = [
     name: 'Rubble Removal',
     tagline: 'Site and garden clearance',
     description:
-      'Renovation rubble, garden refuse and general site waste pile up fast and become their own logistical problem if left too long. NGSMS provides fast, reliable rubble and garden waste removal across the Helderberg Basin for renovation sites, garden clean-ups and general clearance jobs, so you’re not stuck coordinating skip hire and disposal yourself on top of everything else.',
+      'Renovation rubble, garden refuse and general site waste pile up fast and become their own logistical problem if left too long. We provide fast, reliable rubble and garden waste removal across the Helderberg Basin for renovation sites, garden clean-ups and general clearance jobs, so you’re not stuck coordinating skip hire and disposal yourself on top of everything else.',
     whatsIncluded: [
       'Renovation and building rubble removal',
       'Garden refuse and green waste clearance',
@@ -283,7 +283,7 @@ export const services: Service[] = [
     name: 'Steelwork & Welding',
     tagline: 'Gates, railings, structural work',
     description:
-      'From a gate that’s come off its hinges to custom burglar bars or a full set of railings, NGSMS handles steelwork and welding across the Helderberg Basin — built either on-site or fabricated in the workshop depending on the job. Coastal air is hard on unprotected steel, so where relevant we’ll talk you through finishing options that hold up better against rust in a salt-air environment.',
+      'From a gate that’s come off its hinges to custom burglar bars or a full set of railings, we handle steelwork and welding across the Helderberg Basin — built either on-site or fabricated in the workshop depending on the job. Coastal air is hard on unprotected steel, so where relevant we’ll talk you through finishing options that hold up better against rust in a salt-air environment.',
     whatsIncluded: [
       'Custom gates, burglar bars and security railings',
       'Structural steelwork and repairs',
@@ -312,7 +312,7 @@ export const services: Service[] = [
     name: 'Handyman Services',
     tagline: 'The small jobs, handled properly',
     description:
-      'Not every job needs its own dedicated tradesperson — a wobbly cupboard door, a shelf that needs mounting, general small repairs around the house. NGSMS’s handyman service covers the everyday maintenance that would otherwise mean tracking down and coordinating a separate contractor for something that takes an hour, across homes and complexes throughout the Helderberg Basin.',
+      'Not every job needs its own dedicated tradesperson — a wobbly cupboard door, a shelf that needs mounting, general small repairs around the house. Our handyman service covers the everyday maintenance that would otherwise mean tracking down and coordinating a separate contractor for something that takes an hour, across homes and complexes throughout the Helderberg Basin.',
     whatsIncluded: [
       'General repairs — doors, cupboards, fixtures, fittings',
       'Shelf, TV and fixture mounting',
@@ -324,7 +324,7 @@ export const services: Service[] = [
       {
         question: 'What counts as a handyman job versus needing a specialist?',
         answer:
-          'General repairs, mounting, and small fixes are handyman work. If something turns out to need a licensed electrician or plumber, we’ll tell you honestly and can coordinate that through NGSMS anyway.',
+          'General repairs, mounting, and small fixes are handyman work. If something turns out to need a licensed electrician or plumber, we’ll tell you honestly and can coordinate that for you anyway.',
       },
       {
         question: 'Can I bundle several small jobs into one visit?',
@@ -341,10 +341,10 @@ export const services: Service[] = [
     name: 'Subcontractor Work',
     tagline: 'Trade support for other contractors',
     description:
-      'NGSMS works alongside other contractors, builders and property managers as a reliable multi-trade subcontractor across the Helderberg Basin — useful when a main contractor needs extra hands on a specific trade, or a property manager needs one dependable team across several skill sets instead of juggling multiple subcontractors.',
+      'We work alongside other contractors, builders and property managers as a reliable multi-trade subcontractor across the Helderberg Basin — useful when a main contractor needs extra hands on a specific trade, or a property manager needs one dependable team across several skill sets instead of juggling multiple subcontractors.',
     whatsIncluded: [
       'Multi-trade subcontracting for builders and main contractors',
-      'Support across all 11 NGSMS trade services as needed',
+      'Support across all our other trades as needed',
       'Property management maintenance support',
       'Reliable scheduling and communication for larger projects',
       'Single point of contact across multiple trades',
@@ -356,7 +356,7 @@ export const services: Service[] = [
           'Yes, we regularly subcontract specific trades — painting, waterproofing, electrical and more — to main contractors and builders across the Helderberg.',
       },
       {
-        question: 'Can property managers use NGSMS for ongoing maintenance across multiple trades?',
+        question: 'Can property managers use NextGen for ongoing maintenance across multiple trades?',
         answer:
           'Yes, this is a common arrangement — one point of contact covering multiple trade needs rather than managing several separate contractors.',
       },

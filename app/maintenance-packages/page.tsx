@@ -2,9 +2,9 @@ import Link from 'next/link'
 import NgmsIcon from '@/components/NgmsIcon'
 
 export const metadata = {
-  title: 'Maintenance Packages | NGSMS',
+  title: 'Maintenance Packages | NextGen Solar Clean & Maintenance Solutions',
   description:
-    "Recurring, seasonal and commercial property maintenance packages from NextGen Solar & Maintenance Solutions — Strand, Gordon's Bay, Somerset West.",
+    "Recurring, seasonal and commercial property maintenance packages from NextGen Solar Clean & Maintenance Solutions — Strand, Gordon's Bay, Somerset West.",
 }
 
 const RECURRING_PACKAGES = [
@@ -18,6 +18,7 @@ const RECURRING_PACKAGES = [
       'Solar panel clean (up to 20 panels)',
       'Gutter check & flush',
       'General exterior visual inspection',
+      '15% off solar cleaning rate',
       'Priority booking',
     ],
   },
@@ -58,9 +59,9 @@ const RECURRING_PACKAGES = [
 
 const SEASONAL_COMBOS = [
   {
-    name: 'Winter Storm-Ready',
+    name: 'Pre-Winter Storm-Ready',
     icon: 'winter-rain',
-    frequency: 'May – August',
+    frequency: 'March – May (before the rains)',
     price: 'from R2 150',
     unit: 'once-off project',
     features: [
@@ -117,7 +118,7 @@ const COMMERCIAL_COMBOS = [
   {
     name: 'Security Complex Care',
     icon: 'crew',
-    frequency: 'Bi-annual',
+    frequency: 'Twice a year',
     price: 'from R4 800',
     unit: 'per visit',
     featured: true,
@@ -173,7 +174,7 @@ function PackageGrid({ packages }: { packages: Package[] }) {
             </span>
           )}
           <h2 className="font-heading text-xl font-bold text-paper">{pkg.name}</h2>
-          <p className="text-blue text-sm font-semibold mt-1">{pkg.frequency}</p>
+          <p className="text-orange text-sm font-semibold mt-1">{pkg.frequency}</p>
           <p className="font-heading text-3xl font-bold text-paper mt-4">{pkg.price}</p>
           <p className="text-mist text-xs mb-6">{pkg.unit}, VAT excl.</p>
           <ul className="space-y-2 text-mist text-sm flex-1">
@@ -188,7 +189,7 @@ function PackageGrid({ packages }: { packages: Package[] }) {
             href="/quote"
             className="mt-6 block text-center bg-whatsapp hover:bg-whatsapp-dark text-white font-heading font-semibold px-6 py-3 rounded-btn"
           >
-            Get Started
+            Get started
           </Link>
         </div>
       ))}
@@ -200,8 +201,8 @@ export default function MaintenancePackagesPage() {
   return (
     <main className="bg-jet">
       <section className="bg-jet text-white py-14 px-4 text-center">
-        <p className="text-blue font-bold text-sm uppercase tracking-wide mb-2 font-heading">Recurring Care</p>
-        <h1 className="font-heading text-4xl sm:text-6xl font-bold text-paper">Maintenance Packages</h1>
+        <p className="text-orange font-bold text-sm uppercase tracking-wide mb-2 font-heading">Recurring care</p>
+        <h1 className="font-heading text-4xl sm:text-6xl font-bold text-paper">Maintenance packages</h1>
         <p className="text-mist text-lg max-w-xl mx-auto mt-4">
           Skip the repeat call-outs. One recurring visit keeps your property in shape — at a better rate than
           booking each service separately.
@@ -218,8 +219,8 @@ export default function MaintenancePackagesPage() {
 
       <section className="bg-jet py-14 px-4">
         <div className="text-center mb-10">
-          <p className="text-blue font-bold text-sm uppercase tracking-wide mb-2 font-heading">Seasonal Combos</p>
-          <h2 className="font-heading text-3xl sm:text-4xl font-bold text-paper">Built Around the Cape Weather</h2>
+          <p className="text-orange font-bold text-sm uppercase tracking-wide mb-2 font-heading">Seasonal combos</p>
+          <h2 className="font-heading text-3xl sm:text-4xl font-bold text-paper">Built around the Cape weather</h2>
           <p className="text-mist text-base max-w-xl mx-auto mt-3">
             Winter rain and summer sun each bring their own to-do list. These combos bundle the right services for
             the season so nothing gets missed.
@@ -234,10 +235,10 @@ export default function MaintenancePackagesPage() {
 
       <section className="bg-graphite py-14 px-4 border-y border-darkgrey">
         <div className="text-center mb-10">
-          <p className="text-blue font-bold text-sm uppercase tracking-wide mb-2 font-heading">
+          <p className="text-orange font-bold text-sm uppercase tracking-wide mb-2 font-heading">
             Commercial &amp; Body Corporate
           </p>
-          <h2 className="font-heading text-3xl sm:text-4xl font-bold text-paper">Built for Complexes &amp; Business</h2>
+          <h2 className="font-heading text-3xl sm:text-4xl font-bold text-paper">Built for complexes &amp; business</h2>
           <p className="text-mist text-base max-w-xl mx-auto mt-3">
             Volume-priced packages for security complexes, body corporates and light commercial sites — one
             contractor, one contract, one point of contact.
