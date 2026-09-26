@@ -119,123 +119,64 @@ textarea:disabled {
     @apply font-heading;
   }
 
-  /* Buttons */
+  /* Buttons — flat, one shared shape + interaction, colour only changes by role:
+     Solar Orange = "get a quote" CTAs, WhatsApp Green = every WhatsApp CTA. */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 font-heading font-bold text-sm uppercase tracking-wide px-6 py-3 rounded-btn transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 font-heading font-bold text-sm uppercase tracking-wide px-6 py-3 rounded-btn border-2 border-transparent transition-all duration-200 shadow-sm;
+  }
+  .btn:hover {
+    @apply -translate-y-0.5 shadow-md;
+  }
+  .btn:active {
+    @apply translate-y-0 shadow-sm;
   }
 
-  /* Every WhatsApp button: green, bold caps, raised 3D edge, green glow */
-  .btn-wa {
-    @apply btn hover:-translate-y-0.5;
-    background-color: #15913f;
-    background-image: linear-gradient(#1fab50, #117a37);
-    color: #ffffff;
-    font-weight: 800;
-    border: 2px solid #0c5c29;
-    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45), 0 0 8px rgba(255, 255, 255, 0.35);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 0 #0a4a21, 0 6px 10px rgba(0, 0, 0, 0.5),
-      0 0 14px rgba(37, 211, 102, 0.7), 0 0 30px rgba(37, 211, 102, 0.35);
-  }
-  .btn-wa:hover {
-    background-image: linear-gradient(#27c25c, #148a3f);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 4px 0 #0a4a21, 0 6px 10px rgba(0, 0, 0, 0.5),
-      0 0 20px rgba(37, 211, 102, 0.95), 0 0 42px rgba(37, 211, 102, 0.5);
-  }
-  .btn-wa:active {
-    transform: translateY(3px);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 1px 0 #0a4a21, 0 0 12px rgba(37, 211, 102, 0.7);
-  }
-
-  /* "WhatsApp us about price": dark orange, black border, white bold caps, raised 3D edge */
+  /* Every WhatsApp button: solid WhatsApp green, white bold caps */
+  .btn-wa,
   .btn-wa-price {
-    @apply btn hover:-translate-y-0.5;
-    background-color: #b84e06;
-    background-image: linear-gradient(#d2600c, #a84300);
-    color: #ffffff;
-    font-weight: 800;
-    border: 2px solid #000000;
-    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 4px 0 #000000, 0 6px 10px rgba(0, 0, 0, 0.45);
-  }
-  .btn-wa-price:hover {
-    background-image: linear-gradient(#df6a10, #b34a00);
-  }
-  .btn-wa-price:active {
-    transform: translateY(3px);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 0 #000000;
+    @apply btn bg-whatsapp text-white hover:bg-whatsapp-dark;
   }
 
-  /* "Get a quote": matte black fill, glowing orange text, blue border.
-     Colours only, so it can sit on any button shape (.btn, rounded-full, etc.) */
+  /* Every "Get a quote" button: solid Solar Orange, jet text (7.3:1 contrast) */
   .btn-glow,
   .btn-quote {
-    background-color: #111111;
-    color: #ff8a1f;
-    border: 2px solid #1e7bff;
-    text-shadow: 0 0 6px rgba(255, 138, 31, 0.85), 0 0 14px rgba(255, 138, 31, 0.5);
-    box-shadow: 0 0 10px rgba(30, 123, 255, 0.55), 0 0 22px rgba(30, 123, 255, 0.25);
-  }
-  .btn-glow:hover,
-  .btn-quote:hover {
-    background-color: #000000;
-    text-shadow: 0 0 8px rgba(255, 160, 51, 1), 0 0 20px rgba(255, 138, 31, 0.75);
-    box-shadow: 0 0 14px rgba(30, 123, 255, 0.85), 0 0 30px rgba(30, 123, 255, 0.4);
-  }
-  /* Every "Get a quote" button */
-  .btn-quote {
-    @apply btn hover:-translate-y-0.5;
+    @apply btn bg-orange text-jet hover:bg-orange-dark;
   }
 
-  /* "Most popular" badge-button: dark grey, glowing blue caps, green border with a white glow, raised 3D edge */
+  /* "Most popular" badge-button: dark grey fill, orange border + text */
   .btn-popular {
-    display: inline-block;
-    background-color: #2e3034;
-    color: #4da3ff;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    border: 2px solid #39d353;
-    border-radius: 2px;
-    text-shadow: 0 0 6px rgba(77, 163, 255, 0.9), 0 0 14px rgba(77, 163, 255, 0.5), 0 1px 0 #0b2f5c, 0 2px 0 #0b2f5c;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 0 8px rgba(255, 255, 255, 0.8), 0 0 18px rgba(255, 255, 255, 0.35), 0 4px 0 #17181b, 0 6px 10px rgba(0, 0, 0, 0.6);
+    @apply inline-block bg-cardgrey text-orange font-heading font-bold uppercase tracking-wide border-2 border-orange rounded-btn px-3 py-1;
   }
 
-  /* "Get in touch" buttons: dark grey, glowing white text, black border */
+  /* "Get in touch" buttons: dark grey, white text */
   .btn-touch {
-    background-color: #2b2c30;
-    color: #ffffff;
-    border: 2px solid #000000;
-    box-shadow: 0 2px 0 #000000;
+    @apply btn bg-cardgrey text-white border-darkgrey hover:bg-graphite hover:border-orange;
   }
-  .btn-touch:hover {
-    background-color: #34363b;
+
+  /* Before / After photo labels */
+  .badge-glow {
+    @apply border border-paper/70;
   }
   .glow-white {
     text-shadow: 0 0 6px rgba(255, 255, 255, 0.85), 0 0 14px rgba(255, 255, 255, 0.45);
   }
 
-  /* Before / After photo labels: white glowing border */
-  .badge-glow {
-    border: 1.5px solid #ffffff;
-    box-shadow: 0 0 6px rgba(255, 255, 255, 0.85), 0 0 14px rgba(255, 255, 255, 0.4);
-  }
-
   /* "Book a site walk-through": Facebook blue, same as the Facebook icon */
   .btn-facebook {
-    @apply btn bg-facebook text-white hover:bg-facebook-dark hover:-translate-y-0.5 hover:shadow-lg hover:shadow-facebook/30;
+    @apply btn bg-facebook text-white hover:bg-facebook-dark;
   }
   .btn-outline {
-    @apply btn border border-mist/40 text-paper hover:border-orange hover:text-orange hover:-translate-y-0.5;
+    @apply btn bg-transparent border-mist/40 text-paper hover:border-orange hover:text-orange;
   }
   .btn-dark {
-    @apply btn bg-cardgrey border border-darkgrey text-paper hover:border-orange hover:text-orange;
+    @apply btn bg-cardgrey border-darkgrey text-paper hover:border-orange hover:text-orange;
   }
   /* Buttons for the orange panel: black fill, or black outline */
   .btn-jet {
-    @apply btn bg-jet text-paper hover:bg-graphite hover:-translate-y-0.5;
+    @apply btn bg-jet text-paper hover:bg-graphite;
   }
   .btn-outline-jet {
-    @apply btn border border-jet text-jet hover:bg-jet hover:text-paper hover:-translate-y-0.5;
+    @apply btn bg-transparent border-jet text-jet hover:bg-jet hover:text-paper;
   }
 }
 
