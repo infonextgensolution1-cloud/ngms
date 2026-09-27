@@ -70,7 +70,7 @@ export default function DiyTips() {
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <a
             href="/quote"
-            className="inline-block rounded-full btn-glow px-9 py-3 font-heading text-base font-bold uppercase tracking-wide transition"
+            className="inline-block rounded-full btn-power px-9 py-3 font-heading text-base font-bold uppercase tracking-wide transition"
           >
             Get a Free Quote
           </a>

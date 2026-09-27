@@ -79,7 +79,7 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
             </p>
           </div>
           <div className="flex gap-3 mt-7 flex-wrap">
-            <Link href="/quote?service=Solar%20Panel%20Cleaning" className="btn-quote-hero">
+            <Link href="/quote?service=Solar%20Panel%20Cleaning" className="btn-power">
               Get a free quote &rarr;
             </Link>
             <a
@@ -433,7 +433,7 @@ export function PostTrio({ left, right }: { left?: Photo; right?: Photo }) {
           </p>
         </div>
         <div className="flex gap-3 flex-wrap">
-          <Link href="/quote" className="btn-quote">
+          <Link href="/quote" className="btn-power">
             Get a free quote
           </Link>
           <a href={whatsappLink()} className="btn-wa" target="_blank" rel="noreferrer">
