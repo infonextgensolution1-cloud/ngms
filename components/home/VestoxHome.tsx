@@ -267,7 +267,7 @@ export function MissionBand({ photo, side }: { photo?: Photo; side?: Photo }) {
           {/* The 10% first-booking offer now lives in the DiscountPopup on the homepage */}
           <div className="col-span-5 sm:col-span-2 grid gap-4">
             <div className="relative rounded-2xl overflow-hidden min-h-[240px] sm:min-h-[150px] bg-graphite">
-              <PhotoFill photo={side} sizes="(max-width: 640px) 100vw, 25vw" className="grayscale" />
+              <PhotoFill photo={side} sizes="(max-width: 640px) 100vw, 25vw" />
               <div className="absolute inset-0 bg-jet/35" />
               <p className="absolute left-4 bottom-3 right-4 text-[11px] uppercase tracking-widest font-bold">
                 {side?.caption ?? 'Complex maintenance'}
@@ -412,7 +412,7 @@ export function PostTrio({ left, right }: { left?: Photo; right?: Photo }) {
 
         <Post>
           <div className="relative aspect-square rounded-lg overflow-hidden bg-jet">
-            <PhotoFill photo={right} sizes="(max-width: 640px) 100vw, 33vw" className="grayscale contrast-125" />
+            <PhotoFill photo={right} sizes="(max-width: 640px) 100vw, 33vw" />
             <div className="absolute inset-0 bg-gradient-to-t from-jet/80 to-transparent" />
             <p className="absolute left-4 bottom-4 right-4 font-heading font-extrabold text-paper text-3xl leading-[0.9]">
               ONE CALL.
