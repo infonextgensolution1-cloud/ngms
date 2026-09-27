@@ -1,4 +1,4 @@
-// Maintenance packages shown on /maintenance-packages and used by the website chat assistant.
+// Maintenance packages shown on /maintenance-packages.
 // Edit here to change both.
 
 export type Package = {
