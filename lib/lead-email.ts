@@ -1,6 +1,6 @@
 import { Resend } from 'resend'
 
-// Lead alert emails to Jacques (quote form via /api/notify, chat bookings via /api/chat).
+// Lead alert emails to Jacques (quote form via /api/notify).
 // RESEND_API_KEY lives in Vercel env vars. The client is created per call, never at
 // import, so a missing key can't break the site build.
 export const NOTIFY_TO = 'info.nextgensolution1@gmail.com'

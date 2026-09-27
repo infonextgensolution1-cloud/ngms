@@ -1,4 +1,4 @@
-// Site-wide FAQ shown on /faq and used by the website chat assistant.
+// Site-wide FAQ shown on /faq.
 // Edit here to change both.
 
 export const FAQS = [
