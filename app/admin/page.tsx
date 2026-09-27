@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import BusinessSummary from '@/components/admin/BusinessSummary'
 import { supabase } from '@/lib/supabaseClient'
-import { Loader2, Image as ImageIcon, LogOut, Sparkles, Users, Receipt, FileText, Cloud, LucideIcon } from 'lucide-react'
+import { Loader2, Image as ImageIcon, LogOut, Sparkles, Users, Receipt, FileText, Cloud, LucideIcon, HardHat, Wallet, Boxes } from 'lucide-react'
 
 const NAV_ITEMS: Array<{
   href: string
@@ -30,6 +30,24 @@ const NAV_ITEMS: Array<{
     icon: Receipt,
     title: 'Invoices',
     desc: 'Track what&apos;s owed, record payments, chase overdue',
+  },
+  {
+    href: '/admin/jobs',
+    icon: HardHat,
+    title: 'Jobs',
+    desc: 'Schedule, cost & photograph jobs — client-ready completion reports',
+  },
+  {
+    href: '/admin/wages',
+    icon: Wallet,
+    title: 'Wages & Payroll',
+    desc: 'Crew profiles, banking details, documents & payslip generator',
+  },
+  {
+    href: '/admin/materials',
+    icon: Boxes,
+    title: 'Materials & Suppliers',
+    desc: 'Builders Warehouse catalog, supplier directory & purchase log',
   },
   {
     href: '/admin/media',

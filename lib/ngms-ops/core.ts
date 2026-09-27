@@ -38,6 +38,42 @@ export const COST_CATEGORIES = ['Materials', 'Fuel', 'Overhead', 'Subcontractor'
 export const INVOICE_KINDS = ['full', 'deposit', 'balance'] as const
 export const PAY_METHODS = ['eft', 'cash', 'card', 'other'] as const
 
+export const WORKER_CATEGORIES = ['General Worker', 'Skilled Worker', 'Painter', 'Plumber', 'Electrician', 'Pool Lining', 'Plumber Foreman'] as const
+export const WORKER_STATUSES = ['active', 'inactive', 'temp'] as const
+export const ACCOUNT_TYPES = ['Savings', 'Cheque', 'Transmission'] as const
+export const WORKER_DOC_TYPES = ['id', 'cert', 'contract', 'other'] as const
+export const PAYSLIP_PERIODS = ['weekly', 'biweekly', 'monthly'] as const
+export const PURCHASE_CATEGORIES = ['Materials', 'Fuel', 'Overhead', 'Subcontractor'] as const
+export const PAYMENT_STATUSES = ['unpaid', 'paid'] as const
+export const PHOTO_TYPES = ['before', 'after', 'progress'] as const
+
+export const WORKER_COLS =
+  'id,name,category,id_number,phone,email,emergency_contact_name,emergency_contact_phone,start_date,status,notes,bank_name,account_holder,account_number,branch_code,account_type,payment_reference,daily_rate,created_at,updated_at'
+export const SUPPLIER_COLS = 'id,name,contact_person,phone,email,address,categories,notes,created_at'
+export const PURCHASE_COLS =
+  'id,supplier_id,job_id,purchase_date,description,category,amount,receipt_url,payment_status,logged_to_job,job_cost_id,notes,created_at'
+export const PAYSLIP_COLS =
+  'id,worker_id,period,period_start,period_end,days_worked,absent_days,daily_rate,travel_allowance,overtime_hours,overtime_rate,bonus,uif_applied,paye_deduction,advance_deduction,tool_deduction,other_deduction,deduction_notes,gross_pay,total_deductions,net_pay,created_at'
+
+export type Worker = {
+  id: string; name: string; category: string; id_number: string | null; phone: string | null; email: string | null
+  emergency_contact_name: string | null; emergency_contact_phone: string | null; start_date: string | null
+  status: string; notes: string | null; bank_name: string | null; account_holder: string | null; account_number: string | null
+  branch_code: string | null; account_type: string | null; payment_reference: string | null; daily_rate: number
+  created_at: string; updated_at: string
+}
+export type Supplier = { id: string; name: string; contact_person: string | null; phone: string | null; email: string | null; address: string | null; categories: string | null; notes: string | null; created_at: string }
+export type SupplierPurchase = {
+  id: string; supplier_id: string | null; job_id: string | null; purchase_date: string; description: string; category: string
+  amount: number; receipt_url: string | null; payment_status: string; logged_to_job: boolean; job_cost_id: string | null; notes: string | null; created_at: string
+}
+export type Payslip = {
+  id: string; worker_id: string; period: string; period_start: string; period_end: string | null; days_worked: number; absent_days: number
+  daily_rate: number; travel_allowance: number; overtime_hours: number; overtime_rate: number; bonus: number; uif_applied: boolean
+  paye_deduction: number; advance_deduction: number; tool_deduction: number; other_deduction: number; deduction_notes: string | null
+  gross_pay: number; total_deductions: number; net_pay: number; created_at: string
+}
+
 export const DEFAULT_DEPOSIT_PERCENT = 70
 export const DEFAULT_DUE_DAYS = 7
 export const OVERBERG = /kleinmond|grabouw|elgin|bot ?rivi|botrivier|hermanus|betty'?s bay|pringle|rooi[- ]?els|caledon|villiersdorp|onrus|sandbaai/i
