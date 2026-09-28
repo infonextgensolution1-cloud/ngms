@@ -154,7 +154,7 @@ export default function QuoteForm({
       <Field label="Notes">
         <textarea name="notes" className="field min-h-[110px]" />
       </Field>
-      <button className="btn" type="submit" disabled={status === "sending"}>
+      <button className="btn btn-quote" type="submit" disabled={status === "sending"}>
         {status === "sending" ? "Sending..." : "Send quote request"}
       </button>
       {status === "error" && (
