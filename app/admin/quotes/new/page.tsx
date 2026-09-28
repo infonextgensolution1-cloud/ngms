@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Loader2, Plus, Trash2, ArrowLeft, AlertTriangle, Sun, Search, Check, Sparkles } from 'lucide-react'
+import { Loader2, Plus, Trash2, ArrowLeft, AlertTriangle, Sun, Search, Check, Sparkles, Package } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import { supabase } from '@/lib/supabaseClient'
 import { handlersA } from '@/lib/ngms-ops/handlers-a'
 import { rand, OVERBERG, DEFAULT_DEPOSIT_PERCENT } from '@/lib/ngms-ops/core'
 import { RATE_CARD, CALLOUT_FEE, solarPrice } from '@/lib/rate-card'
+import { BUNDLES } from '@/lib/quote-bundles'
 import { callAi, type QuoteDraft } from '@/lib/ai/client'
 
 type Line = { key: number; description: string; quantity: string; unit: string; unit_price: string; service_slug?: string }
@@ -47,6 +48,8 @@ function Builder() {
   const [lines, setLines] = useState<Line[]>([])
   const [group, setGroup] = useState(RATE_CARD[0].slug)
   const [panels, setPanels] = useState('')
+  const [bundleId, setBundleId] = useState(BUNDLES[0].id)
+  const [bundleSize, setBundleSize] = useState('')
   const [depositPct, setDepositPct] = useState(String(DEFAULT_DEPOSIT_PERCENT))
   const [validDays, setValidDays] = useState('30')
   const [notes, setNotes] = useState('')
@@ -133,6 +136,16 @@ function Builder() {
       service_slug: 'solar-panel-cleaning',
     })
     setPanels('')
+  }
+
+  function addBundle() {
+    const b = BUNDLES.find((x) => x.id === bundleId)
+    const size = toNum(bundleSize)
+    if (!b || size <= 0) return
+    b.lines(b.unit === 'panels' ? Math.round(size) : size).forEach((l) =>
+      addLine({ description: l.description, quantity: String(l.quantity), unit: l.unit, unit_price: String(l.unit_price), service_slug: l.service_slug }),
+    )
+    setBundleSize('')
   }
 
   async function draftFromNotes() {
@@ -342,6 +355,44 @@ function Builder() {
                 })()}
               </p>
             )}
+          </div>
+
+          <div className="bg-jet border border-darkgrey rounded-card p-3 mb-3">
+            <p className="text-xs text-mist mb-2 flex items-center gap-1">
+              <Package className="w-3.5 h-3.5 text-orange" /> Bundles: one measurement, all the lines
+            </p>
+            <select className={`${input} mb-2`} value={bundleId} onChange={(e) => setBundleId(e.target.value)}>
+              {BUNDLES.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+            {(() => {
+              const b = BUNDLES.find((x) => x.id === bundleId) ?? BUNDLES[0]
+              const size = toNum(bundleSize)
+              const preview = size > 0 ? b.lines(b.unit === 'panels' ? Math.round(size) : size) : []
+              return (
+                <>
+                  <div className="flex gap-2">
+                    <input className={input} inputMode="decimal" placeholder={b.ask} value={bundleSize} onChange={(e) => setBundleSize(e.target.value)} />
+                    <button onClick={addBundle} disabled={size <= 0} className="shrink-0 bg-orange text-white text-sm font-semibold px-4 rounded-btn disabled:opacity-50">
+                      Add
+                    </button>
+                  </div>
+                  {preview.length > 0 && (
+                    <ul className="text-[11px] text-mist mt-1.5 space-y-0.5">
+                      {preview.map((l) => (
+                        <li key={l.description}>
+                          {l.description}: {l.quantity} {l.unit} × {rand(l.unit_price)} = {rand(l.quantity * l.unit_price)}
+                        </li>
+                      ))}
+                      <li className="text-paper">Bundle total {rand(preview.reduce((t, l) => t + l.quantity * l.unit_price, 0))} ex VAT</li>
+                    </ul>
+                  )}
+                </>
+              )
+            })()}
           </div>
 
           <div className="mb-3">
