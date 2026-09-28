@@ -1,17 +1,9 @@
 import type { ReactNode } from 'react'
-import {
-  getNews,
-  getWeather,
-  tradeConditions,
-  NEWS_HOME,
-  type NewsItem,
-  type Weather,
-  type WxKind,
-} from '@/lib/helderberg'
+import { getWeather, tradeConditions, type Weather, type WxKind } from '@/lib/helderberg'
 
-// Homepage panel: live Helderberg weather (with what it means for outdoor work)
-// next to the latest local headlines. Server-rendered; data is cached for 30 min
-// and each panel hides itself if its source is unavailable.
+// Homepage panel: live Helderberg weather and what it means for outdoor work.
+// Server-rendered; data is cached for 30 min and the section hides itself if the
+// forecast is unavailable.
 
 const ICONS: Record<WxKind, ReactNode> = {
   sun: (
@@ -63,11 +55,6 @@ function WxIcon({ kind, className }: { kind: WxKind; className?: string }) {
 
 function dayName(date: string): string {
   return new Date(`${date}T12:00:00Z`).toLocaleDateString('en-ZA', { weekday: 'short', timeZone: 'UTC' })
-}
-
-function newsDate(iso: string | null): string {
-  if (!iso) return ''
-  return new Date(iso).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', timeZone: 'Africa/Johannesburg' })
 }
 
 function WeatherCard({ weather }: { weather: Weather }) {
@@ -140,50 +127,19 @@ function WeatherCard({ weather }: { weather: Weather }) {
   )
 }
 
-function NewsCard({ news }: { news: NewsItem[] }) {
-  return (
-    <div className="rounded-card border border-darkgrey bg-cardgrey p-6">
-      <p className="kicker">Local news</p>
-      {news.length > 0 ? (
-        <ul className="divide-y divide-darkgrey">
-          {news.map((n) => (
-            <li key={n.url}>
-              <a href={n.url} target="_blank" rel="noopener noreferrer" className="group block py-4 first:pt-2">
-                {n.date && <span className="block text-xs text-mist">{newsDate(n.date)}</span>}
-                <span className="mt-1 block font-heading text-lg font-bold leading-snug text-paper transition group-hover:text-orange">
-                  {n.title}
-                </span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="py-4 text-mist">Catch up on what&rsquo;s happening around Somerset West, Strand and Gordon&rsquo;s Bay.</p>
-      )}
-      <p className="mt-2 text-xs text-mist">
-        Headlines from{' '}
-        <a href={NEWS_HOME} target="_blank" rel="noopener noreferrer" className="underline hover:text-orange">
-          DistrictMail &amp; Helderberg Gazette
-        </a>
-        . Tap a story to read it there.
-      </p>
-    </div>
-  )
-}
-
-export function HelderbergTodayView({ weather, news }: { weather: Weather | null; news: NewsItem[] }) {
+export function HelderbergTodayView({ weather }: { weather: Weather | null }) {
+  if (!weather) return null
   return (
     <section className="border-y border-darkgrey bg-graphite px-4 py-16" aria-labelledby="helderberg-today">
       <div className="wrap">
         <div className="mb-12 text-center">
           <p className="kicker">Helderberg today</p>
           <h2 id="helderberg-today" className="text-3xl md:text-4xl">
-            Weather &amp; Local News
+            Weather &amp; Outdoor Work
           </h2>
         </div>
-        <div className={`grid gap-8 ${weather ? 'lg:grid-cols-2' : 'mx-auto max-w-2xl'}`}>
-          {weather && <WeatherCard weather={weather} />}
-          <NewsCard news={news} />
+        <div className="mx-auto max-w-2xl">
+          <WeatherCard weather={weather} />
         </div>
       </div>
     </section>
@@ -191,6 +147,5 @@ export function HelderbergTodayView({ weather, news }: { weather: Weather | null
 }
 
 export default async function HelderbergToday() {
-  const [weather, news] = await Promise.all([getWeather(), getNews(4)])
-  return <HelderbergTodayView weather={weather} news={news} />
+  return <HelderbergTodayView weather={await getWeather()} />
 }
