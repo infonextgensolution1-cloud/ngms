@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Loader2, Plus, RefreshCw, AlertTriangle, ChevronRight, ArrowLeft, Save } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
+import ExportButtons from '@/components/admin/ExportButtons'
+import { exportQuotes } from '@/lib/admin-export'
 import { supabase } from '@/lib/supabaseClient'
 import { handlersA } from '@/lib/ngms-ops/handlers-a'
 import { rand } from '@/lib/ngms-ops/core'
@@ -151,6 +153,8 @@ function QuotesList() {
         </div>
 
         <BusinessSettings />
+
+        <ExportButtons load={exportQuotes} />
 
         <div className="flex items-center gap-2 mb-3">
           {FILTERS.map((f) => (

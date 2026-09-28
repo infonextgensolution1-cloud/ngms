@@ -17,10 +17,10 @@ export const services: Service[] = [
     name: 'Solar Panel Cleaning',
     tagline: 'Keep every panel earning its keep',
     description:
-      'Dust, pollen, salt air and bird droppings build up on solar panels faster than most homeowners realise, and that layer of grime sits directly between your panels and the sun. We provide regular, professional solar panel cleaning across the Helderberg Basin using soft-wash methods and purified water, so panels are cleaned without scratching the glass or voiding manufacturer warranties. This is our flagship service and the one most Strand, Gordon’s Bay and Somerset West homeowners know us for — coastal properties in particular see faster soiling from salt spray, which makes a regular cleaning schedule worth setting up rather than waiting until output visibly drops.',
+      'Dust, pollen, salt air and bird droppings build up on solar panels faster than most homeowners realise, and that layer of grime sits directly between your panels and the sun. We provide regular, professional solar panel cleaning across the Helderberg Basin using a gentle soft wash, so panels are cleaned without scratching the glass or voiding manufacturer warranties. This is our flagship service and the one most Strand, Gordon’s Bay and Somerset West homeowners know us for — coastal properties in particular see faster soiling from salt spray, which makes a regular cleaning schedule worth setting up rather than waiting until output visibly drops.',
     whatsIncluded: [
       'Soft-wash cleaning safe for all panel types and warranties',
-      'Purified/deionised water to avoid mineral spotting',
+      'No harsh chemicals, abrasive pads or high pressure on the glass',
       'Visual inspection for cracked cells, loose mounting or damaged wiring',
       'Before-and-after photos so you can see the difference',
       'Recommended cleaning frequency based on your roof and surroundings',

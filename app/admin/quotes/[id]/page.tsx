@@ -1,11 +1,14 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, Printer, Check, X, Send, AlertTriangle, Receipt, Briefcase } from 'lucide-react'
+import { ArrowLeft, Loader2, Printer, Check, X, Send, AlertTriangle, Receipt, Briefcase, CalendarPlus, MessageCircle } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
+import DeleteRecord from '@/components/admin/DeleteRecord'
 import { supabase } from '@/lib/supabaseClient'
+import { deleteQuote } from '@/lib/admin-delete'
+import { waTo, quoteMessage } from '@/lib/admin-wa'
 import { handlersA } from '@/lib/ngms-ops/handlers-a'
 import { handlersB } from '@/lib/ngms-ops/handlers-b'
 import { getSettings, rand, todaySast } from '@/lib/ngms-ops/core'
@@ -42,6 +45,9 @@ function QuoteView() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState<string | null>(null)
   const [msg, setMsg] = useState('')
+  const router = useRouter()
+  const [booking, setBooking] = useState(false)
+  const [jobDate, setJobDate] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -91,6 +97,40 @@ function QuoteView() {
     }
   }
 
+  async function createInvoice(kind: 'full' | 'balance') {
+    if (!quote) return
+    setBusy(kind)
+    setMsg('')
+    try {
+      const res = await handlersB.ngms_create_invoice(supabase, { quote_id: quote.id, kind })
+      if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not create the invoice')
+      const inv = res.structuredContent?.invoice as { id: string } | undefined
+      if (inv?.id) return router.push(`/admin/invoices/${inv.id}`)
+      await load()
+    } catch (e) {
+      setMsg((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function bookJob() {
+    if (!quote) return
+    setBusy('job')
+    setMsg('')
+    try {
+      const res = await handlersB.ngms_create_job(supabase, { quote_id: quote.id, ...(jobDate ? { scheduled_date: jobDate } : {}) })
+      if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not book the job')
+      const job = res.structuredContent?.job as { id: string } | undefined
+      if (job?.id) return router.push(`/admin/jobs/${job.id}`)
+      await load()
+    } catch (e) {
+      setMsg((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
+  }
+
   async function createDepositInvoice() {
     if (!quote) return
     setBusy('invoice')
@@ -131,6 +171,12 @@ function QuoteView() {
 
   if (!quote || !money || !settings) return null
 
+  const waQuote = waTo(
+    client?.phone,
+    quoteMessage({ client: client?.name ?? null, number: quote.quote_number, total: money.total, deposit: money.deposit, depositPct: money.deposit_percent, validUntil: quote.valid_until }),
+  )
+  const liveInvoices = invoices.filter((i) => i.status !== 'void')
+  const invoicedTotal = liveInvoices.reduce((t, i) => t + Number(i.total_amount ?? 0), 0)
   const expired = quote.status === 'sent' && !!quote.valid_until && quote.valid_until < todaySast()
   const badgeKey = expired ? 'expired' : quote.status
   const bankPlaceholder = !settings.bank_details || PLACEHOLDER_ACC.test(settings.bank_details)
@@ -180,6 +226,23 @@ function QuoteView() {
             </p>
           )}
 
+          {waQuote ? (
+            <a
+              href={waQuote}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => {
+                if (quote.status === 'draft') setStatus('sent')
+              }}
+              className="flex items-center justify-center gap-2 bg-whatsapp hover:opacity-90 text-white font-heading font-semibold px-4 py-3 rounded-btn mb-2"
+            >
+              <MessageCircle className="w-4 h-4" /> Send on WhatsApp{client?.name ? ` to ${client.name.split(/\s+/)[0]}` : ''}
+            </a>
+          ) : (
+            <p className="text-xs text-mist mb-2">No WhatsApp number on file for this client. Add one on their client page to send from here.</p>
+          )}
+          <p className="text-[11px] text-mist mb-4">Opens WhatsApp with the message written. Print / Save as PDF first if you want to attach the quote.</p>
+
           <div className="flex flex-wrap items-center gap-2 mb-4">
             {quote.status === 'draft' && (
               <button
@@ -208,7 +271,7 @@ function QuoteView() {
                 </button>
               </>
             )}
-            {quote.status === 'accepted' && money.deposit > 0 && (
+            {quote.status === 'accepted' && money.deposit > 0 && !liveInvoices.length && (
               <button
                 onClick={createDepositInvoice}
                 disabled={!!busy}
@@ -217,6 +280,54 @@ function QuoteView() {
                 {busy === 'invoice' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Receipt className="w-4 h-4" />} Create deposit invoice
               </button>
             )}
+            {['sent', 'accepted'].includes(quote.status) && !jobs.some((j) => j.status !== 'cancelled') && !booking && (
+              <button
+                onClick={() => setBooking(true)}
+                disabled={!!busy}
+                className="inline-flex items-center gap-1.5 bg-blue hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
+              >
+                <CalendarPlus className="w-4 h-4" /> Book job
+              </button>
+            )}
+            {quote.status === 'accepted' && !liveInvoices.length && (
+              <button
+                onClick={() => createInvoice('full')}
+                disabled={!!busy}
+                className="inline-flex items-center gap-1.5 border border-darkgrey hover:border-orange text-paper text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
+              >
+                {busy === 'full' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Receipt className="w-4 h-4" />} Invoice in full
+              </button>
+            )}
+            {quote.status === 'accepted' && liveInvoices.length > 0 && invoicedTotal < money.total - 0.5 && (
+              <button
+                onClick={() => createInvoice('balance')}
+                disabled={!!busy}
+                className="inline-flex items-center gap-1.5 bg-orange hover:opacity-90 text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
+              >
+                {busy === 'balance' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Receipt className="w-4 h-4" />} Final invoice ({rand(money.total - invoicedTotal)})
+              </button>
+            )}
+            {booking && (
+              <div className="w-full bg-cardgrey border border-blue rounded-card p-3.5 flex flex-wrap items-end gap-3">
+                <label className="text-xs text-mist">
+                  Job date (optional)
+                  <input type="date" value={jobDate} min={todaySast()} onChange={(e) => setJobDate(e.target.value)} className="block mt-1 bg-jet border border-darkgrey text-paper rounded-btn px-3 py-2 text-sm" />
+                </label>
+                <button onClick={bookJob} disabled={!!busy} className="inline-flex items-center gap-1.5 bg-blue hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50">
+                  {busy === 'job' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Book it
+                </button>
+                <button onClick={() => setBooking(false)} className="text-sm text-mist hover:text-paper py-2">
+                  Cancel
+                </button>
+                <p className="w-full text-[11px] text-mist">{quote.status === 'sent' ? 'Booking marks the quote accepted and the lead as won.' : 'Creates the job with the quote\'s scope and client.'}</p>
+              </div>
+            )}
+            <DeleteRecord
+              label="Delete quote"
+              confirmText={`Delete ${quote.quote_number}${client?.name ? ` for ${client.name}` : ''} and its line items?`}
+              onDelete={() => deleteQuote(supabase, quote.id)}
+              redirectTo="/admin/quotes"
+            />
           </div>
 
           {msg && <p className="text-xs text-mist mb-4">{msg}</p>}

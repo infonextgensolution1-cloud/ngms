@@ -8,7 +8,7 @@ import {
 export const itemSchema = {
   type: 'object',
   properties: {
-    description: { type: 'string', maxLength: 500, description: 'e.g. "Solar panel clean — 24 panels, purified water".' },
+    description: { type: 'string', maxLength: 500, description: 'e.g. "Solar panel clean — 24 panels, soft wash".' },
     quantity: { type: 'number', exclusiveMinimum: 0, default: 1 },
     unit: { type: 'string', maxLength: 20, description: 'm², panels, hours, item, bakkie load, etc. Default "item".' },
     unit_price: { type: 'number', description: 'Rand per unit, EXCLUDING VAT. Negative for discounts (e.g. NGX10 10% off).' },

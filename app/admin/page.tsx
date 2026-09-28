@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import BusinessSummary from '@/components/admin/BusinessSummary'
+import AdminSearch from '@/components/admin/AdminSearch'
 import { supabase } from '@/lib/supabaseClient'
-import { Loader2, Image as ImageIcon, LogOut, Sparkles, Users, Receipt, FileText, Cloud, LucideIcon, HardHat, Wallet, Boxes } from 'lucide-react'
+import { Loader2, Image as ImageIcon, LogOut, Sparkles, Users, Receipt, FileText, Cloud, LucideIcon, HardHat, Wallet, Boxes, Contact, CalendarDays, BarChart3 } from 'lucide-react'
 
 const NAV_ITEMS: Array<{
   href: string
@@ -20,22 +21,40 @@ const NAV_ITEMS: Array<{
     desc: 'Work the pipeline: new → contacted → site visit → quoted → won/lost',
   },
   {
+    href: '/admin/clients',
+    icon: Contact,
+    title: 'Clients',
+    desc: 'Everyone you have quoted: contact details and full history',
+  },
+  {
     href: '/admin/quotes',
     icon: FileText,
     title: 'Quotes',
-    desc: 'Build, send &amp; track quotes — branded PDF, ZAR, Capitec banking',
+    desc: 'Build, send & track quotes — branded PDF, ZAR, Capitec banking',
   },
   {
     href: '/admin/invoices',
     icon: Receipt,
     title: 'Invoices',
-    desc: 'Track what&apos;s owed, record payments, chase overdue',
+    desc: "Track what's owed, record payments, chase overdue",
   },
   {
     href: '/admin/jobs',
     icon: HardHat,
     title: 'Jobs',
     desc: 'Schedule, cost & photograph jobs — client-ready completion reports',
+  },
+  {
+    href: '/admin/calendar',
+    icon: CalendarDays,
+    title: 'Job calendar',
+    desc: 'Month view of booked jobs, rain flags, and Google Calendar sync',
+  },
+  {
+    href: '/admin/reports',
+    icon: BarChart3,
+    title: 'Monthly report',
+    desc: 'Invoiced, collected, profit and spend by month, with Excel for the bookkeeper',
   },
   {
     href: '/admin/wages',
@@ -53,19 +72,19 @@ const NAV_ITEMS: Array<{
     href: '/admin/media',
     icon: ImageIcon,
     title: 'Media',
-    desc: 'Manage hero slides, before/after pairs &amp; the gallery',
+    desc: 'Manage hero slides, before/after pairs & the gallery',
   },
   {
     href: '/admin/prompts',
     icon: Sparkles,
     title: 'Prompt Dashboard',
-    desc: '48 ready-made prompts for quotes, marketing, scheduling &amp; more',
+    desc: '48 ready-made prompts for quotes, marketing, scheduling & more',
   },
   {
     href: '/admin/vercel-projects',
     icon: Cloud,
     title: 'Vercel Projects',
-    desc: 'Monitor NGMS deployment status &amp; project info on Vercel',
+    desc: 'Monitor NGMS deployment status & project info on Vercel',
   },
 ]
 
@@ -201,6 +220,8 @@ export default function AdminPage() {
             <LogOut className="w-4 h-4" /> Sign out
           </button>
         </div>
+
+        <AdminSearch />
 
         <BusinessSummary />
 

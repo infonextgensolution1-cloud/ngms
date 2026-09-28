@@ -104,7 +104,7 @@ function WagesList() {
     setLoading(true)
     setError('')
     try {
-      const args: Record<string, unknown> = { limit: 200 }
+      const args: Record<string, unknown> = { limit: 100 }
       if (filter === 'active_only') args.active_only = true
       if (filter === 'inactive') args.status = 'inactive'
       const res = await handlersC.ngms_list_workers(supabase, args)

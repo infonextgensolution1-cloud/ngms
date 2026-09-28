@@ -74,8 +74,8 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
           </h1>
           <div className="mt-6 grid sm:grid-cols-[1fr_auto] gap-6 items-end">
             <p className="text-[#3A3C40] text-base sm:text-lg max-w-md">
-              Dust, salt spray and bird droppings can cut panel output by up to 10%. We wash it back with purified water
-              and soft brushes — Strand, Somerset West and Gordon&apos;s Bay, from R550.
+              Dust, salt spray and bird droppings can cut panel output by up to 10%. We wash it back with a gentle soft
+              wash — Strand, Somerset West and Gordon&apos;s Bay, from R550.
             </p>
           </div>
           <div className="flex gap-3 mt-7 flex-wrap">
@@ -130,7 +130,7 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
             </div>
             <div>
               <p className="font-heading font-bold uppercase text-jet text-lg sm:text-xl leading-tight">
-                Purified-water soft wash
+                Gentle soft wash
               </p>
               <p className="text-jet/80 text-sm mt-1">Warranty-safe. Before &amp; after photos on every job.</p>
               <span className="inline-flex items-center gap-2 mt-3 font-heading font-bold uppercase text-xs tracking-widest text-jet">

@@ -115,7 +115,7 @@ function MaterialsList() {
     setLoading(true)
     setError('')
     try {
-      const res = await handlersB.ngms_list_materials(supabase, { limit: 500 })
+      const res = await handlersB.ngms_list_materials(supabase, { limit: 100 })
       if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not load materials')
       setAll(((res.structuredContent?.materials as Material[]) ?? []) as Material[])
     } catch (e) {
