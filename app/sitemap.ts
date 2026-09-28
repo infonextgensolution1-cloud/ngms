@@ -1,6 +1,8 @@
 import type { MetadataRoute } from 'next'
 import { services } from '@/lib/services'
 import { solarLocations } from '@/lib/solar-locations'
+import { SUBURBS } from '@/lib/suburbs'
+import { SOLAR_SUBURB_TO_LOCATION } from '@/lib/solar-pricing'
 
 const BASE_URL = 'https://www.nextgensolarmaintenance.co.za'
 
@@ -36,5 +38,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }))
 
-  return [...staticPages, ...servicePages, ...solarLocationPages]
+  // Service x suburb pages, e.g. /services/painting/strand. Solar ones are skipped where they
+  // redirect to the richer /solar-panel-cleaning/[location] pages above (see next.config.mjs).
+  const serviceSuburbPages: MetadataRoute.Sitemap = services.flatMap((service) =>
+    SUBURBS.filter(
+      (sub) => !(service.slug === 'solar-panel-cleaning' && SOLAR_SUBURB_TO_LOCATION[sub.slug]),
+    ).map((sub) => ({
+      url: `${BASE_URL}/services/${service.slug}/${sub.slug}`,
+      changeFrequency: 'monthly' as const,
+      priority: sub.region === 'Helderberg Basin' ? 0.6 : 0.5,
+    })),
+  )
+
+  return [...staticPages, ...servicePages, ...solarLocationPages, ...serviceSuburbPages]
 }
