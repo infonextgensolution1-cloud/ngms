@@ -20,9 +20,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/terms`, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${BASE_URL}/contact`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/quote`, changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${BASE_URL}/solar-panel-cleaning-helderberg`, changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${BASE_URL}/solar-maintenance-somerset-west`, changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${BASE_URL}/solar-cleaning-gordons-bay-overberg`, changeFrequency: 'monthly', priority: 0.8 },
   ]
 
   const servicePages: MetadataRoute.Sitemap = services.map((service) => ({
