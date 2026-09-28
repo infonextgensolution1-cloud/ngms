@@ -109,7 +109,7 @@ function Builder() {
     if (n < 1) return
     const p = solarPrice(n)
     addLine({
-      description: `Solar panel cleaning — ${n} panels (purified water, soft brush)`,
+      description: `Solar panel cleaning — ${n} panels (gentle soft wash)`,
       quantity: String(p.quantity),
       unit: p.unit,
       unit_price: String(p.price),

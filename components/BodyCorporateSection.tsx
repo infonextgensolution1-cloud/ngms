@@ -11,7 +11,7 @@ const POINTS = [
   {
     title: "Rooftop & communal solar",
     icon: "solar-panel-cleaning",
-    body: "Scheduled purified-water cleans for shared arrays, planned around residents and access rules.",
+    body: "Scheduled soft-wash cleans for shared arrays, planned around residents and access rules.",
   },
   {
     title: "One contractor, one invoice",

@@ -15,7 +15,7 @@ const tables: Table[] = [
     icon: 'solar-panel-cleaning',
     cols: ['System size', 'Price', 'Notes'],
     rows: [
-      { label: 'Up to 10 panels', price: 'from R550', note: 'Soft brush + pure water' },
+      { label: 'Up to 10 panels', price: 'from R550', note: 'Gentle soft wash' },
       { label: '11–20 panels', price: 'from R950', note: 'Most common residential size' },
       { label: '21–30 panels', price: 'from R1 350' },
       { label: '31–40 panels', price: 'from R1 700' },

@@ -228,7 +228,7 @@ function HeroSlides() {
 // gallery_photos.slot; uploading a new photo retires the old one.
 
 const SLOTS: { key: string; label: string; hint: string }[] = [
-  { key: 'hero_solar', label: 'Orange solar tile', hint: 'Top of the page, next to “Purified-water soft wash”. Use a solar job photo.' },
+  { key: 'hero_solar', label: 'Orange solar tile', hint: 'Top of the page, next to “Gentle soft wash”. Use a solar job photo.' },
   { key: 'hero_feature', label: 'Photo tile beside “One call. Twelve trades.”', hint: 'Shown in full colour. Portrait or square works best.' },
   { key: 'mission_left', label: 'Mission section — big photo', hint: 'Under “Your roof should earn, not rust.”' },
   { key: 'mission_right', label: 'Mission section — small photo', hint: 'Right-hand tile in the Mission section.' },

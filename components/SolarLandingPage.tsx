@@ -45,7 +45,7 @@ const benefits = [
   {
     icon: 'waterproofing',
     title: 'Safe for your panels',
-    body: 'Purified water and soft brushes only. No harsh chemicals, no abrasive pads, no high pressure on the glass.',
+    body: 'Gentle soft wash only. No harsh chemicals, no abrasive pads, no high pressure on the glass.',
   },
   {
     icon: 'fixed-price',
@@ -72,7 +72,7 @@ const faqs = [
   },
   {
     q: 'Will cleaning damage my panels?',
-    a: 'No. We use purified water and soft-brush methods — no harsh chemicals, no abrasive pads, no high pressure on the panel face. Safe for all major panel brands.',
+    a: 'No. We use a gentle soft wash — no harsh chemicals, no abrasive pads, no high pressure on the panel face. Safe for all major panel brands.',
   },
   {
     q: 'Do you charge a callout fee?',
@@ -163,7 +163,7 @@ export default async function SolarLandingPage({
             {callout ? callout : 'Free callout in Strand, Gordon’s Bay & Somerset West'}
           </li>
           <li>
-            <span className="text-orange mr-1.5">✓</span>Purified water, soft brush
+            <span className="text-orange mr-1.5">✓</span>Gentle soft wash
           </li>
           <li>
             <span className="text-orange mr-1.5">✓</span>From R550

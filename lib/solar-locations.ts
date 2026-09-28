@@ -16,33 +16,33 @@ export const solarLocations: SolarLocation[] = [
     town: 'Somerset West',
     heading: 'Solar Panel Cleaning in Somerset West',
     intro:
-      'Somerset West homes and estates run some of the larger residential solar systems in the Helderberg, and larger arrays lose more real output when panels are left dirty. NGSMS cleans residential and estate solar installations across Somerset West using soft-wash methods and purified water — safe for the panel glass, safe for your manufacturer warranty.',
+      'Somerset West homes and estates run some of the larger residential solar systems in the Helderberg, and larger arrays lose more real output when panels are left dirty. NGSMS cleans residential and estate solar installations across Somerset West with a gentle soft wash — safe for the panel glass, safe for your manufacturer warranty.',
     localAngle:
       'Properties further inland from the coast tend to pick up more dust and pollen than salt, particularly through the dry summer months and around the surrounding farmland. That build-up is less visible than salt filming but sits on the glass just the same, so a clean every 4–6 months keeps output where it should be.',
     nearby: ['Helderberg Village', 'Heldervue', 'Parel Vallei', 'Firgrove'],
     metaTitle: 'Solar Panel Cleaning Somerset West | NGSMS Helderberg',
     metaDescription:
-      'Professional solar panel cleaning in Somerset West. Soft-wash, purified water, warranty-safe. No callout fee in the Helderberg Basin. From R550.',
+      'Professional solar panel cleaning in Somerset West. Gentle soft wash, warranty-safe. No callout fee in the Helderberg Basin. From R550.',
   },
   {
     slug: 'strand',
     town: 'Strand',
     heading: 'Solar Panel Cleaning in Strand',
     intro:
-      'Strand sits right on the coast, and that shows up on solar panels faster than most homeowners expect. NGSMS cleans residential and complex solar installations throughout Strand with soft-wash methods and purified water, restoring output without scratching the glass or affecting your warranty.',
+      'Strand sits right on the coast, and that shows up on solar panels faster than most homeowners expect. NGSMS cleans residential and complex solar installations throughout Strand with a gentle soft wash, restoring output without scratching the glass or affecting your warranty.',
     localAngle:
       'Salt spray is the main culprit this close to the water. It leaves a fine film that dulls panels well before anything looks obviously dirty from the ground, and it builds back up quickly — which is why coastal Strand properties usually benefit from a shorter cleaning interval than homes further inland.',
     nearby: ['Rusthof', 'Broadlands', 'Van Ryneveld', 'Greenways'],
     metaTitle: 'Solar Panel Cleaning Strand | NGSMS Helderberg',
     metaDescription:
-      'Solar panel cleaning in Strand. Coastal salt build-up removed with soft-wash and purified water. No callout fee. From R550.',
+      'Solar panel cleaning in Strand. Coastal salt build-up removed with a gentle soft wash. No callout fee. From R550.',
   },
   {
     slug: 'gordons-bay',
     town: "Gordon's Bay",
     heading: "Solar Panel Cleaning in Gordon's Bay",
     intro:
-      "Gordon's Bay properties deal with two things at once: salt air off the water and wind coming down off the mountain. Both leave deposits on solar panels. NGSMS cleans solar installations across Gordon's Bay with soft-wash methods and purified water, including steeper and higher roofs where safe access matters.",
+      "Gordon's Bay properties deal with two things at once: salt air off the water and wind coming down off the mountain. Both leave deposits on solar panels. NGSMS cleans solar installations across Gordon's Bay with a gentle soft wash, including steeper and higher roofs where safe access matters.",
     localAngle:
       'Wind-driven grit combined with salt spray makes for a more stubborn film than dust alone, and many Gordon’s Bay roofs sit at a pitch that makes DIY cleaning genuinely unsafe. We assess roof access and pitch before quoting, so the price you get accounts for the actual job.',
     nearby: ['Temperance Town', 'Sunny Seas', 'Mountainside', 'Harbour Island'],
@@ -62,7 +62,7 @@ export const solarLocations: SolarLocation[] = [
     callout: 'R350 callout applies in the Overberg.',
     metaTitle: 'Solar Panel Cleaning Kleinmond | NGSMS Overberg',
     metaDescription:
-      'Solar panel cleaning in Kleinmond and the Overberg. Soft-wash, purified water, warranty-safe. R350 callout. Cleaning from R550.',
+      'Solar panel cleaning in Kleinmond and the Overberg. Gentle soft wash, warranty-safe. R350 callout. Cleaning from R550.',
   },
   {
     slug: 'grabouw-elgin',
