@@ -5,9 +5,7 @@ import { getBeforeAfter } from '@/lib/queries'
 import { getService } from '@/lib/services'
 import { site, waLink } from '@/lib/site'
 
-// Shared conversion-focused layout for every solar page
-// (/solar-panel-cleaning-helderberg, /solar-maintenance-somerset-west,
-// /solar-cleaning-gordons-bay-overberg and /solar-panel-cleaning/[location]).
+// Shared conversion-focused layout for the per-town solar pages (/solar-panel-cleaning/[location]).
 //
 // Conversion goal: a WhatsApp quote request with panel count + suburb.
 // Secondary: a phone call. Every CTA on this page points at one of those two.

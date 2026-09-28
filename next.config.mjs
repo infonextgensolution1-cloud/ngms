@@ -25,6 +25,19 @@ const nextConfig = {
         destination: `/solar-panel-cleaning/${to}`,
         permanent: true,
       })),
+      // Older standalone solar pages that competed with the per-town pages for the same searches.
+      { source: '/solar-panel-cleaning-helderberg', destination: '/services/solar-panel-cleaning', permanent: true },
+      { source: '/solar-maintenance-somerset-west', destination: '/solar-panel-cleaning/somerset-west', permanent: true },
+      { source: '/solar-cleaning-gordons-bay-overberg', destination: '/solar-panel-cleaning/gordons-bay', permanent: true },
+      // Duplicate price and package pages.
+      { source: '/prices', destination: '/price-list', permanent: true },
+      { source: '/packages', destination: '/maintenance-packages', permanent: true },
+    ]
+  },
+  async rewrites() {
+    return [
+      // Campaign landing pages: standalone HTML in public/, served without the site header/footer.
+      { source: '/spring-solar', destination: '/spring-solar.html' },
     ]
   },
 }
