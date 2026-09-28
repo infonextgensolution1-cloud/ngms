@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Loader2, Plus, RefreshCw, AlertTriangle, ArrowLeft, ChevronRight, Search } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
+import ExportButtons from '@/components/admin/ExportButtons'
+import { exportJobs } from '@/lib/admin-export'
 import { supabase } from '@/lib/supabaseClient'
 import { handlersA } from '@/lib/ngms-ops/handlers-a'
 import { handlersB } from '@/lib/ngms-ops/handlers-b'
@@ -171,6 +173,8 @@ function JobsList() {
         <h1 className="font-heading text-2xl font-bold text-paper mb-5">Jobs &amp; Photo Reports</h1>
 
         <NewJobForm onCreated={(id) => router.push(`/admin/jobs/${id}`)} />
+
+        <ExportButtons load={exportJobs} />
 
         <div className="flex flex-wrap items-center gap-2 mb-3">
           {FILTERS.map((f) => (

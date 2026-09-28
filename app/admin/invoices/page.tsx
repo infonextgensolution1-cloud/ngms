@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Loader2, RefreshCw, AlertTriangle, ArrowLeft } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
+import ExportButtons from '@/components/admin/ExportButtons'
+import { exportInvoices } from '@/lib/admin-export'
 import { supabase } from '@/lib/supabaseClient'
 import { handlersB } from '@/lib/ngms-ops/handlers-b'
 import { rand } from '@/lib/ngms-ops/core'
@@ -77,6 +79,8 @@ function InvoicesList() {
           <h1 className="font-heading text-2xl font-bold text-paper">Invoices</h1>
         </div>
         <p className="text-xs text-mist mb-3">New invoices are raised from an accepted quote — open the quote and use &quot;Create invoice&quot;.</p>
+
+        <ExportButtons load={exportInvoices} />
 
         <div className="flex items-center gap-2 mb-3">
           {FILTERS.map((f) => (

@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Loader2, Plus, RefreshCw, AlertTriangle, MessageCircle, Search, ArrowLeft } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
+import ExportButtons from '@/components/admin/ExportButtons'
+import { exportLeads } from '@/lib/admin-export'
 import { supabase } from '@/lib/supabaseClient'
 import { LEAD_COLUMNS, STATUS_LABEL, daysAgo, sast, waLink, type Lead } from '@/lib/ngms-leads-ui'
 
@@ -84,6 +86,8 @@ function LeadsList() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+
+        <ExportButtons load={exportLeads} />
 
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           {FILTERS.map((f) => (
