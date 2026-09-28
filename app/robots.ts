@@ -5,7 +5,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: '/admin',
+      // Staff-only tools and API routes — nothing here should show up in search results.
+      disallow: ['/admin', '/ops', '/prompt-dashboard', '/api/'],
     },
     sitemap: 'https://www.nextgensolarmaintenance.co.za/sitemap.xml',
   }

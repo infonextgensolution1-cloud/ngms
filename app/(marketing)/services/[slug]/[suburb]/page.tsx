@@ -23,7 +23,7 @@ export function generateMetadata({
   if (!s || !sub) return {};
   return {
     title: `${s.name} in ${sub.name}`,
-    description: `${s.name} in ${sub.name}, ${sub.region}. Free quote from NextGen Solar Clean & Maintenance Solutions.`,
+    description: `${s.name} in ${sub.name}, ${sub.region}. ${sub.calloutNote} Same-day quotes from NextGen Solar Clean & Maintenance Solutions.`,
   };
 }
 
