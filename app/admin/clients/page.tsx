@@ -56,7 +56,7 @@ function ClientsList() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Name, phone, email or address"
-            className="w-full bg-cardgrey border border-darkgrey text-paper rounded-btn pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-blue"
+            className="w-full bg-cardgrey border border-darkgrey text-paper rounded-btn pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-blue" style={{ paddingLeft: '2.25rem' }}
           />
         </label>
 

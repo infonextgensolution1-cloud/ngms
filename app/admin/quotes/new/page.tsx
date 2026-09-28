@@ -259,7 +259,7 @@ function Builder() {
             <div>
               <div className="relative mb-2">
                 <Search className="w-4 h-4 text-mist absolute left-3 top-1/2 -translate-y-1/2" />
-                <input className={`${input} pl-9`} placeholder="Search name, phone or area" value={search} onChange={(e) => setSearch(e.target.value)} />
+                <input className={`${input} pl-9`} style={{ paddingLeft: '2.25rem' }} placeholder="Search name, phone or area" value={search} onChange={(e) => setSearch(e.target.value)} />
               </div>
               {clients.length ? (
                 <ul className="divide-y divide-darkgrey max-h-64 overflow-auto">

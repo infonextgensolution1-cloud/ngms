@@ -78,7 +78,7 @@ export default function AdminSearch() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search clients, phone, quote or invoice number"
-          className="w-full bg-cardgrey border border-darkgrey text-paper rounded-card pl-11 pr-10 py-3.5 text-base focus:outline-none focus:border-blue"
+          className="w-full bg-cardgrey border border-darkgrey text-paper rounded-card pl-11 pr-10 py-3.5 text-base focus:outline-none focus:border-blue" style={{ paddingLeft: '2.75rem', paddingRight: '2.5rem' }}
         />
         {busy && <Loader2 className="w-4 h-4 text-mist animate-spin absolute right-3.5 top-1/2 -translate-y-1/2" />}
       </label>

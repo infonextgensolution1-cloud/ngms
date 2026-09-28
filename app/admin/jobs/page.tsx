@@ -149,7 +149,7 @@ function JobsList() {
     setLoading(true)
     setError('')
     try {
-      const args: Record<string, unknown> = { limit: 200 }
+      const args: Record<string, unknown> = { limit: 100 }
       if (filter === 'open_only') args.open_only = true
       else if (filter !== 'all') args.status = filter
       const res = await handlersB.ngms_list_jobs(supabase, args)

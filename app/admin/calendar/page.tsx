@@ -10,7 +10,7 @@ import { jobWeather, useForecast } from '@/lib/job-weather'
 type Job = { id: string; title: string | null; status: string; scheduled_date: string; clients: { name: string | null; suburb: string | null } | { name: string | null; suburb: string | null }[] | null }
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const DOT: Record<string, string> = { scheduled: 'bg-blue', in_progress: 'bg-orange', completed: 'bg-whatsapp', on_hold: 'bg-mist' }
+const DOT: Record<string, string> = { scheduled: 'bg-paper', in_progress: 'bg-orange', completed: 'bg-whatsapp', on_hold: 'bg-mist' }
 
 const pad = (n: number) => String(n).padStart(2, '0')
 const iso = (y: number, m: number, d: number) => `${y}-${pad(m + 1)}-${pad(d)}`
@@ -113,7 +113,7 @@ function CalendarView() {
             })}
           </div>
           <p className="text-[11px] text-mist mt-3 flex flex-wrap gap-x-3 gap-y-1">
-            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue" /> scheduled</span>
+            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-paper" /> scheduled</span>
             <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-orange" /> in progress</span>
             <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-whatsapp" /> done</span>
             <span className="inline-flex items-center gap-1"><CloudRain className="w-3 h-3" /> rain forecast</span>

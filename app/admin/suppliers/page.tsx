@@ -190,7 +190,7 @@ function SuppliersAndPurchases() {
     setError('')
     try {
       const [sRes, jRes, pRes] = await Promise.all([
-        handlersC.ngms_list_suppliers(supabase, { limit: 200 }),
+        handlersC.ngms_list_suppliers(supabase, { limit: 100 }),
         handlersB.ngms_list_jobs(supabase, { open_only: true, limit: 100 }),
         handlersC.ngms_list_supplier_purchases(supabase, { limit: 100, ...(unpaidOnly ? { payment_status: 'unpaid' } : {}) }),
       ])

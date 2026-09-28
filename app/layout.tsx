@@ -106,7 +106,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {children}
 
-        <div className="bg-graphite border-t border-darkgrey py-10 text-center px-4">
+        {/* data-site-marketing: hidden on /admin screens (components/admin/AdminApp.tsx) */}
+        <div data-site-marketing className="bg-graphite border-t border-darkgrey py-10 text-center px-4">
           <p className="font-heading font-bold text-2xl sm:text-3xl text-paper">
             ONE CALL. <span className="text-orange">ALL SOLUTIONS.</span>
           </p>
@@ -115,7 +116,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </p>
         </div>
 
-        <footer className="bg-jet text-mist text-sm pt-10 sm:pt-14 pb-24 sm:pb-8 border-t border-darkgrey">
+        <footer data-site-marketing className="bg-jet text-mist text-sm pt-10 sm:pt-14 pb-24 sm:pb-8 border-t border-darkgrey">
           <div className="max-w-6xl mx-auto px-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
             <div>
               <img src={LOGO_DATA_URI} alt="NGSMS logo" className="h-12 w-auto mb-4" />
@@ -198,6 +199,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </footer>
 
         <a
+          data-site-marketing
           href={WHATSAPP_URL}
           aria-label="WhatsApp NGSMS"
           className="fixed z-50 flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14"
