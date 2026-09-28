@@ -116,7 +116,7 @@ export default async function HomePage() {
 
       <ServicePhotoGrid services={services} images={serviceImages} />
 
-      {/* DIY tips + live Helderberg weather and local news */}
+      {/* DIY tips + live Helderberg weather for outdoor work */}
       <DiyTips />
 
       <HelderbergToday />
