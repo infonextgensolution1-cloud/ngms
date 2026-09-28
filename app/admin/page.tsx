@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import BusinessSummary from '@/components/admin/BusinessSummary'
+import AdminSearch from '@/components/admin/AdminSearch'
 import { supabase } from '@/lib/supabaseClient'
 import { Loader2, Image as ImageIcon, LogOut, Sparkles, Users, Receipt, FileText, Cloud, LucideIcon, HardHat, Wallet, Boxes } from 'lucide-react'
 
@@ -23,13 +24,13 @@ const NAV_ITEMS: Array<{
     href: '/admin/quotes',
     icon: FileText,
     title: 'Quotes',
-    desc: 'Build, send &amp; track quotes — branded PDF, ZAR, Capitec banking',
+    desc: 'Build, send & track quotes — branded PDF, ZAR, Capitec banking',
   },
   {
     href: '/admin/invoices',
     icon: Receipt,
     title: 'Invoices',
-    desc: 'Track what&apos;s owed, record payments, chase overdue',
+    desc: "Track what's owed, record payments, chase overdue",
   },
   {
     href: '/admin/jobs',
@@ -53,19 +54,19 @@ const NAV_ITEMS: Array<{
     href: '/admin/media',
     icon: ImageIcon,
     title: 'Media',
-    desc: 'Manage hero slides, before/after pairs &amp; the gallery',
+    desc: 'Manage hero slides, before/after pairs & the gallery',
   },
   {
     href: '/admin/prompts',
     icon: Sparkles,
     title: 'Prompt Dashboard',
-    desc: '48 ready-made prompts for quotes, marketing, scheduling &amp; more',
+    desc: '48 ready-made prompts for quotes, marketing, scheduling & more',
   },
   {
     href: '/admin/vercel-projects',
     icon: Cloud,
     title: 'Vercel Projects',
-    desc: 'Monitor NGMS deployment status &amp; project info on Vercel',
+    desc: 'Monitor NGMS deployment status & project info on Vercel',
   },
 ]
 
@@ -201,6 +202,8 @@ export default function AdminPage() {
             <LogOut className="w-4 h-4" /> Sign out
           </button>
         </div>
+
+        <AdminSearch />
 
         <BusinessSummary />
 
