@@ -5,7 +5,9 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Loader2, AlertTriangle, Plus, Trash2, Printer, Upload, Image as ImageIcon } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
+import DeleteRecord from '@/components/admin/DeleteRecord'
 import { supabase } from '@/lib/supabaseClient'
+import { deleteJob } from '@/lib/admin-delete'
 import { handlersB } from '@/lib/ngms-ops/handlers-b'
 import { handlersC } from '@/lib/ngms-ops/handlers-c'
 import { rand, JOB_STATUSES, COST_CATEGORIES, PHOTO_TYPES } from '@/lib/ngms-ops/core'
@@ -382,6 +384,15 @@ function JobDetail() {
               </div>
             )}
           </section>
+
+          <div className="mb-6">
+            <DeleteRecord
+              label="Delete job"
+              confirmText={`Delete "${job.title ?? 'Untitled job'}"? Its costs, labour entries and photos are deleted with it.`}
+              onDelete={() => deleteJob(supabase, job.id)}
+              redirectTo="/admin/jobs"
+            />
+          </div>
         </div>
 
         {/* Printable client-facing report — no financial figures, ever */}

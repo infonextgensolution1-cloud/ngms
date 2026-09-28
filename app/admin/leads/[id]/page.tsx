@@ -6,7 +6,9 @@ import Link from 'next/link'
 import { ArrowLeft, Loader2, AlertTriangle, MessageCircle, Receipt, Save, Mail, Phone as PhoneIcon } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import LeadReplyDraft from '@/components/admin/LeadReplyDraft'
+import DeleteRecord from '@/components/admin/DeleteRecord'
 import { supabase } from '@/lib/supabaseClient'
+import { deleteLead } from '@/lib/admin-delete'
 import { LEAD_COLUMNS, STATUSES, STATUS_LABEL, appendNote, normalisePhone, sast, waLink, type Lead, type LeadStatus } from '@/lib/ngms-leads-ui'
 
 const STATUS_STYLE: Record<string, string> = {
@@ -260,6 +262,15 @@ function LeadView() {
         >
           <Receipt className="w-4 h-4" /> Create quote from this lead
         </Link>
+
+        <div className="mt-6">
+          <DeleteRecord
+            label="Delete lead"
+            confirmText={`Delete the lead from ${lead.name}? Spam or duplicate leads are fine to delete. Real ones you lost are better marked as lost.`}
+            onDelete={() => deleteLead(supabase, lead.id)}
+            redirectTo="/admin/leads"
+          />
+        </div>
       </div>
     </main>
   )

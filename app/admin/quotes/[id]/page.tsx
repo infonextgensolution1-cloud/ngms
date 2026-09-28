@@ -5,7 +5,9 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Loader2, Printer, Check, X, Send, AlertTriangle, Receipt, Briefcase } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
+import DeleteRecord from '@/components/admin/DeleteRecord'
 import { supabase } from '@/lib/supabaseClient'
+import { deleteQuote } from '@/lib/admin-delete'
 import { handlersA } from '@/lib/ngms-ops/handlers-a'
 import { handlersB } from '@/lib/ngms-ops/handlers-b'
 import { getSettings, rand, todaySast } from '@/lib/ngms-ops/core'
@@ -217,6 +219,12 @@ function QuoteView() {
                 {busy === 'invoice' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Receipt className="w-4 h-4" />} Create deposit invoice
               </button>
             )}
+            <DeleteRecord
+              label="Delete quote"
+              confirmText={`Delete ${quote.quote_number}${client?.name ? ` for ${client.name}` : ''} and its line items?`}
+              onDelete={() => deleteQuote(supabase, quote.id)}
+              redirectTo="/admin/quotes"
+            />
           </div>
 
           {msg && <p className="text-xs text-mist mb-4">{msg}</p>}

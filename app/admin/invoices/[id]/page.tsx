@@ -5,7 +5,9 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Loader2, Printer, Send, Ban, AlertTriangle, Save, CircleDollarSign } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
+import DeleteRecord from '@/components/admin/DeleteRecord'
 import { supabase } from '@/lib/supabaseClient'
+import { deleteDraftInvoice } from '@/lib/admin-delete'
 import { handlersB } from '@/lib/ngms-ops/handlers-b'
 import { rand } from '@/lib/ngms-ops/core'
 import type { Invoice, Client, Item } from '@/lib/ngms-ops/core'
@@ -77,6 +79,7 @@ function InvoiceView() {
 
   async function setStatus(status: 'sent' | 'void') {
     if (!invoice) return
+    if (status === 'void' && !window.confirm(`Void ${invoice.invoice_number}? It stays on record as cancelled and drops out of your totals.`)) return
     setBusy(status)
     setMsg('')
     try {
@@ -219,8 +222,17 @@ function InvoiceView() {
                 disabled={!!busy}
                 className="inline-flex items-center gap-1.5 border border-darkgrey hover:border-orange text-mist hover:text-orange text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
               >
-                {busy === 'void' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />} Void
+                {busy === 'void' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />} Void (cancel)
               </button>
+            )}
+            {/* Only unsent drafts can be deleted; issued invoices are voided so they stay on record. */}
+            {invoice.status === 'draft' && money.paid <= 0.004 && (
+              <DeleteRecord
+                label="Delete draft"
+                confirmText={`Delete draft ${invoice.invoice_number}${client?.name ? ` for ${client.name}` : ''}?`}
+                onDelete={() => deleteDraftInvoice(supabase, invoice.id)}
+                redirectTo="/admin/invoices"
+              />
             )}
           </div>
 
