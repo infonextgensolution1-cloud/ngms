@@ -52,8 +52,8 @@ export default function AboutPage() {
                 and more.
               </p>
               <p>
-                Before NGSMS he managed maintenance teams at Swift Pool Company and worked as a foreman at Liebcon
-                Construction. He still leads every job hands-on, from the quote to the finished work.
+                Before NGSMS he worked as a foreman at Liebcon Construction. He still leads every job hands-on,
+                from the quote to the finished work.
               </p>
             </div>
           </div>
