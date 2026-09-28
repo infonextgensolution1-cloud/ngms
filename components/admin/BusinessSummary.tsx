@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
-import { Loader2, RefreshCw, AlertTriangle, MessageCircle } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Loader2, RefreshCw, AlertTriangle, MessageCircle, Radio } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
 import { handlersA } from '@/lib/ngms-ops/handlers-a'
 import { rand } from '@/lib/ngms-ops/core'
@@ -11,7 +11,13 @@ import { rand } from '@/lib/ngms-ops/core'
  * Uses the same logic as the NGSMS Ops connector (lib/ngms-ops) with the
  * signed-in admin's Supabase session, so the numbers always match what
  * Claude reports. Leads come straight from the leads table.
+ *
+ * Live: reloads when a lead, quote, invoice or job changes (Supabase Realtime),
+ * when the app comes back into view, and every 2 minutes as a fallback.
  */
+
+const LIVE_TABLES = ['leads', 'quotes', 'invoices', 'jobs'] as const
+const FALLBACK_MS = 2 * 60 * 1000
 
 type Lead = { id: string; name: string; phone: string; suburb: string | null; service: string | null; service_slug: string | null; status: string; source: string; created_at: string; updated_at: string }
 type Summary = {
@@ -74,6 +80,8 @@ export default function BusinessSummary() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null)
+  const [live, setLive] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -93,6 +101,7 @@ export default function BusinessSummary() {
       if (leadRes.error) throw new Error(leadRes.error.message)
       setSummary(res.structuredContent as unknown as Summary)
       setLeads((leadRes.data ?? []) as Lead[])
+      setUpdatedAt(new Date())
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -103,6 +112,38 @@ export default function BusinessSummary() {
   useEffect(() => {
     load()
   }, [load])
+
+  // Keep the latest load in a ref so the live listeners below never need re-subscribing.
+  const loadRef = useRef(load)
+  loadRef.current = load
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined
+    // Several rows often change at once (a quote plus its items): wait a moment, then reload once.
+    const soon = () => {
+      clearTimeout(timer)
+      timer = setTimeout(() => loadRef.current(), 1500)
+    }
+
+    const channel = supabase.channel('admin-dashboard')
+    for (const table of LIVE_TABLES) channel.on('postgres_changes', { event: '*', schema: 'public', table }, soon)
+    channel.subscribe((status) => setLive(status === 'SUBSCRIBED'))
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') soon()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') loadRef.current()
+    }, FALLBACK_MS)
+
+    return () => {
+      clearTimeout(timer)
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', onVisible)
+      supabase.removeChannel(channel)
+    }
+  }, [])
 
   const openLeads = leads.filter((l) => !['won', 'lost'].includes(l.status))
   const newWeek = leads.filter((l) => daysAgo(l.created_at) < 7).length
@@ -125,6 +166,15 @@ export default function BusinessSummary() {
         <div>
           <h2 className="font-heading text-xl font-bold text-paper">Business summary</h2>
           <p className="text-xs text-mist">Prices ex VAT · same numbers as the NGSMS Ops connector</p>
+          <p className="text-xs mt-1 flex items-center gap-1.5">
+            <Radio className={`w-3.5 h-3.5 ${live ? 'text-whatsapp' : 'text-mist'}`} />
+            <span className={live ? 'text-whatsapp' : 'text-mist'}>{live ? 'Live' : 'Auto-refresh'}</span>
+            {updatedAt && (
+              <span className="text-mist">
+                · updated {updatedAt.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Johannesburg' })}
+              </span>
+            )}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           {WINDOWS.map((w) => (
