@@ -1,0 +1,21 @@
+{
+  "name": "NGMS Admin",
+  "short_name": "NGMS Admin",
+  "description": "Quotes, invoices, jobs and leads for NextGen Solar Clean & Maintenance Solutions.",
+  "id": "/admin",
+  "start_url": "/admin",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0A",
+  "theme_color": "#0A0A0A",
+  "icons": [
+    { "src": "/admin-app/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/admin-app/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/admin-app/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "New quote", "url": "/admin/quotes/new" },
+    { "name": "Leads", "url": "/admin/leads" },
+    { "name": "Jobs", "url": "/admin/jobs" }
+  ]
+}
