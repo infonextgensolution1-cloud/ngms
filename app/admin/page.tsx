@@ -6,7 +6,7 @@ import { useAdminAuth } from '@/hooks/useAdminAuth'
 import BusinessSummary from '@/components/admin/BusinessSummary'
 import AdminSearch from '@/components/admin/AdminSearch'
 import { supabase } from '@/lib/supabaseClient'
-import { Loader2, Image as ImageIcon, LogOut, Sparkles, Users, Receipt, FileText, Cloud, LucideIcon, HardHat, Wallet, Boxes, Contact, CalendarDays, BarChart3 } from 'lucide-react'
+import { Loader2, Image as ImageIcon, LogOut, Sparkles, Users, Receipt, FileText, Cloud, LucideIcon, HardHat, Wallet, Boxes, Contact, CalendarDays, BarChart3, Activity } from 'lucide-react'
 
 const NAV_ITEMS: Array<{
   href: string
@@ -55,6 +55,12 @@ const NAV_ITEMS: Array<{
     icon: BarChart3,
     title: 'Monthly report',
     desc: 'Invoiced, collected, profit and spend by month, with Excel for the bookkeeper',
+  },
+  {
+    href: '/admin/analytics',
+    icon: Activity,
+    title: 'Site Traffic',
+    desc: 'Website visitors, top pages, where people found you & phone vs computer',
   },
   {
     href: '/admin/wages',
