@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, Printer, Send, Ban, AlertTriangle, Save, CircleDollarSign } from 'lucide-react'
+import { ArrowLeft, Loader2, Printer, Send, Ban, AlertTriangle, Save, CircleDollarSign, MessageCircle, BellRing } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import DeleteRecord from '@/components/admin/DeleteRecord'
 import { supabase } from '@/lib/supabaseClient'
 import { deleteDraftInvoice } from '@/lib/admin-delete'
+import { waTo, invoiceMessage, reminderMessage } from '@/lib/admin-wa'
 import { handlersB } from '@/lib/ngms-ops/handlers-b'
 import { rand } from '@/lib/ngms-ops/core'
 import type { Invoice, Client, Item } from '@/lib/ngms-ops/core'
@@ -161,6 +162,16 @@ function InvoiceView() {
   const bankPlaceholder = !business.bank_details || PLACEHOLDER_ACC.test(business.bank_details)
   const input = 'w-full bg-jet border border-darkgrey text-paper rounded-btn px-3 py-2.5 text-sm focus:outline-none focus:border-blue'
   const canVoid = invoice.status !== 'void' && invoice.status !== 'paid' && money.paid <= 0.004
+  const bank = bankPlaceholder ? null : business.bank_details
+  const owing = invoice.status !== 'void' && money.balance > 0.004
+  const waInvoice = owing
+    ? waTo(
+        client?.phone,
+        money.overdue
+          ? reminderMessage({ client: client?.name ?? null, number: invoice.invoice_number, balance: money.balance, daysOverdue: money.days_overdue, bank })
+          : invoiceMessage({ client: client?.name ?? null, number: invoice.invoice_number, balance: money.balance, dueDate: invoice.due_date, bank }),
+      )
+    : null
 
   return (
     <main className="min-h-screen bg-jet px-4 py-8">
@@ -206,7 +217,26 @@ function InvoiceView() {
             </p>
           )}
 
-          <div className="flex flex-wrap items-center gap-2 mb-4">
+          {owing &&
+            (waInvoice ? (
+              <a
+                href={waInvoice}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => {
+                  if (invoice.status === 'draft') setStatus('sent')
+                }}
+                className={`flex items-center justify-center gap-2 ${money.overdue ? 'bg-orange' : 'bg-whatsapp'} hover:opacity-90 text-white font-heading font-semibold px-4 py-3 rounded-btn mb-2`}
+              >
+                {money.overdue ? <BellRing className="w-4 h-4" /> : <MessageCircle className="w-4 h-4" />}
+                {money.overdue ? `Send payment reminder (${money.days_overdue}d overdue)` : 'Send on WhatsApp'}
+              </a>
+            ) : (
+              <p className="text-xs text-mist mb-2">No WhatsApp number on file for this client. Add one on their client page to send from here.</p>
+            ))}
+          {owing && bankPlaceholder && <p className="text-[11px] text-orange mb-2">The message won&apos;t include banking details until the Capitec account number is set.</p>}
+
+          <div className="flex flex-wrap items-center gap-2 mb-4 mt-2">
             {invoice.status === 'draft' && (
               <button
                 onClick={() => setStatus('sent')}

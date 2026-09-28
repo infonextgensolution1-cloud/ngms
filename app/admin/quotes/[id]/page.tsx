@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, Printer, Check, X, Send, AlertTriangle, Receipt, Briefcase, CalendarPlus } from 'lucide-react'
+import { ArrowLeft, Loader2, Printer, Check, X, Send, AlertTriangle, Receipt, Briefcase, CalendarPlus, MessageCircle } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import DeleteRecord from '@/components/admin/DeleteRecord'
 import { supabase } from '@/lib/supabaseClient'
 import { deleteQuote } from '@/lib/admin-delete'
+import { waTo, quoteMessage } from '@/lib/admin-wa'
 import { handlersA } from '@/lib/ngms-ops/handlers-a'
 import { handlersB } from '@/lib/ngms-ops/handlers-b'
 import { getSettings, rand, todaySast } from '@/lib/ngms-ops/core'
@@ -170,6 +171,10 @@ function QuoteView() {
 
   if (!quote || !money || !settings) return null
 
+  const waQuote = waTo(
+    client?.phone,
+    quoteMessage({ client: client?.name ?? null, number: quote.quote_number, total: money.total, deposit: money.deposit, depositPct: money.deposit_percent, validUntil: quote.valid_until }),
+  )
   const liveInvoices = invoices.filter((i) => i.status !== 'void')
   const invoicedTotal = liveInvoices.reduce((t, i) => t + Number(i.total_amount ?? 0), 0)
   const expired = quote.status === 'sent' && !!quote.valid_until && quote.valid_until < todaySast()
@@ -220,6 +225,23 @@ function QuoteView() {
               </Link>
             </p>
           )}
+
+          {waQuote ? (
+            <a
+              href={waQuote}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => {
+                if (quote.status === 'draft') setStatus('sent')
+              }}
+              className="flex items-center justify-center gap-2 bg-whatsapp hover:opacity-90 text-white font-heading font-semibold px-4 py-3 rounded-btn mb-2"
+            >
+              <MessageCircle className="w-4 h-4" /> Send on WhatsApp{client?.name ? ` to ${client.name.split(/\s+/)[0]}` : ''}
+            </a>
+          ) : (
+            <p className="text-xs text-mist mb-2">No WhatsApp number on file for this client. Add one on their client page to send from here.</p>
+          )}
+          <p className="text-[11px] text-mist mb-4">Opens WhatsApp with the message written. Print / Save as PDF first if you want to attach the quote.</p>
 
           <div className="flex flex-wrap items-center gap-2 mb-4">
             {quote.status === 'draft' && (
