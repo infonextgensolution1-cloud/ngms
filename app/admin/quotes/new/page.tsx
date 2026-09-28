@@ -79,6 +79,23 @@ function Builder() {
       })
   }, [])
 
+  // ?client=<id> (from a client's page) preselects that client.
+  useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get('client')
+    if (!wanted) return
+    supabase
+      .from('clients')
+      .select('id,name,phone,suburb')
+      .eq('id', wanted)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) return
+        setMode('existing')
+        setClient(data as ClientRow)
+        setSearch((data as ClientRow).name)
+      })
+  }, [])
+
   // Client search (debounced).
   useEffect(() => {
     if (mode !== 'existing') return
