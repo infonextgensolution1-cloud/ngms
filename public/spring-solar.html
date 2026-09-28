@@ -137,11 +137,7 @@
   /* Proof */
   .proof-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
   .photo-card { border-radius: 10px; overflow: hidden; border: 1px solid var(--border-grey); background: var(--panel-black); }
-  .photo-placeholder {
-    aspect-ratio: 4/3; background: linear-gradient(135deg, #1a1a1a, #232323);
-    display: flex; align-items: center; justify-content: center;
-    color: var(--text-secondary); font-size: 0.8rem; text-align: center; padding: 1rem;
-  }
+  .photo-card .photo { width: 100%; height: auto; aspect-ratio: 4/3; object-fit: cover; }
   .photo-card .cap { padding: 0.75rem; font-size: 0.85rem; color: var(--text-secondary); }
   .testimonial { background: var(--panel-black); border: 1px solid var(--border-grey); border-radius: 10px; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center; }
   .testimonial .stars { color: var(--solar-orange); margin-bottom: 0.5rem; letter-spacing: 0.1em; }
@@ -194,6 +190,11 @@
   }
   @media (min-width: 769px) { body { padding-bottom: 0; } }
 </style>
+<!-- Vercel Web Analytics + Speed Insights: same project as the main site, so visits show in the same dashboard. -->
+<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script>window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };</script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
 </head>
 <body>
 
@@ -314,14 +315,12 @@
     <h2>Real jobs around the Basin.</h2>
     <div class="proof-grid">
       <div class="photo-card">
-        <!-- REPLACE: real before/after solar photo from Admin → Media (Supabase). No stock images. -->
-        <div class="photo-placeholder">[Real solar job photo: before]</div>
-        <div class="cap">[Caption] · [Suburb]</div>
+        <img class="photo" src="/campaigns/spring-solar/house-array.webp" width="1200" height="675" loading="lazy" alt="Solar array on a double-storey home, ladder set up for roof access">
+        <div class="cap">Double-storey home, full roof array · Helderberg</div>
       </div>
       <div class="photo-card">
-        <!-- REPLACE: matching after photo. -->
-        <div class="photo-placeholder">[Real solar job photo: after]</div>
-        <div class="cap">[Caption] · [Suburb]</div>
+        <img class="photo" src="/campaigns/spring-solar/panels-closeup.webp" width="1200" height="675" loading="lazy" alt="Close-up of clean solar panels on a corrugated roof">
+        <div class="cap">Clean glass, back to full output · Helderberg</div>
       </div>
       <div class="testimonial">
         <div class="stars">★★★★★</div>
@@ -395,6 +394,19 @@
 
   var quoteLink = document.getElementById('quoteLink');
   if (quoteLink && src) quoteLink.href += '&utm_source=' + encodeURIComponent(src) + '&utm_campaign=spring-solar';
+
+  // Click events use the same names as the main site (components/ClickTracking.tsx),
+  // with the campaign channel attached so ad sources can be compared in Vercel.
+  var channel = CHANNELS[src] || (src ? src : 'direct');
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a');
+    if (!a) return;
+    var href = a.getAttribute('href') || '';
+    var data = { path: '/spring-solar', channel: channel };
+    if (href.indexOf('wa.me') !== -1) window.va('event', { name: 'whatsapp_click', data: data });
+    else if (href.indexOf('tel:') === 0) window.va('event', { name: 'call_click', data: data });
+    else if (href.indexOf('/quote') !== -1) window.va('event', { name: 'quote_link_click', data: data });
+  });
 
   var extra = ''; // filled in by the calculator
   function waHref(msg) { return 'https://wa.me/' + WA + '?text=' + encodeURIComponent(msg + extra + via); }
