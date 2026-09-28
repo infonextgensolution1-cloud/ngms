@@ -6,7 +6,7 @@ import { useAdminAuth } from '@/hooks/useAdminAuth'
 import BusinessSummary from '@/components/admin/BusinessSummary'
 import AdminSearch from '@/components/admin/AdminSearch'
 import { supabase } from '@/lib/supabaseClient'
-import { Loader2, Image as ImageIcon, LogOut, Sparkles, Users, Receipt, FileText, Cloud, LucideIcon, HardHat, Wallet, Boxes, Contact } from 'lucide-react'
+import { Loader2, Image as ImageIcon, LogOut, Sparkles, Users, Receipt, FileText, Cloud, LucideIcon, HardHat, Wallet, Boxes, Contact, CalendarDays } from 'lucide-react'
 
 const NAV_ITEMS: Array<{
   href: string
@@ -43,6 +43,12 @@ const NAV_ITEMS: Array<{
     icon: HardHat,
     title: 'Jobs',
     desc: 'Schedule, cost & photograph jobs — client-ready completion reports',
+  },
+  {
+    href: '/admin/calendar',
+    icon: CalendarDays,
+    title: 'Job calendar',
+    desc: 'Month view of booked jobs, rain flags, and Google Calendar sync',
   },
   {
     href: '/admin/wages',

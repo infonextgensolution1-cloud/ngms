@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, AlertTriangle, Plus, Trash2, Printer, Upload, Image as ImageIcon, CloudRain } from 'lucide-react'
+import { ArrowLeft, Loader2, AlertTriangle, Plus, Trash2, Printer, Upload, Image as ImageIcon, CloudRain, CalendarPlus } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import DeleteRecord from '@/components/admin/DeleteRecord'
 import { supabase } from '@/lib/supabaseClient'
 import { deleteJob } from '@/lib/admin-delete'
 import { jobWeather, useForecast } from '@/lib/job-weather'
+import { googleCalendarLink } from '@/lib/gcal-link'
 import { handlersB } from '@/lib/ngms-ops/handlers-b'
 import { handlersC } from '@/lib/ngms-ops/handlers-c'
 import { rand, JOB_STATUSES, COST_CATEGORIES, PHOTO_TYPES } from '@/lib/ngms-ops/core'
@@ -286,6 +287,22 @@ function JobDetail() {
               <Printer className="w-4 h-4" /> Print report
             </button>
           </div>
+
+          {job.scheduled_date && (
+            <a
+              href={googleCalendarLink({
+                title: job.title ?? 'NGMS job',
+                date: job.scheduled_date,
+                details: [client?.name && `Client: ${client.name}`, client?.phone && `Phone: ${client.phone}`, job.description].filter(Boolean).join('\n'),
+                location: [client?.address, client?.suburb].filter(Boolean).join(', '),
+              })}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-blue hover:text-paper mb-3"
+            >
+              <CalendarPlus className="w-4 h-4" /> Add to Google Calendar
+            </a>
+          )}
 
           <div className="flex flex-wrap items-center gap-2 mb-5">
             {JOB_STATUSES.map((s) => (
