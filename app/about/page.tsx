@@ -32,16 +32,16 @@ export default function AboutPage() {
       <section className="bg-jet py-10 sm:py-14">
         <div className="max-w-4xl mx-auto px-4">
           <p className="text-blue font-bold text-sm mb-6 uppercase tracking-wide text-center font-heading">Meet the Owner</p>
-          <div className="border-t-4 border-orange bg-cardgrey rounded-card overflow-hidden grid md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+          <div className="border-t-4 border-orange bg-cardgrey rounded-card overflow-hidden flex flex-col sm:flex-row items-center sm:items-start p-6 sm:p-8 gap-6 sm:gap-8">
             <img
               src="/jacques-gordon.webp"
               alt="Jacques Gordon, owner and project manager of NGSMS"
               width={720}
               height={900}
               loading="lazy"
-              className="w-full aspect-[4/5] md:aspect-auto md:h-full object-cover object-top"
+              className="w-32 sm:w-36 aspect-[4/5] object-cover object-top rounded-card flex-shrink-0"
             />
-            <div className="p-6 sm:p-8 space-y-4 text-mist text-base sm:text-lg leading-relaxed">
+            <div className="space-y-4 text-mist text-base sm:text-lg leading-relaxed text-center sm:text-left">
               <div>
                 <p className="font-heading font-semibold text-2xl text-paper">Jacques Gordon</p>
                 <p className="text-sm text-orange font-semibold uppercase tracking-wide">Owner &amp; Project Manager</p>
