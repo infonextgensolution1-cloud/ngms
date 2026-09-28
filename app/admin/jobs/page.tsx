@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Loader2, Plus, RefreshCw, AlertTriangle, ArrowLeft, ChevronRight, Search } from 'lucide-react'
+import { Loader2, Plus, RefreshCw, AlertTriangle, ArrowLeft, ChevronRight, Search, CloudRain } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import ExportButtons from '@/components/admin/ExportButtons'
 import { exportJobs } from '@/lib/admin-export'
+import { jobWeather, useForecast } from '@/lib/job-weather'
 import { supabase } from '@/lib/supabaseClient'
 import { handlersA } from '@/lib/ngms-ops/handlers-a'
 import { handlersB } from '@/lib/ngms-ops/handlers-b'
@@ -137,6 +138,7 @@ function NewJobForm({ onCreated }: { onCreated: (id: string) => void }) {
 }
 
 function JobsList() {
+  const forecast = useForecast()
   const [filter, setFilter] = useState<(typeof FILTERS)[number]['key']>('open_only')
   const [rows, setRows] = useState<JobRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -212,6 +214,14 @@ function JobsList() {
                       <p className="text-xs text-mist truncate">
                         {j.client_name ?? '—'}{j.client_suburb ? `, ${j.client_suburb}` : ''} · {j.scheduled_date ?? 'no date'}
                       </p>
+                      {(() => {
+                        const w = ['scheduled', 'in_progress'].includes(j.status) ? jobWeather(j.title ?? '', j.scheduled_date, forecast) : null
+                        return w ? (
+                          <p className="text-xs text-orange flex items-center gap-1 mt-0.5">
+                            <CloudRain className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{w.note}</span>
+                          </p>
+                        ) : null
+                      })()}
                     </div>
                     <div className="text-right shrink-0 flex items-center gap-2">
                       <span className={`inline-block text-[10px] uppercase tracking-wider border rounded px-2 py-0.5 ${STATUS_STYLE[j.status] ?? 'text-mist border-darkgrey'}`}>{j.status.replace('_', ' ')}</span>

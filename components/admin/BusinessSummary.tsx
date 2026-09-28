@@ -1,11 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Loader2, RefreshCw, AlertTriangle, MessageCircle, Radio, BellRing } from 'lucide-react'
+import { Loader2, RefreshCw, AlertTriangle, MessageCircle, Radio, BellRing, CloudRain } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
 import { handlersA } from '@/lib/ngms-ops/handlers-a'
 import { rand, getSettings } from '@/lib/ngms-ops/core'
 import { waTo, reminderMessage } from '@/lib/admin-wa'
+import { jobWeather, useForecast } from '@/lib/job-weather'
 import { PLACEHOLDER_ACC } from '@/lib/quote-terms'
 import Link from 'next/link'
 
@@ -87,6 +88,7 @@ export default function BusinessSummary() {
   // Phone per overdue invoice id, plus banking details, for the reminder buttons.
   const [phones, setPhones] = useState<Record<string, string | null>>({})
   const [bank, setBank] = useState<string | null>(null)
+  const forecast = useForecast()
   const [live, setLive] = useState(false)
 
   const load = useCallback(async () => {
@@ -286,12 +288,22 @@ export default function BusinessSummary() {
           <Section title="Booked — next 14 days">
             {summary.jobs_next_14_days.length ? (
               <ul className="divide-y divide-darkgrey">
-                {summary.jobs_next_14_days.map((j) => (
-                  <li key={j.id} className="py-2 flex justify-between gap-3 text-sm">
-                    <span className="text-paper truncate">{j.title ?? 'Untitled'} · {j.client ?? '—'}</span>
-                    <span className="text-mist shrink-0">{j.scheduled_date} · {j.status.replace('_', ' ')}</span>
-                  </li>
-                ))}
+                {summary.jobs_next_14_days.map((j) => {
+                  const w = jobWeather(j.title ?? '', j.scheduled_date, forecast)
+                  return (
+                    <li key={j.id} className="py-2 text-sm">
+                      <Link href={`/admin/jobs/${j.id}`} className="flex justify-between gap-3 hover:text-orange">
+                        <span className="text-paper truncate">{j.title ?? 'Untitled'} · {j.client ?? '—'}</span>
+                        <span className="text-mist shrink-0">{j.scheduled_date} · {j.status.replace('_', ' ')}</span>
+                      </Link>
+                      {w && (
+                        <p className="text-xs text-orange flex items-center gap-1 mt-0.5">
+                          <CloudRain className="w-3.5 h-3.5 shrink-0" /> {w.note}
+                        </p>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             ) : (
               <Empty>Nothing booked in the next 14 days.</Empty>

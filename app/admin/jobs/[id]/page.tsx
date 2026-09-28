@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, AlertTriangle, Plus, Trash2, Printer, Upload, Image as ImageIcon } from 'lucide-react'
+import { ArrowLeft, Loader2, AlertTriangle, Plus, Trash2, Printer, Upload, Image as ImageIcon, CloudRain } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import DeleteRecord from '@/components/admin/DeleteRecord'
 import { supabase } from '@/lib/supabaseClient'
 import { deleteJob } from '@/lib/admin-delete'
+import { jobWeather, useForecast } from '@/lib/job-weather'
 import { handlersB } from '@/lib/ngms-ops/handlers-b'
 import { handlersC } from '@/lib/ngms-ops/handlers-c'
 import { rand, JOB_STATUSES, COST_CATEGORIES, PHOTO_TYPES } from '@/lib/ngms-ops/core'
@@ -183,6 +184,7 @@ function JobDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [savingStatus, setSavingStatus] = useState(false)
+  const forecast = useForecast()
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -297,6 +299,15 @@ function JobDetail() {
               </button>
             ))}
           </div>
+
+          {(() => {
+            const w = ['scheduled', 'in_progress'].includes(job.status) ? jobWeather(`${job.title ?? ''} ${job.description ?? ''}`, job.scheduled_date, forecast) : null
+            return w ? (
+              <p className="text-sm text-jet bg-orange rounded-card px-3.5 py-2.5 mb-5 flex items-start gap-2">
+                <CloudRain className="w-4 h-4 shrink-0 mt-0.5" /> {w.note}
+              </p>
+            ) : null
+          })()}
 
           {job.description && (
             <div className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-5 text-sm text-paper whitespace-pre-line">{job.description}</div>

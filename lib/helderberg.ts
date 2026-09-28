@@ -21,6 +21,7 @@ export type Weather = {
   workDay: WxDay // the day the "outdoor work" panel is about
   workDayIsToday: boolean // false once it is late afternoon: we then show tomorrow
   next: WxDay[] // the three days after workDay
+  days: WxDay[] // every forecast day (about 9 days ahead), for job scheduling
 }
 
 export type TradeCall = { trade: string; go: boolean; note: string }
@@ -157,6 +158,7 @@ export function buildWeather(series: MetEntry[]): Weather | null {
     workDay,
     workDayIsToday: workIdx === 0,
     next: days.slice(workIdx + 1, workIdx + 4),
+    days,
   }
 }
 
