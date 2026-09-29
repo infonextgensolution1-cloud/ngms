@@ -237,6 +237,12 @@ function LeadView() {
         <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-4">
           <h2 className="font-heading font-bold text-paper mb-2">Enquiry</h2>
           <p className="text-sm text-paper whitespace-pre-line">{lead.message || '(no message)'}</p>
+          {lead.photo_url && (
+            <a href={lead.photo_url} target="_blank" rel="noreferrer" className="block mt-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={lead.photo_url} alt="Customer photo" className="rounded-lg max-h-72 w-auto border border-darkgrey" />
+            </a>
+          )}
         </section>
 
         {/* Notes */}

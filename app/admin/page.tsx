@@ -21,6 +21,12 @@ const NAV_ITEMS: Array<{
     desc: 'Work the pipeline: new → contacted → site visit → quoted → won/lost',
   },
   {
+    href: '/admin/plans',
+    icon: CalendarDays,
+    title: 'Maintenance plans',
+    desc: 'Plan sign-ups, next visit due dates and automatic reminders',
+  },
+  {
     href: '/admin/clients',
     icon: Contact,
     title: 'Clients',

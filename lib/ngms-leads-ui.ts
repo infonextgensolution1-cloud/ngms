@@ -69,3 +69,8 @@ export function appendNote(existing: string | null, note: string, moveNote?: str
   const entry = `[${sast(new Date().toISOString())}]${moveNote ? ` (${moveNote})` : ''} ${note}`.trim()
   return existing ? `${existing}\n${entry}` : entry
 }
+
+/** Preferred date (YYYY-MM-DD) captured by the website quote form, stored inside the lead message. */
+export function preferredDateOf(message: string | null): string | null {
+  return message?.match(/Preferred date:\s*(\d{4}-\d{2}-\d{2})/)?.[1] ?? null
+}

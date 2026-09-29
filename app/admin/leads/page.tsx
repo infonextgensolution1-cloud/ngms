@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Loader2, Plus, RefreshCw, AlertTriangle, MessageCircle, Search, ArrowLeft } from 'lucide-react'
+import { Loader2, Plus, RefreshCw, AlertTriangle, MessageCircle, Search, ArrowLeft, Camera, CloudRain, Phone } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import ExportButtons from '@/components/admin/ExportButtons'
 import { exportLeads } from '@/lib/admin-export'
 import { supabase } from '@/lib/supabaseClient'
-import { LEAD_COLUMNS, STATUS_LABEL, daysAgo, sast, waLink, type Lead } from '@/lib/ngms-leads-ui'
+import { LEAD_COLUMNS, STATUS_LABEL, daysAgo, preferredDateOf, sast, waLink, type Lead } from '@/lib/ngms-leads-ui'
+import { jobWeather, useForecast } from '@/lib/job-weather'
 
 const STALE_DAYS = 3
 
@@ -34,6 +35,7 @@ function LeadsList() {
   const [rows, setRows] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const forecast = useForecast()
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -119,6 +121,8 @@ function LeadsList() {
             <ul className="divide-y divide-darkgrey">
               {rows.map((l) => {
                 const wa = waLink(l.phone)
+                const pref = preferredDateOf(l.message)
+                const wx = pref ? jobWeather(l.service ?? l.service_slug ?? '', pref, forecast) : null
                 const stale = !['won', 'lost'].includes(l.status) && daysAgo(l.updated_at) >= STALE_DAYS
                 return (
                   <li key={l.id} className="flex items-center gap-3 px-4 py-3">
@@ -130,7 +134,23 @@ function LeadsList() {
                         {l.suburb ?? 'area not given'} · {l.source} · {sast(l.created_at)}
                         {stale && <span className="text-orange"> · {daysAgo(l.updated_at)}d since touch</span>}
                       </p>
+                      {pref && (
+                        <p className={`text-xs truncate ${wx ? 'text-orange' : 'text-mist'}`}>
+                          Wants {pref}
+                          {wx && <span className="inline-flex items-center gap-1 ml-1"><CloudRain className="w-3 h-3" /> weather clash</span>}
+                        </p>
+                      )}
                     </Link>
+                    {l.photo_url && (
+                      <a href={l.photo_url} target="_blank" rel="noreferrer" aria-label="View photo" className="shrink-0 text-blue">
+                        <Camera className="w-4 h-4" />
+                      </a>
+                    )}
+                    {l.phone && (
+                      <a href={`tel:${l.phone.replace(/\s/g, '')}`} aria-label="Call" className="shrink-0 text-mist hover:text-paper">
+                        <Phone className="w-4 h-4" />
+                      </a>
+                    )}
                     {wa && (
                       <a href={wa} target="_blank" rel="noreferrer" className="shrink-0 inline-flex items-center gap-1 text-xs text-whatsapp hover:text-whatsapp-dark" aria-label="WhatsApp">
                         <MessageCircle className="w-4 h-4" />
