@@ -87,6 +87,12 @@ const NAV_ITEMS: Array<{
     desc: '48 ready-made prompts for quotes, marketing, scheduling & more',
   },
   {
+    href: '/admin/prompt-library',
+    icon: Sparkles,
+    title: 'NGMS Prompt Library',
+    desc: 'Client-getting, marketing & content prompts filled in for NGMS, English + Afrikaans',
+  },
+  {
     href: '/admin/vercel-projects',
     icon: Cloud,
     title: 'Vercel Projects',
