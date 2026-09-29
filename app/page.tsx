@@ -13,7 +13,7 @@ import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages, getS
 import LandingSlideshow from '@/components/home/LandingSlideshow'
 import { HeroBento, JobReel, MissionBand, PostTrio, ServicePhotoGrid, type Photo } from '@/components/home/VestoxHome'
 
-export const revalidate = 0
+export const revalidate = 300
 
 // Homepage display font: Space Grotesk Bold (modern / tech look).
 // Sets --font-heading on <main>, so every font-heading class on the homepage uses it.

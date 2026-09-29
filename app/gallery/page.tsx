@@ -5,7 +5,7 @@ export const metadata = {
   description: 'Photos from NextGen Solar & Maintenance Solutions jobs across the Helderberg Basin.',
 }
 
-export const revalidate = 0
+export const revalidate = 300
 
 type GalleryPhoto = {
   id: string

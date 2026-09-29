@@ -6,7 +6,7 @@ export const metadata = {
   description: 'Before and after project photos from NextGen Solar & Maintenance Solutions jobs across the Helderberg Basin.',
 }
 
-export const revalidate = 0
+export const revalidate = 300
 
 type BeforeAfter = {
   id: string
