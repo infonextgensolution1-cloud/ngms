@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { sendLeadEmail } from '@/lib/lead-email'
+import { sendLeadEmail, sendCustomerAutoReply } from '@/lib/lead-email'
+import { rateLimit, clientIp, isEmail } from '@/lib/rate-limit'
 
 // RESEND_API_KEY must be added in Vercel → Project Settings → Environment
 // Variables (never commit it to the repo).
@@ -14,6 +15,11 @@ type LeadPayload = {
   preferredContact?: string
   firstBookingDiscount?: boolean
   message?: string
+  website?: string // honeypot — real users leave this empty
+  consent?: boolean
+  estimate?: string
+  photoUrl?: string
+  preferredDate?: string
 }
 
 export async function POST(request: Request) {
@@ -25,7 +31,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { name, phone, email, suburb, service, sizeDetails, preferredContact, firstBookingDiscount, message } = body
+  const { name, phone, email, suburb, service, sizeDetails, preferredContact, firstBookingDiscount, message, website, estimate, photoUrl, preferredDate } = body
+
+  // Honeypot: pretend success so bots don't retry.
+  if (website) return NextResponse.json({ ok: true })
+  if (!rateLimit(`notify:${clientIp(request)}`)) {
+    return NextResponse.json({ ok: false, error: 'Too many requests' }, { status: 429 })
+  }
 
   if (!name || !phone) {
     return NextResponse.json({ ok: false, error: 'Missing name or phone' }, { status: 400 })
@@ -42,6 +54,9 @@ export async function POST(request: Request) {
     sizeDetails ? `Size / panels / m²: ${sizeDetails}` : null,
     preferredContact ? `Preferred contact: ${preferredContact}` : null,
     firstBookingDiscount ? '10% first-booking discount requested' : null,
+    preferredDate ? `Preferred date: ${preferredDate}` : null,
+    estimate ? `Instant estimate shown: ${estimate}` : null,
+    photoUrl ? `Photo: ${photoUrl}` : null,
     message ? `Details: ${message}` : null,
     ``,
     `A WhatsApp tab was also opened on the customer's device with these details —`,
@@ -56,6 +71,15 @@ export async function POST(request: Request) {
     // Vercel's runtime logs, but return 200 either way.
     console.error('Failed to send lead notification email:', err)
     return NextResponse.json({ ok: false, error: 'Email send failed' }, { status: 200 })
+  }
+
+  // Customer auto-reply (best-effort, only with a valid email).
+  if (isEmail(email)) {
+    try {
+      await sendCustomerAutoReply({ to: email, name, service, suburb, estimateLine: estimate })
+    } catch (err) {
+      console.error('Failed to send customer auto-reply:', err)
+    }
   }
 
   return NextResponse.json({ ok: true })
