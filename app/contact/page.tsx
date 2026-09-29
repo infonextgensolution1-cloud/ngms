@@ -96,7 +96,6 @@ export default function ContactPage() {
               icon={<NgmsIcon name="fast-reply" index={1} className="h-9 w-9" />}
               external
             />
-            <ContactCard href="tel:+27627007509" label="Bookings" value="062 700 7509" icon={<NgmsIcon name="calendar" index={2} className="h-9 w-9" />} />
             <ContactCard
               href="mailto:info.nextgensolution1@gmail.com"
               label="Email"

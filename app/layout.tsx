@@ -79,7 +79,6 @@ const LOCAL_BUSINESS_JSONLD = {
   ],
   contactPoint: [
     { '@type': 'ContactPoint', telephone: SITE.phone, contactType: 'customer service', areaServed: 'ZA' },
-    { '@type': 'ContactPoint', telephone: '+27627007509', contactType: 'reservations', areaServed: 'ZA' },
   ],
   sameAs: [FACEBOOK_URL],
   hasOfferCatalog: {
