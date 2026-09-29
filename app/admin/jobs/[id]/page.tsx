@@ -7,6 +7,7 @@ import { ArrowLeft, Loader2, AlertTriangle, Plus, Trash2, Printer, Upload, Image
 import StaffGate from '@/components/admin/StaffGate'
 import DeleteRecord from '@/components/admin/DeleteRecord'
 import { supabase } from '@/lib/supabaseClient'
+import TrackerLinkButton from '@/components/admin/TrackerLinkButton'
 import { deleteJob } from '@/lib/admin-delete'
 import { jobWeather, useForecast } from '@/lib/job-weather'
 import { googleCalendarLink } from '@/lib/gcal-link'
@@ -287,6 +288,8 @@ function JobDetail() {
               <Printer className="w-4 h-4" /> Print report
             </button>
           </div>
+
+          <div className="mb-3"><TrackerLinkButton jobId={job.id} /></div>
 
           {job.scheduled_date && (
             <a
