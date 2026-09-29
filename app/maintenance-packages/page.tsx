@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import NgmsIcon from '@/components/NgmsIcon'
+import PlanSignupForm from '@/components/PlanSignupForm'
 import { COMMERCIAL_COMBOS, RECURRING_PACKAGES, SEASONAL_COMBOS, type Package } from '@/lib/packages'
 
 export const metadata = {
@@ -8,7 +9,7 @@ export const metadata = {
     "Recurring, seasonal and commercial property maintenance packages from NextGen Solar Clean & Maintenance Solutions — Strand, Gordon's Bay, Somerset West.",
 }
 
-function PackageGrid({ packages }: { packages: Package[] }) {
+function PackageGrid({ packages, joinable = false }: { packages: Package[]; joinable?: boolean }) {
   return (
     <div className="max-w-5xl mx-auto px-4 grid sm:grid-cols-3 gap-6">
       {packages.map((pkg, i) => (
@@ -37,7 +38,7 @@ function PackageGrid({ packages }: { packages: Package[] }) {
             ))}
           </ul>
           <Link
-            href="/quote"
+            href={joinable ? '#join' : '/quote'}
             className="mt-6 block text-center bg-whatsapp hover:bg-whatsapp-dark text-white font-heading font-semibold px-6 py-3 rounded-btn"
           >
             Get started
@@ -61,11 +62,20 @@ export default function MaintenancePackagesPage() {
       </section>
 
       <section className="bg-graphite py-14 border-y border-darkgrey">
-        <PackageGrid packages={RECURRING_PACKAGES} />
+        <PackageGrid packages={RECURRING_PACKAGES} joinable />
         <p className="text-center text-mist text-sm max-w-2xl mx-auto mt-10 opacity-80">
           Panel counts above 20 are quoted at the standard per-panel rate. All packages can be customised to your
           property during a free site visit — exact scope and pricing confirmed before your first visit.
         </p>
+      </section>
+
+      <section id="join" className="bg-jet py-14 px-4 scroll-mt-20">
+        <div className="text-center mb-8">
+          <p className="text-orange font-bold text-sm uppercase tracking-wide mb-2 font-heading">Join a plan</p>
+          <h2 className="font-heading text-3xl font-bold text-paper">Sign up &amp; never forget a service</h2>
+          <p className="text-mist text-base max-w-xl mx-auto mt-3">We&rsquo;ll confirm your first visit and email you when each one is due.</p>
+        </div>
+        <PlanSignupForm />
       </section>
 
       <section className="bg-jet py-14 px-4">
