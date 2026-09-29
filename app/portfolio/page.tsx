@@ -1,9 +1,10 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
 
 export const metadata = {
-  title: 'Our Work | NGSMS',
-  description: 'Before and after project photos from NextGen Solar & Maintenance Solutions jobs across the Helderberg Basin.',
+  title: 'Our Work | NextGen Solar Clean & Maintenance',
+  description: 'Before and after project photos from NextGen Solar Clean & Maintenance Solutions jobs across the Helderberg Basin.',
 }
 
 export const revalidate = 300
@@ -45,12 +46,12 @@ export default async function PortfolioPage() {
             {projects.map((p) => (
               <div key={p.id} className="bg-cardgrey border border-darkgrey rounded-card overflow-hidden">
                 <div className="grid grid-cols-2">
-                  <div className="relative">
-                    <img src={p.before_image_url} alt="Before" className="h-36 w-full object-cover" />
+                  <div className="relative h-36">
+                    <Image src={p.before_image_url} alt="Before" fill sizes="(max-width: 640px) 45vw, 200px" quality={70} className="object-cover" />
                     <span className="badge-glow absolute top-2 left-2 bg-jet/80 text-paper text-[10px] uppercase tracking-wide px-2 py-1 rounded-btn">Before</span>
                   </div>
-                  <div className="relative">
-                    <img src={p.after_image_url} alt="After" className="h-36 w-full object-cover" />
+                  <div className="relative h-36">
+                    <Image src={p.after_image_url} alt="After" fill sizes="(max-width: 640px) 45vw, 200px" quality={70} className="object-cover" />
                     <span className="badge-glow absolute top-2 left-2 bg-orange/90 text-white text-[10px] uppercase tracking-wide px-2 py-1 rounded-btn">After</span>
                   </div>
                 </div>
