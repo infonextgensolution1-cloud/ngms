@@ -2,9 +2,14 @@ import type { ReactNode } from 'react'
 import ContactForm from '@/components/ContactForm'
 import NgmsIcon from '@/components/NgmsIcon'
 
+const CONTACT_TITLE = 'Contact NextGen Solar Clean & Maintenance | Strand, Gordon’s Bay, Somerset West'
+const CONTACT_DESC = 'Call, WhatsApp or send an enquiry to NextGen Solar Clean & Maintenance Solutions — Strand, Gordon’s Bay, Somerset West and the Overberg.'
+
 export const metadata = {
-  title: 'Contact Us | NGSMS',
-  description: 'Get in touch with NextGen Solar & Maintenance Solutions — Strand, Gordon’s Bay, Somerset West.',
+  title: CONTACT_TITLE,
+  description: CONTACT_DESC,
+  alternates: { canonical: '/contact' },
+  openGraph: { title: CONTACT_TITLE, description: CONTACT_DESC, url: '/contact' },
 }
 
 const AREAS = [
