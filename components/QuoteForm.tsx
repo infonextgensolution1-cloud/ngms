@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { instantEstimate } from "@/lib/instant-estimate";
+import { useForecast, jobWeather } from "@/lib/job-weather";
+import { tradeConditions } from "@/lib/helderberg";
 import { supabase } from "@/lib/ngms-public-supabase";
 import { SITE, waLink } from "@/lib/site";
 import { SERVICES } from "@/lib/services";
@@ -28,6 +31,26 @@ function matchArea(initialArea?: string) {
   return undefined;
 }
 
+// Downscale + re-encode in the browser so uploads stay well under Vercel's 4.5MB body limit.
+async function compressImage(file: File, maxSide = 1600, quality = 0.8): Promise<Blob> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  return new Promise((resolve, reject) =>
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("compress failed"))), "image/jpeg", quality)
+  );
+}
+
+const WEATHER_TRADES: Record<string, string> = {
+  "solar-panel-cleaning": "Solar panel cleaning",
+  painting: "Painting",
+  waterproofing: "Waterproofing",
+  paving: "Paving",
+};
+
 export default function QuoteForm({
   initialService,
   initialArea,
@@ -38,6 +61,28 @@ export default function QuoteForm({
   initialSize?: string;
 }) {
   const [status, setStatus] = useState<Status>("idle");
+  const [serviceName, setServiceName] = useState(initialService ?? SERVICES[0]?.name ?? "");
+  const [sizeText, setSizeText] = useState(initialSize ?? "");
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoErr, setPhotoErr] = useState("");
+  const [prefDate, setPrefDate] = useState("");
+  const days = useForecast();
+
+  const svc = SERVICES.find((x) => x.name === serviceName);
+  const estimate = useMemo(() => instantEstimate(svc?.slug, sizeText), [svc?.slug, sizeText]);
+  const wxTrade = svc ? WEATHER_TRADES[svc.slug] : undefined;
+  const dateWarning = useMemo(
+    () => (prefDate && svc ? jobWeather(svc.name, prefDate, days)?.note ?? null : null),
+    [prefDate, svc, days]
+  );
+  const goodDays = useMemo(
+    () =>
+      wxTrade
+        ? days.filter((d) => tradeConditions(d).find((c) => c.trade === wxTrade)?.go).slice(0, 5)
+        : [],
+    [days, wxTrade]
+  );
+  const today = new Date().toISOString().slice(0, 10);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -49,13 +94,38 @@ export default function QuoteForm({
     const phone = String(data.get("phone") || "");
     const email = String(data.get("email") || "") || null;
     const suburb = String(data.get("area") || "");
-    const serviceName = String(data.get("service") || "");
+    // Honeypot: bots fill hidden fields, people don't.
+    if (String(data.get("website") || "")) {
+      setStatus("done");
+      return;
+    }
     const service = SERVICES.find((s) => s.name === serviceName);
     const size = String(data.get("size") || "");
     const pref = String(data.get("pref") || "");
     const notes = String(data.get("notes") || "");
 
-    const message = [size && `Size/details: ${size}`, pref && `Preferred contact: ${pref}`, notes]
+    // Photo upload is best-effort: the lead is never blocked by it.
+    let photoUrl: string | null = null;
+    if (photo) {
+      try {
+        const blob = await compressImage(photo);
+        const fd = new FormData();
+        fd.append("photo", new File([blob], "photo.jpg", { type: "image/jpeg" }));
+        const r = await fetch("/api/quote-photo", { method: "POST", body: fd });
+        const j = await r.json().catch(() => ({}));
+        if (j?.url) photoUrl = j.url;
+      } catch {
+        /* continue without the photo */
+      }
+    }
+
+    const message = [
+      size && `Size/details: ${size}`,
+      prefDate && `Preferred date: ${prefDate}`,
+      pref && `Preferred contact: ${pref}`,
+      `POPIA consent given: ${new Date().toISOString()}`,
+      notes,
+    ]
       .filter(Boolean)
       .join("\n");
 
@@ -67,6 +137,7 @@ export default function QuoteForm({
       service: serviceName,
       service_slug: service?.slug ?? null,
       message,
+      photo_url: photoUrl,
       status: "new",
     });
 
@@ -89,6 +160,10 @@ export default function QuoteForm({
         service: serviceName,
         sizeDetails: size,
         preferredContact: pref,
+        preferredDate: prefDate || undefined,
+        estimate: estimate ?? undefined,
+        photoUrl: photoUrl ?? undefined,
+        consent: true,
         message: notes,
       }),
     }).catch(() => {});
@@ -135,14 +210,58 @@ export default function QuoteForm({
         </select>
       </Field>
       <Field label="Service">
-        <select name="service" defaultValue={initialService} className="field">
+        <select name="service" value={serviceName} onChange={(e) => setServiceName(e.target.value)} className="field">
           {SERVICES.map((s) => (
             <option key={s.slug}>{s.name}</option>
           ))}
         </select>
       </Field>
       <Field label="Size / details">
-        <input name="size" defaultValue={initialSize} placeholder="e.g. 20 panels, 3-bed exterior" className="field" />
+        <input name="size" value={sizeText} onChange={(e) => setSizeText(e.target.value)} placeholder="e.g. 20 panels, 60 m²" className="field" />
+      </Field>
+      {estimate && (
+        <div className="rounded-lg border border-orange/40 bg-orange/10 px-3 py-2.5 text-sm" role="status">
+          <strong>Instant guide:</strong> {estimate}
+          <span className="block text-mist text-xs mt-1">A guide only. Your firm quote follows once we&rsquo;ve seen the job.</span>
+        </div>
+      )}
+      <Field label="Photo of the job (optional)">
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="field"
+          onChange={(e) => {
+            const f = e.target.files?.[0] ?? null;
+            if (f && f.size > 15 * 1024 * 1024) {
+              setPhotoErr("That photo is over 15MB. Please pick a smaller one.");
+              setPhoto(null);
+              e.target.value = "";
+            } else {
+              setPhotoErr("");
+              setPhoto(f);
+            }
+          }}
+        />
+        {photoErr && <span className="text-orange text-xs">{photoErr}</span>}
+      </Field>
+      <Field label="Preferred date (optional)">
+        <input type="date" min={today} value={prefDate} onChange={(e) => setPrefDate(e.target.value)} className="field" />
+        {dateWarning && <span className="block text-orange text-xs mt-1.5" role="alert">Weather heads-up: {dateWarning}</span>}
+        {goodDays.length > 0 && (
+          <span className="flex flex-wrap gap-1.5 mt-2 items-center text-xs text-mist">
+            Good weather for this job:
+            {goodDays.map((d) => (
+              <button
+                type="button"
+                key={d.date}
+                onClick={() => setPrefDate(d.date)}
+                className="rounded-full border border-orange/50 px-2.5 py-1 font-semibold text-jet hover:bg-orange/10"
+              >
+                {new Date(d.date + "T12:00:00").toLocaleDateString("en-ZA", { weekday: "short", day: "numeric", month: "short" })}
+              </button>
+            ))}
+          </span>
+        )}
       </Field>
       <Field label="Preferred contact">
         <select name="pref" className="field">
@@ -154,6 +273,14 @@ export default function QuoteForm({
       <Field label="Notes">
         <textarea name="notes" className="field min-h-[110px]" />
       </Field>
+      <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
+      <label className="flex items-start gap-2 text-xs text-mist">
+        <input required type="checkbox" name="consent" className="mt-0.5" />
+        <span>
+          I agree that NextGen may store my details and contact me about this quote and related service reminders, as
+          set out in our <a href="/terms" className="underline">terms</a> (POPIA).
+        </span>
+      </label>
       <button className="btn btn-quote" type="submit" disabled={status === "sending"}>
         {status === "sending" ? "Sending..." : "Send quote request"}
       </button>

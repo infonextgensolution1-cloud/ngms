@@ -362,7 +362,7 @@ export function PostTrio({ left, right }: { left?: Photo; right?: Photo }) {
     <div className={`rounded-xl bg-white p-2.5 shadow-sm border border-[#E2E2DE] ${className}`}>
       <div className="flex items-center justify-between px-1 pb-2">
         <span className="flex items-center gap-2 text-[11px] font-bold text-jet">
-          <span className="h-5 w-5 rounded-full bg-orange inline-block" aria-hidden /> nextgen.solar
+          <span className="h-5 w-5 rounded-full bg-orange inline-block" aria-hidden /> nextgensolarmaintenance.co.za
         </span>
         <span className="text-mist text-sm leading-none" aria-hidden>···</span>
       </div>
