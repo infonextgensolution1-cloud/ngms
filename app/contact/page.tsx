@@ -80,7 +80,7 @@ export default function ContactPage() {
         <div>
           <p className="kicker">★ Helderberg-based team</p>
           <h2 className="font-heading text-4xl font-bold leading-none text-paper sm:text-6xl">
-            Get in touch with NGSMS!
+            Get in touch with NextGen!
           </h2>
           <p className="mt-4 max-w-md text-mist">
             Message us on WhatsApp, call, or send an enquiry. We reply the same day &mdash; usually within a few
@@ -132,7 +132,7 @@ export default function ContactPage() {
           </div>
           <div className="overflow-hidden rounded-card border border-darkgrey">
             <iframe
-              title="NGSMS service area — Helderberg Basin"
+              title="NextGen service area — Helderberg Basin"
               src="https://maps.google.com/maps?q=Somerset+West,+Western+Cape&z=11&output=embed"
               className="h-80 w-full"
               loading="lazy"

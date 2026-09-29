@@ -1,7 +1,7 @@
 import NgmsIcon from '@/components/NgmsIcon'
 
 export const metadata = {
-  title: 'Price List | NGSMS — NextGen Solar & Maintenance Solutions',
+  title: 'Price List | NextGen Solar Clean & Maintenance Solutions',
   description:
     'Clear starting rates for solar cleaning, painting, waterproofing, paving and more across Strand, Gordon\'s Bay and Somerset West.',
 }

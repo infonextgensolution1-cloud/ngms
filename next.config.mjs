@@ -13,9 +13,19 @@ const SOLAR_AREA_REDIRECTS = {
 
 const nextConfig = {
   images: {
+    // Cap generated widths at 1920 (no 3840 variants) and prefer AVIF/WebP — big saving on phones.
+    deviceSizes: [360, 480, 640, 750, 828, 1080, 1200, 1920],
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       { protocol: 'https', hostname: '**.supabase.co' },
     ],
+  },
+  // Internal tools: kept out of robots.txt (which would advertise them) and marked noindex instead.
+  async headers() {
+    return ['/ops', '/ops/:path*', '/prompt-dashboard', '/prompt-dashboard/:path*'].map((source) => ({
+      source,
+      headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+    }))
   },
   async redirects() {
     return [
