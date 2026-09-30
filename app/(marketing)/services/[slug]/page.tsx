@@ -12,14 +12,16 @@ export function generateStaticParams() {
   return SERVICES.map((s) => ({ slug: s.slug }));
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const s = getService(params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const s = getService(slug);
   if (!s) return {};
   return { title: s.metaTitle || s.name, description: s.metaDescription || s.description };
 }
 
-export default function ServiceDetailPage({ params }: { params: { slug: string } }) {
-  const s = getService(params.slug);
+export default async function ServiceDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const s = getService(slug);
   if (!s) return notFound();
   const isSolar = s.slug === "solar-panel-cleaning";
   // Solar has richer per-town pages — link straight to them instead of the thin duplicates.
