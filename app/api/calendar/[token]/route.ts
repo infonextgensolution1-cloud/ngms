@@ -5,8 +5,9 @@ import { buildIcs, tokenOk, type FeedJob } from '@/lib/calendar-feed'
 // Only answers with the right token (see lib/calendar-feed.ts); anything else is a 404.
 export const dynamic = 'force-dynamic'
 
-export async function GET(_req: Request, { params }: { params: { token: string } }) {
-  if (!tokenOk(params.token)) return new Response('Not found', { status: 404 })
+export async function GET(_req: Request, { params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params
+  if (!tokenOk(token)) return new Response('Not found', { status: 404 })
 
   const since = new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10)
   const { data, error } = await db()
