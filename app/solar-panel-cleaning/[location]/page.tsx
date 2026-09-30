@@ -16,8 +16,9 @@ export async function generateMetadata({ params }: { params: Promise<{ location:
   }
 }
 
-export default function SolarLocationPage({ params }: { params: { location: string } }) {
-  const loc = getSolarLocation(params.location)
+export default async function SolarLocationPage({ params }: { params: Promise<{ location: string }> }) {
+  const { location } = await params
+  const loc = getSolarLocation(location)
   if (!loc) notFound()
 
   return (
