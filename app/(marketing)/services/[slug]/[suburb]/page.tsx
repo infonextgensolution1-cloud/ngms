@@ -13,13 +13,14 @@ export function generateStaticParams() {
   return SERVICES.flatMap((s) => SUBURBS.map((sub) => ({ slug: s.slug, suburb: sub.slug })));
 }
 
-export function generateMetadata({
+export async function generateMetadata({
   params,
 }: {
-  params: { slug: string; suburb: string };
-}): Metadata {
-  const s = getService(params.slug);
-  const sub = getSuburb(params.suburb);
+  params: Promise<{ slug: string; suburb: string }>;
+}): Promise<Metadata> {
+  const { slug, suburb } = await params;
+  const s = getService(slug);
+  const sub = getSuburb(suburb);
   if (!s || !sub) return {};
   return {
     title: `${s.name} in ${sub.name}`,
@@ -27,13 +28,14 @@ export function generateMetadata({
   };
 }
 
-export default function ServiceSuburbPage({
+export default async function ServiceSuburbPage({
   params,
 }: {
-  params: { slug: string; suburb: string };
+  params: Promise<{ slug: string; suburb: string }>;
 }) {
-  const s = getService(params.slug);
-  const sub = getSuburb(params.suburb);
+  const { slug, suburb } = await params;
+  const s = getService(slug);
+  const sub = getSuburb(suburb);
   if (!s || !sub) return notFound();
 
   const jsonLd = {

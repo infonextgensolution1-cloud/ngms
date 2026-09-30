@@ -1,0 +1,35 @@
+name: NGMS Next 16 upgrade verification
+
+on:
+  push:
+    branches:
+      - upgrade/next16-ngms-app
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.4
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Generate Next types
+        run: npx next typegen
+
+      - name: Production build
+        run: npm run build
