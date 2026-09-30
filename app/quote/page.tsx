@@ -13,11 +13,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function QuotePage({
+export default async function QuotePage({
   searchParams,
 }: {
-  searchParams: { service?: string; area?: string; size?: string };
+  searchParams: Promise<{ service?: string; area?: string; size?: string }>;
 }) {
+  const query = await searchParams;
   return (
     <section>
       <div className="bg-graphite border-b border-line py-14 px-4 text-center">
@@ -33,9 +34,9 @@ export default function QuotePage({
           <span className="h-px flex-1 bg-line" />
         </div>
         <QuoteForm
-          initialService={searchParams.service}
-          initialArea={searchParams.area}
-          initialSize={searchParams.size}
+          initialService={query.service}
+          initialArea={query.area}
+          initialSize={query.size}
         />
       </div>
     </section>
