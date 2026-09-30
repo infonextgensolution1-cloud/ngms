@@ -46,7 +46,7 @@ export default function DiyTips() {
         <div className="mb-12 text-center">
           <p className="kicker">DIY tips</p>
           <h2 id="diy-tips" className="text-3xl md:text-4xl">
-            Helderberg DIY Tips
+            Helderberg DIY tips
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-mist">
             Quick wins you can do yourself, and how to tell when it&rsquo;s time to call in a pro.
@@ -70,12 +70,12 @@ export default function DiyTips() {
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <a
             href="/quote"
-            className="inline-block rounded-full btn-glow px-9 py-3 font-heading text-base font-bold uppercase tracking-wide transition"
+            className="inline-block rounded-full btn-power px-9 py-3 font-heading text-base font-bold uppercase tracking-wide transition"
           >
             Get a Free Quote
           </a>
           <a
-            href="https://wa.me/27631387945?text=Hi%20NGSMS%2C%20I%20read%20your%20DIY%20tips%20and%20could%20use%20a%20hand%20with%20a%20job."
+            href="https://wa.me/27631387945?text=Hi%20NextGen%2C%20I%20read%20your%20DIY%20tips%20and%20could%20use%20a%20hand%20with%20a%20job."
             target="_blank"
             rel="noopener noreferrer"
             className="btn-wa rounded-full px-9"

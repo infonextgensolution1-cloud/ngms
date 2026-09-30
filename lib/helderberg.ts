@@ -1,12 +1,8 @@
-// Live "Helderberg today" data for the homepage: weather + local news.
+// Live "Helderberg today" weather for the homepage.
 //
-// Weather: MET Norway Locationforecast (free, commercial use allowed as long as
-//          we send a descriptive User-Agent, cache responses and credit MET Norway).
-// News:    DistrictMail & Helderberg Gazette public RSS feed. Headlines + links only,
-//          always attributed and linked back to the original article.
-//
-// Both sources are cached and fail soft: if one is down the homepage simply hides
-// that panel instead of erroring.
+// MET Norway Locationforecast (free, commercial use allowed as long as we send a
+// descriptive User-Agent, cache responses and credit MET Norway). Cached and
+// fails soft: if it is down the homepage simply hides the panel.
 
 export type WxKind = 'sun' | 'moon' | 'partly' | 'cloud' | 'fog' | 'rain' | 'storm'
 
@@ -25,16 +21,13 @@ export type Weather = {
   workDay: WxDay // the day the "outdoor work" panel is about
   workDayIsToday: boolean // false once it is late afternoon: we then show tomorrow
   next: WxDay[] // the three days after workDay
+  days: WxDay[] // every forecast day (about 9 days ahead), for job scheduling
 }
 
 export type TradeCall = { trade: string; go: boolean; note: string }
 
-export type NewsItem = { title: string; url: string; date: string | null }
-
 // Helderberg centre (Somerset West). Rounded to 2 decimals as MET Norway asks.
 const WEATHER_URL = 'https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=-34.09&lon=18.84'
-const NEWS_FEED = 'https://novanews.co.za/districtmailhelderberg/feed/'
-export const NEWS_HOME = 'https://novanews.co.za/districtmailhelderberg/news/'
 
 // MET Norway requires a User-Agent that identifies the site.
 const USER_AGENT = 'NGSMS-Website/1.0 (+https://www.nextgensolarmaintenance.co.za)'
@@ -165,6 +158,7 @@ export function buildWeather(series: MetEntry[]): Weather | null {
     workDay,
     workDayIsToday: workIdx === 0,
     next: days.slice(workIdx + 1, workIdx + 4),
+    days,
   }
 }
 
@@ -210,81 +204,5 @@ export async function getWeather(): Promise<Weather | null> {
     return buildWeather(json?.properties?.timeseries)
   } catch {
     return null
-  }
-}
-
-/* ------------------------------------------------------------------ */
-/* News                                                                */
-/* ------------------------------------------------------------------ */
-
-const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' }
-
-function fromCode(n: number, fallback: string): string {
-  try {
-    return String.fromCodePoint(n)
-  } catch {
-    return fallback
-  }
-}
-
-function decodeXml(s: string): string {
-  return s
-    .replace(/^\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*$/, '$1')
-    .replace(/&#x([0-9a-f]+);/gi, (m, h: string) => fromCode(parseInt(h, 16), m))
-    .replace(/&#(\d+);/g, (m, d: string) => fromCode(parseInt(d, 10), m))
-    .replace(/&(amp|lt|gt|quot|apos|nbsp);/g, (_m, n: string) => ENTITIES[n])
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function tag(block: string, name: string): string {
-  const m = block.match(new RegExp('<' + name + '(?:\\s[^>]*)?>([\\s\\S]*?)</' + name + '>'))
-  return m ? decodeXml(m[1]) : ''
-}
-
-function safeHttps(url: string): string | null {
-  try {
-    const u = new URL(url)
-    return u.protocol === 'https:' ? u.href : null
-  } catch {
-    return null
-  }
-}
-
-export function parseFeed(xml: string): NewsItem[] {
-  const items: NewsItem[] = []
-  const re = /<item>([\s\S]*?)<\/item>/g
-  let m: RegExpExecArray | null
-  while ((m = re.exec(xml)) !== null) {
-    const block = m[1]
-    const title = tag(block, 'title')
-    const url = safeHttps(tag(block, 'link'))
-    if (!title || !url) continue
-    const t = Date.parse(tag(block, 'pubDate'))
-    items.push({ title, url, date: Number.isNaN(t) ? null : new Date(t).toISOString() })
-  }
-  return items
-}
-
-// This is a business homepage: keep the feed to community / everyday news and
-// leave out crime, deaths and court stories.
-const HIDE_HEADLINE =
-  /\b(murder\w*|kill\w*|shot|shoot\w*|stab\w*|rape\w*|assault\w*|dead|deaths?|dies|died|fatal\w*|crash\w*|gang|robber\w*|hijack\w*|burglar\w*|arrest\w*|abduct\w*|kidnap\w*|missing|suicide|abus\w*|court|charged|sentenc\w*|drown\w*|victims?|moord\w*|vermoor\w*|doodgeskiet|geskiet|oorlede|inbraak|gearresteer\w*|verkrag\w*|ongeluk\w*)\b|body found|bodies found|found dead|found alive|baby found/i
-
-export function filterNews(items: NewsItem[], limit: number): NewsItem[] {
-  return items.filter((n) => !HIDE_HEADLINE.test(n.title)).slice(0, limit)
-}
-
-export async function getNews(limit = 4): Promise<NewsItem[]> {
-  try {
-    const res = await fetch(NEWS_FEED, {
-      headers: { 'User-Agent': USER_AGENT, Accept: 'application/rss+xml, application/xml;q=0.9, */*;q=0.8' },
-      next: { revalidate: 1800 },
-      signal: AbortSignal.timeout(4000),
-    })
-    if (!res.ok) return []
-    return filterNews(parseFeed(await res.text()), limit)
-  } catch {
-    return []
   }
 }

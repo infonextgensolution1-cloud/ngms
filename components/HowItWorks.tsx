@@ -4,25 +4,25 @@ const STEPS = [
   {
     n: "01",
     icon: "send-photo",
-    title: "Send The Job",
+    title: "Send the job",
     body: "WhatsApp a photo or call us — tell us what needs doing and where.",
   },
   {
     n: "02",
     icon: "quote",
-    title: "Get A Straight Quote",
+    title: "Get a straight quote",
     body: "Fixed, itemised price — often the same day. No site visit needed for most jobs.",
   },
   {
     n: "03",
     icon: "subcontractor-work",
-    title: "We Get It Done",
+    title: "We get it done",
     body: "One scheduled crew, right tools for the trade, worked around Cape weather when it matters.",
   },
   {
     n: "04",
     icon: "walkthrough",
-    title: "Walkthrough & Follow-Up",
+    title: "Walkthrough & follow-up",
     body: "We check the work with you. Ask about a maintenance plan for priority booking and a discount.",
   },
 ];
@@ -36,7 +36,7 @@ export default function HowItWorks() {
       <div className="wrap">
         <div className="text-center mb-12">
           <p className="kicker">How it works</p>
-          <h2 className="text-3xl md:text-4xl">Four Steps To A Finished Job</h2>
+          <h2 className="text-3xl md:text-4xl">Four steps to a finished job</h2>
         </div>
         <div className="relative grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="hidden lg:block absolute top-6 left-[12.5%] right-[12.5%] h-px bg-darkgrey" aria-hidden />

@@ -4,8 +4,107 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import BusinessSummary from '@/components/admin/BusinessSummary'
+import AdminSearch from '@/components/admin/AdminSearch'
 import { supabase } from '@/lib/supabaseClient'
-import { Loader2, Image as ImageIcon, LogOut, Sparkles } from 'lucide-react'
+import { Loader2, Image as ImageIcon, LogOut, Sparkles, Users, Receipt, FileText, Cloud, LucideIcon, HardHat, Wallet, Boxes, Contact, CalendarDays, BarChart3, Activity } from 'lucide-react'
+
+const NAV_ITEMS: Array<{
+  href: string
+  icon: LucideIcon
+  title: string
+  desc: string
+}> = [
+  {
+    href: '/admin/leads',
+    icon: Users,
+    title: 'Leads',
+    desc: 'Work the pipeline: new → contacted → site visit → quoted → won/lost',
+  },
+  {
+    href: '/admin/plans',
+    icon: CalendarDays,
+    title: 'Maintenance plans',
+    desc: 'Plan sign-ups, next visit due dates and automatic reminders',
+  },
+  {
+    href: '/admin/clients',
+    icon: Contact,
+    title: 'Clients',
+    desc: 'Everyone you have quoted: contact details and full history',
+  },
+  {
+    href: '/admin/quotes',
+    icon: FileText,
+    title: 'Quotes',
+    desc: 'Build, send & track quotes — branded PDF, ZAR, Capitec banking',
+  },
+  {
+    href: '/admin/invoices',
+    icon: Receipt,
+    title: 'Invoices',
+    desc: "Track what's owed, record payments, chase overdue",
+  },
+  {
+    href: '/admin/jobs',
+    icon: HardHat,
+    title: 'Jobs',
+    desc: 'Schedule, cost & photograph jobs — client-ready completion reports',
+  },
+  {
+    href: '/admin/calendar',
+    icon: CalendarDays,
+    title: 'Job calendar',
+    desc: 'Month view of booked jobs, rain flags, and Google Calendar sync',
+  },
+  {
+    href: '/admin/reports',
+    icon: BarChart3,
+    title: 'Monthly report',
+    desc: 'Invoiced, collected, profit and spend by month, with Excel for the bookkeeper',
+  },
+  {
+    href: '/admin/analytics',
+    icon: Activity,
+    title: 'Site Traffic',
+    desc: 'Website visitors, top pages, where people found you & phone vs computer',
+  },
+  {
+    href: '/admin/wages',
+    icon: Wallet,
+    title: 'Wages & Payroll',
+    desc: 'Crew profiles, banking details, documents & payslip generator',
+  },
+  {
+    href: '/admin/materials',
+    icon: Boxes,
+    title: 'Materials & Suppliers',
+    desc: 'Builders Warehouse catalog, supplier directory & purchase log',
+  },
+  {
+    href: '/admin/media',
+    icon: ImageIcon,
+    title: 'Media',
+    desc: 'Manage hero slides, before/after pairs & the gallery',
+  },
+  {
+    href: '/admin/prompts',
+    icon: Sparkles,
+    title: 'Prompt Dashboard',
+    desc: '48 ready-made prompts for quotes, marketing, scheduling & more',
+  },
+  {
+    href: '/admin/prompt-library',
+    icon: Sparkles,
+    title: 'NGMS Prompt Library',
+    desc: 'Client-getting, marketing & content prompts filled in for NGMS, English + Afrikaans',
+  },
+  {
+    href: '/admin/vercel-projects',
+    icon: Cloud,
+    title: 'Vercel Projects',
+    desc: 'Monitor NGMS deployment status & project info on Vercel',
+  },
+]
 
 // Read-only view of the same 'site-visitors' presence channel the public
 // site tracks itself into (see components/VisitorPresence.tsx). This tab
@@ -140,35 +239,29 @@ export default function AdminPage() {
           </button>
         </div>
 
+        <AdminSearch />
+
         <BusinessSummary />
 
         <LiveVisitors />
 
-        <Link
-          href="/admin/media"
-          className="flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
-        >
-          <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
-            <ImageIcon className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="font-heading font-bold text-paper">Media</p>
-            <p className="text-sm text-mist">Manage hero slides, before/after pairs &amp; the gallery</p>
-          </div>
-        </Link>
-
-        <Link
-          href="/admin/prompts"
-          className="mt-4 flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
-        >
-          <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
-            <Sparkles className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="font-heading font-bold text-paper">Prompt Dashboard</p>
-            <p className="text-sm text-mist">48 ready-made prompts for quotes, marketing, scheduling &amp; more</p>
-          </div>
-        </Link>
+        <div className="grid gap-4">
+          {NAV_ITEMS.map(({ href, icon: Icon, title, desc }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
+            >
+              <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
+                <Icon className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="font-heading font-bold text-paper">{title}</p>
+                <p className="text-sm text-mist">{desc}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
     </main>
   )

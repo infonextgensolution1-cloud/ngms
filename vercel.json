@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": [
+    "dub1"
+  ],
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':(exclude)docs' ':(exclude)*.md'",
+  "crons": [
+    {
+      "path": "/api/cron/plan-reminders",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}

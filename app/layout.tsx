@@ -79,7 +79,6 @@ const LOCAL_BUSINESS_JSONLD = {
   ],
   contactPoint: [
     { '@type': 'ContactPoint', telephone: SITE.phone, contactType: 'customer service', areaServed: 'ZA' },
-    { '@type': 'ContactPoint', telephone: '+27627007509', contactType: 'reservations', areaServed: 'ZA' },
   ],
   sameAs: [FACEBOOK_URL],
   hasOfferCatalog: {
@@ -106,7 +105,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {children}
 
-        <div className="bg-graphite border-t border-darkgrey py-10 text-center px-4">
+        {/* data-site-marketing: hidden on /admin screens (components/admin/AdminApp.tsx) */}
+        <div data-site-marketing className="bg-graphite border-t border-darkgrey py-10 text-center px-4">
           <p className="font-heading font-bold text-2xl sm:text-3xl text-paper">
             ONE CALL. <span className="text-orange">ALL SOLUTIONS.</span>
           </p>
@@ -115,19 +115,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </p>
         </div>
 
-        <footer className="bg-jet text-mist text-sm pt-10 sm:pt-14 pb-24 sm:pb-8 border-t border-darkgrey">
+        <footer data-site-marketing className="bg-jet text-mist text-sm pt-10 sm:pt-14 pb-24 sm:pb-8 border-t border-darkgrey">
           <div className="max-w-6xl mx-auto px-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
             <div>
-              <img src={LOGO_DATA_URI} alt="NGSMS logo" className="h-12 w-auto mb-4" />
+              <img src={LOGO_DATA_URI} alt="NextGen Solar Clean & Maintenance logo" className="h-12 w-auto mb-4" />
               <p className="text-mist">
                 Professional property maintenance across the Helderberg Basin. Quality work, done safely and
                 properly.
               </p>
               <div className="flex items-center gap-1 mt-3 -ml-2">
-                <a href={FACEBOOK_URL} aria-label="NGSMS on Facebook" className="text-facebook hover:opacity-80 p-2.5">
+                <a href={FACEBOOK_URL} aria-label="NextGen on Facebook" className="text-facebook hover:opacity-80 p-2.5">
                   <FacebookIcon className="h-7 w-7" />
                 </a>
-                <a href={WHATSAPP_URL} aria-label="WhatsApp NGSMS" className="text-whatsapp hover:opacity-80 p-2.5">
+                <a href={WHATSAPP_URL} aria-label="WhatsApp NextGen" className="text-whatsapp hover:opacity-80 p-2.5">
                   <WhatsAppIcon className="h-7 w-7" />
                 </a>
               </div>
@@ -153,7 +153,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   ['/services', 'Services'],
                   ['/portfolio', 'Projects'],
                   ['/gallery', 'Gallery'],
-                  ['/price-list', 'Catalog'],
+                  ['/price-list', 'Price list'],
                   ['/maintenance-packages', 'Maintenance Packages'],
                   ['/roi-calculator', 'ROI Calculator'],
                   ['/about', 'About'],
@@ -198,8 +198,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </footer>
 
         <a
+          data-site-marketing
           href={WHATSAPP_URL}
-          aria-label="WhatsApp NGSMS"
+          aria-label="WhatsApp NextGen"
           className="fixed z-50 flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14"
           style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom))', right: 'calc(1rem + env(safe-area-inset-right))' }}
         >

@@ -2,9 +2,14 @@ import type { ReactNode } from 'react'
 import ContactForm from '@/components/ContactForm'
 import NgmsIcon from '@/components/NgmsIcon'
 
+const CONTACT_TITLE = 'Contact NextGen Solar Clean & Maintenance | Strand, Gordon’s Bay, Somerset West'
+const CONTACT_DESC = 'Call, WhatsApp or send an enquiry to NextGen Solar Clean & Maintenance Solutions — Strand, Gordon’s Bay, Somerset West and the Overberg.'
+
 export const metadata = {
-  title: 'Contact Us | NGSMS',
-  description: 'Get in touch with NextGen Solar & Maintenance Solutions — Strand, Gordon’s Bay, Somerset West.',
+  title: CONTACT_TITLE,
+  description: CONTACT_DESC,
+  alternates: { canonical: '/contact' },
+  openGraph: { title: CONTACT_TITLE, description: CONTACT_DESC, url: '/contact' },
 }
 
 const AREAS = [
@@ -75,7 +80,7 @@ export default function ContactPage() {
         <div>
           <p className="kicker">★ Helderberg-based team</p>
           <h2 className="font-heading text-4xl font-bold leading-none text-paper sm:text-6xl">
-            Get in touch with NGSMS!
+            Get in touch with NextGen!
           </h2>
           <p className="mt-4 max-w-md text-mist">
             Message us on WhatsApp, call, or send an enquiry. We reply the same day &mdash; usually within a few
@@ -91,7 +96,6 @@ export default function ContactPage() {
               icon={<NgmsIcon name="fast-reply" index={1} className="h-9 w-9" />}
               external
             />
-            <ContactCard href="tel:+27627007509" label="Bookings" value="062 700 7509" icon={<NgmsIcon name="calendar" index={2} className="h-9 w-9" />} />
             <ContactCard
               href="mailto:info.nextgensolution1@gmail.com"
               label="Email"
@@ -127,7 +131,7 @@ export default function ContactPage() {
           </div>
           <div className="overflow-hidden rounded-card border border-darkgrey">
             <iframe
-              title="NGSMS service area — Helderberg Basin"
+              title="NextGen service area — Helderberg Basin"
               src="https://maps.google.com/maps?q=Somerset+West,+Western+Cape&z=11&output=embed"
               className="h-80 w-full"
               loading="lazy"

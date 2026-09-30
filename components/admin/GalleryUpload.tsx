@@ -8,6 +8,7 @@ export default function GalleryUpload({ onSuccess }: { onSuccess?: () => void })
   const [file, setFile] = useState<File | null>(null)
   const [caption, setCaption] = useState('')
   const [serviceSlug, setServiceSlug] = useState(services[0].slug)
+  const [slot, setSlot] = useState('')
   const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState('')
 
@@ -31,10 +32,17 @@ export default function GalleryUpload({ onSuccess }: { onSuccess?: () => void })
 
       const { data: { publicUrl } } = supabase.storage.from('gallery-photos').getPublicUrl(filePath)
 
+      // A slot is a fixed homepage spot (e.g. the Mission section tiles) — only one
+      // photo can hold it at a time, so retire whatever's pinned there now.
+      if (slot) {
+        await supabase.from('gallery_photos').update({ is_active: false }).eq('slot', slot).eq('is_active', true)
+      }
+
       const { error: dbError } = await supabase.from('gallery_photos').insert({
         image_url: publicUrl,
         caption: caption.trim() || null,
         service_slug: serviceSlug,
+        slot: slot || null,
         sort_order: 0,
         is_active: true,
       })
@@ -43,6 +51,7 @@ export default function GalleryUpload({ onSuccess }: { onSuccess?: () => void })
       setMessage('Photo published successfully!')
       setFile(null)
       setCaption('')
+      setSlot('')
       onSuccess?.()
     } catch (err: any) {
       console.error(err)
@@ -84,6 +93,18 @@ export default function GalleryUpload({ onSuccess }: { onSuccess?: () => void })
             <option key={s.slug} value={s.slug}>{s.name}</option>
           ))}
         </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-bold mb-1 text-paper font-heading">Homepage slot (optional)</label>
+        <select value={slot} onChange={(e) => setSlot(e.target.value)} className={inputClass}>
+          <option value="">None — auto-rotate with the rest of the gallery</option>
+          <option value="mission_left">Mission section — left photo</option>
+          <option value="mission_right">Mission section — right photo</option>
+        </select>
+        <p className="text-xs text-mist mt-1">
+          Pin this photo to a fixed spot on the homepage. Uploading a new photo to the same slot replaces the old one.
+        </p>
       </div>
 
       <button

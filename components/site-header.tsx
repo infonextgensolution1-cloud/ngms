@@ -15,7 +15,7 @@ const LINKS = [
   { href: '/roi-calculator', label: 'ROI Calculator' },
   { href: '/portfolio', label: 'Projects' },
   { href: '/gallery', label: 'Gallery' },
-  { href: '/price-list', label: 'Catalog' },
+  { href: '/price-list', label: 'Price list' },
   { href: '/faq', label: 'FAQ' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
@@ -46,7 +46,7 @@ export function SiteHeader() {
         <Link href="/" className="flex items-center shrink-0" onClick={() => setOpen(false)}>
           <img
             src={LOGO_DATA_URI}
-            alt="NGSMS logo"
+            alt="NextGen logo"
             className={`w-auto transition-all duration-300 ${scrolled ? 'h-12 lg:h-14' : 'h-14 sm:h-16 lg:h-20'}`}
           />
         </Link>
@@ -60,10 +60,10 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden xl:flex items-center gap-4">
-          <a href={FACEBOOK_URL} aria-label="NGSMS on Facebook" className="text-facebook hover:opacity-80">
+          <a href={FACEBOOK_URL} aria-label="NextGen on Facebook" className="text-facebook hover:opacity-80">
             <FacebookIcon className="h-7 w-7" />
           </a>
-          <a href={WHATSAPP_URL} aria-label="WhatsApp NGSMS" className="text-whatsapp hover:opacity-80">
+          <a href={WHATSAPP_URL} aria-label="WhatsApp NextGen" className="text-whatsapp hover:opacity-80">
             <WhatsAppIcon className="h-7 w-7" />
           </a>
           <Link href="/quote" className="btn-quote !text-xs !px-4 !py-2.5">
@@ -100,10 +100,10 @@ export function SiteHeader() {
             </Link>
           ))}
           <div className="flex items-center gap-2 pt-2">
-            <a href={FACEBOOK_URL} aria-label="NGSMS on Facebook" className="text-facebook p-2.5 -ml-2.5">
+            <a href={FACEBOOK_URL} aria-label="NextGen on Facebook" className="text-facebook p-2.5 -ml-2.5">
               <FacebookIcon className="h-7 w-7" />
             </a>
-            <a href={WHATSAPP_URL} aria-label="WhatsApp NGSMS" className="text-whatsapp p-2.5">
+            <a href={WHATSAPP_URL} aria-label="WhatsApp NextGen" className="text-whatsapp p-2.5">
               <WhatsAppIcon className="h-7 w-7" />
             </a>
           </div>

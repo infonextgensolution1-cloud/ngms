@@ -1,11 +1,12 @@
+import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
 
 export const metadata = {
-  title: 'Gallery | NGSMS',
-  description: 'Photos from NextGen Solar & Maintenance Solutions jobs across the Helderberg Basin.',
+  title: 'Gallery | NextGen Solar Clean & Maintenance',
+  description: 'Photos from NextGen Solar Clean & Maintenance Solutions jobs across the Helderberg Basin.',
 }
 
-export const revalidate = 0
+export const revalidate = 300
 
 type GalleryPhoto = {
   id: string
@@ -41,7 +42,7 @@ export default async function GalleryPage() {
           <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
             {photos.map((photo) => (
               <div key={photo.id} className="aspect-square bg-cardgrey border border-darkgrey rounded-card overflow-hidden relative group">
-                <img src={photo.image_url} alt={photo.caption ?? ''} className="w-full h-full object-cover" />
+                <Image src={photo.image_url} alt={photo.caption ?? ''} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 320px" quality={70} className="object-cover" />
                 {photo.caption && (
                   <p className="absolute bottom-0 left-0 right-0 bg-jet/80 text-paper text-xs p-2">{photo.caption}</p>
                 )}
@@ -58,7 +59,7 @@ export default async function GalleryPage() {
               ))}
             </div>
             <p className="text-center text-mist text-sm mt-8 opacity-70">
-              Managed via the NGSMS admin dashboard — photos will appear here once uploaded.
+              Managed via the admin dashboard — photos will appear here once uploaded.
             </p>
           </>
         )}

@@ -68,7 +68,7 @@ export default function ContactForm() {
     }).catch(() => {});
 
     setStatus("done");
-    const waMsg = `Hi NGSMS, enquiry from ${name}.\nPhone: ${phone}\nArea: ${suburb}\nService: ${serviceName}`;
+    const waMsg = `Hi NextGen, enquiry from ${name}.\nPhone: ${phone}\nArea: ${suburb}\nService: ${serviceName}`;
     window.open(waLink(waMsg), "_blank");
   }
 
@@ -81,7 +81,7 @@ export default function ContactForm() {
           automatically, you can message us directly.
         </p>
         <a
-          href={waLink("Hi NGSMS, following up on my enquiry.")}
+          href={waLink("Hi NextGen, following up on my enquiry.")}
           className="btn btn-wa mt-5 inline-flex"
           target="_blank"
           rel="noreferrer"

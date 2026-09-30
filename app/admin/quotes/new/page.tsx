@@ -3,12 +3,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Loader2, Plus, Trash2, ArrowLeft, AlertTriangle, Sun, Search, Check } from 'lucide-react'
+import { Loader2, Plus, Trash2, ArrowLeft, AlertTriangle, Sun, Search, Check, Sparkles, Package } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import { supabase } from '@/lib/supabaseClient'
 import { handlersA } from '@/lib/ngms-ops/handlers-a'
 import { rand, OVERBERG, DEFAULT_DEPOSIT_PERCENT } from '@/lib/ngms-ops/core'
 import { RATE_CARD, CALLOUT_FEE, solarPrice } from '@/lib/rate-card'
+import { BUNDLES } from '@/lib/quote-bundles'
+import { callAi, type QuoteDraft } from '@/lib/ai/client'
 
 type Line = { key: number; description: string; quantity: string; unit: string; unit_price: string; service_slug?: string }
 type ClientRow = { id: string; name: string; phone: string | null; suburb: string | null }
@@ -46,11 +48,19 @@ function Builder() {
   const [lines, setLines] = useState<Line[]>([])
   const [group, setGroup] = useState(RATE_CARD[0].slug)
   const [panels, setPanels] = useState('')
+  const [bundleId, setBundleId] = useState(BUNDLES[0].id)
+  const [bundleSize, setBundleSize] = useState('')
   const [depositPct, setDepositPct] = useState(String(DEFAULT_DEPOSIT_PERCENT))
   const [validDays, setValidDays] = useState('30')
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  // Claude draft from rough site notes
+  const [siteNotes, setSiteNotes] = useState('')
+  const [drafting, setDrafting] = useState(false)
+  const [draftMsg, setDraftMsg] = useState('')
+  const [questions, setQuestions] = useState<string[]>([])
 
   // Open leads for the "From lead" tab; ?lead=<id> preselects one.
   useEffect(() => {
@@ -69,6 +79,23 @@ function Builder() {
           setMode('lead')
           setLead(hit)
         }
+      })
+  }, [])
+
+  // ?client=<id> (from a client's page) preselects that client.
+  useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get('client')
+    if (!wanted) return
+    supabase
+      .from('clients')
+      .select('id,name,phone,suburb')
+      .eq('id', wanted)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) return
+        setMode('existing')
+        setClient(data as ClientRow)
+        setSearch((data as ClientRow).name)
       })
   }, [])
 
@@ -102,13 +129,47 @@ function Builder() {
     if (n < 1) return
     const p = solarPrice(n)
     addLine({
-      description: `Solar panel cleaning — ${n} panels (purified water, soft brush)`,
+      description: `Solar panel cleaning — ${n} panels (gentle soft wash)`,
       quantity: String(p.quantity),
       unit: p.unit,
       unit_price: String(p.price),
       service_slug: 'solar-panel-cleaning',
     })
     setPanels('')
+  }
+
+  function addBundle() {
+    const b = BUNDLES.find((x) => x.id === bundleId)
+    const size = toNum(bundleSize)
+    if (!b || size <= 0) return
+    b.lines(b.unit === 'panels' ? Math.round(size) : size).forEach((l) =>
+      addLine({ description: l.description, quantity: String(l.quantity), unit: l.unit, unit_price: String(l.unit_price), service_slug: l.service_slug }),
+    )
+    setBundleSize('')
+  }
+
+  async function draftFromNotes() {
+    setDrafting(true)
+    setDraftMsg('')
+    try {
+      const d = await callAi<QuoteDraft>('quote-lines', { notes: siteNotes, suburb })
+      d.lines.forEach((l) =>
+        addLine({
+          description: l.description,
+          quantity: String(l.quantity),
+          unit: l.unit,
+          unit_price: String(l.unit_price),
+          ...(l.service_slug !== 'other' ? { service_slug: l.service_slug } : {}),
+        }),
+      )
+      if (d.scope_notes.trim()) setNotes((n) => (n.trim() ? `${n.trim()}\n${d.scope_notes.trim()}` : d.scope_notes.trim()))
+      setQuestions(d.questions)
+      setDraftMsg(`Added ${d.lines.length} line${d.lines.length === 1 ? '' : 's'} and scope notes. Check every price before saving.`)
+    } catch (e) {
+      setDraftMsg((e as Error).message)
+    } finally {
+      setDrafting(false)
+    }
   }
 
   async function save(status: 'draft') {
@@ -198,7 +259,7 @@ function Builder() {
             <div>
               <div className="relative mb-2">
                 <Search className="w-4 h-4 text-mist absolute left-3 top-1/2 -translate-y-1/2" />
-                <input className={`${input} pl-9`} placeholder="Search name, phone or area" value={search} onChange={(e) => setSearch(e.target.value)} />
+                <input className={`${input} pl-9`} style={{ paddingLeft: '2.25rem' }} placeholder="Search name, phone or area" value={search} onChange={(e) => setSearch(e.target.value)} />
               </div>
               {clients.length ? (
                 <ul className="divide-y divide-darkgrey max-h-64 overflow-auto">
@@ -248,6 +309,36 @@ function Builder() {
 
           <div className="bg-jet border border-darkgrey rounded-card p-3 mb-3">
             <p className="text-xs text-mist mb-2 flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5 text-orange" /> Draft from site notes
+            </p>
+            <textarea
+              className={`${input} min-h-[88px]`}
+              value={siteNotes}
+              onChange={(e) => setSiteNotes(e.target.value)}
+              placeholder={lead?.message ? `e.g. ${lead.message.slice(0, 80)}` : 'e.g. Double-storey, exterior walls ~180 m², hairline cracks by windows, flat roof over garage 24 m² leaking'}
+            />
+            <button
+              onClick={draftFromNotes}
+              disabled={drafting || siteNotes.trim().length < 10}
+              className="mt-2 inline-flex items-center gap-1.5 bg-orange text-white text-sm font-semibold px-4 py-2 rounded-btn disabled:opacity-50"
+            >
+              {drafting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />} {drafting ? 'Drafting…' : 'Draft lines'}
+            </button>
+            {draftMsg && <p className="text-[11px] text-mist mt-2">{draftMsg}</p>}
+            {questions.length > 0 && (
+              <div className="mt-2 text-[11px] text-orange">
+                <p className="font-semibold">Confirm with the client:</p>
+                <ul className="list-disc pl-4">
+                  {questions.map((q) => (
+                    <li key={q}>{q}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-jet border border-darkgrey rounded-card p-3 mb-3">
+            <p className="text-xs text-mist mb-2 flex items-center gap-1">
               <Sun className="w-3.5 h-3.5 text-orange" /> Solar quick price
             </p>
             <div className="flex gap-2">
@@ -264,6 +355,44 @@ function Builder() {
                 })()}
               </p>
             )}
+          </div>
+
+          <div className="bg-jet border border-darkgrey rounded-card p-3 mb-3">
+            <p className="text-xs text-mist mb-2 flex items-center gap-1">
+              <Package className="w-3.5 h-3.5 text-orange" /> Bundles: one measurement, all the lines
+            </p>
+            <select className={`${input} mb-2`} value={bundleId} onChange={(e) => setBundleId(e.target.value)}>
+              {BUNDLES.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+            {(() => {
+              const b = BUNDLES.find((x) => x.id === bundleId) ?? BUNDLES[0]
+              const size = toNum(bundleSize)
+              const preview = size > 0 ? b.lines(b.unit === 'panels' ? Math.round(size) : size) : []
+              return (
+                <>
+                  <div className="flex gap-2">
+                    <input className={input} inputMode="decimal" placeholder={b.ask} value={bundleSize} onChange={(e) => setBundleSize(e.target.value)} />
+                    <button onClick={addBundle} disabled={size <= 0} className="shrink-0 bg-orange text-white text-sm font-semibold px-4 rounded-btn disabled:opacity-50">
+                      Add
+                    </button>
+                  </div>
+                  {preview.length > 0 && (
+                    <ul className="text-[11px] text-mist mt-1.5 space-y-0.5">
+                      {preview.map((l) => (
+                        <li key={l.description}>
+                          {l.description}: {l.quantity} {l.unit} × {rand(l.unit_price)} = {rand(l.quantity * l.unit_price)}
+                        </li>
+                      ))}
+                      <li className="text-paper">Bundle total {rand(preview.reduce((t, l) => t + l.quantity * l.unit_price, 0))} ex VAT</li>
+                    </ul>
+                  )}
+                </>
+              )
+            })()}
           </div>
 
           <div className="mb-3">

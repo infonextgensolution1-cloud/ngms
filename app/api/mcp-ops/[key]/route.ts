@@ -3,6 +3,7 @@ import { SERVER_INFO, SUPPORTED_PROTOCOLS, ToolError, db, type Args, type ToolRe
 import { TOOLS } from '@/lib/ngms-ops/tools'
 import { handlersA } from '@/lib/ngms-ops/handlers-a'
 import { handlersB } from '@/lib/ngms-ops/handlers-b'
+import { handlersC } from '@/lib/ngms-ops/handlers-c'
 
 /**
  * NGSMS Ops MCP server — quotes, invoices, jobs & job costing.
@@ -13,7 +14,7 @@ import { handlersB } from '@/lib/ngms-ops/handlers-b'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-const handlers = { ...handlersA, ...handlersB }
+const handlers = { ...handlersA, ...handlersB, ...handlersC }
 
 async function callTool(name: string, args: Args): Promise<ToolResult> {
   const h = handlers[name]
@@ -45,8 +46,9 @@ async function handleMessage(msg: RpcMessage) {
         capabilities: { tools: { listChanged: false } },
         serverInfo: SERVER_INFO,
         instructions:
-          'Quotes, invoices, jobs and job costing for NextGen Solar Clean & Maintenance Solutions (Helderberg + Overberg). ' +
-          'Flow: lead (NGSMS Leads connector) → ngms_create_quote (lead_id) → ngms_update_quote status sent/accepted → ngms_create_invoice kind deposit → ngms_create_job → log labour/costs → ngms_update_job completed → ngms_create_invoice kind balance → ngms_record_payment. ' +
+          'Quotes, invoices, jobs, job costing, crew payroll, materials/suppliers and job photo reports for NextGen Solar Clean & Maintenance Solutions (Helderberg + Overberg). ' +
+          'Flow: lead (NGSMS Leads connector) → ngms_create_quote (lead_id) → ngms_update_quote status sent/accepted → ngms_create_invoice kind deposit → ngms_create_job → log labour/costs/photos → ngms_update_job completed → ngms_create_invoice kind balance → ngms_record_payment. ' +
+          'Payroll: ngms_save_worker → ngms_generate_payslip per pay period. Purchases: ngms_save_supplier_purchase (set log_to_job to also cost it to a job). ' +
           'Start with ngms_business_summary for the big picture. Prices are ZAR excluding VAT (not VAT registered); default 70% deposit / 30% on completion; R350 callout outside the Helderberg Basin. Dates are SAST. ' +
           'Before putting banking details on any client document, confirm the Capitec account number with the owner.',
       })

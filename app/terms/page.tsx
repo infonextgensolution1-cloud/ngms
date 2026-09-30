@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { SITE } from '@/lib/site'
 
 export const metadata = {
-  title: 'Terms & Conditions | NGSMS',
+  title: 'Terms & Conditions | NextGen Solar Clean & Maintenance',
   description:
     'Terms and conditions for quotes, bookings and work by NextGen Solar Clean & Maintenance Solutions in the Helderberg Basin and Overberg.',
 }
@@ -57,7 +57,7 @@ export default function TermsPage() {
   return (
     <main className="bg-jet">
       <section className="bg-jet text-white py-10 sm:py-14 px-4 text-center">
-        <p className="text-blue font-bold text-sm uppercase tracking-wide mb-2 font-heading">NGSMS</p>
+        <p className="text-blue font-bold text-sm uppercase tracking-wide mb-2 font-heading">NextGen Solar Clean &amp; Maintenance</p>
         <h1 className="font-heading text-4xl sm:text-6xl font-bold text-paper">Terms &amp; Conditions</h1>
         <p className="text-mist text-lg max-w-xl mx-auto mt-4">
           How quotes, bookings and work run at NextGen Solar Clean &amp; Maintenance Solutions.

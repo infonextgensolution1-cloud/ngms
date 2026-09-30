@@ -4,7 +4,7 @@ export default function WhatsAppFab() {
   return (
     <a
       className="fixed right-5 bottom-5 w-14 h-14 rounded-full bg-wa text-white grid place-items-center z-40 shadow-2xl hover:scale-105 transition-transform"
-      href={waLink("Hi NGSMS — I'd like a quote.")}
+      href={waLink("Hi NextGen — I'd like a quote.")}
       aria-label="WhatsApp"
       target="_blank"
       rel="noreferrer"

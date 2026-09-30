@@ -1,17 +1,27 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
-import { Loader2, RefreshCw, AlertTriangle, MessageCircle } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Loader2, RefreshCw, AlertTriangle, MessageCircle, Radio, BellRing, CloudRain } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
 import { handlersA } from '@/lib/ngms-ops/handlers-a'
-import { rand } from '@/lib/ngms-ops/core'
+import { rand, getSettings } from '@/lib/ngms-ops/core'
+import { waTo, reminderMessage } from '@/lib/admin-wa'
+import { jobWeather, useForecast } from '@/lib/job-weather'
+import { PLACEHOLDER_ACC } from '@/lib/quote-terms'
+import Link from 'next/link'
 
 /**
  * Business summary for the admin dashboard.
  * Uses the same logic as the NGSMS Ops connector (lib/ngms-ops) with the
  * signed-in admin's Supabase session, so the numbers always match what
  * Claude reports. Leads come straight from the leads table.
+ *
+ * Live: reloads when a lead, quote, invoice or job changes (Supabase Realtime),
+ * when the app comes back into view, and every 2 minutes as a fallback.
  */
+
+const LIVE_TABLES = ['leads', 'quotes', 'invoices', 'jobs'] as const
+const FALLBACK_MS = 2 * 60 * 1000
 
 type Lead = { id: string; name: string; phone: string; suburb: string | null; service: string | null; service_slug: string | null; status: string; source: string; created_at: string; updated_at: string }
 type Summary = {
@@ -74,6 +84,12 @@ export default function BusinessSummary() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null)
+  // Phone per overdue invoice id, plus banking details, for the reminder buttons.
+  const [phones, setPhones] = useState<Record<string, string | null>>({})
+  const [bank, setBank] = useState<string | null>(null)
+  const forecast = useForecast()
+  const [live, setLive] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -91,8 +107,21 @@ export default function BusinessSummary() {
       ])
       if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not load summary')
       if (leadRes.error) throw new Error(leadRes.error.message)
-      setSummary(res.structuredContent as unknown as Summary)
+      const sum = res.structuredContent as unknown as Summary
+      setSummary(sum)
+      const overdueIds = sum.invoices_overdue.map((i) => i.id)
+      if (overdueIds.length) {
+        const [ph, st] = await Promise.all([supabase.from('invoices').select('id,clients(phone)').in('id', overdueIds), getSettings(supabase)])
+        const map: Record<string, string | null> = {}
+        for (const r of (ph.data ?? []) as { id: string; clients: { phone: string | null } | { phone: string | null }[] | null }[]) {
+          const c = Array.isArray(r.clients) ? r.clients[0] : r.clients
+          map[r.id] = c?.phone ?? null
+        }
+        setPhones(map)
+        setBank(st.bank_details && !PLACEHOLDER_ACC.test(st.bank_details) ? st.bank_details : null)
+      }
       setLeads((leadRes.data ?? []) as Lead[])
+      setUpdatedAt(new Date())
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -103,6 +132,38 @@ export default function BusinessSummary() {
   useEffect(() => {
     load()
   }, [load])
+
+  // Keep the latest load in a ref so the live listeners below never need re-subscribing.
+  const loadRef = useRef(load)
+  loadRef.current = load
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined
+    // Several rows often change at once (a quote plus its items): wait a moment, then reload once.
+    const soon = () => {
+      clearTimeout(timer)
+      timer = setTimeout(() => loadRef.current(), 1500)
+    }
+
+    const channel = supabase.channel('admin-dashboard')
+    for (const table of LIVE_TABLES) channel.on('postgres_changes', { event: '*', schema: 'public', table }, soon)
+    channel.subscribe((status) => setLive(status === 'SUBSCRIBED'))
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') soon()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') loadRef.current()
+    }, FALLBACK_MS)
+
+    return () => {
+      clearTimeout(timer)
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', onVisible)
+      supabase.removeChannel(channel)
+    }
+  }, [])
 
   const openLeads = leads.filter((l) => !['won', 'lost'].includes(l.status))
   const newWeek = leads.filter((l) => daysAgo(l.created_at) < 7).length
@@ -125,6 +186,15 @@ export default function BusinessSummary() {
         <div>
           <h2 className="font-heading text-xl font-bold text-paper">Business summary</h2>
           <p className="text-xs text-mist">Prices ex VAT · same numbers as the NGSMS Ops connector</p>
+          <p className="text-xs mt-1 flex items-center gap-1.5">
+            <Radio className={`w-3.5 h-3.5 ${live ? 'text-whatsapp' : 'text-mist'}`} />
+            <span className={live ? 'text-whatsapp' : 'text-mist'}>{live ? 'Live' : 'Auto-refresh'}</span>
+            {updatedAt && (
+              <span className="text-mist">
+                · updated {updatedAt.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Johannesburg' })}
+              </span>
+            )}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           {WINDOWS.map((w) => (
@@ -193,12 +263,22 @@ export default function BusinessSummary() {
           <Section title="Overdue invoices">
             {summary.invoices_overdue.length ? (
               <ul className="divide-y divide-darkgrey">
-                {summary.invoices_overdue.slice(0, 10).map((i) => (
-                  <li key={i.id} className="py-2 flex justify-between gap-3 text-sm">
-                    <span className="text-paper">{i.invoice_number} · {i.client ?? '—'}</span>
-                    <span className="text-orange shrink-0">{rand(i.balance)} · {i.days_overdue}d</span>
-                  </li>
-                ))}
+                {summary.invoices_overdue.slice(0, 10).map((i) => {
+                  const wa = waTo(phones[i.id], reminderMessage({ client: i.client, number: i.invoice_number, balance: i.balance, daysOverdue: i.days_overdue, bank }))
+                  return (
+                    <li key={i.id} className="py-2 flex items-center justify-between gap-3 text-sm">
+                      <Link href={`/admin/invoices/${i.id}`} className="min-w-0 hover:text-orange">
+                        <span className="block text-paper truncate">{i.invoice_number} · {i.client ?? '—'}</span>
+                        <span className="block text-xs text-orange">{rand(i.balance)} · {i.days_overdue}d overdue</span>
+                      </Link>
+                      {wa && (
+                        <a href={wa} target="_blank" rel="noreferrer" className="shrink-0 inline-flex items-center gap-1 text-xs text-whatsapp hover:text-whatsapp-dark">
+                          <BellRing className="w-4 h-4" /> Remind
+                        </a>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             ) : (
               <Empty>Nothing overdue.</Empty>
@@ -208,12 +288,22 @@ export default function BusinessSummary() {
           <Section title="Booked — next 14 days">
             {summary.jobs_next_14_days.length ? (
               <ul className="divide-y divide-darkgrey">
-                {summary.jobs_next_14_days.map((j) => (
-                  <li key={j.id} className="py-2 flex justify-between gap-3 text-sm">
-                    <span className="text-paper truncate">{j.title ?? 'Untitled'} · {j.client ?? '—'}</span>
-                    <span className="text-mist shrink-0">{j.scheduled_date} · {j.status.replace('_', ' ')}</span>
-                  </li>
-                ))}
+                {summary.jobs_next_14_days.map((j) => {
+                  const w = jobWeather(j.title ?? '', j.scheduled_date, forecast)
+                  return (
+                    <li key={j.id} className="py-2 text-sm">
+                      <Link href={`/admin/jobs/${j.id}`} className="flex justify-between gap-3 hover:text-orange">
+                        <span className="text-paper truncate">{j.title ?? 'Untitled'} · {j.client ?? '—'}</span>
+                        <span className="text-mist shrink-0">{j.scheduled_date} · {j.status.replace('_', ' ')}</span>
+                      </Link>
+                      {w && (
+                        <p className="text-xs text-orange flex items-center gap-1 mt-0.5">
+                          <CloudRain className="w-3.5 h-3.5 shrink-0" /> {w.note}
+                        </p>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             ) : (
               <Empty>Nothing booked in the next 14 days.</Empty>

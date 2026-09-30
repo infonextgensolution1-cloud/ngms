@@ -3,8 +3,14 @@ import QuoteForm from "@/components/QuoteForm";
 import WhatsAppQuoteCTA from "@/components/WhatsAppQuoteCTA";
 
 export const metadata: Metadata = {
-  title: "Get A Free Quote",
-  description: "Request a free quote from NextGen Solar & Maintenance Solutions — we reply the same day.",
+  title: "Get a Free Quote | NextGen Solar Clean & Maintenance",
+  description: "Request a free quote from NextGen Solar Clean & Maintenance Solutions — upload a photo, get an instant guide price, and we reply the same day.",
+  alternates: { canonical: "/quote" },
+  openGraph: {
+    title: "Get a Free Quote | NextGen Solar Clean & Maintenance",
+    description: "Photo quote with instant guide price. Solar panel cleaning from R550. Strand, Gordon's Bay, Somerset West.",
+    url: "/quote",
+  },
 };
 
 export default function QuotePage({

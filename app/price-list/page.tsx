@@ -1,7 +1,7 @@
 import NgmsIcon from '@/components/NgmsIcon'
 
 export const metadata = {
-  title: 'Price List | NGSMS — NextGen Solar & Maintenance Solutions',
+  title: 'Price List | NextGen Solar Clean & Maintenance Solutions',
   description:
     'Clear starting rates for solar cleaning, painting, waterproofing, paving and more across Strand, Gordon\'s Bay and Somerset West.',
 }
@@ -15,7 +15,7 @@ const tables: Table[] = [
     icon: 'solar-panel-cleaning',
     cols: ['System size', 'Price', 'Notes'],
     rows: [
-      { label: 'Up to 10 panels', price: 'from R550', note: 'Soft brush + pure water' },
+      { label: 'Up to 10 panels', price: 'from R550', note: 'Gentle soft wash' },
       { label: '11–20 panels', price: 'from R950', note: 'Most common residential size' },
       { label: '21–30 panels', price: 'from R1 350' },
       { label: '31–40 panels', price: 'from R1 700' },

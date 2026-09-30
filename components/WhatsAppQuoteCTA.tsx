@@ -10,7 +10,7 @@ export default function WhatsAppQuoteCTA() {
         a price back the same day, often within the hour.
       </p>
       <a
-        href={waLink("Hi NGSMS, I'd like a quote — sending a photo of the job now.")}
+        href={waLink("Hi NextGen, I'd like a quote — sending a photo of the job now.")}
         target="_blank"
         rel="noreferrer"
         className="btn btn-wa mt-4 inline-block"

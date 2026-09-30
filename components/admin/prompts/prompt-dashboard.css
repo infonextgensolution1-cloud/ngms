@@ -926,6 +926,30 @@ a.pd-chip {
   background: var(--pd-graphite);
 }
 
+.pd-run-wait,
+.pd-run-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 340px;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--pd-steel);
+  border-radius: 2px;
+  background: var(--pd-graphite);
+  color: var(--pd-ash);
+  font-size: 14.5px;
+}
+
+.pd-run-error {
+  align-items: flex-start;
+  color: var(--pd-orange);
+}
+
+.pd-run-copy {
+  margin-top: 10px;
+}
+
 .pd-hint {
   margin: 0;
   font-size: 12.5px;

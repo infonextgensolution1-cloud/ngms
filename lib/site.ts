@@ -2,7 +2,7 @@
 
 export const site = {
   name: "NextGen Solar Clean & Maintenance Solutions",
-  shortName: "NGSMS",
+  shortName: "NextGen",
   domain: "nextgensolarmaintenance.co.za",
   url: "https://www.nextgensolarmaintenance.co.za",
   phone: "+27631387945",

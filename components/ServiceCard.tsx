@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Service } from "@/lib/services";
 import NgmsIcon from "@/components/NgmsIcon";
 
@@ -19,11 +20,14 @@ export default function ServiceCard({
       className="group block bg-cardgrey border border-darkgrey rounded-card overflow-hidden hover:border-orange transition"
     >
       {image && (
-        <div className="aspect-[16/10] overflow-hidden bg-graphite">
-          <img
+        <div className="relative aspect-[16/10] overflow-hidden bg-graphite">
+          <Image
             src={image}
             alt={s.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
+            quality={70}
+            className="object-cover group-hover:scale-105 transition duration-300"
           />
         </div>
       )}

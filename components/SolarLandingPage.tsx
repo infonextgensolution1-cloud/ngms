@@ -5,9 +5,7 @@ import { getBeforeAfter } from '@/lib/queries'
 import { getService } from '@/lib/services'
 import { site, waLink } from '@/lib/site'
 
-// Shared conversion-focused layout for every solar page
-// (/solar-panel-cleaning-helderberg, /solar-maintenance-somerset-west,
-// /solar-cleaning-gordons-bay-overberg and /solar-panel-cleaning/[location]).
+// Shared conversion-focused layout for the per-town solar pages (/solar-panel-cleaning/[location]).
 //
 // Conversion goal: a WhatsApp quote request with panel count + suburb.
 // Secondary: a phone call. Every CTA on this page points at one of those two.
@@ -47,7 +45,7 @@ const benefits = [
   {
     icon: 'waterproofing',
     title: 'Safe for your panels',
-    body: 'Purified water and soft brushes only. No harsh chemicals, no abrasive pads, no high pressure on the glass.',
+    body: 'Gentle soft wash only. No harsh chemicals, no abrasive pads, no high pressure on the glass.',
   },
   {
     icon: 'fixed-price',
@@ -74,7 +72,7 @@ const faqs = [
   },
   {
     q: 'Will cleaning damage my panels?',
-    a: 'No. We use purified water and soft-brush methods — no harsh chemicals, no abrasive pads, no high pressure on the panel face. Safe for all major panel brands.',
+    a: 'No. We use a gentle soft wash — no harsh chemicals, no abrasive pads, no high pressure on the panel face. Safe for all major panel brands.',
   },
   {
     q: 'Do you charge a callout fee?',
@@ -114,7 +112,7 @@ export default async function SolarLandingPage({
   // Pre-filled message: the client only fills in the blanks, and the
   // "(via … page)" tag tells you which landing page the lead came from.
   const waHref = waLink(
-    `Hi NGSMS, I'd like a solar panel cleaning quote.\n\nSuburb: \nNumber of panels: \n\n(via ${areaName} solar page)`
+    `Hi NextGen, I'd like a solar panel cleaning quote.\n\nSuburb: \nNumber of panels: \n\n(via ${areaName} solar page)`
   )
   const telHref = `tel:${site.phone}`
 
@@ -165,7 +163,7 @@ export default async function SolarLandingPage({
             {callout ? callout : 'Free callout in Strand, Gordon’s Bay & Somerset West'}
           </li>
           <li>
-            <span className="text-orange mr-1.5">✓</span>Purified water, soft brush
+            <span className="text-orange mr-1.5">✓</span>Gentle soft wash
           </li>
           <li>
             <span className="text-orange mr-1.5">✓</span>From R550

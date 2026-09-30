@@ -9,10 +9,11 @@ import SolarRoiCalculator from '@/components/SolarRoiCalculator'
 import BodyCorporateSection from '@/components/BodyCorporateSection'
 import DiyTips from '@/components/home/DiyTips'
 import HelderbergToday from '@/components/home/HelderbergToday'
-import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages } from '@/lib/queries'
+import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages, getSlotPhotos } from '@/lib/queries'
+import LandingSlideshow from '@/components/home/LandingSlideshow'
 import { HeroBento, JobReel, MissionBand, PostTrio, ServicePhotoGrid, type Photo } from '@/components/home/VestoxHome'
 
-export const revalidate = 0
+export const revalidate = 300
 
 // Homepage display font: Space Grotesk Bold (modern / tech look).
 // Sets --font-heading on <main>, so every font-heading class on the homepage uses it.
@@ -21,11 +22,12 @@ const techHeading = Space_Grotesk({ subsets: ['latin'], weight: ['500', '600', '
 const TICKER_ITEMS = services.map((s) => s.name)
 
 export default async function HomePage() {
-  const [slides, gallery, beforeAfter, serviceImages] = await Promise.all([
+  const [slides, gallery, beforeAfter, serviceImages, slotPhotos] = await Promise.all([
     getHeroSlides(),
     getGalleryPhotos(24),
     getBeforeAfter(),
     getServiceImages(),
+    getSlotPhotos(['hero_solar', 'hero_feature', 'mission_left', 'mission_right']),
   ])
 
   // All photos come from Admin → Media, so new uploads show up here automatically.
@@ -37,7 +39,9 @@ export default async function HomePage() {
     .map((g) => ({ src: g.image_url, caption: g.caption || 'Solar panel cleaning' }))
   const afterPhotos: Photo[] = beforeAfter.map((b) => ({
     src: b.after_image_url,
-    caption: `${b.caption || 'Completed job'} — ${b.location}`,
+    caption: b.location && !(b.caption ?? '').includes(b.location)
+      ? `${b.caption || 'Completed job'} — ${b.location}`
+      : b.caption || 'Completed job',
   }))
   const servicePhotos: Photo[] = Object.entries(serviceImages).map(([slug, src]) => ({
     src,
@@ -48,12 +52,32 @@ export default async function HomePage() {
   const pick = (i: number) => pool.length ? pool[i % pool.length] : undefined
   const solar = (i: number) => solarPhotos[i] ?? pick(i)
 
+  // Pinned from Admin → Media → Homepage slot; falls back to the usual auto-pick.
+  const slot = (key: string): Photo | undefined =>
+    slotPhotos[key] ? { src: slotPhotos[key].image_url, caption: slotPhotos[key].caption || 'Recent job' } : undefined
+  const heroSolar = slot('hero_solar')
+  const heroFeature = slot('hero_feature')
+
+  const missionLeft: Photo | undefined = slotPhotos.mission_left
+    ? { src: slotPhotos.mission_left.image_url, caption: slotPhotos.mission_left.caption || 'Recent job' }
+    : undefined
+  const missionRight: Photo | undefined = slotPhotos.mission_right
+    ? { src: slotPhotos.mission_right.image_url, caption: slotPhotos.mission_right.caption || 'Recent job' }
+    : undefined
+
   return (
     <main className={`bg-jet ${techHeading.variable}`}>
       <SeasonalBanner />
       <DiscountPopup />
 
-      <HeroBento solar={solar(0)} avatars={[pick(1), pick(2), pick(3)].filter(Boolean) as Photo[]} feature={pick(0)} />
+      {/* Landing slideshow — up to 12 slides from Admin → Media → Landing slides */}
+      <LandingSlideshow slides={slides} />
+
+      <HeroBento
+        solar={heroSolar ?? solar(0)}
+        avatars={[pick(1), pick(2), pick(3)].filter(Boolean) as Photo[]}
+        feature={heroFeature ?? pick(0)}
+      />
 
       <TrustBadges />
 
@@ -83,7 +107,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <MissionBand photo={pick(4) ?? pick(0)} side={afterPhotos[0] ?? pick(2)} />
+      <MissionBand photo={missionLeft ?? pick(4) ?? pick(0)} side={missionRight ?? afterPhotos[0] ?? pick(2)} />
 
       {/* Before/after sliders + real reviews */}
       <TrustStrip beforeAfter={beforeAfter} />
@@ -92,7 +116,7 @@ export default async function HomePage() {
 
       <ServicePhotoGrid services={services} images={serviceImages} />
 
-      {/* DIY tips + live Helderberg weather and local news */}
+      {/* DIY tips + live Helderberg weather for outdoor work */}
       <DiyTips />
 
       <HelderbergToday />
