@@ -11,6 +11,7 @@ import { SiteHeader } from '@/components/site-header'
 import AdminLink from '@/components/AdminLink'
 import VisitorPresence from '@/components/VisitorPresence'
 import ClickTracking from '@/components/ClickTracking'
+import PWARegister from '@/components/PWARegister'
 import './globals.css'
 
 // Ember Grid typography — Big Shoulders Display (headings) + IBM Plex Sans (body)
@@ -95,6 +96,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${heading.variable} ${body.variable}`}>
       <body className="bg-jet font-body">
+        <PWARegister />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(LOCAL_BUSINESS_JSONLD) }}
