@@ -6,8 +6,9 @@ export function generateStaticParams() {
   return solarLocations.map((l) => ({ location: l.slug }))
 }
 
-export function generateMetadata({ params }: { params: { location: string } }) {
-  const loc = getSolarLocation(params.location)
+export async function generateMetadata({ params }: { params: Promise<{ location: string }> }) {
+  const { location } = await params
+  const loc = getSolarLocation(location)
   if (!loc) return {}
   return {
     title: loc.metaTitle,
