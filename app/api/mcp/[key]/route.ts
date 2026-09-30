@@ -615,8 +615,9 @@ function json(body: unknown, status = 200) {
   })
 }
 
-export async function POST(request: Request, { params }: { params: { key: string } }) {
-  if (!authorised(params.key, request)) {
+export async function POST(request: Request, { params }: { params: Promise<{ key: string }> }) {
+  const { key } = await params
+  if (!authorised(key, request)) {
     // 404 rather than 401 so the endpoint doesn't advertise itself.
     return json({ error: 'Not found' }, 404)
   }
