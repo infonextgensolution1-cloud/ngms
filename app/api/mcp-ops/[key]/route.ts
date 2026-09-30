@@ -92,8 +92,9 @@ function json(body: unknown, status = 200) {
   return new Response(body === null ? null : JSON.stringify(body), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
 }
 
-export async function POST(request: Request, { params }: { params: { key: string } }) {
-  if (!authorised(params.key, request)) return json({ error: 'Not found' }, 404)
+export async function POST(request: Request, { params }: { params: Promise<{ key: string }> }) {
+  const { key } = await params
+  if (!authorised(key, request)) return json({ error: 'Not found' }, 404)
   let body: unknown
   try {
     body = await request.json()
