@@ -17,8 +17,8 @@ const STEPS = [
 
 type Photo = { id: string; photo_url: string; type: string | null; caption: string | null }
 
-export default async function TrackPage({ params }: { params: { token: string } }) {
-  const token = params.token
+export default async function TrackPage({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params
   if (!/^[a-f0-9]{32,80}$/i.test(token)) notFound()
 
   let job: { id: string; title: string | null; status: string | null; scheduled_date: string | null; completed_date: string | null } | null = null
