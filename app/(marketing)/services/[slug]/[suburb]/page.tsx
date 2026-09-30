@@ -28,13 +28,14 @@ export async function generateMetadata({
   };
 }
 
-export default function ServiceSuburbPage({
+export default async function ServiceSuburbPage({
   params,
 }: {
-  params: { slug: string; suburb: string };
+  params: Promise<{ slug: string; suburb: string }>;
 }) {
-  const s = getService(params.slug);
-  const sub = getSuburb(params.suburb);
+  const { slug, suburb } = await params;
+  const s = getService(slug);
+  const sub = getSuburb(suburb);
   if (!s || !sub) return notFound();
 
   const jsonLd = {
