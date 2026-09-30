@@ -1,0 +1,53 @@
+name: NGMS Next 16 upgrade verification
+
+on:
+  push:
+    branches:
+      - upgrade/next16-ngms-app
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.4
+          cache: npm
+
+      - name: Install and refresh lockfile
+        run: npm install --no-audit --no-fund
+
+      - name: Migrate Next 16 async request APIs
+        run: npx @next/codemod@latest next-async-request-api .
+
+      - name: Generate Next types
+        run: npx next typegen
+
+      - name: Reinstall after codemod
+        run: npm install --no-audit --no-fund
+
+      - name: Production build
+        run: npm run build
+
+      - name: Commit generated migration changes
+        run: |
+          if git diff --quiet; then
+            echo "No generated changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json app components lib next-env.d.ts next.config.mjs tsconfig.json
+          git commit -m "chore: complete Next.js 16 migration"
+          git push origin HEAD:upgrade/next16-ngms-app
