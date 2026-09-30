@@ -49,7 +49,7 @@ async function sendWhatsApp(to: string, text: string, buttons?: Array<{ id: stri
 
   const body = interactive
     ? { messaging_product: "whatsapp", to, type: "interactive", interactive }
-    : { messaging_product: "whatsapp", to, type: "text", text: { body } };
+    : { messaging_product: "whatsapp", to, type: "text", text: { body: text } };
 
   const response = await fetch(
     `https://graph.facebook.com/${GRAPH_VERSION}/${phoneNumberId}/messages`,
