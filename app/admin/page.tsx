@@ -6,7 +6,7 @@ import { useAdminAuth } from '@/hooks/useAdminAuth'
 import BusinessSummary from '@/components/admin/BusinessSummary'
 import AdminSearch from '@/components/admin/AdminSearch'
 import { supabase } from '@/lib/supabaseClient'
-import { Loader2, Image as ImageIcon, LogOut, Sparkles, Users, Receipt, FileText, Cloud, LucideIcon, HardHat, Wallet, Boxes, Contact, CalendarDays, BarChart3, Activity } from 'lucide-react'
+import { Loader2, Image as ImageIcon, LogOut, Sparkles, Users, Receipt, FileText, Cloud, LucideIcon, HardHat, Wallet, Boxes, Contact, CalendarDays, BarChart3, Activity, RefreshCw } from 'lucide-react'
 
 const NAV_ITEMS: Array<{
   href: string
@@ -19,6 +19,12 @@ const NAV_ITEMS: Array<{
     icon: Users,
     title: 'Leads',
     desc: 'Work the pipeline: new → contacted → site visit → quoted → won/lost',
+  },
+  {
+    href: '/admin/maintenance',
+    icon: RefreshCw,
+    title: 'Maintenance Control',
+    desc: 'Customer offers, activation links, active plans and upcoming service cycles',
   },
   {
     href: '/admin/plans',
