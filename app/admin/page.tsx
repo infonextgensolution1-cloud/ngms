@@ -51,12 +51,6 @@ const NAV_ITEMS: Array<{
     desc: 'Schedule, cost & photograph jobs — client-ready completion reports',
   },
   {
-    href: '/admin/field',
-    icon: Smartphone,
-    title: 'Field Operations',
-    desc: 'Today’s jobs, status updates and before/progress/after site photos',
-  },
-  {
     href: '/admin/calendar',
     icon: CalendarDays,
     title: 'Job calendar',
