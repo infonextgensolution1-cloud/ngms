@@ -380,6 +380,26 @@ export const handlersA: Record<string, Handler> = {
     if (newItems) changed.push(`${newItems.length} line(s) replaced`)
     if (!changed.length) {
       const cur = await loadQuote(sb, quote.id)
+
+    // Preserve the revision history whenever a quote is materially changed.
+    const { data: latest } = await sb.from('quote_versions').select('version_number').eq('quote_id', quote.id).order('version_number', { ascending: false }).limit(1).maybeSingle()
+    const nextVersion = Number(latest?.version_number ?? 0) + 1
+    const versionStatus = status === 'accepted' ? 'accepted' : status === 'declined' ? 'declined' : status === 'sent' ? 'sent' : 'draft'
+    const { error: versionError } = await sb.from('quote_versions').insert({
+      quote_id: quote.id,
+      version_number: nextVersion,
+      version_status: versionStatus,
+      revision_reason: str(args, 'revision_reason', { max: 500 }) ?? null,
+      change_summary: changed.join('; '),
+      snapshot: { quote: cur.quote, client: cur.client, items: cur.items, money: quoteMoney(cur.quote, cur.items, s.vat_rate), version: nextVersion },
+      sent_at: versionStatus === 'sent' || versionStatus === 'accepted' ? new Date().toISOString() : null,
+      accepted_at: versionStatus === 'accepted' ? new Date().toISOString() : null,
+    })
+    fail('Could not save quote revision', versionError)
+    if (nextVersion > 1) {
+      await sb.from('quote_versions').update({ version_status: 'superseded' }).eq('quote_id', quote.id).eq('version_number', nextVersion - 1)
+    }
+
       return ok(`Nothing to change.\n\n${quoteDoc(cur.quote, cur.client, cur.items, s)}`, { quote: cur.quote, changed: [] })
     }
     patch.updated_at = new Date().toISOString()
