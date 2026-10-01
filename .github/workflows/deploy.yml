@@ -16,10 +16,10 @@ concurrency:
 
 env:
   NODE_VERSION: 22
-  QA_URL: https://www.nextgensolarmaintenance.co.za
 
 jobs:
   build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +31,7 @@ jobs:
       - run: npm run build
 
   deploy:
+    name: Deploy to Vercel
     if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
@@ -43,22 +44,26 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - id: deploy
+      - name: Deploy production
+        id: deploy
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          URL=$(npx vercel --prod --yes --token="$VERCEL_TOKEN")
+          DEPLOYMENT_JSON=$(npx vercel deploy --prod --yes --token="$VERCEL_TOKEN" --json)
+          URL=$(printf '%s' "$DEPLOYMENT_JSON" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).url))')
+          test -n "$URL"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
-          echo "$URL"
+          echo "Deployment: $URL"
 
   readiness:
+    name: Wait for READY
     if: github.event_name != 'pull_request'
     needs: deploy
     runs-on: ubuntu-latest
     steps:
-      - name: Wait for READY
+      - name: Wait for deployment
         env:
           URL: ${{ needs.deploy.outputs.url }}
         run: |
@@ -68,53 +73,90 @@ jobs:
             if [ "$code" -ge 200 ] && [ "$code" -lt 400 ]; then exit 0; fi
             sleep 10
           done
+          echo "Deployment failed readiness check."
           exit 1
 
   qa:
+    name: 6-page smoke QA
     if: github.event_name != 'pull_request'
-    needs: readiness
+    needs: [deploy, readiness]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - run: npm install --no-save playwright && npx playwright install --with-deps chromium
-      - name: 6-page smoke QA
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Run production smoke QA
         env:
-          QA_URL: ${{ env.QA_URL }}
+          QA_URL: ${{ needs.deploy.outputs.url }}
         run: |
           node <<'EOF'
           const { chromium } = require('playwright');
-          const routes = ['/', '/services', '/projects', '/quote', '/contact', '/about'];
+
+          const routes = [
+            '/',
+            '/quote',
+            '/contact',
+            '/about',
+            '/portfolio',
+            '/services/solar-panel-cleaning'
+          ];
+
           (async () => {
-            const browser = await chromium.launch({headless:true});
+            const browser = await chromium.launch({headless: true});
             const page = await browser.newPage();
             const failures = [];
+
+            page.on('console', msg => {
+              if (msg.type() === 'error') failures.push('console.error: ' + msg.text());
+            });
+            page.on('pageerror', error => failures.push('pageerror: ' + error.message));
+
             for (const route of routes) {
+              const url = new URL(route, process.env.QA_URL).toString();
               try {
-                const r = await page.goto(new URL(route, process.env.QA_URL).toString(), {waitUntil:'domcontentloaded', timeout:30000});
-                const s = r?.status() ?? 0;
-                console.log(route + ' -> HTTP ' + s);
-                if (s < 200 || s >= 400) failures.push(route + ': HTTP ' + s);
-              } catch (e) { failures.push(route + ': ' + e.message); }
+                const response = await page.goto(url, {
+                  waitUntil: 'domcontentloaded',
+                  timeout: 30000
+                });
+                const status = response?.status() ?? 0;
+                console.log(route + ' -> HTTP ' + status);
+                if (status < 200 || status >= 400) {
+                  failures.push(route + ': HTTP ' + status);
+                }
+              } catch (error) {
+                failures.push(route + ': ' + error.message);
+              }
             }
+
             await browser.close();
-            if (failures.length) { console.error(failures.join('\n')); process.exit(1); }
-            console.log('QA PASSED');
+
+            if (failures.length) {
+              console.error('QA FAILED');
+              failures.forEach(f => console.error('- ' + f));
+              process.exit(1);
+            }
+
+            console.log('QA PASSED: all 6 routes responded successfully.');
           })();
           EOF
 
   release-gate:
+    name: Release Gate
     if: always()
     needs: [build, deploy, readiness, qa]
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          echo "build=${{ needs.build.result }}"
-          echo "deploy=${{ needs.deploy.result }}"
-          echo "readiness=${{ needs.readiness.result }}"
-          echo "qa=${{ needs.qa.result }}"
+      - name: Evaluate gate
+        run: |
+          echo "Build: ${{ needs.build.result }}"
+          echo "Deploy: ${{ needs.deploy.result }}"
+          echo "Readiness: ${{ needs.readiness.result }}"
+          echo "QA: ${{ needs.qa.result }}"
           test "${{ needs.build.result }}" = success
           test "${{ needs.deploy.result }}" = success
           test "${{ needs.readiness.result }}" = success
