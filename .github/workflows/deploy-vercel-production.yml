@@ -76,3 +76,5 @@ jobs:
           echo "Commit: ${GITHUB_SHA}"
           echo "Production: ${PRODUCTION_URL}"
           echo "Deployment method: GitHub Actions + Vercel prebuilt artifact"
+
+# redeploy trigger
