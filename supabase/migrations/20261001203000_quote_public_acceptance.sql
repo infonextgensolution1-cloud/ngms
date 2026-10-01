@@ -35,3 +35,11 @@ set snapshot = jsonb_build_object(
 from public.quotes q
 left join public.clients c on c.id=q.client_id
 where v.quote_id=q.id and v.version_number=1;
+
+-- Staff can read revision metadata through the authenticated Supabase client.
+-- Customer access remains bearer-token based through the server route.
+drop policy if exists "quote versions staff read" on public.quote_versions;
+create policy "quote versions staff read"
+on public.quote_versions
+for select to authenticated
+using (private.is_ngms_prompt_user());
