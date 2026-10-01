@@ -196,7 +196,12 @@ function JobDetail() {
     try {
       const [jobRes, photoRes] = await Promise.all([handlersB.ngms_get_job(supabase, { job_id: id }), handlersC.ngms_list_job_photos(supabase, { job_id: id })])
       if (jobRes.isError) throw new Error(jobRes.content[0]?.text ?? 'Could not load that job')
-      const sc = jobRes.structuredContent as { job: Job; client: Client | null; costing: Costing }
+      const sc = jobRes.structuredContent as {
+        job: Job
+        client: Client | null
+        costing: Costing
+        quote?: { quote_number?: string | null; status?: string } | null
+      }
       setJob(sc.job)
       setClient(sc.client)
       setCosting(sc.costing)
