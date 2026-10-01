@@ -354,6 +354,7 @@ export const handlersB: Record<string, Handler> = {
           discount_percent: solar ? 15 : 0,
           status: 'offered',
           next_due_date: nextDueDate,
+          public_token: globalThis.crypto.randomUUID().replaceAll('-', ''),
           notes: 'Generated after job completion. Customer must explicitly accept before activation.',
         })
         if (!planError) extra.push(`✓ Maintenance offer created — next review ${nextDueDate}.`)
