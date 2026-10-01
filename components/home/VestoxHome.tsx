@@ -79,7 +79,7 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
             </p>
           </div>
           <div className="flex gap-3 mt-7 flex-wrap">
-            <Link href="/quote?service=Solar%20Panel%20Cleaning" className="btn-power">
+            <Link href="/quote?service=Solar%20Panel%20Cleaning" className="btn-quote">
               Get a free quote &rarr;
             </Link>
             <a
@@ -96,8 +96,8 @@ export function HeroBento({ solar, avatars, feature }: { solar?: Photo; avatars:
         {/* Output chart card */}
         <div className="lg:col-span-5 relative bg-white rounded-2xl p-5 pt-8 shadow-[0_1px_0_rgba(10,10,10,0.06)] border border-[#E2E2DE]">
           <TabNotch ground={GROUND_LIGHT} width="38%" />
-          <div className="absolute -top-1 left-5 h-[74px] w-[74px] rounded-full bg-power text-white flex flex-col items-center justify-center z-20 shadow-[0_6px_20px_rgba(139,27,245,0.45)] ring-4 ring-white">
-            <span className="text-[9px] uppercase tracking-widest text-white/80">From</span>
+          <div className="absolute -top-1 left-5 h-[74px] w-[74px] rounded-full bg-orange text-jet flex flex-col items-center justify-center z-20 shadow-[0_6px_20px_rgba(245,124,27,0.35)] ring-4 ring-white">
+            <span className="text-[9px] uppercase tracking-widest text-jet/70">From</span>
             <span className="font-heading font-extrabold text-xl leading-none">R550</span>
           </div>
           <div className="pl-[88px] min-h-[62px]">
