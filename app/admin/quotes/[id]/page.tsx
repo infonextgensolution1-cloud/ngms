@@ -340,9 +340,9 @@ function QuoteView() {
                     <Receipt className="w-3.5 h-3.5" /> Invoices
                   </p>
                   {invoices.map((i) => (
-                    <p key={i.id} className="text-xs text-mist">
+                    <Link key={i.id} href={`/admin/invoices/${i.id}`} className="block text-xs text-blue hover:text-paper">
                       {i.invoice_number} · {i.status} · {rand(i.total_amount ?? 0)} (paid {rand(i.paid_amount ?? 0)})
-                    </p>
+                    </Link>
                   ))}
                 </div>
               )}
@@ -352,9 +352,9 @@ function QuoteView() {
                     <Briefcase className="w-3.5 h-3.5" /> Jobs
                   </p>
                   {jobs.map((j) => (
-                    <p key={j.id} className="text-xs text-mist">
+                    <Link key={j.id} href={`/admin/jobs/${j.id}`} className="block text-xs text-blue hover:text-paper">
                       {j.title ?? 'Job'} · {j.status} · {j.scheduled_date ?? 'no date set'}
-                    </p>
+                    </Link>
                   ))}
                 </div>
               )}
