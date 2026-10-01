@@ -1,0 +1,122 @@
+name: NGMS Production Build Gate
+
+on:
+  push:
+    branches: [main, feat/segment-landing-pages]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ngms-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 22
+  QA_URL: https://www.nextgensolarmaintenance.co.za
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          URL=$(npx vercel --prod --yes --token="$VERCEL_TOKEN")
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "$URL"
+
+  readiness:
+    if: github.event_name != 'pull_request'
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for READY
+        env:
+          URL: ${{ needs.deploy.outputs.url }}
+        run: |
+          for i in {1..30}; do
+            code=$(curl -L -s -o /dev/null -w "%{http_code}" "$URL")
+            echo "Attempt $i: HTTP $code"
+            if [ "$code" -ge 200 ] && [ "$code" -lt 400 ]; then exit 0; fi
+            sleep 10
+          done
+          exit 1
+
+  qa:
+    if: github.event_name != 'pull_request'
+    needs: readiness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm install --no-save playwright && npx playwright install --with-deps chromium
+      - name: 6-page smoke QA
+        env:
+          QA_URL: ${{ env.QA_URL }}
+        run: |
+          node <<'EOF'
+          const { chromium } = require('playwright');
+          const routes = ['/', '/services', '/projects', '/quote', '/contact', '/about'];
+          (async () => {
+            const browser = await chromium.launch({headless:true});
+            const page = await browser.newPage();
+            const failures = [];
+            for (const route of routes) {
+              try {
+                const r = await page.goto(new URL(route, process.env.QA_URL).toString(), {waitUntil:'domcontentloaded', timeout:30000});
+                const s = r?.status() ?? 0;
+                console.log(route + ' -> HTTP ' + s);
+                if (s < 200 || s >= 400) failures.push(route + ': HTTP ' + s);
+              } catch (e) { failures.push(route + ': ' + e.message); }
+            }
+            await browser.close();
+            if (failures.length) { console.error(failures.join('\n')); process.exit(1); }
+            console.log('QA PASSED');
+          })();
+          EOF
+
+  release-gate:
+    if: always()
+    needs: [build, deploy, readiness, qa]
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "build=${{ needs.build.result }}"
+          echo "deploy=${{ needs.deploy.result }}"
+          echo "readiness=${{ needs.readiness.result }}"
+          echo "qa=${{ needs.qa.result }}"
+          test "${{ needs.build.result }}" = success
+          test "${{ needs.deploy.result }}" = success
+          test "${{ needs.readiness.result }}" = success
+          test "${{ needs.qa.result }}" = success
+          echo "NGMS RELEASE GATE PASSED"
