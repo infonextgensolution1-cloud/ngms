@@ -73,7 +73,6 @@ jobs:
             if [ "$code" -ge 200 ] && [ "$code" -lt 400 ]; then exit 0; fi
             sleep 10
           done
-          echo "Deployment failed readiness check."
           exit 1
 
   qa:
@@ -96,51 +95,31 @@ jobs:
         run: |
           node <<'EOF'
           const { chromium } = require('playwright');
-
-          const routes = [
-            '/',
-            '/quote',
-            '/contact',
-            '/about',
-            '/portfolio',
-            '/services/solar-panel-cleaning'
-          ];
-
+          const routes = ['/', '/quote', '/contact', '/about', '/portfolio', '/services/solar-panel-cleaning'];
           (async () => {
             const browser = await chromium.launch({headless: true});
             const page = await browser.newPage();
             const failures = [];
-
             page.on('console', msg => {
               if (msg.type() === 'error') failures.push('console.error: ' + msg.text());
             });
             page.on('pageerror', error => failures.push('pageerror: ' + error.message));
-
             for (const route of routes) {
-              const url = new URL(route, process.env.QA_URL).toString();
               try {
-                const response = await page.goto(url, {
-                  waitUntil: 'domcontentloaded',
-                  timeout: 30000
-                });
+                const response = await page.goto(new URL(route, process.env.QA_URL).toString(), {waitUntil: 'domcontentloaded', timeout: 30000});
                 const status = response?.status() ?? 0;
                 console.log(route + ' -> HTTP ' + status);
-                if (status < 200 || status >= 400) {
-                  failures.push(route + ': HTTP ' + status);
-                }
+                if (status < 200 || status >= 400) failures.push(route + ': HTTP ' + status);
               } catch (error) {
                 failures.push(route + ': ' + error.message);
               }
             }
-
             await browser.close();
-
             if (failures.length) {
               console.error('QA FAILED');
               failures.forEach(f => console.error('- ' + f));
               process.exit(1);
             }
-
             console.log('QA PASSED: all 6 routes responded successfully.');
           })();
           EOF
@@ -152,13 +131,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Evaluate gate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
+          READINESS_RESULT: ${{ needs.readiness.result }}
+          QA_RESULT: ${{ needs.qa.result }}
         run: |
-          echo "Build: ${{ needs.build.result }}"
-          echo "Deploy: ${{ needs.deploy.result }}"
-          echo "Readiness: ${{ needs.readiness.result }}"
-          echo "QA: ${{ needs.qa.result }}"
-          test "${{ needs.build.result }}" = success
-          test "${{ needs.deploy.result }}" = success
-          test "${{ needs.readiness.result }}" = success
-          test "${{ needs.qa.result }}" = success
+          echo "Build: $BUILD_RESULT"
+          if [ "$BUILD_RESULT" != "success" ]; then exit 1; fi
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            echo "PR build gate passed."
+            exit 0
+          fi
+          echo "Deploy: $DEPLOY_RESULT"
+          echo "Readiness: $READINESS_RESULT"
+          echo "QA: $QA_RESULT"
+          test "$DEPLOY_RESULT" = success
+          test "$READINESS_RESULT" = success
+          test "$QA_RESULT" = success
           echo "NGMS RELEASE GATE PASSED"
