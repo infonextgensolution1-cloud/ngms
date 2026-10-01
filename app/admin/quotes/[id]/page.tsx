@@ -48,12 +48,18 @@ function QuoteView() {
   const router = useRouter()
   const [booking, setBooking] = useState(false)
   const [jobDate, setJobDate] = useState('')
+  const [customerLink, setCustomerLink] = useState<string | null>(null)
+  const [linkCopied, setLinkCopied] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
     setError('')
     try {
-      const [res, s] = await Promise.all([handlersA.ngms_get_quote(supabase, { quote_id: id }), getSettings(supabase)])
+      const [res, s, versionRes] = await Promise.all([
+        handlersA.ngms_get_quote(supabase, { quote_id: id }),
+        getSettings(supabase),
+        supabase.from('quote_versions').select('public_token,version_number,version_status').eq('quote_id', id).order('version_number', { ascending: false }).limit(1).maybeSingle(),
+      ])
       if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not load that quote')
       const sc = res.structuredContent as {
         quote: Quote
@@ -70,6 +76,7 @@ function QuoteView() {
       setJobs(sc.jobs ?? [])
       setInvoices(sc.invoices ?? [])
       setSettings(s)
+      setCustomerLink(versionRes.data?.public_token ? `${window.location.origin}/quote/${versionRes.data.public_token}` : null)
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -242,6 +249,28 @@ function QuoteView() {
             <p className="text-xs text-mist mb-2">No WhatsApp number on file for this client. Add one on their client page to send from here.</p>
           )}
           <p className="text-[11px] text-mist mb-4">Opens WhatsApp with the message written. Print / Save as PDF first if you want to attach the quote.</p>
+
+          {customerLink && (
+            <div className="mb-4 rounded-card border border-blue bg-cardgrey p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-heading font-semibold text-paper">Customer quote link</p>
+                  <p className="mt-1 truncate text-[11px] text-mist">{customerLink}</p>
+                </div>
+                <button
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(customerLink)
+                    setLinkCopied(true)
+                    window.setTimeout(() => setLinkCopied(false), 1800)
+                  }}
+                  className="shrink-0 rounded-btn border border-blue px-3 py-2 text-xs font-heading font-semibold text-blue"
+                >
+                  {linkCopied ? 'Copied' : 'Copy link'}
+                </button>
+              </div>
+              <p className="mt-2 text-[11px] text-mist">This link opens the exact latest quote version. Send it to the customer for review and acceptance.</p>
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center gap-2 mb-4">
             {quote.status === 'draft' && (
