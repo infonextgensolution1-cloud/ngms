@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabaseClient'
 type Lead = { id: string; name: string; phone: string | null; service: string | null; status: string; updated_at: string }
 type Quote = { id: string; quote_number: string; client_name: string | null; total: number; status: string; valid_until: string | null }
 type Job = { id: string; title: string | null; status: string; scheduled_date: string | null; client_name: string | null }
+type Plan = { id: string; name: string; service_scope: string | null; status: string; next_due_date: string | null; discount_percent: number }
 
 const stages = [
   ['new', 'Lead'],
@@ -39,21 +40,24 @@ function SalesDashboard() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [quotes, setQuotes] = useState<Quote[]>([])
   const [jobs, setJobs] = useState<Job[]>([])
+  const [plans, setPlans] = useState<Plan[]>([])
   const [loading, setLoading] = useState(true)
   const [versioningReady, setVersioningReady] = useState<boolean | null>(null)
 
   async function load() {
     setLoading(true)
-    const [l, q, j, v] = await Promise.all([
+    const [l, q, j, v, p] = await Promise.all([
       supabase.from('leads').select('id,name,phone,service,status,updated_at').order('updated_at', { ascending: false }).limit(100),
       supabase.from('quotes').select('id,quote_number,client_id,total_amount,status,valid_until').order('created_at', { ascending: false }).limit(100),
       supabase.from('jobs').select('id,title,status,scheduled_date,client_id').order('created_at', { ascending: false }).limit(100),
       supabase.from('quote_versions').select('id').limit(1),
+      supabase.from('maintenance_plans').select('id,name,service_scope,status,next_due_date,discount_percent').order('next_due_date', { ascending: true }).limit(50),
     ])
     setLeads((l.data ?? []) as Lead[])
     setVersioningReady(!v.error)
     setQuotes(((q.data ?? []) as any[]).map(x => ({ id:x.id, quote_number:x.quote_number, client_name:x.client_id ? 'Client record' : null, total:Number(x.total_amount ?? 0), status:x.status, valid_until:x.valid_until })))
     setJobs(((j.data ?? []) as any[]).map(x => ({ id:x.id, title:x.title, status:x.status, scheduled_date:x.scheduled_date, client_name:x.client_id ? 'Client record' : null })))
+    setPlans((p.data ?? []) as Plan[])
     setLoading(false)
   }
 
@@ -89,6 +93,15 @@ function SalesDashboard() {
             <p className="text-xs text-mist mb-3">{expiring.length} sent quote{expiring.length === 1 ? '' : 's'} expire within 7 days.</p>
             <div className="space-y-2">{expiring.map(q => <Link key={q.id} href={`/admin/quotes/${q.id}`} className="block border-b border-darkgrey pb-2"><p className="text-sm text-paper">{q.quote_number}</p><p className="text-xs text-mist">R{q.total.toFixed(2)} · valid until {q.valid_until}</p></Link>)}{!expiring.length && <p className="text-sm text-mist">No expiring sent quotes.</p>}</div>
             <div className={`mt-4 text-xs rounded-btn px-3 py-2 ${versioningReady ? 'bg-whatsapp/10 text-whatsapp' : 'bg-orange/10 text-orange'}`}>{versioningReady ? 'Quote versioning database is ready.' : 'Quote versioning migration is not deployed yet.'}</div>
+          </section>
+
+          <section className="bg-cardgrey border border-darkgrey rounded-card p-4">
+            <div className="flex items-center gap-2 mb-3"><RefreshCw className="w-4 h-4 text-whatsapp"/><h2 className="font-heading font-bold text-paper">Maintenance pipeline</h2></div>
+            <p className="text-xs text-mist mb-3">Offers are created after completed jobs; activation remains customer-controlled.</p>
+            <div className="space-y-2">
+              {plans.slice(0,6).map(p => <div key={p.id} className="border-b border-darkgrey pb-2"><div className="flex justify-between gap-2"><p className="text-sm text-paper">{p.name}</p><span className="text-[10px] uppercase text-mist">{p.status}</span></div><p className="text-xs text-mist mt-1">{p.service_scope ?? 'Property maintenance'} · next due {p.next_due_date ?? '—'}{Number(p.discount_percent) ? ` · ${p.discount_percent}% discount` : ''}</p></div>)}
+              {!plans.length && <p className="text-sm text-mist">No maintenance offers yet.</p>}
+            </div>
           </section>
 
           <section className="bg-cardgrey border border-darkgrey rounded-card p-4 md:col-span-2">
