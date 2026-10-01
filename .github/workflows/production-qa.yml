@@ -1,0 +1,58 @@
+name: NGMS Production QA
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-smoke:
+    name: Production smoke tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Wait for production to settle
+        run: sleep 45
+
+      - name: Check production homepage
+        run: |
+          set -euo pipefail
+          code=$(curl -L -sS -o /tmp/home.html -w "%{http_code}" --max-time 30 https://www.nextgensolarmaintenance.co.za/)
+          test "$code" = "200"
+          grep -qi "NextGen" /tmp/home.html
+
+      - name: Check critical routes
+        run: |
+          set -euo pipefail
+          routes=(
+            "/"
+            "/quote"
+            "/roi-calculator"
+            "/services"
+          )
+
+          for route in "${routes[@]}"; do
+            echo "Checking https://www.nextgensolarmaintenance.co.za${route}"
+            code=$(curl -L -sS -o /dev/null -w "%{http_code}" --max-time 30 "https://www.nextgensolarmaintenance.co.za${route}")
+            if [ "$code" -lt 200 ] || [ "$code" -ge 400 ]; then
+              echo "FAIL: ${route} returned HTTP $code"
+              exit 1
+            fi
+          done
+
+      - name: Check HTTPS and WhatsApp CTA
+        run: |
+          set -euo pipefail
+          curl -L -sS --max-time 30 https://www.nextgensolarmaintenance.co.za/ > /tmp/home.html
+          grep -q "wa.me/27631387945" /tmp/home.html
+
+      - name: Report result
+        if: always()
+        run: |
+          echo "NGMS production smoke QA completed."
+          echo "Target: https://www.nextgensolarmaintenance.co.za"
