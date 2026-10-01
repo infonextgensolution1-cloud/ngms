@@ -176,6 +176,7 @@ function PhotoUploader({ jobId, onSaved }: { jobId: string; onSaved: () => void 
   )
 }
 
+// Commercial workflow panel: quote → job → invoice
 function JobDetail() {
   const params = useParams<{ id: string }>()
   const id = params.id
