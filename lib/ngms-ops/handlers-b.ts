@@ -312,7 +312,56 @@ export const handlersB: Record<string, Handler> = {
     const w = sched ? weatherWarning(sched, `${job.title} ${job.description ?? ''}`) : null
     if (w) extra.push(w)
     if (status === 'completed') {
-      extra.push('Next: ngms_create_invoice with kind "balance" on the quote, and log any last costs so the margin is right.')
+      if (job.quote_id) {
+        const { data: liveInvoices } = await sb.from('invoices')
+          .select('id,invoice_number,status,notes,total_amount')
+          .eq('quote_id', job.quote_id)
+          .neq('status', 'void')
+          .order('created_at')
+        const existingBalance = (liveInvoices ?? []).some((i) => /balance/i.test(String(i.notes ?? '')))
+
+        if (!existingBalance) {
+          const balance = await handlersB.ngms_create_invoice(sb, { quote_id: job.quote_id, kind: 'balance' })
+          if (!balance.isError) extra.push('✓ Balance invoice created automatically from the completed job.')
+          else extra.push('⚠️ Job completed, but the balance invoice could not be created automatically — review the quote/invoices.')
+        } else {
+          extra.push('✓ Existing balance invoice found — no duplicate invoice created.')
+        }
+      }
+
+      const scope = String(job.title ?? 'Maintenance service')
+      const solar = /solar|panel/i.test(scope)
+      const frequencyMonths = solar ? 6 : 12
+      const nextDue = new Date()
+      nextDue.setMonth(nextDue.getMonth() + frequencyMonths)
+      const nextDueDate = nextDue.toISOString().slice(0, 10)
+      const { data: existingPlan } = await sb.from('maintenance_plans')
+        .select('id,status,next_due_date')
+        .eq('client_id', job.client_id)
+        .in('status', ['offered', 'active', 'paused'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (!existingPlan) {
+        const { error: planError } = await sb.from('maintenance_plans').insert({
+          client_id: job.client_id,
+          source_job_id: job.id,
+          source_quote_id: job.quote_id,
+          name: solar ? 'NextGen Solar Care Plan' : 'NextGen Property Maintenance Plan',
+          service_scope: scope,
+          frequency_months: frequencyMonths,
+          discount_percent: solar ? 15 : 0,
+          status: 'offered',
+          next_due_date: nextDueDate,
+          notes: 'Generated after job completion. Customer must explicitly accept before activation.',
+        })
+        if (!planError) extra.push(`✓ Maintenance offer created — next review ${nextDueDate}.`)
+        else extra.push('⚠️ Maintenance offer could not be created automatically.')
+      } else {
+        extra.push(`✓ Existing maintenance plan/offer found — next due ${existingPlan.next_due_date ?? 'not set'}.`)
+      }
+
       if (job.quote_id) {
         const { count } = await sb.from('invoices').select('id', { count: 'exact', head: true }).eq('quote_id', job.quote_id).neq('status', 'void')
         if (!count) extra.push('⚠️ No invoice raised against this job\'s quote yet.')
