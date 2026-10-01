@@ -290,6 +290,13 @@ function JobDetail() {
           </div>
 
           <div className="mb-3"><TrackerLinkButton jobId={job.id} /></div>
+          {job.quote_id && (
+            <div className="mb-4">
+              <Link href={`/admin/quotes/${job.quote_id}`} className="inline-flex items-center gap-2 text-xs border border-darkgrey hover:border-blue text-mist hover:text-paper px-3 py-1.5 rounded-btn">
+                Open linked quote
+              </Link>
+            </div>
+          )}
 
           {job.scheduled_date && (
             <a
