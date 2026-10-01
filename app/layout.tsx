@@ -57,7 +57,7 @@ const LOCAL_BUSINESS_JSONLD = {
   priceRange: 'R550+',
   address: { '@type': 'PostalAddress', addressLocality: 'Strand', addressRegion: 'Western Cape', addressCountry: 'ZA' },
   areaServed: SITE.serviceAreas.map((name) => ({ '@type': 'Place', name: `${name}, Western Cape` })),
-  openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], opens: '07:00', closes: '18:00' }],
+  openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], opens: '07:00', closes: '17:00' }],
   contactPoint: [{ '@type': 'ContactPoint', telephone: SITE.phone, contactType: 'customer service', areaServed: 'ZA' }],
   sameAs: [FACEBOOK_URL],
   hasOfferCatalog: {
