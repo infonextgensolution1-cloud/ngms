@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { CheckCircle2, Clock3, FileText, MessageCircle, XCircle } from 'lucide-react'
+import { CheckCircle2, Clock3, MessageCircle, XCircle } from 'lucide-react'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getSettings, rand, todaySast } from '@/lib/ngms-ops/core'
 import { QUOTE_TERMS } from '@/lib/quote-terms'
