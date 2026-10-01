@@ -1,0 +1,153 @@
+name: NGMS Production Build Gate
+
+on:
+  push:
+    branches: [main, feat/segment-landing-pages]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ngms-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 22
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+  deploy:
+    name: Deploy to Vercel
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Deploy production
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          DEPLOYMENT_JSON=$(npx vercel deploy --prod --yes --token="$VERCEL_TOKEN" --json)
+          URL=$(printf '%s' "$DEPLOYMENT_JSON" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).url))')
+          test -n "$URL"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "Deployment: $URL"
+
+  readiness:
+    name: Wait for READY
+    if: github.event_name != 'pull_request'
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for deployment
+        env:
+          URL: ${{ needs.deploy.outputs.url }}
+        run: |
+          for i in {1..30}; do
+            code=$(curl -L -s -o /dev/null -w "%{http_code}" "$URL")
+            echo "Attempt $i: HTTP $code"
+            if [ "$code" -ge 200 ] && [ "$code" -lt 400 ]; then exit 0; fi
+            sleep 10
+          done
+          exit 1
+
+  qa:
+    name: 6-page smoke QA
+    if: github.event_name != 'pull_request'
+    needs: [deploy, readiness]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Run production smoke QA
+        env:
+          QA_URL: ${{ needs.deploy.outputs.url }}
+        run: |
+          node <<'EOF'
+          const { chromium } = require('playwright');
+          const routes = ['/', '/quote', '/contact', '/about', '/portfolio', '/services/solar-panel-cleaning'];
+          (async () => {
+            const browser = await chromium.launch({headless: true});
+            const page = await browser.newPage();
+            const failures = [];
+            page.on('console', msg => {
+              if (msg.type() === 'error') failures.push('console.error: ' + msg.text());
+            });
+            page.on('pageerror', error => failures.push('pageerror: ' + error.message));
+            for (const route of routes) {
+              try {
+                const response = await page.goto(new URL(route, process.env.QA_URL).toString(), {waitUntil: 'domcontentloaded', timeout: 30000});
+                const status = response?.status() ?? 0;
+                console.log(route + ' -> HTTP ' + status);
+                if (status < 200 || status >= 400) failures.push(route + ': HTTP ' + status);
+              } catch (error) {
+                failures.push(route + ': ' + error.message);
+              }
+            }
+            await browser.close();
+            if (failures.length) {
+              console.error('QA FAILED');
+              failures.forEach(f => console.error('- ' + f));
+              process.exit(1);
+            }
+            console.log('QA PASSED: all 6 routes responded successfully.');
+          })();
+          EOF
+
+  release-gate:
+    name: Release Gate
+    if: always()
+    needs: [build, deploy, readiness, qa]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate gate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
+          READINESS_RESULT: ${{ needs.readiness.result }}
+          QA_RESULT: ${{ needs.qa.result }}
+        run: |
+          echo "Build: $BUILD_RESULT"
+          if [ "$BUILD_RESULT" != "success" ]; then exit 1; fi
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            echo "PR build gate passed."
+            exit 0
+          fi
+          echo "Deploy: $DEPLOY_RESULT"
+          echo "Readiness: $READINESS_RESULT"
+          echo "QA: $QA_RESULT"
+          test "$DEPLOY_RESULT" = success
+          test "$READINESS_RESULT" = success
+          test "$QA_RESULT" = success
+          echo "NGMS RELEASE GATE PASSED"
