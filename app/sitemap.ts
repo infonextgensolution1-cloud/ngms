@@ -21,6 +21,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/terms`, lastModified, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${BASE_URL}/contact`, lastModified, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/quote`, lastModified, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE_URL}/solar-panel-cleaning/helderberg`, lastModified, changeFrequency: 'monthly', priority: 0.9 },
+    { url: `${BASE_URL}/body-corporate-maintenance`, lastModified, changeFrequency: 'monthly', priority: 0.85 },
+    { url: `${BASE_URL}/security-complex-maintenance`, lastModified, changeFrequency: 'monthly', priority: 0.85 },
+    { url: `${BASE_URL}/property-maintenance/somerset-west`, lastModified, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE_URL}/property-maintenance/strand`, lastModified, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE_URL}/property-maintenance/gordons-bay`, lastModified, changeFrequency: 'monthly', priority: 0.8 },
   ]
 
   const servicePages: MetadataRoute.Sitemap = services.map((service) => ({
