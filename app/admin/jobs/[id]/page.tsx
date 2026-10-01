@@ -183,6 +183,9 @@ function JobDetail() {
   const [client, setClient] = useState<Client | null>(null)
   const [costing, setCosting] = useState<Costing | null>(null)
   const [photos, setPhotos] = useState<Photo[]>([])
+  const [workflowQuote, setWorkflowQuote] = useState<{ id: string; quote_number: string | null; status: string; total_amount: number | null } | null>(null)
+  const [workflowInvoices, setWorkflowInvoices] = useState<{ id: string; invoice_number: string; status: string; total_amount: number | null; paid_amount: number | null; due_date: string | null }[]>([])
+  const [workflowBusy, setWorkflowBusy] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [savingStatus, setSavingStatus] = useState(false)
@@ -199,6 +202,17 @@ function JobDetail() {
       setClient(sc.client)
       setCosting(sc.costing)
       setPhotos(((photoRes.structuredContent?.photos as Photo[]) ?? []) as Photo[])
+      if (sc.job.quote_id) {
+        const [{ data: q }, { data: invs }] = await Promise.all([
+          supabase.from('quotes').select('id,quote_number,status,total_amount').eq('id', sc.job.quote_id).maybeSingle(),
+          supabase.from('invoices').select('id,invoice_number,status,total_amount,paid_amount,due_date').eq('quote_id', sc.job.quote_id).neq('status', 'void').order('created_at', { ascending: false }),
+        ])
+        setWorkflowQuote(q ?? null)
+        setWorkflowInvoices((invs ?? []) as { id: string; invoice_number: string; status: string; total_amount: number | null; paid_amount: number | null; due_date: string | null }[])
+      } else {
+        setWorkflowQuote(null)
+        setWorkflowInvoices([])
+      }
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -290,6 +304,69 @@ function JobDetail() {
           </div>
 
           <div className="mb-3"><TrackerLinkButton jobId={job.id} /></div>
+
+          {workflowQuote && (
+            <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-mist">Workflow</p>
+                  <h2 className="font-heading font-bold text-paper">Quote → Job → Invoice</h2>
+                  <p className="text-xs text-mist mt-1">Linked commercial record for this job.</p>
+                </div>
+                <Link href={`/admin/quotes/${workflowQuote.id}`} className="text-xs text-blue hover:text-paper">Open quote</Link>
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-2 mt-3">
+                <div className="border border-darkgrey rounded-btn px-3 py-2">
+                  <p className="text-[10px] uppercase tracking-wider text-mist">Quote</p>
+                  <p className="text-sm text-paper font-semibold">{workflowQuote.quote_number ?? 'Quote'}</p>
+                  <p className="text-xs text-mist capitalize">{workflowQuote.status}</p>
+                </div>
+                <div className="border border-darkgrey rounded-btn px-3 py-2">
+                  <p className="text-[10px] uppercase tracking-wider text-mist">Value</p>
+                  <p className="text-sm text-paper font-semibold">{rand(Number(workflowQuote.total_amount ?? 0))}</p>
+                  <p className="text-xs text-mist">{workflowInvoices.length} invoice{workflowInvoices.length === 1 ? '' : 's'}</p>
+                </div>
+                <div className="border border-darkgrey rounded-btn px-3 py-2">
+                  <p className="text-[10px] uppercase tracking-wider text-mist">Billing</p>
+                  {workflowInvoices.length ? workflowInvoices.slice(0, 2).map((i) => (
+                    <Link key={i.id} href={`/admin/invoices/${i.id}`} className="block text-xs text-blue hover:text-paper">
+                      {i.invoice_number} · {i.status} · {rand(Number(i.total_amount ?? 0))}
+                    </Link>
+                  )) : <p className="text-xs text-orange">No invoice raised</p>}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                {workflowInvoices.map((i) => (
+                  <Link key={i.id} href={`/admin/invoices/${i.id}`} className="text-xs border border-darkgrey hover:border-blue text-mist hover:text-paper px-3 py-1.5 rounded-btn">
+                    Open {i.invoice_number}
+                  </Link>
+                ))}
+                {!workflowInvoices.some((i) => ['paid'].includes(i.status)) && workflowQuote.status !== 'declined' && workflowQuote.status !== 'expired' && (
+                  <button
+                    disabled={workflowBusy}
+                    onClick={async () => {
+                      setWorkflowBusy(true)
+                      try {
+                        const res = await handlersB.ngms_create_invoice(supabase, { quote_id: workflowQuote.id, kind: 'balance' })
+                        if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not create invoice')
+                        const inv = res.structuredContent?.invoice as { id: string } | undefined
+                        if (inv?.id) window.location.href = `/admin/invoices/${inv.id}`
+                      } catch (e) {
+                        setError((e as Error).message)
+                      } finally {
+                        setWorkflowBusy(false)
+                      }
+                    }}
+                    className="text-xs bg-orange hover:opacity-90 text-white font-heading font-semibold px-3 py-1.5 rounded-btn disabled:opacity-50"
+                  >
+                    {workflowBusy ? 'Creating…' : workflowInvoices.length ? 'Raise balance invoice' : 'Raise invoice'}
+                  </button>
+                )}
+              </div>
+            </section>
+          )
 
           {job.scheduled_date && (
             <a
