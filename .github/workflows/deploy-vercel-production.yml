@@ -1,0 +1,78 @@
+name: NGMS Deploy to Vercel
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ngms-production-deploy
+  cancel-in-progress: false
+
+env:
+  VERCEL_PROJECT_ID: prj_uZi3UeS4lSYKga9Dxcm7jshzN4B0
+  VERCEL_ORG_ID: team_Tvuw1gszfpVvlqQVCxguGZit
+  PRODUCTION_URL: https://www.nextgensolarmaintenance.co.za
+
+jobs:
+  deploy:
+    name: Build and deploy production
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js application
+        run: npm run build
+        env:
+          CI: true
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@48.10.2
+
+      - name: Pull Vercel production configuration
+        run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Build Vercel production artifact
+        run: vercel build --prod --token="${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Deploy prebuilt artifact to production
+        run: vercel deploy --prebuilt --prod --yes --token="${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Verify production
+        run: |
+          set -euo pipefail
+          for route in "/" "/quote" "/roi-calculator" "/services"; do
+            code=$(curl -L -sS -o /dev/null -w "%{http_code}" --max-time 30 "${PRODUCTION_URL}${route}")
+            echo "${route}: HTTP ${code}"
+            test "${code}" -ge 200
+            test "${code}" -lt 400
+          done
+
+          curl -L -sS --max-time 30 "${PRODUCTION_URL}/" > /tmp/home.html
+          grep -qi "NextGen" /tmp/home.html
+          grep -q "wa.me/27631387945" /tmp/home.html
+
+      - name: Deployment summary
+        if: always()
+        run: |
+          echo "Commit: ${GITHUB_SHA}"
+          echo "Production: ${PRODUCTION_URL}"
+          echo "Deployment method: GitHub Actions + Vercel prebuilt artifact"
