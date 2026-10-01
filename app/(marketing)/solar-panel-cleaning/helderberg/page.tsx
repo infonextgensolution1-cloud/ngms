@@ -1,0 +1,1 @@
+import type { Metadata } from 'next'\nimport SegmentLandingPage from '@/components/SegmentLandingPage'\nimport { segmentConfigs } from '@/lib/segment-landings'\nexport const metadata: Metadata = { title: segmentConfigs.solar.title, description: segmentConfigs.solar.intro }\nexport default function Page() { return <SegmentLandingPage config={segmentConfigs.solar} /> }\n
