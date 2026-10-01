@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Copy, ExternalLink, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Copy, ExternalLink, RefreshCw, CalendarClock, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import { supabase } from '@/lib/supabaseClient'
 
@@ -22,6 +22,14 @@ function MaintenanceDashboard() {
   const [plans, setPlans] = useState<Plan[]>([])
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState<string | null>(null)
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const dueWindow = new Date(today)
+  dueWindow.setDate(dueWindow.getDate() + 30)
+  const activePlans = plans.filter(p => p.status === 'active')
+  const dueSoon = activePlans.filter(p => p.next_due_date && new Date(p.next_due_date + 'T00:00:00') >= today && new Date(p.next_due_date + 'T00:00:00') <= dueWindow)
+  const overdue = activePlans.filter(p => p.next_due_date && new Date(p.next_due_date + 'T00:00:00') < today)
 
   async function load() {
     setLoading(true)
@@ -54,6 +62,17 @@ function MaintenanceDashboard() {
           </div>
           <button onClick={load} className="p-2 text-mist hover:text-paper" aria-label="Refresh"><RefreshCw className={loading ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} /></button>
         </div>
+
+        <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="rounded-card border border-darkgrey bg-cardgrey p-4"><div className="flex items-center gap-2 text-mist"><CheckCircle2 className="h-4 w-4" /><span className="text-xs uppercase tracking-wider">Active</span></div><p className="mt-2 font-heading text-2xl font-bold text-paper">{activePlans.length}</p></div>
+          <div className="rounded-card border border-darkgrey bg-cardgrey p-4"><div className="flex items-center gap-2 text-orange"><CalendarClock className="h-4 w-4" /><span className="text-xs uppercase tracking-wider">Due ≤ 30 days</span></div><p className="mt-2 font-heading text-2xl font-bold text-paper">{dueSoon.length}</p></div>
+          <div className="rounded-card border border-darkgrey bg-cardgrey p-4"><div className="flex items-center gap-2 text-orange"><AlertTriangle className="h-4 w-4" /><span className="text-xs uppercase tracking-wider">Overdue</span></div><p className="mt-2 font-heading text-2xl font-bold text-paper">{overdue.length}</p></div>
+        </div>
+
+        {(dueSoon.length > 0 || overdue.length > 0) && <section className="mb-5 rounded-card border border-orange bg-orange/10 p-4">
+          <p className="font-heading font-semibold text-paper">Renewal action queue</p>
+          <div className="mt-3 space-y-2">{[...overdue, ...dueSoon].slice(0, 8).map(p => <div key={p.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-darkgrey/50 pb-2 last:border-0"><div><p className="text-sm text-paper">{p.name}</p><p className="text-xs text-mist">{p.service_scope ?? 'Property maintenance'}</p></div><span className="text-xs font-semibold text-orange">{p.next_due_date}</span></div>)}</div>
+        </section>}
 
         <div className="overflow-hidden rounded-card border border-darkgrey bg-cardgrey">
           <div className="hidden grid-cols-[1.5fr_1fr_.7fr_1fr_1.2fr] gap-3 border-b border-darkgrey bg-jet px-4 py-3 text-[10px] uppercase tracking-wider text-mist md:grid">
