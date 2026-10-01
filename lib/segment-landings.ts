@@ -1,4 +1,6 @@
-import type { SegmentLandingConfig } from '@/components/SegmentLandingPage'\n\nexport const segmentConfigs: Record<string, SegmentLandingConfig> = {
+import type { SegmentLandingConfig } from '@/components/SegmentLandingPage'
+
+export const segmentConfigs: Record<string, SegmentLandingConfig> = {
   "solar": {
     "slug": "solar-panel-cleaning-helderberg",
     "eyebrow": "Solar Panel Cleaning — Helderberg",
@@ -235,4 +237,4 @@ import type { SegmentLandingConfig } from '@/components/SegmentLandingPage'\n\ne
       }
     ]
   }
-}\n
+}

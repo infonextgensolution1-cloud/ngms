@@ -1,1 +1,5 @@
-import type { Metadata } from 'next'\nimport SegmentLandingPage from '@/components/SegmentLandingPage'\nimport { segmentConfigs } from '@/lib/segment-landings'\nexport const metadata: Metadata = { title: segmentConfigs.securityComplex.title, description: segmentConfigs.securityComplex.intro }\nexport default function Page() { return <SegmentLandingPage config={segmentConfigs.securityComplex} /> }\n
+import type { Metadata } from 'next'
+import SegmentLandingPage from '@/components/SegmentLandingPage'
+import { segmentConfigs } from '@/lib/segment-landings'
+export const metadata: Metadata = { title: segmentConfigs.securityComplex.title, description: segmentConfigs.securityComplex.intro }
+export default function Page() { return <SegmentLandingPage config={segmentConfigs.securityComplex} /> }
