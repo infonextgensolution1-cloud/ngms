@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
+// Keep production builds resilient when Vercel public Supabase variables are not yet configured.
+
 export const SUPABASE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dfwwpqtsbaytfqptancj.supabase.co'
 
