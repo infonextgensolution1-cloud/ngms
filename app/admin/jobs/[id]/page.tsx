@@ -183,8 +183,6 @@ function JobDetail() {
   const [client, setClient] = useState<Client | null>(null)
   const [costing, setCosting] = useState<Costing | null>(null)
   const [photos, setPhotos] = useState<Photo[]>([])
-  const [workflowQuote, setWorkflowQuote] = useState<{ id: string; quote_number: string | null; status: string } | null>(null)
-  const [workflowBusy, setWorkflowBusy] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [savingStatus, setSavingStatus] = useState(false)
@@ -196,18 +194,11 @@ function JobDetail() {
     try {
       const [jobRes, photoRes] = await Promise.all([handlersB.ngms_get_job(supabase, { job_id: id }), handlersC.ngms_list_job_photos(supabase, { job_id: id })])
       if (jobRes.isError) throw new Error(jobRes.content[0]?.text ?? 'Could not load that job')
-      const sc = jobRes.structuredContent as {
-        job: Job
-        client: Client | null
-        costing: Costing
-        quote?: { quote_number?: string | null; status?: string } | null
-      }
+      const sc = jobRes.structuredContent as { job: Job; client: Client | null; costing: Costing }
       setJob(sc.job)
       setClient(sc.client)
       setCosting(sc.costing)
       setPhotos(((photoRes.structuredContent?.photos as Photo[]) ?? []) as Photo[])
-      const q = sc.quote as { quote_number?: string | null; status?: string } | null | undefined
-      setWorkflowQuote(sc.job.quote_id && q ? { id: sc.job.quote_id, quote_number: q.quote_number ?? null, status: q.status ?? 'unknown' } : null)
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -299,48 +290,13 @@ function JobDetail() {
           </div>
 
           <div className="mb-3"><TrackerLinkButton jobId={job.id} /></div>
-
-          {workflowQuote && (
-            <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[10px] uppercase tracking-wider text-mist">Commercial workflow</p>
-                  <h2 className="font-heading font-bold text-paper">Quote → Job → Invoice</h2>
-                  <p className="text-xs text-mist mt-1">
-                    {workflowQuote.quote_number ?? 'Linked quote'} · {workflowQuote.status}
-                  </p>
-                </div>
-                <Link href={`/admin/quotes/${workflowQuote.id}`} className="text-xs text-blue hover:text-paper">Open quote</Link>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-3">
-                <Link href={`/admin/quotes/${workflowQuote.id}`} className="text-xs border border-darkgrey hover:border-blue text-mist hover:text-paper px-3 py-1.5 rounded-btn">
-                  View quote
-                </Link>
-                {!['declined', 'expired'].includes(workflowQuote.status) && (
-                  <button
-                    disabled={workflowBusy}
-                    onClick={async () => {
-                      setWorkflowBusy(true)
-                      try {
-                        const res = await handlersB.ngms_create_invoice(supabase, { quote_id: workflowQuote.id, kind: 'balance' })
-                        if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not create invoice')
-                        const inv = res.structuredContent?.invoice as { id?: string } | undefined
-                        if (inv?.id) window.location.href = `/admin/invoices/${inv.id}`
-                        else setError('Invoice created, but the invoice ID was not returned.')
-                      } catch (e) {
-                        setError((e as Error).message)
-                      } finally {
-                        setWorkflowBusy(false)
-                      }
-                    }}
-                    className="text-xs bg-orange hover:opacity-90 text-white font-heading font-semibold px-3 py-1.5 rounded-btn disabled:opacity-50"
-                  >
-                    {workflowBusy ? 'Creating…' : 'Raise balance invoice'}
-                  </button>
-                )}
-              </div>
-            </section>
-          )
+          {job.quote_id && (
+            <div className="mb-4">
+              <Link href={`/admin/quotes/${job.quote_id}`} className="inline-flex items-center gap-2 text-xs border border-darkgrey hover:border-blue text-mist hover:text-paper px-3 py-1.5 rounded-btn">
+                Open linked quote
+              </Link>
+            </div>
+          )}
 
           {job.scheduled_date && (
             <a
