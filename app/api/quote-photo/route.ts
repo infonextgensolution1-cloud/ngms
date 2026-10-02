@@ -25,10 +25,20 @@ export async function POST(req: Request) {
   if (!ext) return NextResponse.json({ ok: false, error: 'Use a JPG, PNG or WebP photo' }, { status: 400 })
   if (file.size > MAX_BYTES) return NextResponse.json({ ok: false, error: 'Photo too large' }, { status: 413 })
 
+  // Validate the file signature as well as the MIME type so a renamed executable/text
+  // file cannot be uploaded through the public endpoint.
+  const bytes = new Uint8Array(await file.arrayBuffer())
+  const isJpeg = bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff
+  const isPng = bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 && bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a
+  const isWebp = bytes.length >= 12 && String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF' && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP'
+  if ((file.type === 'image/jpeg' && !isJpeg) || (file.type === 'image/png' && !isPng) || (file.type === 'image/webp' && !isWebp)) {
+    return NextResponse.json({ ok: false, error: 'Invalid image file' }, { status: 415 })
+  }
+
   try {
     const db = supabaseAdmin()
     const path = `quote-photos/${new Date().toISOString().slice(0, 7)}/${randomUUID()}.${ext}`
-    const { error } = await db.storage.from('public-leads').upload(path, Buffer.from(await file.arrayBuffer()), {
+    const { error } = await db.storage.from('public-leads').upload(path, Buffer.from(bytes), {
       contentType: file.type,
       upsert: false,
     })
