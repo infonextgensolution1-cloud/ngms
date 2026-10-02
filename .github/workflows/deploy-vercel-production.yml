@@ -47,6 +47,9 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@48.10.2
 
+      - name: Reset local Vercel link
+        run: rm -rf .vercel
+
       - name: Pull Vercel production configuration
         run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
 
@@ -77,4 +80,4 @@ jobs:
           echo "Production: ${PRODUCTION_URL}"
           echo "Deployment method: GitHub Actions + Vercel prebuilt artifact"
 
-# redeploy trigger
+# Vercel CI: reset stale local project metadata before pull
