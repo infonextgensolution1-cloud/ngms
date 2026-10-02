@@ -76,7 +76,7 @@ jobs:
           exit 1
 
   qa:
-    name: 6-page smoke QA
+    name: Production smoke QA
     if: github.event_name != 'pull_request'
     needs: [deploy, readiness]
     runs-on: ubuntu-latest
@@ -95,7 +95,18 @@ jobs:
         run: |
           node <<'EOF'
           const { chromium } = require('playwright');
-          const routes = ['/', '/quote', '/contact', '/about', '/portfolio', '/services/solar-panel-cleaning'];
+          const routes = [
+              '/',
+              '/quote',
+              '/contact',
+              '/about',
+              '/portfolio',
+              '/services',
+              '/services/solar-panel-cleaning',
+              '/projects',
+              '/gallery',
+              '/terms',
+            ];
           (async () => {
             const browser = await chromium.launch({headless: true});
             const page = await browser.newPage();
@@ -120,7 +131,18 @@ jobs:
               failures.forEach(f => console.error('- ' + f));
               process.exit(1);
             }
-            console.log('QA PASSED: all 6 routes responded successfully.');
+            const apiChecks = ['/api/notify', '/api/quote-photo'];
+            for (const apiPath of apiChecks) {
+              try {
+                const response = await fetch(new URL(apiPath, process.env.QA_URL).toString(), { method: 'GET' });
+                const status = response.status;
+                console.log(apiPath + ' -> HTTP ' + status + ' (GET probe; 405 is expected for POST-only endpoints)');
+                if (status !== 405) failures.push(apiPath + ': expected HTTP 405, got ' + status);
+              } catch (error) {
+                failures.push(apiPath + ': ' + error.message);
+              }
+            }
+            console.log('QA PASSED: all production routes and POST-only API endpoints responded as expected.');
           })();
           EOF
 
