@@ -32,6 +32,7 @@ export default function ContactForm() {
     const serviceName = String(data.get("service") || "");
     const service = SERVICES.find((s) => s.name === serviceName);
     const notes = String(data.get("notes") || "").trim();
+    const consent = Boolean(data.get("consent"));
 
     // Same lead table + email ping as the quote form, so contact-page
     // enquiries land in the admin lead inbox alongside quote requests.
@@ -42,7 +43,7 @@ export default function ContactForm() {
       suburb,
       service: serviceName,
       service_slug: service?.slug ?? null,
-      message: notes,
+      message: `${notes}${consent ? `\nPOPIA consent given: ${new Date().toISOString()}` : ""}`,
       status: "new",
     });
 
@@ -138,6 +139,13 @@ export default function ContactForm() {
           className="min-h-[130px] w-full"
         />
       </Field>
+      <label className="flex items-start gap-2 text-xs text-mist">
+        <input required type="checkbox" name="consent" className="mt-0.5" />
+        <span>
+          I agree that NextGen may store my details and contact me about this enquiry and related service reminders, as
+          set out in our <a href="/terms" className="underline">terms</a> (POPIA).
+        </span>
+      </label>
       <button
         type="submit"
         disabled={status === "sending"}
