@@ -102,18 +102,25 @@ export async function ask({ prompt, maxTokens = 16000, effort = 'medium', schema
   return text
 }
 
-/** Maps any thrown error to a JSON response the admin pages can show. */
+/** Maps thrown errors to safe, actionable responses without exposing provider internals. */
 export function errorResponse(e: unknown): Response {
   if (e instanceof HttpError) return Response.json({ error: e.message }, { status: e.status })
   if (e instanceof Anthropic.RateLimitError) {
     return Response.json({ error: 'Claude is busy right now. Try again in a minute.' }, { status: 429 })
   }
   if (e instanceof Anthropic.AuthenticationError) {
-    return Response.json({ error: 'ANTHROPIC_API_KEY is invalid. Check it in Vercel.' }, { status: 503 })
+    return Response.json({ error: 'The AI service is not configured correctly. Check the Anthropic API key in Vercel.' }, { status: 503 })
   }
   if (e instanceof Anthropic.APIError) {
     console.error('Claude API error', e.status, e.message)
-    return Response.json({ error: `Claude API error (${e.status ?? 'network'}). Try again.` }, { status: 502 })
+    const providerMessage = String(e.message ?? '').toLowerCase()
+    if (e.status === 400 && providerMessage.includes('credit balance')) {
+      return Response.json(
+        { error: 'AI quote drafting is temporarily unavailable because the AI service has no available credit. The website and normal quote requests remain available.' },
+        { status: 503 },
+      )
+    }
+    return Response.json({ error: 'The AI quote service is temporarily unavailable. Try again shortly.' }, { status: 503 })
   }
   console.error('AI route error', e)
   return Response.json({ error: 'Something went wrong. Try again.' }, { status: 500 })
