@@ -204,7 +204,7 @@ function LeadView() {
               <input className={input} placeholder="Email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} />
               <input className={input} placeholder="Suburb" value={suburb} onChange={(e) => setSuburb(e.target.value)} />
               <div className="sm:col-span-2 flex items-center gap-3">
-                <button onClick={saveContact} disabled={busy} className="inline-flex items-center gap-2 bg-blue hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50">
+                <button onClick={saveContact} disabled={busy} className="inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50">
                   {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save
                 </button>
                 <button onClick={() => setEditing(false)} className="text-xs text-mist">
@@ -255,7 +255,7 @@ function LeadView() {
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
-          <button onClick={saveNote} disabled={busy || !note.trim()} className="mt-2 inline-flex items-center gap-2 bg-blue hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50">
+          <button onClick={saveNote} disabled={busy || !note.trim()} className="mt-2 inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50">
             {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Add note
           </button>
         </section>

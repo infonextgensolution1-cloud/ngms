@@ -8,7 +8,7 @@ import { getServiceImages } from "@/lib/queries";
 // Re-check Supabase for new service photos at most once a minute.
 export const revalidate = 60;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = { alternates: { canonical: '/services' },
   title: "Services",
   description: "12 trade services, one team — solar, painting, waterproofing, paving, plumbing, electrical and more.",
 };

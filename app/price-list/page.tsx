@@ -1,6 +1,6 @@
 import NgmsIcon from '@/components/NgmsIcon'
 
-export const metadata = {
+export const metadata = { alternates: { canonical: '/price-list' },
   title: 'Price List | NextGen Solar Clean & Maintenance Solutions',
   description:
     'Clear starting rates for solar cleaning, painting, waterproofing, paving and more across Strand, Gordon\'s Bay and Somerset West.',

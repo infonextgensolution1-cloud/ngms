@@ -13,8 +13,9 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: "portrait-primary",
     lang: "en-ZA",
     icons: [
-      { src: "/logo.png", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/logo.png", sizes: "512x512", type: "image/png", purpose: "maskable" }
+      { src: "/admin-app/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/admin-app/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/admin-app/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" }
     ]
   };
 }

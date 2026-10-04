@@ -22,7 +22,7 @@ const nextConfig = {
   },
   // Internal tools: kept out of robots.txt (which would advertise them) and marked noindex instead.
   async headers() {
-    return ['/ops', '/ops/:path*', '/prompt-dashboard', '/prompt-dashboard/:path*'].map((source) => ({
+    return ['/ops', '/ops/:path*', '/prompt-dashboard', '/prompt-dashboard/:path*', '/portal', '/quote/:token', '/maintenance/:token'].map((source) => ({
       source,
       headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
     }))

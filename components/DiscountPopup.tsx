@@ -4,15 +4,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 const STORAGE_KEY = "ngsms-discount-popup-dismissed";
-const SHOW_AFTER_MS = 3500;
+const SHOW_AFTER_MS = 12000;
 
-// 10% first-booking offer, shown once per visit as a pop-up on the homepage.
-// Closes with the X button, "No thanks", a tap outside the card, or Escape.
+// 10% first-booking offer. A small, non-blocking card in the bottom-left corner
+// (the WhatsApp button owns the bottom-right), shown once per visit after the
+// visitor has had time to read the page. It never locks scrolling or covers content.
 export default function DiscountPopup() {
   const [open, setOpen] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
 
-  // Show after a short delay, unless already closed during this visit.
   useEffect(() => {
     let dismissed = false;
     try {
@@ -34,78 +34,44 @@ export default function DiscountPopup() {
     }
   }, []);
 
-  // While open: Escape closes, page behind doesn't scroll, focus lands on the close button.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") close();
     };
     window.addEventListener("keydown", onKey);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    closeRef.current?.focus();
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prevOverflow;
-    };
+    return () => window.removeEventListener("keydown", onKey);
   }, [open, close]);
 
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-jet/80 backdrop-blur-sm p-4"
-      onClick={close}
+    <aside
+      role="complementary"
+      aria-labelledby="discount-popup-title"
+      className="fixed z-[60] left-3 right-20 sm:right-auto sm:left-5 sm:w-[340px] panel p-4 pr-12 animate-fade-up"
+      style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))" }}
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="discount-popup-title"
-        className="relative w-full max-w-sm overflow-hidden rounded-2xl bg-orange text-jet shadow-2xl animate-fade-up"
-        onClick={(e) => e.stopPropagation()}
+      <button
+        ref={closeRef}
+        type="button"
+        onClick={close}
+        aria-label="Close offer"
+        className="absolute right-1 top-1 grid h-11 w-11 place-items-center rounded-btn text-mist hover:text-paper hover:bg-white/5"
       >
-        <div
-          aria-hidden
-          className="absolute inset-0 opacity-25 pointer-events-none"
-          style={{ backgroundImage: "repeating-linear-gradient(-55deg, transparent 0 14px, rgba(255,255,255,0.55) 14px 16px)" }}
-        />
-
-        <button
-          ref={closeRef}
-          type="button"
-          onClick={close}
-          aria-label="Close offer"
-          className="absolute right-2 top-2 z-10 grid h-11 w-11 place-items-center rounded-full bg-jet text-paper text-lg transition-colors hover:bg-jet/80"
-        >
-          ✕
-        </button>
-
-        <div className="relative px-6 pb-6 pt-10 text-center">
-          <p className="font-heading font-bold uppercase tracking-[0.2em] text-xs">First booking</p>
-          <p id="discount-popup-title" className="font-heading font-extrabold leading-none text-8xl mt-2">
-            10%
-            <span className="block text-4xl mt-1">OFF</span>
-          </p>
-          <p className="mt-3 text-base font-semibold">
-            your first booking on all other services
-          </p>
-          <p className="mt-1 text-sm text-jet/80">
-            Painting, waterproofing, paving, plumbing, electrical and more. Use code <strong>NGX10</strong>.
-            Excludes solar panel cleaning.
-          </p>
-
-          <Link href="/quote" onClick={close} className="btn-quote-popup mt-5 w-full">
-            Claim 10% off &rarr; get a free quote
-          </Link>
-          <button
-            type="button"
-            onClick={close}
-            className="mt-2 inline-flex min-h-11 items-center justify-center text-sm font-semibold underline underline-offset-4 text-jet/80 hover:text-jet"
-          >
-            No thanks
-          </button>
-        </div>
-      </div>
-    </div>
+        ✕
+      </button>
+      <p className="text-[11px] uppercase tracking-[0.18em] text-blue font-semibold">First booking</p>
+      <p id="discount-popup-title" className="font-heading font-semibold text-paper text-lg leading-snug mt-1">
+        10% off your first booking
+      </p>
+      <p className="text-mist text-sm mt-1">
+        Painting, waterproofing, paving, plumbing, electrical and more. Code <strong className="text-paper">NGX10</strong>.
+        Excludes solar panel cleaning.
+      </p>
+      <Link href="/quote" onClick={close} className="btn-quote mt-3 !py-2.5 !text-xs">
+        Claim it with a free quote
+      </Link>
+    </aside>
   );
 }

@@ -32,7 +32,7 @@ export default function TrustBadges() {
       <div className="wrap grid grid-cols-2 sm:grid-cols-4 gap-6">
         {BADGES.map(({ icon, title, body }, i) => (
           <div key={title} className="group text-center">
-            <div className="w-16 h-16 rounded-2xl bg-cardgrey border border-darkgrey grid place-items-center mx-auto mb-3 group-hover:border-orange transition-colors">
+            <div className="w-16 h-16 rounded-panel bg-cardgrey border border-darkgrey grid place-items-center mx-auto mb-3 group-hover:border-blue transition-colors">
               <NgmsIcon name={icon} index={i} className="w-10 h-10" />
             </div>
             <h3 className="font-heading font-bold text-sm text-paper uppercase tracking-wide">{title}</h3>

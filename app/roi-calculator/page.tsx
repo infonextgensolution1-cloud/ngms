@@ -2,120 +2,102 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
+import { groupThousands, solarCleanFromPrice } from '@/lib/solar-pricing'
 
-function cleaningCost(panels: number): number {
-  if (panels <= 10) return 550
-  if (panels <= 20) return 950
-  if (panels <= 30) return 1350
-  if (panels <= 40) return 1700
-  return panels * 50
-}
-
+// Transparent break-even estimate. Every number used is an input or is printed on the page:
+//   monthly loss  = monthly solar saving × assumed soiling %
+//   break-even    = price of one clean ÷ monthly loss
 export default function RoiCalculatorPage() {
   const [panels, setPanels] = useState(20)
-  const [monthlyBill, setMonthlyBill] = useState(1800)
+  const [monthlySaving, setMonthlySaving] = useState(1800)
+  const [soilingPct, setSoilingPct] = useState(5)
 
   const result = useMemo(() => {
-    const lossPct = 0.1 // conservative mid-point estimate for coastal dust/pollen soiling
-    const monthlyLoss = monthlyBill * lossPct
-    const annualLoss = monthlyLoss * 12
-    const cost = cleaningCost(panels)
-    const cleaningsPerYear = 2.5 // every 4-6 months
-    const annualCleaningCost = cost * cleaningsPerYear
-    const netAnnualBenefit = annualLoss - annualCleaningCost
-    const weeksToPayback = monthlyLoss > 0 ? Math.round((cost / monthlyLoss) * 4.33) : 0
-    return { monthlyLoss, annualLoss, cost, annualCleaningCost, netAnnualBenefit, weeksToPayback }
-  }, [panels, monthlyBill])
+    const monthlyLoss = (monthlySaving * soilingPct) / 100
+    const cost = solarCleanFromPrice(panels)
+    const monthsToBreakEven = monthlyLoss > 0 ? cost / monthlyLoss : null
+    return { monthlyLoss, annualLoss: monthlyLoss * 12, cost, monthsToBreakEven }
+  }, [panels, monthlySaving, soilingPct])
 
-  const inputClass = 'w-full bg-cardgrey border border-darkgrey text-paper rounded-btn px-4 py-3'
+  const rand = (n: number) => `R${groupThousands(n)}`
 
   return (
     <main className="bg-jet">
       <section className="bg-jet text-white py-14 px-4 text-center">
-        <p className="text-blue font-bold text-sm uppercase tracking-wide mb-2 font-heading">Solar Panel Cleaning</p>
-        <h1 className="font-heading text-4xl sm:text-6xl font-bold text-paper">ROI Calculator</h1>
+        <p className="kicker">Solar panel cleaning</p>
+        <h1 className="font-heading text-4xl sm:text-6xl font-bold text-paper">ROI calculator</h1>
         <p className="text-mist text-lg max-w-xl mx-auto mt-4">
-          Estimate how much dirty panels could be costing you — and what regular cleaning gets back.
+          A quick, honest estimate of what soiling could be costing you — with every assumption on the table.
         </p>
       </section>
 
       <section className="bg-graphite py-14 border-y border-darkgrey">
-        <div className="max-w-2xl mx-auto px-4 grid sm:grid-cols-2 gap-6 mb-10">
+        <div className="max-w-2xl mx-auto px-4 grid sm:grid-cols-2 gap-6 mb-8">
           <div>
-            <label className="block text-sm font-bold mb-1 text-paper font-heading">Number of panels</label>
-            <input
-              type="number"
-              min={1}
-              value={panels}
-              onChange={(e) => setPanels(Math.max(1, Number(e.target.value)))}
-              className={inputClass}
-            />
+            <label htmlFor="roi-panels" className="block text-sm font-semibold mb-1.5 text-paper">Number of panels</label>
+            <input id="roi-panels" type="number" inputMode="numeric" min={1} max={500} value={panels}
+              onChange={(e) => setPanels(Math.min(500, Math.max(1, Number(e.target.value) || 1)))} className="field" />
           </div>
           <div>
-            <label className="block text-sm font-bold mb-1 text-paper font-heading">Average monthly electricity saving from solar (R)</label>
-            <input
-              type="number"
-              min={0}
-              value={monthlyBill}
-              onChange={(e) => setMonthlyBill(Math.max(0, Number(e.target.value)))}
-              className={inputClass}
-            />
+            <label htmlFor="roi-saving" className="block text-sm font-semibold mb-1.5 text-paper">Monthly saving from your solar (R)</label>
+            <input id="roi-saving" type="number" inputMode="numeric" min={0} step={50} value={monthlySaving}
+              onChange={(e) => setMonthlySaving(Math.max(0, Number(e.target.value) || 0))} className="field" />
+          </div>
+          <div className="sm:col-span-2">
+            <label htmlFor="roi-soiling" className="flex justify-between text-sm font-semibold mb-1.5 text-paper">
+              <span>Assumed output lost to dirt</span>
+              <span>{soilingPct}%</span>
+            </label>
+            <input id="roi-soiling" type="range" min={0} max={15} step={1} value={soilingPct}
+              onChange={(e) => setSoilingPct(Number(e.target.value))} className="w-full accent-[#3B8BFF]" />
+            <p className="text-mist text-xs mt-1">
+              This is your assumption, not a measurement. It depends on how long since the last clean, tilt, rain, dust,
+              pollen, salt spray and birds. Not sure? Compare your inverter app&rsquo;s output before and after a clean.
+            </p>
           </div>
         </div>
 
         <div className="max-w-2xl mx-auto px-4">
-          <div className="bg-cardgrey border border-darkgrey rounded-card p-6 space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-mist">Estimated output lost to dust &amp; grime (10%)</span>
-              <span className="text-orange font-bold font-heading">R{Math.round(result.monthlyLoss)}/month</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-mist">Estimated annual loss if left dirty</span>
-              <span className="text-orange font-bold font-heading">R{Math.round(result.annualLoss)}/year</span>
-            </div>
+          <div className="panel p-6 space-y-4" aria-live="polite">
+            <Row label={`Estimated monthly loss (${soilingPct}% of ${rand(monthlySaving)})`} value={`${rand(result.monthlyLoss)}/month`} strong />
+            <Row label="Same loss over a year" value={`${rand(result.annualLoss)}/year`} />
             <div className="h-px bg-darkgrey" />
-            <div className="flex justify-between items-center">
-              <span className="text-mist">Cost per clean ({panels} panels)</span>
-              <span className="text-paper font-bold font-heading">R{result.cost}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-mist">Annual cost on our recommended plan (every 4–6 months)</span>
-              <span className="text-paper font-bold font-heading">R{Math.round(result.annualCleaningCost)}</span>
-            </div>
-            <div className="h-px bg-darkgrey" />
-            <div className="flex justify-between items-center">
-              <span className="text-paper font-heading font-semibold">Estimated net annual benefit</span>
-              <span className={`font-heading font-bold text-lg ${result.netAnnualBenefit >= 0 ? 'text-whatsapp' : 'text-orange'}`}>
-                R{Math.round(result.netAnnualBenefit)}
-              </span>
-            </div>
-            {result.weeksToPayback > 0 && (
-              <p className="text-mist text-sm">
-                A single clean typically pays for itself in about {result.weeksToPayback} weeks of restored output.
-              </p>
-            )}
+            <Row label={`One clean, ${panels} panels (from, excl. VAT)`} value={rand(result.cost)} />
+            <Row
+              label="Break-even on one clean"
+              value={result.monthsToBreakEven === null ? '—' : `≈ ${result.monthsToBreakEven.toFixed(1)} months`}
+              strong
+            />
           </div>
 
-          <p className="text-mist text-xs opacity-70 mt-4">
-            This is an estimate for illustration only. Actual soiling loss varies by season, location, roof angle
-            and time since last clean — typical published ranges run 5–15% in dusty coastal areas. Cleaning costs
-            based on our standard{' '}
-            <Link href="/price-list" className="text-blue">price list</Link>.
+          <p className="text-mist text-xs mt-4">
+            Illustration only. Cleaning prices are the starting prices on our{' '}
+            <Link href="/price-list" className="text-blue underline">price list</Link>; your firm price follows once we
+            know roof access and panel count.
           </p>
         </div>
       </section>
 
       <section className="bg-jet text-white text-center py-14 px-4">
-        <h2 className="font-heading text-2xl font-bold mb-3 text-paper">Ready to stop losing power to dirty panels?</h2>
+        <h2 className="font-heading text-2xl font-bold mb-3 text-paper">Want an exact price for your roof?</h2>
         <div className="flex gap-4 justify-center flex-wrap mt-4">
-          <Link href="/quote" className="btn-glow font-heading font-semibold px-6 py-3 rounded-btn">
-            Get a Free Quote
+          <Link href={`/quote?service=${encodeURIComponent('Solar Panel Cleaning')}&size=${encodeURIComponent(`${panels} panels`)}`} className="btn-quote">
+            Get a free quote
           </Link>
-          <Link href="/maintenance-packages" className="border border-mist text-paper font-heading font-semibold px-6 py-3 rounded-btn hover:border-orange hover:text-orange">
-            View Maintenance Packages
+          <Link href="/maintenance-packages" className="btn-outline">
+            View maintenance plans
           </Link>
         </div>
       </section>
     </main>
+  )
+}
+
+function Row({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className="flex justify-between items-center gap-4">
+      <span className="text-mist">{label}</span>
+      <span className={`font-heading font-semibold text-right shrink-0 ${strong ? 'text-paper text-lg' : 'text-paper/80'}`}>{value}</span>
+    </div>
   )
 }

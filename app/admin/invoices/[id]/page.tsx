@@ -201,7 +201,7 @@ function InvoiceView() {
             </div>
             <button
               onClick={() => window.print()}
-              className="inline-flex items-center gap-2 bg-blue hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn shrink-0"
+              className="inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn shrink-0"
             >
               <Printer className="w-4 h-4" /> Print / Save as PDF
             </button>
@@ -241,7 +241,7 @@ function InvoiceView() {
               <button
                 onClick={() => setStatus('sent')}
                 disabled={!!busy}
-                className="inline-flex items-center gap-1.5 bg-blue hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 bg-blue-fill hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
               >
                 {busy === 'sent' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Mark as sent
               </button>

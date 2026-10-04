@@ -144,7 +144,7 @@ export default function FieldOperationsPage() {
                       <FieldPhoto jobId={job.id} type="after" onSaved={() => loadPhotos(job.id)} />
                     </div>
                     {jobPhotos.length > 0 && <div className="mt-3 flex gap-2 overflow-x-auto">{jobPhotos.slice(-6).map((photo) => <img key={photo.id} src={photo.photo_url} alt={photo.caption ?? `${photo.type} job photo`} className="h-16 w-16 shrink-0 rounded-lg object-cover border border-darkgrey" />)}</div>}
-                    <button onClick={() => changeStatus(job)} disabled={saving === job.id || job.status === 'cancelled'} className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-heading font-bold text-white disabled:opacity-50 ${job.status === 'in_progress' ? 'bg-whatsapp' : 'bg-blue'}`}>
+                    <button onClick={() => changeStatus(job)} disabled={saving === job.id || job.status === 'cancelled'} className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-heading font-bold text-white disabled:opacity-50 ${job.status === 'in_progress' ? 'bg-whatsapp' : 'bg-blue-fill'}`}>
                       {saving === job.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ActionIcon className="h-4 w-4" />}
                       {saving === job.id ? 'Saving…' : meta?.label ?? 'Update job'}
                     </button>

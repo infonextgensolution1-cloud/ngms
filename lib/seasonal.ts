@@ -44,7 +44,7 @@ export function getSeasonalMessage(date: Date = new Date()): SeasonalMessage {
   // Summer — peak solar generation (Dec–Jan)
   return {
     key: "summer",
-    text: "Peak solar generation season — dirty panels can cut your output by up to 25%. Worth a clean now.",
+    text: "Peak solar season — dust, pollen and salt build-up on panels costs you output. Worth a clean now.",
     ctaLabel: "Book a solar clean",
     ctaHref: "/quote?service=Solar%20Panel%20Cleaning",
   };

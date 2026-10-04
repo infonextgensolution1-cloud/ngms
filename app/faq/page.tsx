@@ -1,6 +1,6 @@
 import { FAQS } from '@/lib/faqs'
 
-export const metadata = {
+export const metadata = { alternates: { canonical: '/faq' },
   title: 'FAQ | NextGen Solar Clean & Maintenance Solutions',
   description: 'Frequently asked questions about NextGen Solar Clean & Maintenance Solutions services, pricing and areas served.',
 }

@@ -1,26 +1,24 @@
-import { Space_Grotesk } from 'next/font/google'
+import type { Metadata } from 'next'
 import { services } from '@/lib/services'
 import SeasonalBanner from '@/components/SeasonalBanner'
 import DiscountPopup from '@/components/DiscountPopup'
 import TrustStrip from '@/components/TrustStrip'
-import TrustBadges from '@/components/TrustBadges'
 import HowItWorks from '@/components/HowItWorks'
-import SolarRoiCalculator from '@/components/SolarRoiCalculator'
 import BodyCorporateSection from '@/components/BodyCorporateSection'
-import DiyTips from '@/components/home/DiyTips'
 import HelderbergToday from '@/components/home/HelderbergToday'
+import HomeHero from '@/components/home/HomeHero'
+import { AreasAndFaq, FinalCta, RecentWork, ServicesOverview, SolarFeature, WhyNgms, type Photo } from '@/components/home/HomeSections'
 import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages, getSlotPhotos } from '@/lib/queries'
-import LandingSlideshow from '@/components/home/LandingSlideshow'
-import { HeroBento, JobReel, MissionBand, PostTrio, ServicePhotoGrid, type Photo } from '@/components/home/VestoxHome'
 
 export const revalidate = 300
 
-// Homepage display font: Space Grotesk Bold (modern / tech look).
-// Sets --font-heading on <main>, so every font-heading class on the homepage uses it.
-const techHeading = Space_Grotesk({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-heading' })
+// Title/description/OG come from the root layout; only the canonical is page-specific.
+export const metadata: Metadata = { alternates: { canonical: '/' } }
 
-const TICKER_ITEMS = services.map((s) => s.name)
-
+// Homepage flow: who/what/where (hero) → services → flagship solar offer → proof
+// (recent work, before/after, reviews) → why NGMS → process → complexes →
+// weather-aware planning → service area + FAQ → final quote/WhatsApp CTA.
+// Every photo comes from Admin → Media, so new uploads show up here automatically.
 export default async function HomePage() {
   const [slides, gallery, beforeAfter, serviceImages, slotPhotos] = await Promise.all([
     getHeroSlides(),
@@ -30,7 +28,6 @@ export default async function HomePage() {
     getSlotPhotos(['hero_solar', 'hero_feature', 'mission_left', 'mission_right']),
   ])
 
-  // All photos come from Admin → Media, so new uploads show up here automatically.
   const jobPhotos: Photo[] = slides
     .filter((s) => s.image_url)
     .map((s) => ({ src: s.image_url, caption: s.caption || s.alt_text || 'Recent job' }))
@@ -39,91 +36,46 @@ export default async function HomePage() {
     .map((g) => ({ src: g.image_url, caption: g.caption || 'Solar panel cleaning' }))
   const afterPhotos: Photo[] = beforeAfter.map((b) => ({
     src: b.after_image_url,
-    caption: b.location && !(b.caption ?? '').includes(b.location)
-      ? `${b.caption || 'Completed job'} — ${b.location}`
-      : b.caption || 'Completed job',
+    caption:
+      b.location && !(b.caption ?? '').includes(b.location)
+        ? `${b.caption || 'Completed job'} — ${b.location}`
+        : b.caption || 'Completed job',
   }))
-  const servicePhotos: Photo[] = Object.entries(serviceImages).map(([slug, src]) => ({
-    src,
-    caption: services.find((s) => s.slug === slug)?.name ?? 'Recent job',
-  }))
+  const galleryPhotos: Photo[] = gallery
+    .filter((g) => g.image_url)
+    .map((g) => ({ src: g.image_url, caption: g.caption || 'Recent job' }))
 
-  const pool = [...jobPhotos, ...afterPhotos, ...servicePhotos]
-  const pick = (i: number) => pool.length ? pool[i % pool.length] : undefined
-  const solar = (i: number) => solarPhotos[i] ?? pick(i)
+  const pool = [...afterPhotos, ...galleryPhotos, ...jobPhotos]
+  const pick = (i: number) => (pool.length ? pool[i % pool.length] : undefined)
 
-  // Pinned from Admin → Media → Homepage slot; falls back to the usual auto-pick.
+  // Pinned from Admin → Media → Homepage slot; falls back to an automatic pick.
   const slot = (key: string): Photo | undefined =>
     slotPhotos[key] ? { src: slotPhotos[key].image_url, caption: slotPhotos[key].caption || 'Recent job' } : undefined
-  const heroSolar = slot('hero_solar')
-  const heroFeature = slot('hero_feature')
 
-  const missionLeft: Photo | undefined = slotPhotos.mission_left
-    ? { src: slotPhotos.mission_left.image_url, caption: slotPhotos.mission_left.caption || 'Recent job' }
-    : undefined
-  const missionRight: Photo | undefined = slotPhotos.mission_right
-    ? { src: slotPhotos.mission_right.image_url, caption: slotPhotos.mission_right.caption || 'Recent job' }
-    : undefined
+  // Recent work strip: completed jobs first, de-duplicated by image.
+  const seen = new Set<string>()
+  const recent = [...afterPhotos, ...galleryPhotos, ...jobPhotos].filter((p) => {
+    if (!p.src || seen.has(p.src)) return false
+    seen.add(p.src)
+    return true
+  }).slice(0, 10)
 
   return (
-    <main className={`bg-jet ${techHeading.variable}`}>
+    <main className="bg-jet">
       <SeasonalBanner />
       <DiscountPopup />
 
-      {/* Landing slideshow — up to 12 slides from Admin → Media → Landing slides */}
-      <LandingSlideshow slides={slides} />
-
-      <HeroBento
-        solar={heroSolar ?? solar(0)}
-        avatars={[pick(1), pick(2), pick(3)].filter(Boolean) as Photo[]}
-        feature={heroFeature ?? pick(0)}
-      />
-
-      <TrustBadges />
-
-      {/* Scrolling service ticker */}
-      <div className="bg-graphite overflow-hidden py-3">
-        <div className="flex w-max animate-marquee">
-          {[...TICKER_ITEMS, ...TICKER_ITEMS].map((name, i) => (
-            <span
-              key={`${name}-${i}`}
-              className="flex items-center text-mist text-xs uppercase tracking-[0.15em] font-heading font-semibold px-6 whitespace-nowrap"
-            >
-              {name}
-              <span className="text-orange ml-6" aria-hidden>
-                &bull;
-              </span>
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <JobReel photos={[...jobPhotos, ...solarPhotos.slice(1, 3)]} />
-
-      {/* Solar ROI calculator — the best selling tool */}
-      <section className="bg-jet py-14 px-4">
-        <div className="max-w-[520px] mx-auto">
-          <SolarRoiCalculator />
-        </div>
-      </section>
-
-      <MissionBand photo={missionLeft ?? pick(4) ?? pick(0)} side={missionRight ?? afterPhotos[0] ?? pick(2)} />
-
-      {/* Before/after sliders + real reviews */}
+      <HomeHero slides={slides} />
+      <ServicesOverview services={services} images={serviceImages} />
+      <SolarFeature photo={slot('hero_solar') ?? solarPhotos[0] ?? pick(0)} />
+      <RecentWork photos={recent} />
       <TrustStrip beforeAfter={beforeAfter} />
-
+      <WhyNgms photo={slot('mission_left') ?? pick(1)} />
       <HowItWorks />
-
-      <ServicePhotoGrid services={services} images={serviceImages} />
-
-      {/* DIY tips + live Helderberg weather for outdoor work */}
-      <DiyTips />
-
+      <BodyCorporateSection photo={slot('hero_feature') ?? pick(2)} />
       <HelderbergToday />
-
-      <BodyCorporateSection />
-
-      <PostTrio left={solar(3)} right={afterPhotos[1] ?? pick(3)} />
+      <AreasAndFaq />
+      <FinalCta photo={slot('mission_right') ?? pick(3)} />
     </main>
   )
 }

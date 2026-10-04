@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
 
-export const metadata = {
+export const metadata = { alternates: { canonical: '/gallery' },
   title: 'Gallery | NextGen Solar Clean & Maintenance',
   description: 'Photos from NextGen Solar Clean & Maintenance Solutions jobs across the Helderberg Basin.',
 }

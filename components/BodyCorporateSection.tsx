@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import NgmsIcon from "@/components/NgmsIcon";
 
@@ -5,8 +6,8 @@ import NgmsIcon from "@/components/NgmsIcon";
 // from the body corporate outreach emails and need to see themselves on
 // the page straight away.
 //
-// Solar Forge: this is the homepage's one full orange panel. Text on the
-// orange is Jet (7.3:1); the three points sit on Jet cards.
+// Solar Forge: dark band with an optional photo (Admin → Media → homepage slot
+// "hero_feature"); NextGen Blue accents, orange only on the primary CTA.
 const POINTS = [
   {
     title: "Rooftop & communal solar",
@@ -25,42 +26,50 @@ const POINTS = [
   },
 ];
 
-export default function BodyCorporateSection() {
+export default function BodyCorporateSection({ photo }: { photo?: { src: string; caption: string } }) {
   return (
-    <section className="bg-orange text-jet py-16 px-4">
-      <div className="wrap grid gap-10 md:grid-cols-2 md:items-center">
-        <div>
-          <p className="kicker !text-jet">For Body Corporates &amp; Security Complexes</p>
-          <h2 className="font-heading text-3xl sm:text-4xl font-bold text-jet">
-            Maintenance your trustees don&apos;t have to chase
+    <section className="bg-graphite text-paper py-16 sm:py-24 px-4 border-y border-darkgrey" aria-labelledby="bc-title">
+      <div className="wrap grid gap-10 lg:grid-cols-12 lg:items-center">
+        <div className="lg:col-span-6">
+          <p className="kicker">Body corporates &amp; security complexes</p>
+          <h2 id="bc-title" className="text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1.05]">
+            One contractor for the whole complex.
           </h2>
-          <p className="text-jet text-lg mt-4 max-w-md">
-            Quarterly and annual plans for complexes across Strand, Somerset West and Gordon&apos;s Bay. Recent
-            complex work includes painting, paving and waterproofing at Cosmos Mews in Strand.
+          <p className="text-mist text-base sm:text-lg mt-4 max-w-xl leading-relaxed">
+            Quarterly and annual maintenance plans for complexes across Strand, Somerset West and Gordon&apos;s Bay.
+            Recent complex work includes painting, paving and waterproofing at Cosmos Mews in Strand.
           </p>
-          <div className="flex gap-4 flex-wrap mt-8">
-            <Link
-              href="/quote"
-              className="btn-jet"
-            >
+          <ul className="grid gap-3 mt-8">
+            {POINTS.map((p, i) => (
+              <li key={p.title} className="group panel flex gap-4 items-start p-4">
+                <NgmsIcon name={p.icon} index={i} className="h-10 w-10 shrink-0" />
+                <div>
+                  <h3 className="font-heading font-semibold text-paper text-base normal-case tracking-normal">{p.title}</h3>
+                  <p className="text-mist text-sm mt-1">{p.body}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="flex gap-3 flex-wrap mt-8">
+            <Link href="/quote" className="btn-quote">
               Book a site walk-through
             </Link>
-            <Link href="/maintenance-packages" className="btn-power">
-              Complex packages
+            <Link href="/maintenance-packages" className="btn-outline">
+              Maintenance plans
             </Link>
           </div>
         </div>
 
-        <div className="grid gap-4">
-          {POINTS.map((p, i) => (
-            <div key={p.title} className="group card !bg-jet !border-jet flex gap-4 items-start">
-              <NgmsIcon name={p.icon} index={i} className="h-11 w-11 shrink-0" />
-              <div>
-                <h3 className="font-heading font-bold text-paper text-lg">{p.title}</h3>
-                <p className="text-mist mt-1">{p.body}</p>
-              </div>
-            </div>
-          ))}
+        <div className="lg:col-span-6 relative aspect-[4/3] overflow-hidden rounded-panel border border-darkgrey bg-cardgrey">
+          {photo?.src ? (
+            <>
+              <Image src={photo.src} alt={photo.caption} fill sizes="(max-width: 1024px) 100vw, 50vw" quality={70} className="object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-jet/70 via-transparent" />
+              <p className="absolute left-4 right-4 bottom-4 text-sm text-paper/90">{photo.caption}</p>
+            </>
+          ) : (
+            <div className="absolute inset-0 grid place-items-center text-mist text-sm">Complex maintenance</div>
+          )}
         </div>
       </div>
     </section>

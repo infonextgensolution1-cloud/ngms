@@ -25,6 +25,7 @@ export async function generateMetadata({
   return {
     title: `${s.name} in ${sub.name}`,
     description: `${s.name} in ${sub.name}, ${sub.region}. ${sub.calloutNote} Same-day quotes from NextGen Solar Clean & Maintenance Solutions.`,
+    alternates: { canonical: `/services/${s.slug}/${sub.slug}` },
   };
 }
 

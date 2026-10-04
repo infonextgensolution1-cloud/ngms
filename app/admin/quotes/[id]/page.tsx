@@ -217,7 +217,7 @@ function QuoteView() {
             </div>
             <button
               onClick={() => window.print()}
-              className="inline-flex items-center gap-2 bg-blue hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn shrink-0"
+              className="inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn shrink-0"
             >
               <Printer className="w-4 h-4" /> Print / Save as PDF
             </button>
@@ -277,7 +277,7 @@ function QuoteView() {
               <button
                 onClick={() => setStatus('sent')}
                 disabled={!!busy}
-                className="inline-flex items-center gap-1.5 bg-blue hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 bg-blue-fill hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
               >
                 {busy === 'sent' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Mark as sent
               </button>
@@ -313,7 +313,7 @@ function QuoteView() {
               <button
                 onClick={() => setBooking(true)}
                 disabled={!!busy}
-                className="inline-flex items-center gap-1.5 bg-blue hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 bg-blue-fill hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
               >
                 <CalendarPlus className="w-4 h-4" /> Book job
               </button>
@@ -342,7 +342,7 @@ function QuoteView() {
                   Job date (optional)
                   <input type="date" value={jobDate} min={todaySast()} onChange={(e) => setJobDate(e.target.value)} className="block mt-1 bg-jet border border-darkgrey text-paper rounded-btn px-3 py-2 text-sm" />
                 </label>
-                <button onClick={bookJob} disabled={!!busy} className="inline-flex items-center gap-1.5 bg-blue hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50">
+                <button onClick={bookJob} disabled={!!busy} className="inline-flex items-center gap-1.5 bg-blue-fill hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50">
                   {busy === 'job' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Book it
                 </button>
                 <button onClick={() => setBooking(false)} className="text-sm text-mist hover:text-paper py-2">

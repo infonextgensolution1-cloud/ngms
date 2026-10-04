@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent, type ReactNode } from "react";
-import { supabase } from "@/lib/ngms-public-supabase";
+import { isValidPhone, PHONE_PATTERN, submitLead } from "@/lib/lead-submit";
 import { SITE, waLink } from "@/lib/site";
 import { SERVICES } from "@/lib/services";
 
@@ -17,11 +17,19 @@ const AREA_OPTIONS = [
 
 export default function ContactForm() {
   const [status, setStatus] = useState<Status>("idle");
+  const [phoneErr, setPhoneErr] = useState("");
+  const [waHref, setWaHref] = useState("");
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setStatus("sending");
-    const data = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const data = new FormData(form);
+
+    // Honeypot: bots fill hidden fields, people don't.
+    if (String(data.get("website") || "")) {
+      setStatus("done");
+      return;
+    }
 
     const first = String(data.get("first") || "").trim();
     const last = String(data.get("last") || "").trim();
@@ -34,60 +42,50 @@ export default function ContactForm() {
     const notes = String(data.get("notes") || "").trim();
     const consent = Boolean(data.get("consent"));
 
-    // Same lead table + email ping as the quote form, so contact-page
-    // enquiries land in the admin lead inbox alongside quote requests.
-    const { error } = await supabase.from("leads").insert({
-      name,
-      phone,
-      email,
-      suburb,
-      service: serviceName,
-      service_slug: service?.slug ?? null,
-      message: `${notes}${consent ? `\nPOPIA consent given: ${new Date().toISOString()}` : ""}`,
-      status: "new",
-    });
-
-    if (error) {
-      setStatus("error");
+    if (!isValidPhone(phone)) {
+      setPhoneErr("Please enter a valid phone number, e.g. 063 138 7945.");
+      (form.elements.namedItem("phone") as HTMLInputElement | null)?.focus();
       return;
     }
+    setPhoneErr("");
+    setStatus("sending");
 
-    // Fire-and-forget: the lead is already saved, so a failed email must
-    // never block the customer.
-    fetch("/api/notify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      keepalive: true,
-      body: JSON.stringify({
+    // Same lead table + email ping as the quote form, so contact-page
+    // enquiries land in the admin lead inbox alongside quote requests.
+    const result = await submitLead(
+      {
         name,
         phone,
         email,
         suburb,
         service: serviceName,
-        message: notes,
-      }),
-    }).catch(() => {});
+        service_slug: service?.slug ?? null,
+        message: `${notes}${consent ? `\nPOPIA consent given: ${new Date().toISOString()}` : ""}`,
+      },
+      { name, phone, email, suburb, service: serviceName, message: notes, consent }
+    );
 
-    setStatus("done");
-    const waMsg = `Hi NextGen, enquiry from ${name}.\nPhone: ${phone}\nArea: ${suburb}\nService: ${serviceName}`;
-    window.open(waLink(waMsg), "_blank");
+    const waMsg = [`Hi NextGen, enquiry from ${name}.`, `Phone: ${phone}`, `Area: ${suburb}`, `Service: ${serviceName}`, notes && `Message: ${notes}`]
+      .filter(Boolean)
+      .join("\n");
+    setWaHref(waLink(waMsg));
+    setStatus(result.ok ? "done" : "error");
   }
 
   if (status === "done") {
     return (
       <div className="py-6 text-center">
-        <p className="font-heading text-3xl font-bold uppercase text-paper">Thanks &mdash; message sent!</p>
+        <p role="status" className="font-heading text-3xl font-bold uppercase text-paper">Thanks &mdash; message received</p>
         <p className="mx-auto mt-3 max-w-sm text-mist">
-          We&rsquo;ve logged your enquiry and will reply the same day. If WhatsApp didn&rsquo;t open
-          automatically, you can message us directly.
+          We&rsquo;ll get back to you, usually the same day (Mon&ndash;Sat). Photos help us quote faster.
         </p>
         <a
-          href={waLink("Hi NextGen, following up on my enquiry.")}
-          className="btn btn-wa mt-5 inline-flex"
+          href={waHref || waLink("Hi NextGen, following up on my enquiry.")}
+          className="btn-wa mt-5"
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
         >
-          Message on WhatsApp
+          Send photos on WhatsApp
         </a>
       </div>
     );
@@ -97,7 +95,7 @@ export default function ContactForm() {
     <form className="grid gap-4" onSubmit={onSubmit}>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="First name">
-          <input required name="first" autoComplete="given-name" placeholder="First name" className="w-full" />
+          <input required name="first" autoComplete="given-name" maxLength={60} placeholder="First name" className="w-full" />
         </Field>
         <Field label="Last name">
           <input name="last" autoComplete="family-name" placeholder="Last name" className="w-full" />
@@ -108,10 +106,21 @@ export default function ContactForm() {
           required
           name="phone"
           type="tel"
+          inputMode="tel"
           autoComplete="tel"
+          pattern={PHONE_PATTERN}
+          maxLength={20}
           placeholder={SITE.phoneDisplay}
+          aria-invalid={phoneErr ? true : undefined}
+          aria-describedby={phoneErr ? "contact-phone-err" : undefined}
+          onChange={() => phoneErr && setPhoneErr("")}
           className="w-full"
         />
+        {phoneErr && (
+          <span id="contact-phone-err" role="alert" className="mt-1.5 block text-xs text-orange">
+            {phoneErr}
+          </span>
+        )}
       </Field>
       <Field label="Email (optional)">
         <input type="email" name="email" autoComplete="email" placeholder="you@example.com" className="w-full" />
@@ -136,9 +145,11 @@ export default function ContactForm() {
         <textarea
           name="notes"
           placeholder="Tell us what needs doing"
+          maxLength={2000}
           className="min-h-[130px] w-full"
         />
       </Field>
+      <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
       <label className="flex items-start gap-2 text-xs text-mist">
         <input required type="checkbox" name="consent" className="mt-0.5" />
         <span>
@@ -149,14 +160,18 @@ export default function ContactForm() {
       <button
         type="submit"
         disabled={status === "sending"}
-        className="inline-flex items-center justify-center gap-2 justify-self-start rounded-full bg-orange px-9 py-3 font-heading text-base font-bold uppercase tracking-wide text-jet transition hover:bg-orange-dark disabled:opacity-60"
+        className="btn-quote justify-self-start !px-9 disabled:opacity-60"
       >
         {status === "sending" ? "Sending..." : "Send message"}
       </button>
       {status === "error" && (
-        <p className="text-sm text-orange">
-          Something went wrong sending that &mdash; please WhatsApp us directly on {SITE.phoneDisplay}.
-        </p>
+        <div role="alert" className="rounded-panel border border-orange/50 bg-orange/10 p-4 text-sm">
+          <p className="font-semibold text-paper">We couldn&rsquo;t send that from here.</p>
+          <p className="mt-1 text-mist">Tap below to send the same message on WhatsApp, or call {SITE.phoneDisplay}.</p>
+          <a href={waHref || waLink()} target="_blank" rel="noopener noreferrer" className="btn-wa mt-3">
+            Send on WhatsApp
+          </a>
+        </div>
       )}
     </form>
   );

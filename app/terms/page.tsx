@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { SITE } from '@/lib/site'
 
-export const metadata = {
+export const metadata = { alternates: { canonical: '/terms' },
   title: 'Terms & Conditions | NextGen Solar Clean & Maintenance',
   description:
     'Terms and conditions for quotes, bookings and work by NextGen Solar Clean & Maintenance Solutions in the Helderberg Basin and Overberg.',

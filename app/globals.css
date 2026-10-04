@@ -16,11 +16,40 @@ body {
   overflow-x: clip;
 }
 
+/* Headings default to the display face (Poppins); utility classes still override. */
 h1,
 h2,
 h3 {
+  font-family: var(--font-heading), Poppins, system-ui, sans-serif;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+h3 {
+  font-weight: 600;
+}
+
+/* One visible, consistent keyboard focus ring site-wide (NextGen Blue) */
+:focus-visible {
+  outline: 2px solid #3b8bff;
+  outline-offset: 2px;
+}
+
+/* Skip link: hidden until a keyboard user tabs to it */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  background: #1f6feb;
+  color: #fff;
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.skip-link:focus {
+  top: 1rem;
 }
 
 /* ---------- Form fields: always readable on the dark theme ----------
@@ -37,7 +66,7 @@ textarea {
   padding: 0.55rem 0.75rem;
   font-size: 16px; /* stops iOS zoom-on-focus */
   line-height: 1.4;
-  caret-color: #f58220;
+  caret-color: #3b8bff;
 }
 
 select option,
@@ -57,8 +86,8 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: #f58220 !important;
-  box-shadow: 0 0 0 2px rgba(245, 130, 32, 0.25);
+  border-color: #3b8bff !important;
+  box-shadow: 0 0 0 3px rgba(59, 139, 255, 0.25);
 }
 
 /* Chrome/Android autofill paints a light-blue box - keep it dark */
@@ -119,8 +148,14 @@ textarea:disabled {
     @apply font-heading;
   }
 
-  /* Buttons — flat, one shared shape + interaction, colour only changes by role:
-     Solar Orange = "get a quote" CTAs, WhatsApp Green = every WhatsApp CTA. */
+  /* Premium dark panel: carbon surface, hairline border, soft depth */
+  .panel {
+    @apply bg-cardgrey border border-darkgrey rounded-panel shadow-panel;
+  }
+
+  /* Buttons — one shared shape + interaction, colour only changes by role:
+     Solar Orange = primary "get a quote" CTA, WhatsApp Green = every WhatsApp CTA,
+     NextGen Blue = secondary actions, outline/dark = tertiary. */
   .btn {
     @apply inline-flex items-center justify-center gap-2 font-heading font-bold text-sm uppercase tracking-wide px-6 py-3 rounded-btn border-2 border-transparent transition-all duration-200 shadow-sm;
   }
@@ -150,7 +185,7 @@ textarea:disabled {
 
   /* "Get in touch" buttons: dark grey, white text */
   .btn-touch {
-    @apply btn bg-cardgrey text-white border-darkgrey hover:bg-graphite hover:border-orange;
+    @apply btn bg-cardgrey text-white border-darkgrey hover:bg-graphite hover:border-blue;
   }
 
   /* Before / After photo labels */
@@ -166,10 +201,10 @@ textarea:disabled {
     @apply btn bg-facebook text-white hover:bg-facebook-dark;
   }
   .btn-outline {
-    @apply btn bg-transparent border-mist/40 text-paper hover:border-orange hover:text-orange;
+    @apply btn bg-transparent border-mist/40 text-paper hover:border-blue hover:text-blue;
   }
   .btn-dark {
-    @apply btn bg-cardgrey border-darkgrey text-paper hover:border-orange hover:text-orange;
+    @apply btn bg-cardgrey border-darkgrey text-paper hover:border-blue hover:text-blue;
   }
   /* Buttons for the orange panel: black fill, or black outline */
   .btn-jet {
@@ -179,25 +214,11 @@ textarea:disabled {
     @apply btn bg-transparent border-jet text-jet hover:bg-jet hover:text-paper;
   }
 
-  /* One-off hero "Get a free quote" treatment: turquoise, black border, purple glow.
-     Scoped to this button only — every other quote CTA stays .btn-quote (Solar Orange). */
-  .btn-quote-hero {
-    @apply btn;
-    background-color: #2dd4c8;
-    color: #0a0a0a;
-    border-color: #000000;
-    box-shadow: 0 0 14px rgba(168, 85, 247, 0.65), 0 0 28px rgba(168, 85, 247, 0.35);
-  }
-  .btn-quote-hero:hover {
-    background-color: #45e5d9;
-    box-shadow: 0 0 18px rgba(168, 85, 247, 0.85), 0 0 36px rgba(168, 85, 247, 0.5);
-  }
-
-  /* Power Purple buttons: discount-popup CTA and the "Complex packages" button */
+  /* NextGen Blue secondary buttons (legacy names .btn-power / .btn-quote-popup kept) */
+  .btn-blue,
   .btn-power,
   .btn-quote-popup {
-    @apply btn bg-power text-white border-power hover:bg-power-dark hover:border-power-dark;
-    box-shadow: 0 0 14px rgba(255, 255, 255, 0.55), 0 0 28px rgba(139, 27, 245, 0.35);
+    @apply btn bg-blue-fill text-white border-blue-fill hover:bg-blue-dark hover:border-blue-dark;
   }
 }
 
@@ -206,7 +227,7 @@ textarea:disabled {
    dark-theme text and card colours inside it flip to their light-band versions.
    Note: text-paper is NOT remapped (it is also used on dark chips inside light sections),
    so set text-graphite on any light-band text that used text-paper.
-   Orange text becomes Ember Deep (5.5:1 on Chalk, 4.9:1 on Fog), including decorative glyphs. */
+   Orange text becomes Ember Deep and blue text becomes Blue Deep, so both stay readable. */
 .band-light {
   color: theme('colors.graphite');
 }
@@ -217,10 +238,12 @@ textarea:disabled {
 .band-light .tag {
   color: theme('colors.slate');
 }
-.band-light .text-orange,
+.band-light .text-orange {
+  color: theme('colors.ember-deep');
+}
 .band-light .text-blue,
 .band-light .kicker {
-  color: theme('colors.ember-deep');
+  color: theme('colors.blue.deep');
 }
 .band-light .card {
   background-color: theme('colors.paper');
@@ -229,6 +252,19 @@ textarea:disabled {
 .band-light .border-darkgrey,
 .band-light .border-line {
   border-color: theme('colors.concrete');
+}
+/* Dark panels placed inside a light band (e.g. the solar calculator) keep dark-surface colours */
+.band-light .panel,
+.band-light .panel :is(h1, h2, h3, h4) {
+  color: theme('colors.paper');
+}
+.band-light .panel .text-mist,
+.band-light .panel .tag {
+  color: theme('colors.mist');
+}
+.band-light .panel .text-blue,
+.band-light .panel .kicker {
+  color: theme('colors.blue.DEFAULT');
 }
 
 /* ---------- Phone touch + legibility ---------- */
@@ -324,7 +360,7 @@ textarea:disabled {
 .group:focus-visible .ngms-icon,
 .group:active .ngms-icon {
   transform: scale(1.12) rotate(-6deg);
-  filter: drop-shadow(0 6px 12px rgba(245, 124, 27, 0.55));
+  filter: drop-shadow(0 6px 12px rgba(59, 139, 255, 0.45));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -341,41 +377,4 @@ textarea:disabled {
   html {
     scroll-behavior: auto;
   }
-}
-
-/* ---------- Homepage soiling chart (components/home/SoilingChart.tsx) ---------- */
-.soiling-chart .sc-draw {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-.soiling-chart .sc-fade,
-.soiling-chart .sc-pop {
-  opacity: 0;
-}
-.soiling-chart.is-shown .sc-draw {
-  animation: sc-draw 1.4s cubic-bezier(0.65, 0, 0.35, 1) forwards;
-}
-.soiling-chart.is-shown .sc-fade {
-  animation: sc-fade 0.8s ease-out 0.6s forwards;
-}
-.soiling-chart.is-shown .sc-pop {
-  transform-box: fill-box;
-  animation: sc-fade 0.4s ease-out forwards;
-}
-.soiling-chart .sc-pulse {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: sc-pulse 2.4s ease-in-out infinite;
-}
-@keyframes sc-draw { to { stroke-dashoffset: 0; } }
-@keyframes sc-fade { to { opacity: 1; } }
-@keyframes sc-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.18; }
-  50% { transform: scale(1.6); opacity: 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .soiling-chart .sc-draw { stroke-dasharray: none; stroke-dashoffset: 0; animation: none !important; }
-  .soiling-chart .sc-fade,
-  .soiling-chart .sc-pop { opacity: 1; animation: none !important; }
-  .soiling-chart .sc-pulse { animation: none; }
 }

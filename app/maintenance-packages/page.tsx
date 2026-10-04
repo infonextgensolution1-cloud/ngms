@@ -3,7 +3,7 @@ import NgmsIcon from '@/components/NgmsIcon'
 import PlanSignupForm from '@/components/PlanSignupForm'
 import { COMMERCIAL_COMBOS, RECURRING_PACKAGES, SEASONAL_COMBOS, type Package } from '@/lib/packages'
 
-export const metadata = {
+export const metadata = { alternates: { canonical: '/maintenance-packages' },
   title: 'Maintenance Packages | NextGen Solar Clean & Maintenance Solutions',
   description:
     "Recurring, seasonal and commercial property maintenance packages from NextGen Solar Clean & Maintenance Solutions — Strand, Gordon's Bay, Somerset West.",
