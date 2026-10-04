@@ -16,22 +16,44 @@ import './globals.css'
 const FACEBOOK_URL = 'https://www.facebook.com/p/Nextgen-Solar-Maintenance-Solutions-61590183304623/'
 const WHATSAPP_URL = 'https://wa.me/27631387945'
 
-const SITE_TITLE = 'NextGen Solar Clean & Maintenance Solutions | Solar Cleaning, Pressure Cleaning & Handyman Helderberg'
+const SITE_TITLE = 'NextGen Solar Clean & Maintenance Solutions | Helderberg'
 const SITE_DESCRIPTION =
-  'Professional solar panel cleaning, pressure cleaning, painting, waterproofing, plumbing, electrical & handyman services in Strand, Gordon’s Bay & Somerset West. Reliable local team. Free quotes.'
+  'Solar panel cleaning, painting, waterproofing, paving, plumbing, electrical and property maintenance across Strand, Gordon’s Bay and Somerset West. One call. All solutions.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
-  title: SITE_TITLE,
+  title: { default: SITE_TITLE, template: '%s | NextGen' },
   description: SITE_DESCRIPTION,
+  applicationName: SITE.shortName,
+  generator: 'Next.js',
+  alternates: { canonical: '/' },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
   openGraph: {
     title: SITE_TITLE,
-    description: 'One call, all solutions — solar panel cleaning and multi-trade property maintenance across the Helderberg Basin.',
+    description: SITE_DESCRIPTION,
     siteName: SITE.name,
     locale: 'en_ZA',
     type: 'website',
+    url: SITE.url,
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'NextGen Solar Clean & Maintenance Solutions — One Call. All Solutions.' }],
   },
-  twitter: { card: 'summary_large_image' },
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: ['/opengraph-image'],
+  },
+  icons: { icon: '/icon', apple: '/icon' },
 }
 
 export const viewport: Viewport = {
@@ -111,7 +133,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <li>Strand &middot; Gordon’s Bay &middot; Somerset West</li>
                 <li>Also serving: Overberg &middot; Stellenbosch &middot; Paarl &middot; Worcester &middot; Cape Town</li>
                 <li className="text-orange font-semibold">R350 callout fee outside the Helderberg</li>
-                <li>Mon &ndash; Sat: 07:00 &ndash; 18:00</li>
+                <li>Mon &ndash; Sat: 07:00 &ndash; 17:00</li>
               </ul>
             </div>
           </div>
