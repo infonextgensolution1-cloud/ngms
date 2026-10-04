@@ -125,7 +125,7 @@ const SECTIONS: { title: string; body: React.ReactNode[] }[] = [
   {
     title: 'How long we keep it',
     body: [
-      'Enquiries that do not become a job are kept only as long as we reasonably need them to follow up, then deleted.',
+      'Enquiries that do not become a job are deleted within 12 months of your last contact with us.',
       'Records of quotes, invoices and payments are kept for at least five years, as South African tax law requires.',
       'Maintenance-plan reminder details are kept until you unsubscribe or cancel the plan.',
     ],
