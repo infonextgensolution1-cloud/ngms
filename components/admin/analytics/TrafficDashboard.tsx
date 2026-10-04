@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { trafficSnapshot as snap, type CountRow, type DailyTraffic } from '@/lib/site-analytics'
+import { trafficSnapshot, type CountRow, type DailyTraffic, type TrafficSnapshot } from '@/lib/site-analytics'
+import { supabase } from '@/lib/supabaseClient'
 
 // Chart orange, stepped for the jet/cardgrey surface (passes the band and
 // 3:1 contrast checks where the brighter #F57C1B sits too light).
@@ -149,6 +150,37 @@ function HBars({ rows }: { rows: CountRow[] }) {
 }
 
 export default function TrafficDashboard() {
+  const [snap, setSnap] = useState<TrafficSnapshot>(trafficSnapshot)
+  const [live, setLive] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      try {
+        const { data } = await supabase.auth.getSession()
+        const token = data.session?.access_token
+        if (!token) return
+        const res = await fetch('/api/admin/analytics?days=30', {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: 'no-store',
+        })
+        if (!res.ok) return
+        const dataJson = await res.json()
+        if (!cancelled && dataJson.live) {
+          setSnap(dataJson as TrafficSnapshot)
+          setLive(true)
+        }
+      } catch {
+        // Keep the last known snapshot visible if live analytics is unavailable.
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    void load()
+    return () => { cancelled = true }
+  }, [])
+
   const t = snap.totals
   const days = snap.daily.length
   const deviceTotal = snap.devices.mobile + snap.devices.desktop
@@ -161,7 +193,7 @@ export default function TrafficDashboard() {
         <Link href="/admin" className="text-sm text-mist hover:text-orange inline-flex items-center gap-1">
           <ArrowLeft className="w-4 h-4" /> Admin
         </Link>
-        <p className="text-xs uppercase tracking-widest text-orange">Vercel Web Analytics</p>
+        <div className="flex flex-wrap items-center gap-2"><p className="text-xs uppercase tracking-widest text-orange">Vercel Web Analytics</p><span className="text-[11px] uppercase tracking-wider rounded-full border border-darkgrey px-2 py-1 text-mist">{loading ? 'Checking…' : live ? 'Live' : 'Snapshot'}</span></div>
         <h1 className="font-heading text-4xl sm:text-5xl font-extrabold uppercase text-paper leading-none">Site Traffic</h1>
         <p className="text-mist max-w-2xl">
           {range}, {days} days. Public pages only: your /admin visits and clicks from the Vercel dashboard are taken out, so
