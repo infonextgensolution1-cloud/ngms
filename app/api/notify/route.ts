@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { sendLeadEmail, sendCustomerAutoReply } from '@/lib/lead-email'
 import { rateLimit, clientIp, isEmail } from '@/lib/rate-limit'
+import { supabaseAdmin } from '@/lib/supabase-admin'
+import { quotePhotoPath, signQuotePhoto } from '@/lib/quote-photo'
 
 // RESEND_API_KEY must be added in Vercel → Project Settings → Environment
 // Variables (never commit it to the repo).
@@ -54,6 +56,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: 'Field too long' }, { status: 400 })
   }
 
+  // Photos are in a private bucket: email a 7-day signed link (the lead in Admin
+  // always has the photo). Only quote-photos/ paths are ever signed.
+  let photoLine: string | null = null
+  if (photoUrl && quotePhotoPath(photoUrl)) {
+    let signed: string | null = null
+    try {
+      signed = await signQuotePhoto(supabaseAdmin(), photoUrl, 7 * 24 * 60 * 60)
+    } catch (err) {
+      console.error('Could not sign quote photo for email:', err)
+    }
+    photoLine = signed ? `Photo (link valid 7 days): ${signed}` : 'Photo: attached to the lead in Admin → Leads'
+  }
+
   const lines = [
     notSaved ? `⚠ NOT SAVED IN ADMIN — the website could not reach the database. Add this lead manually.` : null,
     notSaved ? `` : null,
@@ -69,7 +84,7 @@ export async function POST(request: Request) {
     firstBookingDiscount ? '10% first-booking discount requested' : null,
     preferredDate ? `Preferred date: ${preferredDate}` : null,
     estimate ? `Instant estimate shown: ${estimate}` : null,
-    photoUrl ? `Photo: ${photoUrl}` : null,
+    photoLine,
     message ? `Details: ${message}` : null,
   ].filter((l) => l !== null) as string[]
 
