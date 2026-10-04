@@ -17,7 +17,7 @@ export const metadata = {
 //   - Site hosting and server functions: Vercel, functions in dub1 (Ireland)
 //   - Lead notifications and auto-replies: Resend (email)
 //   - Admin "draft a reply"/quote helpers: Anthropic (Claude API)
-//   - Quote photos: Supabase storage bucket "public-leads" (random, unlisted URLs)
+//   - Quote photos: PRIVATE Supabase bucket "public-leads"; staff-only, viewed via signed links
 //   - Analytics: Vercel Web Analytics + Speed Insights (cookie-free); live-visitor
 //     presence via Supabase Realtime stores nothing
 const SECTIONS: { title: string; body: React.ReactNode[] }[] = [
@@ -118,7 +118,7 @@ const SECTIONS: { title: string; body: React.ReactNode[] }[] = [
   {
     title: 'Photos',
     body: [
-      'Photos you upload with a quote request are stored with a random, unlisted web link so we can view them from our admin system. Anyone who has that exact link could open the photo, so please photograph the job only, and avoid people, car number plates, documents or anything personal.',
+      'Photos you upload with a quote request are stored privately. Only signed-in NextGen staff can view them, through short-lived links. Please photograph the job only, and avoid people, car number plates, documents or anything personal.',
       'Before-and-after photos of your property may be used on our website or social media only without your name or address, unless you agree otherwise. Ask us and we will remove any photo of your property.',
     ],
   },

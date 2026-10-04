@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Loader2, Plus, RefreshCw, AlertTriangle, MessageCircle, Search, ArrowLeft, Camera, CloudRain, Phone } from 'lucide-react'
+import { Loader2, Plus, RefreshCw, AlertTriangle, MessageCircle, Search, ArrowLeft, CloudRain, Phone } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import ExportButtons from '@/components/admin/ExportButtons'
 import { exportLeads } from '@/lib/admin-export'
 import { supabase } from '@/lib/supabaseClient'
 import { LEAD_COLUMNS, STATUS_LABEL, daysAgo, preferredDateOf, sast, waLink, type Lead } from '@/lib/ngms-leads-ui'
 import { jobWeather, useForecast } from '@/lib/job-weather'
+import { LeadPhotoLink } from '@/components/admin/LeadPhoto'
 
 const STALE_DAYS = 3
 
@@ -141,11 +142,7 @@ function LeadsList() {
                         </p>
                       )}
                     </Link>
-                    {l.photo_url && (
-                      <a href={l.photo_url} target="_blank" rel="noreferrer" aria-label="View photo" className="shrink-0 text-blue">
-                        <Camera className="w-4 h-4" />
-                      </a>
-                    )}
+                    <LeadPhotoLink value={l.photo_url} />
                     {l.phone && (
                       <a href={`tel:${l.phone.replace(/\s/g, '')}`} aria-label="Call" className="shrink-0 text-mist hover:text-paper">
                         <Phone className="w-4 h-4" />
