@@ -8,5 +8,7 @@ fi
 
 cd "$CLAUDE_PROJECT_DIR"
 
-# Install npm dependencies (npm install, not ci, so the cached container state is reused)
-npm install --no-audit --no-fund
+# Install npm dependencies exactly as locked. `npm ci` never rewrites
+# package-lock.json (`npm install` did, leaving an uncommitted diff on every
+# session start), and it matches what CI and Vercel install.
+npm ci --no-audit --no-fund
