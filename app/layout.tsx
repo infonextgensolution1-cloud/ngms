@@ -86,7 +86,7 @@ const LOCAL_BUSINESS_JSONLD = {
   priceRange: 'R550+',
   address: { '@type': 'PostalAddress', addressLocality: 'Strand', addressRegion: 'Western Cape', addressCountry: 'ZA' },
   areaServed: SITE.serviceAreas.map((name) => ({ '@type': 'Place', name: `${name}, Western Cape` })),
-  openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], opens: '07:00', closes: '17:00' }],
+  openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], opens: '07:00', closes: '19:00' }],
   contactPoint: [{ '@type': 'ContactPoint', telephone: SITE.phone, contactType: 'customer service', areaServed: 'ZA' }],
   sameAs: [FACEBOOK_URL],
   hasOfferCatalog: {
@@ -148,7 +148,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <ul className="space-y-1">
                 <li><a href={`tel:${SITE.phone}`} className="text-paper font-semibold hover:text-blue inline-block py-2 sm:py-1">{SITE.phoneDisplay}</a></li>
                 <li className="break-all"><a href={`mailto:${SITE.email}`} className="hover:text-blue inline-block py-2 sm:py-1">{SITE.email}</a></li>
-                <li>Mon &ndash; Sat: 07:00 &ndash; 17:00</li>
+                <li>Mon &ndash; Sat: 07:00 &ndash; 19:00</li>
                 <li className="pt-2">Strand &middot; Gordon&rsquo;s Bay &middot; Somerset West</li>
                 <li>Also serving the Overberg, Stellenbosch, Paarl, Worcester and Cape Town</li>
                 <li className="text-paper">R350 callout fee outside the Helderberg</li>

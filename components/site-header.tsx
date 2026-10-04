@@ -142,7 +142,7 @@ export function SiteHeader() {
             )
           })}
           <a href={`tel:${SITE.phone}`} className="mt-4 text-mist">
-            Call <span className="text-paper font-semibold">{SITE.phoneDisplay}</span> · Mon–Sat 07:00–17:00
+            Call <span className="text-paper font-semibold">{SITE.phoneDisplay}</span> · Mon–Sat 07:00–19:00
           </a>
         </nav>
       )}

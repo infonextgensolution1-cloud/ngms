@@ -21,7 +21,7 @@ const INTERVAL_MS = 6000
 const PROOF = [
   ['12 trades', 'one accountable team'],
   ['Written quotes', 'fixed before we start'],
-  ['Mon–Sat', '07:00 – 17:00'],
+  ['Mon–Sat', '07:00 – 19:00'],
 ]
 
 export default function HomeHero({ slides }: { slides: LandingSlide[] }) {

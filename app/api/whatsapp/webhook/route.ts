@@ -117,7 +117,7 @@ function replyFor(message: IncomingMessage) {
   }
 
   if (buttonId === "call") {
-    return { text: "You can call NextGen on 063 138 7945 during business hours, Mon–Sat 07:00–18:00." };
+    return { text: "You can call NextGen on 063 138 7945 during business hours, Mon–Sat 07:00–19:00." };
   }
 
   return {
