@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, AlertTriangle, FileText, HardHat, Loader2, MessageCircle, Phone as PhoneIcon, Mail, Plus, Receipt, Save } from 'lucide-react'
+import { ArrowLeft, AlertTriangle, FileText, HardHat, Loader2, MessageCircle, Phone as PhoneIcon, Mail, Plus, Receipt, Save, Send } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import { supabase } from '@/lib/supabaseClient'
 import { handlersA } from '@/lib/ngms-ops/handlers-a'
@@ -29,6 +29,8 @@ function ClientView() {
   const [form, setForm] = useState({ name: '', phone: '', email: '', address: '', suburb: '', notes: '' })
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
+  const [inviting, setInviting] = useState(false)
+  const [inviteMsg, setInviteMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -72,6 +74,28 @@ function ClientView() {
       setMsg((e as Error).message)
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function invite() {
+    if (!client?.email) return
+    if (!window.confirm(`Email ${client.name} (${client.email}) a sign-in link to the client portal?`)) return
+    setInviting(true)
+    setInviteMsg(null)
+    try {
+      const token = (await supabase.auth.getSession()).data.session?.access_token
+      const res = await fetch('/api/admin/portal-invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token ?? ''}` },
+        body: JSON.stringify({ clientId: id }),
+      })
+      const json = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; sentTo?: string; firstInvite?: boolean }
+      if (!res.ok || !json.ok) throw new Error(json.error || 'Could not send the invite.')
+      setInviteMsg({ ok: true, text: `${json.firstInvite ? 'Invite' : 'New sign-in link'} sent to ${json.sentTo}.` })
+    } catch (e) {
+      setInviteMsg({ ok: false, text: (e as Error).message })
+    } finally {
+      setInviting(false)
     }
   }
 
@@ -135,10 +159,25 @@ function ClientView() {
               <PhoneIcon className="w-4 h-4" /> Call
             </a>
           )}
+          {client.email && (
+            <button
+              type="button"
+              onClick={invite}
+              disabled={inviting}
+              className="inline-flex items-center gap-1.5 border border-darkgrey hover:border-blue text-paper text-sm font-heading font-semibold px-3.5 py-2.5 rounded-btn disabled:opacity-60"
+            >
+              {inviting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Invite to portal
+            </button>
+          )}
           <Link href={`/admin/quotes/new?client=${client.id}`} className="inline-flex items-center gap-1.5 bg-orange hover:opacity-90 text-white text-sm font-heading font-semibold px-3.5 py-2.5 rounded-btn">
             <Plus className="w-4 h-4" /> New quote
           </Link>
         </div>
+        {inviteMsg && (
+          <p role="status" className={`text-sm mb-4 ${inviteMsg.ok ? 'text-whatsapp' : 'text-orange'}`}>
+            {inviteMsg.text}
+          </p>
+        )}
 
         <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-4">
           <div className="flex items-center justify-between mb-3">
