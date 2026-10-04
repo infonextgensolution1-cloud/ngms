@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import BusinessSummary from '@/components/admin/BusinessSummary'
 import AdminSearch from '@/components/admin/AdminSearch'
+import MfaChallenge from '@/components/admin/MfaChallenge'
+import MfaSetup from '@/components/admin/MfaSetup'
 import { supabase } from '@/lib/supabaseClient'
 import { Loader2, Image as ImageIcon, LogOut, Sparkles, Users, Receipt, FileText, Cloud, LucideIcon, HardHat, Wallet, Boxes, Contact, CalendarDays, BarChart3, Activity, RefreshCw } from 'lucide-react'
 
@@ -154,7 +156,7 @@ function LiveVisitors() {
 }
 
 export default function AdminPage() {
-  const { session, checking } = useAdminAuth()
+  const { session, mfaPending, checking, refresh } = useAdminAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -180,6 +182,8 @@ export default function AdminPage() {
       </main>
     )
   }
+
+  if (mfaPending) return <MfaChallenge onDone={refresh} />
 
   if (!session) {
     return (
@@ -246,6 +250,8 @@ export default function AdminPage() {
         </div>
 
         <AdminSearch />
+
+        <MfaSetup />
 
         <BusinessSummary />
 
