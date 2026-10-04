@@ -157,7 +157,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
           <div className="max-w-6xl mx-auto px-4 pb-24 sm:pb-8 pt-6 border-t border-darkgrey text-xs flex flex-wrap items-center justify-between gap-3">
             <span className="opacity-80">&copy; {new Date().getFullYear()} {SITE.name}. All rights reserved.</span>
-            <Link href="/terms" className="hover:text-blue inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">Terms &amp; Conditions</Link>
+            <span className="flex flex-wrap gap-x-5">
+              <Link href="/terms" className="hover:text-blue inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">Terms &amp; Conditions</Link>
+              <Link href="/privacy" className="hover:text-blue inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">Privacy Policy (POPIA)</Link>
+            </span>
             <AdminLink />
           </div>
         </footer>

@@ -93,7 +93,11 @@ export default function TermsPage() {
           </div>
 
           <p className="text-mist text-sm text-center">
-            Last updated September 2026.{' '}
+            Last updated September 2026. How we handle your personal information:{' '}
+            <Link href="/privacy" className="text-orange hover:underline">
+              Privacy Policy
+            </Link>
+            .{' '}
             <Link href="/quote" className="text-orange hover:underline">
               Get a free quote
             </Link>

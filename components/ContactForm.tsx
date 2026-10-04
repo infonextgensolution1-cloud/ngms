@@ -154,7 +154,7 @@ export default function ContactForm() {
         <input required type="checkbox" name="consent" className="mt-0.5" />
         <span>
           I agree that NextGen may store my details and contact me about this enquiry and related service reminders, as
-          set out in our <a href="/terms" className="underline">terms</a> (POPIA).
+          set out in our <a href="/privacy" className="underline">privacy policy</a> (POPIA).
         </span>
       </label>
       <button
