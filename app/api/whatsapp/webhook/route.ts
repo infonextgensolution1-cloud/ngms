@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getBusinessHours, hoursLabel } from "@/lib/business-hours";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -98,7 +99,7 @@ async function ensureLead(from: string, message: string) {
   }
 }
 
-function replyFor(message: IncomingMessage) {
+async function replyFor(message: IncomingMessage) {
   const text = message.text?.body?.trim() || "";
   const buttonId = message.interactive?.button_reply?.id || message.interactive?.list_reply?.id || "";
 
@@ -117,7 +118,7 @@ function replyFor(message: IncomingMessage) {
   }
 
   if (buttonId === "call") {
-    return { text: "You can call NextGen on 063 138 7945 during business hours, Mon–Sat 07:00–19:00." };
+    return { text: `You can call NextGen on 063 138 7945 during business hours, ${hoursLabel(await getBusinessHours())}.` };
   }
 
   return {
@@ -182,7 +183,7 @@ export async function POST(request: Request) {
 
         await ensureLead(message.from, incomingText);
 
-        const reply = replyFor(message);
+        const reply = await replyFor(message);
         try {
           await sendWhatsApp(message.from, reply.text, reply.buttons);
         } catch (error) {

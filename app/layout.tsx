@@ -8,6 +8,7 @@ import { LOGO_DATA_URI } from '@/lib/logo'
 import { SITE, whatsappLink } from '@/lib/site'
 import { services } from '@/lib/services'
 import { SiteHeader } from '@/components/site-header'
+import { getBusinessHours, hoursLabel, hoursDayNames, type BusinessHours } from '@/lib/business-hours'
 import AdminLink from '@/components/AdminLink'
 import VisitorPresence from '@/components/VisitorPresence'
 import ClickTracking from '@/components/ClickTracking'
@@ -71,7 +72,7 @@ export const viewport: Viewport = {
   colorScheme: 'dark',
 }
 
-const LOCAL_BUSINESS_JSONLD = {
+const localBusinessJsonLd = (hours: BusinessHours) => ({
   '@context': 'https://schema.org',
   '@type': 'HomeAndConstructionBusiness',
   '@id': `${SITE.url}/#business`,
@@ -86,7 +87,7 @@ const LOCAL_BUSINESS_JSONLD = {
   priceRange: 'R550+',
   address: { '@type': 'PostalAddress', addressLocality: 'Strand', addressRegion: 'Western Cape', addressCountry: 'ZA' },
   areaServed: SITE.serviceAreas.map((name) => ({ '@type': 'Place', name: `${name}, Western Cape` })),
-  openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], opens: '07:00', closes: '19:00' }],
+  openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: hoursDayNames(hours.days), opens: hours.open, closes: hours.close }],
   contactPoint: [{ '@type': 'ContactPoint', telephone: SITE.phone, contactType: 'customer service', areaServed: 'ZA' }],
   sameAs: [FACEBOOK_URL],
   hasOfferCatalog: {
@@ -94,18 +95,19 @@ const LOCAL_BUSINESS_JSONLD = {
     name: 'Property maintenance services',
     itemListElement: services.map((s) => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name: s.name, url: `${SITE.url}/services/${s.slug}` } })),
   },
-}
+})
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const hours = await getBusinessHours()
   return (
     <html lang="en-ZA" className={`font-body ${bodyFont.variable} ${headingFont.variable}`}>
       <body className="bg-jet font-body">
         <a href="#main-content" className="skip-link">Skip to content</a>
         <PWARegister />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(LOCAL_BUSINESS_JSONLD) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd(hours)) }} />
         <VisitorPresence />
         <ClickTracking />
-        <SiteHeader />
+        <SiteHeader hours={hoursLabel(hours)} />
         <div id="main-content" tabIndex={-1} className="outline-none">
           {children}
         </div>
@@ -148,7 +150,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <ul className="space-y-1">
                 <li><a href={`tel:${SITE.phone}`} className="text-paper font-semibold hover:text-blue inline-block py-2 sm:py-1">{SITE.phoneDisplay}</a></li>
                 <li className="break-all"><a href={`mailto:${SITE.email}`} className="hover:text-blue inline-block py-2 sm:py-1">{SITE.email}</a></li>
-                <li>Mon &ndash; Sat: 07:00 &ndash; 19:00</li>
+                <li>{hoursLabel(hours).replace(/–/g, '\u2013')}</li>
                 <li className="pt-2">Strand &middot; Gordon&rsquo;s Bay &middot; Somerset West</li>
                 <li>Also serving the Overberg, Stellenbosch, Paarl, Worcester and Cape Town</li>
                 <li className="text-paper">R350 callout fee outside the Helderberg</li>

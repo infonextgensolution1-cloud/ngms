@@ -7,6 +7,7 @@ import HowItWorks from '@/components/HowItWorks'
 import BodyCorporateSection from '@/components/BodyCorporateSection'
 import HelderbergToday from '@/components/home/HelderbergToday'
 import HomeHero from '@/components/home/HomeHero'
+import { getBusinessHours } from '@/lib/business-hours'
 import { AreasAndFaq, FinalCta, RecentWork, ServicesOverview, SolarFeature, WhyNgms, type Photo } from '@/components/home/HomeSections'
 import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages, getSlotPhotos } from '@/lib/queries'
 
@@ -20,6 +21,7 @@ export const metadata: Metadata = { alternates: { canonical: '/' } }
 // weather-aware planning → service area + FAQ → final quote/WhatsApp CTA.
 // Every photo comes from Admin → Media, so new uploads show up here automatically.
 export default async function HomePage() {
+  const hours = await getBusinessHours()
   const [slides, gallery, beforeAfter, serviceImages, slotPhotos] = await Promise.all([
     getHeroSlides(),
     getGalleryPhotos(24),
@@ -65,7 +67,7 @@ export default async function HomePage() {
       <SeasonalBanner />
       <DiscountPopup />
 
-      <HomeHero slides={slides} />
+      <HomeHero slides={slides} days={hours.days} open={hours.open} close={hours.close} />
       <ServicesOverview services={services} images={serviceImages} />
       <SolarFeature photo={slot('hero_solar') ?? solarPhotos[0] ?? pick(0)} />
       <RecentWork photos={recent} />

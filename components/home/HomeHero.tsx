@@ -18,13 +18,12 @@ export type LandingSlide = { image_url: string; alt_text: string; caption: strin
 const MAX_SLIDES = 12
 const INTERVAL_MS = 6000
 
-const PROOF = [
-  ['12 trades', 'one accountable team'],
-  ['Written quotes', 'fixed before we start'],
-  ['Mon–Sat', '07:00 – 19:00'],
-]
-
-export default function HomeHero({ slides }: { slides: LandingSlide[] }) {
+export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', close = '19:00' }: { slides: LandingSlide[]; days?: string; open?: string; close?: string }) {
+  const PROOF = [
+    ['12 trades', 'one accountable team'],
+    ['Written quotes', 'fixed before we start'],
+    [days, `${open} – ${close}`],
+  ]
   const usable = slides.filter((s) => s.image_url).slice(0, MAX_SLIDES)
   const count = usable.length
   const [index, setIndex] = useState(0)

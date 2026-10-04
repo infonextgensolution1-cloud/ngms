@@ -32,7 +32,7 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + '/')
 }
 
-export function SiteHeader() {
+export function SiteHeader({ hours = 'Mon–Sat 07:00–19:00' }: { hours?: string }) {
   const pathname = usePathname() ?? '/'
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -142,7 +142,7 @@ export function SiteHeader() {
             )
           })}
           <a href={`tel:${SITE.phone}`} className="mt-4 text-mist">
-            Call <span className="text-paper font-semibold">{SITE.phoneDisplay}</span> · Mon–Sat 07:00–19:00
+            Call <span className="text-paper font-semibold">{SITE.phoneDisplay}</span> · {hours}
           </a>
         </nav>
       )}
