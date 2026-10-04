@@ -82,7 +82,7 @@ function PayslipView() {
           </Link>
           <div className="flex items-center justify-between gap-3 mb-4">
             <h1 className="font-heading text-2xl font-bold text-paper">Payslip</h1>
-            <button onClick={() => window.print()} className="inline-flex items-center gap-2 bg-blue hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn">
+            <button onClick={() => window.print()} className="inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn">
               <Printer className="w-4 h-4" /> Print / Save as PDF
             </button>
           </div>

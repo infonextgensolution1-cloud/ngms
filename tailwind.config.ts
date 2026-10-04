@@ -1,8 +1,8 @@
 import type { Config } from 'tailwindcss'
 
-// Solar Forge theme — one grey ramp (dark to light) with Solar Orange as the only accent.
-// Builds on Ember Grid: every existing token keeps its name and value, and three are new
-// (slate, fog, ember-deep). Spec: docs/solar-forge-theme.md
+// Solar Forge theme — one grey ramp (dark to light), NextGen Blue as the technology accent,
+// and Solar Orange reserved for the primary "Get a quote" CTA and rare attention marks.
+// Spec: docs/solar-forge-theme.md
 //
 //   Dark greys:   jet  cardgrey  graphite  darkgrey
 //   Mid greys:    slate (text on light)   mist (text on dark)
@@ -36,16 +36,21 @@ const config: Config = {
         // Ember Deep — orange TEXT on light bands only (Chalk 5.5:1, Fog 4.9:1).
         // Bright Solar Orange fails contrast as small text on light greys.
         'ember-deep': '#A84300',
-        // Solar Orange — the single accent (CTAs, icons, markers, split panels)
+        // Solar Orange — the conversion colour: primary "Get a quote" CTAs and rare attention marks only
         orange: {
           DEFAULT: '#F57C1B',
           dark: '#FF5A1F',
         },
-        // Legacy 'blue' token now maps to the orange accent so existing
-        // kickers/links switch to the one-accent look without component edits
+        // NextGen Blue — the technology accent: kickers, links, icons, focus rings, active states.
+        //   DEFAULT  text/icons on dark (5.96:1 on Jet)
+        //   fill     solid fills under white text (4.63:1)
+        //   dark     hover/pressed fill (5.43:1 under white)
+        //   deep     blue TEXT on light bands (4.9:1 on Fog, 5.5:1 on Chalk)
         blue: {
-          DEFAULT: '#F57C1B',
-          dark: '#FF5A1F',
+          DEFAULT: '#3B8BFF',
+          fill: '#1F6FEB',
+          dark: '#1D64D8',
+          deep: '#1A5BD0',
         },
         // WhatsApp Green — WhatsApp buttons only (functional, kept)
         whatsapp: {
@@ -57,12 +62,12 @@ const config: Config = {
           DEFAULT: '#FF8A1F',
           bright: '#FFA033',
         },
-        // Power Purple — brand purple for highlight CTAs, the seasonal banner and price badges
-        // (white text on it is 5.6:1)
+        // Legacy 'power' token (was purple) now follows NextGen Blue so older
+        // components stay on-palette without edits.
         power: {
-          DEFAULT: '#8B1BF5',
-          dark: '#7210D6',
-          light: '#B77BFA',
+          DEFAULT: '#1F6FEB',
+          dark: '#1D64D8',
+          light: '#3B8BFF',
         },
         // Eco Green — CTA button border
         ecogreen: '#39D353',
@@ -73,14 +78,19 @@ const config: Config = {
         },
       },
       fontFamily: {
-        // Big Shoulders Display — set in app/layout.tsx
-        heading: ['var(--font-heading)', 'sans-serif'],
-        // IBM Plex Sans — set in app/layout.tsx
-        body: ['var(--font-body)', 'sans-serif'],
+        // Poppins — display headings, loaded with next/font in app/layout.tsx
+        heading: ['var(--font-heading)', 'Poppins', 'system-ui', 'sans-serif'],
+        // Inter — body and UI, loaded with next/font in app/layout.tsx
+        body: ['var(--font-body)', 'Inter', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
-        card: '2px',
-        btn: '2px',
+        card: '6px',
+        btn: '4px',
+        panel: '10px',
+      },
+      boxShadow: {
+        // Subtle depth for premium cards on dark: hairline highlight + soft drop
+        panel: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 10px 30px -12px rgba(0,0,0,0.6)',
       },
     },
   },

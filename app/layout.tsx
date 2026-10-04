@@ -2,9 +2,10 @@ import type { Metadata, Viewport } from 'next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Analytics } from '@vercel/analytics/next'
 import Link from 'next/link'
+import { Inter, Poppins } from 'next/font/google'
 import { FacebookIcon, WhatsAppIcon } from '@/lib/icons'
 import { LOGO_DATA_URI } from '@/lib/logo'
-import { SITE } from '@/lib/site'
+import { SITE, whatsappLink } from '@/lib/site'
 import { services } from '@/lib/services'
 import { SiteHeader } from '@/components/site-header'
 import AdminLink from '@/components/AdminLink'
@@ -13,8 +14,13 @@ import ClickTracking from '@/components/ClickTracking'
 import PWARegister from '@/components/PWARegister'
 import './globals.css'
 
+// Solar Forge type system: Inter for body/UI, Poppins for display headings.
+// Exposed as CSS variables that tailwind.config.ts maps to font-body / font-heading.
+const bodyFont = Inter({ subsets: ['latin'], variable: '--font-body', display: 'swap' })
+const headingFont = Poppins({ subsets: ['latin'], weight: ['500', '600', '700', '800'], variable: '--font-heading', display: 'swap' })
+
 const FACEBOOK_URL = 'https://www.facebook.com/p/Nextgen-Solar-Maintenance-Solutions-61590183304623/'
-const WHATSAPP_URL = 'https://wa.me/27631387945'
+const WHATSAPP_URL = whatsappLink()
 
 const SITE_TITLE = 'NextGen Solar Clean & Maintenance Solutions | Helderberg'
 const SITE_DESCRIPTION =
@@ -26,7 +32,6 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   applicationName: SITE.shortName,
   generator: 'Next.js',
-  alternates: { canonical: '/' },
   robots: {
     index: true,
     follow: true,
@@ -44,7 +49,6 @@ export const metadata: Metadata = {
     siteName: SITE.name,
     locale: 'en_ZA',
     type: 'website',
-    url: SITE.url,
     images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'NextGen Solar Clean & Maintenance Solutions — One Call. All Solutions.' }],
   },
   twitter: {
@@ -53,7 +57,10 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     images: ['/opengraph-image'],
   },
-  icons: { icon: '/icon', apple: '/icon' },
+  icons: {
+    icon: [{ url: '/admin-app/icon-192.png', sizes: '192x192', type: 'image/png' }],
+    apple: '/admin-app/apple-touch-icon.png',
+  },
 }
 
 export const viewport: Viewport = {
@@ -91,59 +98,70 @@ const LOCAL_BUSINESS_JSONLD = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="font-body">
+    <html lang="en-ZA" className={`font-body ${bodyFont.variable} ${headingFont.variable}`}>
       <body className="bg-jet font-body">
+        <a href="#main-content" className="skip-link">Skip to content</a>
         <PWARegister />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(LOCAL_BUSINESS_JSONLD) }} />
         <VisitorPresence />
         <ClickTracking />
         <SiteHeader />
-        {children}
-        <div data-site-marketing className="bg-graphite border-t border-darkgrey py-10 text-center px-4">
-          <p className="font-heading font-bold text-2xl sm:text-3xl text-paper">ONE CALL. <span className="text-orange">ALL SOLUTIONS.</span></p>
-          <p className="text-mist text-sm uppercase tracking-widest font-semibold mt-2">Across the Helderberg Basin</p>
+        <div id="main-content" tabIndex={-1} className="outline-none">
+          {children}
         </div>
-        <footer data-site-marketing className="bg-jet text-mist text-sm pt-10 sm:pt-14 pb-24 sm:pb-8 border-t border-darkgrey">
-          <div className="max-w-6xl mx-auto px-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
-            <div>
-              <img src={LOGO_DATA_URI} alt="NextGen Solar Clean & Maintenance logo" className="h-12 w-auto mb-4" />
-              <p className="text-mist">Professional property maintenance across the Helderberg Basin. Quality work, done safely and properly.</p>
-              <div className="flex items-center gap-1 mt-3 -ml-2">
-                <a href={FACEBOOK_URL} aria-label="NextGen on Facebook" className="text-facebook hover:opacity-80 p-2.5"><FacebookIcon className="h-7 w-7" /></a>
-                <a href={WHATSAPP_URL} aria-label="WhatsApp NextGen" className="text-whatsapp hover:opacity-80 p-2.5"><WhatsAppIcon className="h-7 w-7" /></a>
+        <footer data-site-marketing className="bg-jet text-mist text-sm border-t border-darkgrey">
+          <div className="border-b border-darkgrey">
+            <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div>
+                <p className="font-heading font-bold text-2xl sm:text-3xl text-paper uppercase tracking-tight">One call. <span className="text-blue">All solutions.</span></p>
+                <p className="text-mist mt-1">Property maintenance across Strand, Gordon&rsquo;s Bay and Somerset West.</p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link href="/quote" className="btn-quote">Get a quote</Link>
+                <a href={WHATSAPP_URL} className="btn-wa" target="_blank" rel="noopener noreferrer">WhatsApp</a>
               </div>
             </div>
+          </div>
+          <div className="max-w-6xl mx-auto px-4 pt-10 sm:pt-12 pb-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
             <div>
-              <p className="font-heading font-bold text-paper mb-4 uppercase tracking-wide">Our Services</p>
-              <ul className="uppercase text-xs tracking-wide font-semibold">
-                {services.slice(0, 5).map((s) => <li key={s.slug}><Link href={`/services/${s.slug}`} className="hover:text-orange inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">{s.name}</Link></li>)}
-              </ul>
+              <img src={LOGO_DATA_URI} alt={`${SITE.name} logo`} width={160} height={48} className="h-12 w-auto mb-4" />
+              <p>Multi-trade property maintenance for homes, body corporates, security complexes and light commercial properties.</p>
+              <div className="flex items-center gap-1 mt-3 -ml-2">
+                <a href={FACEBOOK_URL} aria-label="NextGen on Facebook" className="text-facebook hover:opacity-80 p-2.5" target="_blank" rel="noopener noreferrer"><FacebookIcon className="h-7 w-7" /></a>
+                <a href={WHATSAPP_URL} aria-label="WhatsApp NextGen" className="text-whatsapp hover:opacity-80 p-2.5" target="_blank" rel="noopener noreferrer"><WhatsAppIcon className="h-7 w-7" /></a>
+              </div>
             </div>
-            <div>
-              <p className="font-heading font-bold text-paper mb-4 uppercase tracking-wide">Quick Links</p>
-              <ul className="grid grid-cols-2 sm:grid-cols-1 gap-x-3 uppercase text-xs tracking-wide font-semibold">
-                {[['/', 'Home'], ['/services', 'Services'], ['/portfolio', 'Projects'], ['/gallery', 'Gallery'], ['/price-list', 'Price list'], ['/maintenance-packages', 'Maintenance Packages'], ['/roi-calculator', 'ROI Calculator'], ['/about', 'About'], ['/faq', 'FAQ'], ['/contact', 'Contact']].map(([href, label]) => <li key={href}><Link href={href} className="hover:text-orange inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">{label}</Link></li>)}
+            <nav aria-label="Services">
+              <p className="font-heading font-semibold text-paper mb-4 uppercase tracking-wide text-xs">Services</p>
+              <ul className="grid grid-cols-1 gap-x-3">
+                {services.map((s) => <li key={s.slug}><Link href={`/services/${s.slug}`} className="hover:text-blue inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">{s.name}</Link></li>)}
               </ul>
-            </div>
+            </nav>
+            <nav aria-label="Quick links">
+              <p className="font-heading font-semibold text-paper mb-4 uppercase tracking-wide text-xs">Company</p>
+              <ul className="grid grid-cols-2 sm:grid-cols-1 gap-x-3">
+                {[['/portfolio', 'Projects'], ['/gallery', 'Gallery'], ['/price-list', 'Price list'], ['/maintenance-packages', 'Maintenance plans'], ['/body-corporate-maintenance', 'Body corporates'], ['/roi-calculator', 'Solar ROI calculator'], ['/about', 'About'], ['/faq', 'FAQ'], ['/contact', 'Contact'], ['/portal', 'Client portal']].map(([href, label]) => <li key={href}><Link href={href} className="hover:text-blue inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">{label}</Link></li>)}
+              </ul>
+            </nav>
             <div>
-              <p className="font-heading font-bold text-paper mb-4 uppercase tracking-wide">CONTACT US</p>
+              <p className="font-heading font-semibold text-paper mb-4 uppercase tracking-wide text-xs">Contact</p>
               <ul className="space-y-1">
-                <li><a href="tel:+27631387945" className="hover:text-orange inline-block py-2 sm:py-1">063 138 7945</a></li>
-                <li className="break-all"><a href="mailto:info.nextgensolution1@gmail.com" className="hover:text-orange inline-block py-2 sm:py-1">info.nextgensolution1@gmail.com</a></li>
-                <li>Strand &middot; Gordon’s Bay &middot; Somerset West</li>
-                <li>Also serving: Overberg &middot; Stellenbosch &middot; Paarl &middot; Worcester &middot; Cape Town</li>
-                <li className="text-orange font-semibold">R350 callout fee outside the Helderberg</li>
+                <li><a href={`tel:${SITE.phone}`} className="text-paper font-semibold hover:text-blue inline-block py-2 sm:py-1">{SITE.phoneDisplay}</a></li>
+                <li className="break-all"><a href={`mailto:${SITE.email}`} className="hover:text-blue inline-block py-2 sm:py-1">{SITE.email}</a></li>
                 <li>Mon &ndash; Sat: 07:00 &ndash; 17:00</li>
+                <li className="pt-2">Strand &middot; Gordon&rsquo;s Bay &middot; Somerset West</li>
+                <li>Also serving the Overberg, Stellenbosch, Paarl, Worcester and Cape Town</li>
+                <li className="text-paper">R350 callout fee outside the Helderberg</li>
               </ul>
             </div>
           </div>
-          <div className="max-w-6xl mx-auto px-4 mt-10 pt-6 border-t border-darkgrey text-xs flex flex-wrap items-center justify-between gap-3">
-            <span className="opacity-70">&copy; {new Date().getFullYear()} NextGen Solar Clean &amp; Maintenance Solutions. All rights reserved.</span>
-            <Link href="/terms" className="hover:text-orange inline-flex items-center min-h-10 sm:min-h-0 sm:py-1 font-semibold uppercase tracking-wide">Terms &amp; Conditions</Link>
+          <div className="max-w-6xl mx-auto px-4 pb-24 sm:pb-8 pt-6 border-t border-darkgrey text-xs flex flex-wrap items-center justify-between gap-3">
+            <span className="opacity-80">&copy; {new Date().getFullYear()} {SITE.name}. All rights reserved.</span>
+            <Link href="/terms" className="hover:text-blue inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">Terms &amp; Conditions</Link>
             <AdminLink />
           </div>
         </footer>
-        <a data-site-marketing href={WHATSAPP_URL} aria-label="WhatsApp NextGen" className="fixed z-50 flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14" style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom))', right: 'calc(1rem + env(safe-area-inset-right))' }}>
+        <a data-site-marketing href={WHATSAPP_URL} aria-label="WhatsApp NextGen" target="_blank" rel="noopener noreferrer" className="fixed z-50 flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14" style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom))', right: 'calc(1rem + env(safe-area-inset-right))' }}>
           <span aria-hidden className="absolute inset-0 rounded-full bg-whatsapp animate-wa-ping" />
           <span className="relative flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-lg bg-whatsapp"><WhatsAppIcon className="h-6 w-6 sm:h-7 sm:w-7 text-white" /></span>
         </a>

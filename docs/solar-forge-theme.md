@@ -1,6 +1,6 @@
 # NGMS Theme — "Solar Forge"
 
-Builds on Ember Grid (`docs/ember-grid-theme.md`). One grey ramp from Jet Black to Chalk, with Solar Orange as the only brand accent. Every Ember Grid token keeps its name and value; three tokens are new.
+Builds on Ember Grid (`docs/ember-grid-theme.md`). One grey ramp from Jet Black to Chalk, **NextGen Blue** as the technology accent, and **Solar Orange reserved for conversion** (the primary "Get a quote" CTA). Type: **Poppins** for headings, **Inter** for body/UI, both loaded with `next/font` in `app/layout.tsx`.
 
 ## Grey ramp (dark to light)
 
@@ -13,17 +13,33 @@ Builds on Ember Grid (`docs/ember-grid-theme.md`). One grey ramp from Jet Black 
 | Slate | `slate` (new) | `#55585E` | Secondary text on light bands |
 | Ash | `mist` | `#9A9CA1` | Secondary text on dark |
 | Concrete | `concrete` | `#D6D6D3` | Light tiles, borders on light |
-| Fog | `fog` (new) | `#E7E7E4` | Main light band |
-| Chalk | `paper` | `#F4F4F2` | Text on dark; cards on light |
-
-## Accent
+| Fog## Accents
 
 | Name | Tailwind | Hex | Use |
 |---|---|---|---|
-| Solar Orange | `orange` | `#F57C1B` | Fills, borders, icons, big display type on dark |
-| Ember Deep (new) | `ember-deep` | `#A84300` | Orange TEXT on Chalk or Fog |
-| Ember | `orange-dark` | `#FF5A1F` | Hover / pressed |
-| Glow | `glow` | `#FF8A1F` | "Get a quote" button (Eco Green border) |
+| NextGen Blue | `blue` | `#3B8BFF` | Kickers, links, icons, focus ring, active nav — text on dark (5.96:1 on Jet) |
+| Blue Fill | `blue-fill` | `#1F6FEB` | Solid buttons/badges with white text (4.63:1) — `.btn-blue` |
+| Blue Dark | `blue-dark` | `#1D64D8` | Hover/pressed blue fills |
+| Blue Deep | `blue-deep` | `#1A5BD0` | Blue TEXT on light bands (4.9:1 on Fog) — applied automatically in `.band-light` |
+| Solar Orange | `orange` | `#F57C1B` | Primary "Get a quote" CTA (`.btn-quote`, jet text 7.3:1) and rare attention marks only |
+| Ember Deep | `ember-deep` | `#A84300` | Orange TEXT on Chalk or Fog |
+
+`power` (formerly purple) now maps to the blue values, so legacy `.btn-power` renders as a blue secondary button.
+
+### CTA hierarchy
+
+1. **Primary** — `.btn-quote` (orange). One per view where possible: Get a quote.
+2. **Contact** — `.btn-wa` (WhatsApp green) for every WhatsApp action; `tel:` links for calls.
+3. **Secondary** — `.btn-blue` or `.btn-outline`.
+4. **Tertiary** — text links in blue.
+
+Functional colours stay as they were: WhatsApp green on WhatsApp buttons, Facebook blue on the Facebook icon.
+
+## Surfaces
+
+- `.panel` — premium dark card: Carbon fill, Steel hairline, `rounded-panel` (10px), soft `shadow-panel`.
+- `rounded-card` 6px, `rounded-btn` 4px. Avoid larger radii except pills.
+- A `.panel` inside a `.band-light` section keeps dark-surface text colours.
 
 Functional colours stay as they were: WhatsApp green on WhatsApp buttons, Facebook blue on the Facebook icon.
 
@@ -35,7 +51,7 @@ Functional colours stay as they were: WhatsApp green on WhatsApp buttons, Facebo
 
 ## Page rhythm
 
-Dark and light bands alternate down the homepage, with one full orange panel (`BodyCorporateSection`). Orange stays under about 10% of any other screen.
+Dark and light bands alternate down the homepage (the solar section is the main light band). There is no full orange panel any more; orange stays on CTAs and stays well under 10% of any screen.
 
 ## Light bands
 

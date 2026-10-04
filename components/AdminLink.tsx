@@ -22,7 +22,7 @@ export default function AdminLink() {
   return (
     <Link
       href="/admin"
-      className="text-xs text-mist opacity-50 hover:opacity-100 hover:text-blue transition-opacity"
+      className="text-xs text-mist opacity-80 hover:opacity-100 hover:text-blue transition-opacity"
     >
       {signedIn ? 'Admin Dashboard' : 'Staff Login'}
     </Link>

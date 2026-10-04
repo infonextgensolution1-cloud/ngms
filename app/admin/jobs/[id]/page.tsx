@@ -74,7 +74,7 @@ function AddCostForm({ jobId, onSaved }: { jobId: string; onSaved: () => void })
         <input className={input} type="number" placeholder="Amount (R)" value={amount} onChange={(e) => setAmount(e.target.value)} />
       </div>
       <div className="flex items-center gap-3 mt-2">
-        <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 bg-blue hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3 py-2 rounded-btn disabled:opacity-50">
+        <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3 py-2 rounded-btn disabled:opacity-50">
           {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />} Save
         </button>
         <button onClick={() => setOpen(false)} className="text-xs text-mist hover:text-paper">
@@ -118,7 +118,7 @@ function AddLabourForm({ jobId, onSaved }: { jobId: string; onSaved: () => void 
         <input className={input} type="number" placeholder="Rate / hour (R)" value={rate} onChange={(e) => setRate(e.target.value)} />
       </div>
       <div className="flex items-center gap-3 mt-2">
-        <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 bg-blue hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3 py-2 rounded-btn disabled:opacity-50">
+        <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3 py-2 rounded-btn disabled:opacity-50">
           {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />} Save
         </button>
         <button onClick={() => setOpen(false)} className="text-xs text-mist hover:text-paper">

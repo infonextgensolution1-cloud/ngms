@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { instantEstimate } from "@/lib/instant-estimate";
 import { useForecast, jobWeather } from "@/lib/job-weather";
 import { tradeConditions } from "@/lib/helderberg";
-import { supabase } from "@/lib/ngms-public-supabase";
+import { isValidPhone, PHONE_PATTERN, submitLead } from "@/lib/lead-submit";
 import { SITE, waLink } from "@/lib/site";
 import { SERVICES } from "@/lib/services";
 
@@ -61,7 +61,12 @@ export default function QuoteForm({
   initialSize?: string;
 }) {
   const [status, setStatus] = useState<Status>("idle");
-  const [serviceName, setServiceName] = useState(initialService ?? SERVICES[0]?.name ?? "");
+  const [phoneErr, setPhoneErr] = useState("");
+  const [fallbackWa, setFallbackWa] = useState("");
+  // Only accept a ?service= value that is a real service, otherwise the select and the saved lead disagree.
+  const [serviceName, setServiceName] = useState(
+    SERVICES.find((s) => [s.name.toLowerCase(), s.slug].includes(initialService?.toLowerCase() ?? ""))?.name ?? SERVICES[0]?.name ?? ""
+  );
   const [sizeText, setSizeText] = useState(initialSize ?? "");
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoErr, setPhotoErr] = useState("");
@@ -86,13 +91,19 @@ export default function QuoteForm({
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setStatus("sending");
     const form = e.currentTarget;
     const data = new FormData(form);
 
-    const name = String(data.get("name") || "");
-    const phone = String(data.get("phone") || "");
-    const email = String(data.get("email") || "") || null;
+    const name = String(data.get("name") || "").trim();
+    const phone = String(data.get("phone") || "").trim();
+    const email = String(data.get("email") || "").trim() || null;
+    if (!isValidPhone(phone)) {
+      setPhoneErr("Please enter a valid phone number, e.g. 063 138 7945.");
+      (form.elements.namedItem("phone") as HTMLInputElement | null)?.focus();
+      return;
+    }
+    setPhoneErr("");
+    setStatus("sending");
     const suburb = String(data.get("area") || "");
     // Honeypot: bots fill hidden fields, people don't.
     if (String(data.get("website") || "")) {
@@ -129,30 +140,18 @@ export default function QuoteForm({
       .filter(Boolean)
       .join("\n");
 
-    const { error } = await supabase.from("leads").insert({
-      name,
-      phone,
-      email,
-      suburb,
-      service: serviceName,
-      service_slug: service?.slug ?? null,
-      message,
-      photo_url: photoUrl,
-      status: "new",
-    });
-
-    if (error) {
-      setStatus("error");
-      return;
-    }
-
-    // Email ping to Jacques via Resend (/api/notify). Fire-and-forget: the
-    // lead is already saved, so a failed email must never block the customer.
-    fetch("/api/notify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      keepalive: true,
-      body: JSON.stringify({
+    const result = await submitLead(
+      {
+        name,
+        phone,
+        email,
+        suburb,
+        service: serviceName,
+        service_slug: service?.slug ?? null,
+        message,
+        photo_url: photoUrl,
+      },
+      {
         name,
         phone,
         email,
@@ -165,24 +164,39 @@ export default function QuoteForm({
         photoUrl: photoUrl ?? undefined,
         consent: true,
         message: notes,
-      }),
-    }).catch(() => {});
+      }
+    );
 
+    const waMsg = [
+      `Hi NextGen, quote request from ${name}.`,
+      `Phone: ${phone}`,
+      `Area: ${suburb}`,
+      `Service: ${serviceName}`,
+      size && `Size/details: ${size}`,
+      notes && `Notes: ${notes}`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    setFallbackWa(waLink(waMsg));
+    if (!result.ok) {
+      // Neither the database nor the email went through: give the customer a one-tap way to send it themselves.
+      setStatus("error");
+      return;
+    }
     setStatus("done");
-    const waMsg = `Hi NextGen, quote request from ${name}.\nPhone: ${phone}\nArea: ${suburb}\nService: ${serviceName}`;
-    window.open(waLink(waMsg), "_blank");
   }
 
   if (status === "done") {
     return (
       <div className="card max-w-[520px] mx-auto text-center">
-        <h3 className="text-xl">Thanks — request sent!</h3>
+        <h3 className="text-xl" role="status">Thanks — request received</h3>
         <p className="text-mist mt-2">
-          We&rsquo;ve logged your request and will reply the same day. If WhatsApp didn&rsquo;t open automatically,
-          you can message us directly.
+          We&rsquo;ll come back to you on your preferred channel, usually the same day (Mon&ndash;Sat). Want to send
+          photos now? WhatsApp is quickest.
         </p>
-        <a href={waLink("Hi NextGen, following up on my quote request.")} className="btn btn-wa mt-4 inline-block" target="_blank" rel="noreferrer">
-          Message on WhatsApp
+        <a href={fallbackWa || waLink("Hi NextGen, following up on my quote request.")} className="btn-wa mt-4" target="_blank" rel="noopener noreferrer">
+          Send photos on WhatsApp
         </a>
       </div>
     );
@@ -190,17 +204,35 @@ export default function QuoteForm({
 
   return (
     <form className="grid grid-cols-1 gap-3.5 w-full max-w-[520px] mx-auto" onSubmit={onSubmit}>
-      <div className="bg-orange rounded-lg text-white text-center font-bold text-xs sm:text-sm py-2.5 px-3">
+      <p className="rounded-panel border border-blue/30 bg-blue/10 text-paper text-center text-xs sm:text-sm py-2.5 px-3">
         Solar panel cleaning from R550 (up to 10 panels) · 10% off your first booking on all other services
-      </div>
+      </p>
       <Field label="Full name">
-        <input required name="name" placeholder="Your name" className="field" />
+        <input required name="name" autoComplete="name" maxLength={120} placeholder="Your name" className="field" />
       </Field>
       <Field label="Phone / WhatsApp">
-        <input required name="phone" placeholder={SITE.phoneDisplay} className="field" />
+        <input
+          required
+          type="tel"
+          name="phone"
+          inputMode="tel"
+          autoComplete="tel"
+          pattern={PHONE_PATTERN}
+          maxLength={20}
+          placeholder={SITE.phoneDisplay}
+          aria-invalid={phoneErr ? true : undefined}
+          aria-describedby={phoneErr ? "phone-err" : undefined}
+          onChange={() => phoneErr && setPhoneErr("")}
+          className="field"
+        />
+        {phoneErr && (
+          <span id="phone-err" role="alert" className="block text-orange text-xs mt-1.5">
+            {phoneErr}
+          </span>
+        )}
       </Field>
       <Field label="Email (optional)">
-        <input type="email" name="email" placeholder="you@example.com" className="field" />
+        <input type="email" name="email" autoComplete="email" maxLength={254} placeholder="you@example.com" className="field" />
       </Field>
       <Field label="Area">
         <select name="area" defaultValue={matchArea(initialArea)} className="field">
@@ -220,7 +252,7 @@ export default function QuoteForm({
         <input name="size" value={sizeText} onChange={(e) => setSizeText(e.target.value)} placeholder="e.g. 20 panels, 60 m²" className="field" />
       </Field>
       {estimate && (
-        <div className="rounded-lg border border-orange/40 bg-orange/10 px-3 py-2.5 text-sm" role="status">
+        <div className="rounded-panel border border-blue/30 bg-blue/10 px-3 py-2.5 text-sm" role="status">
           <strong>Instant guide:</strong> {estimate}
           <span className="block text-mist text-xs mt-1">A guide only. Your firm quote follows once we&rsquo;ve seen the job.</span>
         </div>
@@ -255,7 +287,7 @@ export default function QuoteForm({
                 type="button"
                 key={d.date}
                 onClick={() => setPrefDate(d.date)}
-                className="rounded-full border border-orange/50 px-2.5 py-1 font-semibold text-jet hover:bg-orange/10"
+                className="rounded-full border border-blue/50 px-3 py-1.5 font-semibold text-paper hover:bg-blue/15"
               >
                 {new Date(d.date + "T12:00:00").toLocaleDateString("en-ZA", { weekday: "short", day: "numeric", month: "short" })}
               </button>
@@ -271,7 +303,7 @@ export default function QuoteForm({
         </select>
       </Field>
       <Field label="Notes">
-        <textarea name="notes" className="field min-h-[110px]" />
+        <textarea name="notes" maxLength={2000} placeholder="What needs doing? Access, timing, anything we should know." className="field min-h-[110px]" />
       </Field>
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
       <label className="flex items-start gap-2 text-xs text-mist">
@@ -285,9 +317,13 @@ export default function QuoteForm({
         {status === "sending" ? "Sending..." : "Send quote request"}
       </button>
       {status === "error" && (
-        <p className="text-orange text-sm text-center">
-          Something went wrong sending that — please WhatsApp us directly on {SITE.phoneDisplay}.
-        </p>
+        <div role="alert" className="rounded-panel border border-orange/50 bg-orange/10 p-4 text-sm text-center">
+          <p className="text-paper font-semibold">We couldn&rsquo;t send that from here.</p>
+          <p className="text-mist mt-1">Your details are ready to go — tap below to send them to us on WhatsApp, or call {SITE.phoneDisplay}.</p>
+          <a href={fallbackWa || waLink()} target="_blank" rel="noopener noreferrer" className="btn-wa mt-3">
+            Send on WhatsApp
+          </a>
+        </div>
       )}
     </form>
   );

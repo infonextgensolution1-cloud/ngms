@@ -228,10 +228,10 @@ function HeroSlides() {
 // gallery_photos.slot; uploading a new photo retires the old one.
 
 const SLOTS: { key: string; label: string; hint: string }[] = [
-  { key: 'hero_solar', label: 'Orange solar tile', hint: 'Top of the page, next to “Gentle soft wash”. Use a solar job photo.' },
-  { key: 'hero_feature', label: 'Photo tile beside “One call. Twelve trades.”', hint: 'Shown in full colour. Portrait or square works best.' },
-  { key: 'mission_left', label: 'Mission section — big photo', hint: 'Under “Your roof should earn, not rust.”' },
-  { key: 'mission_right', label: 'Mission section — small photo', hint: 'Right-hand tile in the Mission section.' },
+  { key: 'hero_solar', label: 'Solar section photo', hint: 'Wide photo in the “Solar panel cleaning, done carefully” section. Use a solar job photo (landscape).' },
+  { key: 'hero_feature', label: 'Body corporate section photo', hint: 'Beside “One contractor for the whole complex”. Landscape (4:3) works best.' },
+  { key: 'mission_left', label: 'Why NextGen photo', hint: 'Beside “Maintenance you don’t have to chase”. Portrait works best.' },
+  { key: 'mission_right', label: 'Closing call-to-action background', hint: 'Behind “Tell us what needs doing” at the bottom of the homepage. Landscape; it is darkened.' },
 ]
 
 function HomepagePhotos() {

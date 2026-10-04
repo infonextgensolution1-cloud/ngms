@@ -20,6 +20,7 @@ type LeadPayload = {
   estimate?: string
   photoUrl?: string
   preferredDate?: string
+  notSaved?: boolean // the browser could not save the lead to Supabase; this email is the only copy
 }
 
 export async function POST(request: Request) {
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { name, phone, email, suburb, service, sizeDetails, preferredContact, firstBookingDiscount, message, website, estimate, photoUrl, preferredDate } = body
+  const { name, phone, email, suburb, service, sizeDetails, preferredContact, firstBookingDiscount, message, website, estimate, photoUrl, preferredDate, notSaved } = body
 
   // Honeypot: pretend success so bots don't retry.
   if (website) return NextResponse.json({ ok: true })
@@ -39,11 +40,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: 'Too many requests' }, { status: 429 })
   }
 
-  if (!name || !phone) {
+  if (typeof name !== 'string' || typeof phone !== 'string' || !name.trim() || !phone.trim()) {
     return NextResponse.json({ ok: false, error: 'Missing name or phone' }, { status: 400 })
+  }
+  const phoneDigits = phone.replace(/\D/g, '')
+  if (phone.length > 20 || phoneDigits.length < 9 || phoneDigits.length > 13) {
+    return NextResponse.json({ ok: false, error: 'Invalid phone number' }, { status: 400 })
+  }
+  // Cap free-text fields so the endpoint can't be used to relay large payloads by email.
+  const tooLong = [name, email, suburb, service, sizeDetails, preferredContact, estimate, photoUrl, preferredDate]
+    .some((v) => typeof v === 'string' && v.length > 300)
+  if (tooLong || (typeof message === 'string' && message.length > 4000)) {
+    return NextResponse.json({ ok: false, error: 'Field too long' }, { status: 400 })
   }
 
   const lines = [
+    notSaved ? `⚠ NOT SAVED IN ADMIN — the website could not reach the database. Add this lead manually.` : null,
+    notSaved ? `` : null,
     `New quote request from the website:`,
     ``,
     `Name: ${name}`,
@@ -58,13 +71,10 @@ export async function POST(request: Request) {
     estimate ? `Instant estimate shown: ${estimate}` : null,
     photoUrl ? `Photo: ${photoUrl}` : null,
     message ? `Details: ${message}` : null,
-    ``,
-    `A WhatsApp tab was also opened on the customer's device with these details —`,
-    `they still need to press send on their side, so don't rely on that alone.`,
-  ].filter(Boolean) as string[]
+  ].filter((l) => l !== null) as string[]
 
   try {
-    await sendLeadEmail(`New lead — ${service ?? 'quote request'} (${suburb ?? 'unknown area'})`, lines, email)
+    await sendLeadEmail(`${notSaved ? '[NOT SAVED] ' : ''}New lead — ${service ?? 'quote request'} (${suburb ?? 'unknown area'})`, lines, isEmail(email) ? email : null)
   } catch (err) {
     // Best-effort: a failed notification email should never break the
     // customer's quote submission flow. Log it so it's visible in

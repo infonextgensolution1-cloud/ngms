@@ -158,7 +158,7 @@ function ClientView() {
               <input className={`${input} sm:col-span-2`} placeholder="Address / complex and unit" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
               <textarea className={`${input} sm:col-span-2 min-h-[72px]`} placeholder="Notes (gate code, roof type, dogs…)" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
               <div className="sm:col-span-2 flex items-center gap-3">
-                <button onClick={save} disabled={saving || !form.name.trim()} className="inline-flex items-center gap-2 bg-blue hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50">
+                <button onClick={save} disabled={saving || !form.name.trim()} className="inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50">
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save
                 </button>
                 <button onClick={() => setEditing(false)} className="text-xs text-mist">

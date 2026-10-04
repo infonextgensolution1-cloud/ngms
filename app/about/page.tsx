@@ -1,4 +1,4 @@
-export const metadata = {
+export const metadata = { alternates: { canonical: '/about' },
   title: 'About Us | NextGen Solar Clean & Maintenance',
   description:
     'NextGen Solar Clean & Maintenance Solutions — solar panel cleaning first, backed by multi-trade property maintenance across the Helderberg Basin, Western Cape.',

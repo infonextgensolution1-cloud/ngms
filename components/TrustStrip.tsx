@@ -55,7 +55,7 @@ export default function TrustStrip({ beforeAfter }: { beforeAfter: BeforeAfter[]
               ))}
             </div>
             <p className="mt-6">
-              <Link href="/portfolio" className="text-blue font-bold hover:underline">
+              <Link href="/portfolio" className="text-blue font-semibold hover:underline">
                 View all projects &rarr;
               </Link>
             </p>
@@ -64,8 +64,8 @@ export default function TrustStrip({ beforeAfter }: { beforeAfter: BeforeAfter[]
 
         <div className="text-center">
           <p className="kicker">Reviews</p>
-          <h2 className="text-3xl md:text-4xl">What our clients say</h2>
-          <TestimonialCarousel />
+          <h2 className="text-3xl md:text-4xl">What clients say</h2>
+          <Reviews />
         </div>
       </div>
     </section>
@@ -107,22 +107,38 @@ function BeforeAfterSlider({ before, after }: { before: string; after: string })
   return (
     <div
       ref={containerRef}
-      className="relative h-[190px] select-none cursor-ew-resize touch-none"
+      role="slider"
+      tabIndex={0}
+      aria-label="Before and after comparison. Use the arrow keys to reveal more of the before or after photo."
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(pos)}
+      aria-valuetext={`${Math.round(pos)}% before photo showing`}
+      className="relative h-[220px] select-none cursor-ew-resize touch-pan-y"
       onPointerDown={(e) => {
         draggingRef.current = true;
         updateFromClientX(e.clientX);
       }}
+      onKeyDown={(e) => {
+        const step = e.shiftKey ? 25 : 5;
+        if (e.key === "ArrowLeft" || e.key === "ArrowDown") setPos((p) => Math.max(0, p - step));
+        else if (e.key === "ArrowRight" || e.key === "ArrowUp") setPos((p) => Math.min(100, p + step));
+        else if (e.key === "Home") setPos(0);
+        else if (e.key === "End") setPos(100);
+        else return;
+        e.preventDefault();
+      }}
     >
       <div className="absolute inset-0">
         <Image src={after} alt="After" fill sizes="(max-width: 640px) 100vw, 400px" quality={70} className="object-cover pointer-events-none" />
-        <span className="badge-glow absolute top-1.5 right-1.5 bg-orange/90 text-white text-[10px] uppercase tracking-wider px-2 py-0.5 rounded">
+        <span className="absolute top-2 right-2 bg-blue-fill text-white text-[10px] uppercase tracking-wider px-2 py-0.5 rounded">
           After
         </span>
       </div>
 
       <div className="absolute inset-0 overflow-hidden" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
         <Image src={before} alt="Before" fill sizes="(max-width: 640px) 100vw, 400px" quality={70} className="object-cover pointer-events-none" />
-        <span className="badge-glow absolute top-1.5 left-1.5 bg-jet/80 text-white text-[10px] uppercase tracking-wider px-2 py-0.5 rounded">
+        <span className="absolute top-2 left-2 bg-jet/85 text-white text-[10px] uppercase tracking-wider px-2 py-0.5 rounded">
           Before
         </span>
       </div>
@@ -136,53 +152,23 @@ function BeforeAfterSlider({ before, after }: { before: string; after: string })
   );
 }
 
-// Auto-rotating testimonial carousel — advances every 5s, pauses on
-// hover/focus so people can actually read one before it moves on.
-function TestimonialCarousel() {
-  const [active, setActive] = useState(0);
-  const pausedRef = useRef(false);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      if (!pausedRef.current) {
-        setActive((v) => (v + 1) % REVIEWS.length);
-      }
-    }, 5000);
-    return () => clearInterval(id);
-  }, []);
-
+// All reviews at once — only three, so no carousel. Stars only where the
+// source is actually a star rating (Facebook recommendations are not).
+function Reviews() {
   return (
-    <div
-      className="max-w-2xl mx-auto mt-8"
-      onMouseEnter={() => (pausedRef.current = true)}
-      onMouseLeave={() => (pausedRef.current = false)}
-    >
-      <div className="card min-h-[180px] flex flex-col justify-center relative overflow-hidden">
-        {REVIEWS.map((r, i) => (
-          <div
-            key={r.name}
-            className={`transition-opacity duration-500 ${i === active ? "opacity-100" : "opacity-0 absolute inset-0 p-5 pointer-events-none"}`}
-            aria-hidden={i !== active}
-          >
-            <p className="text-orange">★★★★★</p>
-            <p className="my-3 text-graphite">&ldquo;{r.quote}&rdquo;</p>
-            <strong className="text-graphite">{r.name}</strong>
-            <p className="text-mist text-xs">{r.source}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="flex items-center justify-center gap-2 mt-4">
-        {REVIEWS.map((r, i) => (
-          <button
-            key={r.name}
-            type="button"
-            aria-label={`Show review from ${r.name}`}
-            onClick={() => setActive(i)}
-            className={`relative h-2 rounded-full transition-all after:absolute after:-inset-3 after:content-[''] ${i === active ? "w-6 bg-orange" : "w-2 bg-slate/40 hover:bg-slate"}`}
-          />
-        ))}
-      </div>
-    </div>
+    <ul className="grid gap-4 md:grid-cols-3 mt-8 text-left">
+      {REVIEWS.map((r) => (
+        <li key={r.name} className="card flex flex-col">
+          {/5 stars/i.test(r.source) && (
+            <p className="text-orange tracking-[0.2em]" aria-label="Rated 5 out of 5">
+              ★★★★★
+            </p>
+          )}
+          <blockquote className="my-3 text-graphite flex-1">&ldquo;{r.quote}&rdquo;</blockquote>
+          <p className="font-semibold text-graphite">{r.name}</p>
+          <p className="text-mist text-xs">{r.source}</p>
+        </li>
+      ))}
+    </ul>
   );
 }

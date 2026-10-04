@@ -99,7 +99,7 @@ function BusinessSettings() {
           </label>
           <p className="text-[11px] text-mist">Check the account number twice. It goes on every quote you send.</p>
           <div className="flex items-center gap-3">
-            <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 bg-blue hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50">
+            <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save
             </button>
             {msg && <span className="text-xs text-mist">{msg}</span>}

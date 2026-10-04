@@ -219,7 +219,7 @@ export default function AdminPage() {
           <button
             type="submit"
             disabled={signingIn}
-            className="w-full bg-blue hover:bg-blue-dark text-white font-heading font-semibold px-6 py-3 rounded-btn disabled:opacity-50 inline-flex items-center justify-center gap-2"
+            className="w-full bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-6 py-3 rounded-btn disabled:opacity-50 inline-flex items-center justify-center gap-2"
           >
             {signingIn && <Loader2 className="w-4 h-4 animate-spin" />}
             {signingIn ? 'Signing in…' : 'Sign in'}
