@@ -257,7 +257,12 @@ export default function QuoteForm({
           <span className="block text-mist text-xs mt-1">A guide only. Your firm quote follows once we&rsquo;ve seen the job.</span>
         </div>
       )}
-      <Field label="Photo of the job (optional)">
+      <Field label="Add a photo of the job (optional, but speeds up your quote)">
+        <span className="block text-mist text-xs mb-1.5">
+          A clear photo or two lets us give a firm price without a site visit first. Stand back so the whole area
+          (roof, wall, paving, pool) is in the shot. Photos are private; only our team sees them (
+          <a href="/privacy" className="text-blue hover:underline">privacy</a>).
+        </span>
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp"
@@ -274,7 +279,12 @@ export default function QuoteForm({
             }
           }}
         />
-        {photoErr && <span className="text-orange text-xs">{photoErr}</span>}
+        {photo && !photoErr && (
+          <span className="block text-xs text-blue mt-1.5" role="status">
+            Photo attached: {photo.name}
+          </span>
+        )}
+        {photoErr && <span role="alert" className="block text-orange text-xs mt-1.5">{photoErr}</span>}
       </Field>
       <Field label="Preferred date (optional)">
         <input type="date" min={today} value={prefDate} onChange={(e) => setPrefDate(e.target.value)} className="field" />
