@@ -1,5 +1,11 @@
 name: NGMS Production Build Gate
 
+# Build check for pull requests and pushes to main.
+#
+# Deployment is NOT done here: Vercel's Git integration builds and deploys every
+# push to main (and a preview for every PR). The post-deploy smoke test against
+# the live site lives in production-qa.yml.
+
 on:
   push:
     branches: [main, feat/segment-landing-pages]
@@ -30,146 +36,18 @@ jobs:
       - run: npm ci
       - run: npm run build
 
-  deploy:
-    name: Deploy to Vercel
-    if: github.event_name != 'pull_request'
-    needs: build
-    runs-on: ubuntu-latest
-    outputs:
-      url: ${{ steps.deploy.outputs.url }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-      - run: npm ci
-      - name: Deploy production
-        id: deploy
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: |
-          DEPLOYMENT_JSON=$(npx vercel deploy --prod --yes --token="$VERCEL_TOKEN" --json)
-          URL=$(printf '%s' "$DEPLOYMENT_JSON" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).url))')
-          test -n "$URL"
-          echo "url=$URL" >> "$GITHUB_OUTPUT"
-          echo "Deployment: $URL"
-
-  readiness:
-    name: Wait for READY
-    if: github.event_name != 'pull_request'
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Wait for deployment
-        env:
-          URL: ${{ needs.deploy.outputs.url }}
-        run: |
-          for i in {1..30}; do
-            code=$(curl -L -s -o /dev/null -w "%{http_code}" "$URL")
-            echo "Attempt $i: HTTP $code"
-            if [ "$code" -ge 200 ] && [ "$code" -lt 400 ]; then exit 0; fi
-            sleep 10
-          done
-          exit 1
-
-  qa:
-    name: Production smoke QA
-    if: github.event_name != 'pull_request'
-    needs: [deploy, readiness]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-      - name: Install Playwright
-        run: |
-          npm install --no-save playwright
-          npx playwright install --with-deps chromium
-      - name: Run production smoke QA
-        env:
-          QA_URL: ${{ needs.deploy.outputs.url }}
-        run: |
-          node <<'EOF'
-          const { chromium } = require('playwright');
-          const routes = [
-              '/',
-              '/quote',
-              '/contact',
-              '/about',
-              '/portfolio',
-              '/services',
-              '/services/solar-panel-cleaning',
-              '/projects',
-              '/gallery',
-              '/terms',
-            ];
-          (async () => {
-            const browser = await chromium.launch({headless: true});
-            const page = await browser.newPage();
-            const failures = [];
-            page.on('console', msg => {
-              if (msg.type() === 'error') failures.push('console.error: ' + msg.text());
-            });
-            page.on('pageerror', error => failures.push('pageerror: ' + error.message));
-            for (const route of routes) {
-              try {
-                const response = await page.goto(new URL(route, process.env.QA_URL).toString(), {waitUntil: 'domcontentloaded', timeout: 30000});
-                const status = response?.status() ?? 0;
-                console.log(route + ' -> HTTP ' + status);
-                if (status < 200 || status >= 400) failures.push(route + ': HTTP ' + status);
-              } catch (error) {
-                failures.push(route + ': ' + error.message);
-              }
-            }
-            await browser.close();
-            if (failures.length) {
-              console.error('QA FAILED');
-              failures.forEach(f => console.error('- ' + f));
-              process.exit(1);
-            }
-            const apiChecks = ['/api/notify', '/api/quote-photo'];
-            for (const apiPath of apiChecks) {
-              try {
-                const response = await fetch(new URL(apiPath, process.env.QA_URL).toString(), { method: 'GET' });
-                const status = response.status;
-                console.log(apiPath + ' -> HTTP ' + status + ' (GET probe; 405 is expected for POST-only endpoints)');
-                if (status !== 405) failures.push(apiPath + ': expected HTTP 405, got ' + status);
-              } catch (error) {
-                failures.push(apiPath + ': ' + error.message);
-              }
-            }
-            console.log('QA PASSED: all production routes and POST-only API endpoints responded as expected.');
-          })();
-          EOF
-
+  # Kept under the same name so any branch-protection rule that requires
+  # "Release Gate" keeps working.
   release-gate:
     name: Release Gate
     if: always()
-    needs: [build, deploy, readiness, qa]
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - name: Evaluate gate
         env:
-          EVENT_NAME: ${{ github.event_name }}
           BUILD_RESULT: ${{ needs.build.result }}
-          DEPLOY_RESULT: ${{ needs.deploy.result }}
-          READINESS_RESULT: ${{ needs.readiness.result }}
-          QA_RESULT: ${{ needs.qa.result }}
         run: |
           echo "Build: $BUILD_RESULT"
-          if [ "$BUILD_RESULT" != "success" ]; then exit 1; fi
-          if [ "$EVENT_NAME" = "pull_request" ]; then
-            echo "PR build gate passed."
-            exit 0
-          fi
-          echo "Deploy: $DEPLOY_RESULT"
-          echo "Readiness: $READINESS_RESULT"
-          echo "QA: $QA_RESULT"
-          test "$DEPLOY_RESULT" = success
-          test "$READINESS_RESULT" = success
-          test "$QA_RESULT" = success
+          test "$BUILD_RESULT" = success
           echo "NGMS RELEASE GATE PASSED"
