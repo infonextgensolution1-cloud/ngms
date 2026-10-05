@@ -8,7 +8,7 @@ name: NGMS Production Build Gate
 
 on:
   push:
-    branches: [main, feat/segment-landing-pages]
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
