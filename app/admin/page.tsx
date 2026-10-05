@@ -8,7 +8,7 @@ import AdminSearch from '@/components/admin/AdminSearch'
 import MfaChallenge from '@/components/admin/MfaChallenge'
 import MfaSetup from '@/components/admin/MfaSetup'
 import { supabase } from '@/lib/supabaseClient'
-import { Loader2, Image as ImageIcon, LogOut, Sparkles, Users, Receipt, FileText, Cloud, LucideIcon, HardHat, Wallet, Boxes, Contact, CalendarDays, BarChart3, Activity, RefreshCw } from 'lucide-react'
+import { Loader2, Image as ImageIcon, LogOut, Sparkles, Send, Users, Receipt, FileText, Cloud, LucideIcon, HardHat, Wallet, Boxes, Contact, CalendarDays, BarChart3, Activity, RefreshCw } from 'lucide-react'
 
 const NAV_ITEMS: Array<{
   href: string
@@ -105,6 +105,12 @@ const NAV_ITEMS: Array<{
     icon: Sparkles,
     title: 'Solar Forge Creative Studio',
     desc: 'Turn approved campaigns into branded creative assets, Reels and Story packs',
+  },
+  {
+    href: '/admin/media-publishing',
+    icon: Send,
+    title: 'Solar Forge Publishing & Attribution',
+    desc: 'Queue approved creative for social distribution and track campaign attribution',
   },
   {
     href: '/admin/prompts',
