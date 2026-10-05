@@ -95,6 +95,12 @@ const NAV_ITEMS: Array<{
     desc: 'Manage hero slides, before/after pairs & the gallery',
   },
   {
+    href: '/media-wizard',
+    icon: Sparkles,
+    title: 'Solar Forge Media Wizard',
+    desc: 'Create Facebook, Instagram, WhatsApp, Reels, Stories, promotions and bilingual campaigns',
+  },
+  {
     href: '/admin/prompts',
     icon: Sparkles,
     title: 'Prompt Dashboard',
