@@ -7,6 +7,7 @@ import BusinessSummary from '@/components/admin/BusinessSummary'
 import AdminSearch from '@/components/admin/AdminSearch'
 import MfaChallenge from '@/components/admin/MfaChallenge'
 import MfaSetup from '@/components/admin/MfaSetup'
+import WeekAheadButton from '@/components/admin/WeekAheadButton'
 import { supabase } from '@/lib/supabaseClient'
 import { Loader2, Image as ImageIcon, LogOut, Sparkles, Send, Users, Receipt, FileText, Cloud, LucideIcon, HardHat, Wallet, Boxes, Contact, CalendarDays, BarChart3, Activity, RefreshCw } from 'lucide-react'
 
@@ -270,6 +271,8 @@ export default function AdminPage() {
         <AdminSearch />
 
         <MfaSetup />
+
+        <WeekAheadButton />
 
         <BusinessSummary />
 

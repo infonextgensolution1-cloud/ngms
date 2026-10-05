@@ -10,6 +10,7 @@ import { balanceOwed, invoiceChaseDay } from '@/lib/invoice-followup'
 import { quoteRemindersDue, sastDateOf } from '@/lib/quote-followup'
 import { addDaysSAST, todaySAST } from '@/lib/ngms-leads-ui'
 import { site } from '@/lib/site'
+import { isMondaySAST, sendWeekAheadEmail } from '@/lib/week-ahead'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,6 +21,8 @@ export const dynamic = 'force-dynamic'
 //  - sent quotes hitting a reminder day (3 and 7 days after sending, 2 days before expiry)
 //  - unpaid invoices on a chase day (3, 7, 14 days overdue, then every 14 days)
 // Sends nothing when none are due.
+// On Mondays it also sends the separate "Week ahead" email (lib/week-ahead.ts), even on a quiet
+// week. That email can never block the daily one: its failure is only logged and reported.
 // Requires CRON_SECRET (same as plan-reminders); Vercel sends it as a bearer token.
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET
@@ -28,6 +31,18 @@ export async function GET(req: Request) {
   }
 
   const db = supabaseAdmin()
+
+  let weekly: { sent: boolean; error?: string } | undefined
+  if (isMondaySAST()) {
+    try {
+      await sendWeekAheadEmail(db)
+      weekly = { sent: true }
+    } catch (e) {
+      console.error('week-ahead email failed', (e as Error).message)
+      weekly = { sent: false, error: (e as Error).message }
+    }
+  }
+
   const { data, error } = await db
     .from('leads')
     .select('id,name,phone,service,service_slug,suburb,status,notes,follow_up_at')
@@ -182,7 +197,7 @@ export async function GET(req: Request) {
     }
   }
 
-  if (!due.length && !dueQuotes.length && !dueInvoices.length && !upcomingJobs.length && !depositAlerts.length) return NextResponse.json({ ok: true, due: 0, quotes: 0, invoices: 0, jobs: 0, deposits: 0, sent: false })
+  if (!due.length && !dueQuotes.length && !dueInvoices.length && !upcomingJobs.length && !depositAlerts.length) return NextResponse.json({ ok: true, due: 0, quotes: 0, invoices: 0, jobs: 0, deposits: 0, sent: false, weekly })
 
   const { subject, html, text } = buildFollowUpEmail(due, site.url, dueQuotes, dueInvoices, upcomingJobs, depositAlerts)
   const { error: sendError } = await new Resend(process.env.RESEND_API_KEY).emails.send({
@@ -194,7 +209,7 @@ export async function GET(req: Request) {
   })
   if (sendError) {
     console.error('lead follow-up email failed', sendError.message)
-    return NextResponse.json({ ok: false, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, jobs: upcomingJobs.length, deposits: depositAlerts.length, error: sendError.message }, { status: 502 })
+    return NextResponse.json({ ok: false, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, jobs: upcomingJobs.length, deposits: depositAlerts.length, weekly, error: sendError.message }, { status: 502 })
   }
-  return NextResponse.json({ ok: true, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, jobs: upcomingJobs.length, deposits: depositAlerts.length, sent: true })
+  return NextResponse.json({ ok: true, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, jobs: upcomingJobs.length, deposits: depositAlerts.length, sent: true, weekly })
 }
