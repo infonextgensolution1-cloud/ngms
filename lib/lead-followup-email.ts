@@ -37,6 +37,15 @@ export type UpcomingJob = {
   warning: string | null
 }
 
+export type DepositAlert = {
+  job_id: string
+  job_title: string | null
+  client_name: string | null
+  client_phone: string | null
+  when: string
+  issue: string
+}
+
 export type DueInvoice = {
   id: string
   invoice_number: string | null
@@ -57,12 +66,14 @@ function lastNote(notes: string | null): string {
 }
 
 /** Subject, HTML and plain text for the daily follow-up email to the owner (leads and/or quotes). */
-export function buildFollowUpEmail(leads: DueLead[], siteUrl: string, quotes: DueQuote[] = [], invoices: DueInvoice[] = [], jobs: UpcomingJob[] = []): { subject: string; html: string; text: string } {
+export function buildFollowUpEmail(leads: DueLead[], siteUrl: string, quotes: DueQuote[] = [], invoices: DueInvoice[] = [], jobs: UpcomingJob[] = [], deposits: DepositAlert[] = []): { subject: string; html: string; text: string } {
   const parts: string[] = []
   if (leads.length) parts.push(`${leads.length} lead${leads.length === 1 ? '' : 's'}`)
   if (quotes.length) parts.push(`${quotes.length} quote${quotes.length === 1 ? '' : 's'}`)
   if (invoices.length) parts.push(`${invoices.length} invoice${invoices.length === 1 ? '' : 's'}`)
+  if (deposits.length) parts.push(`${deposits.length} unpaid deposit${deposits.length === 1 ? '' : 's'}`)
   const joined = parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}` : parts[0]
+  const followUps = leads.length + quotes.length + invoices.length
   const jobPart = `${jobs.length} job${jobs.length === 1 ? '' : 's'} coming up${jobs.some((j) => j.warning) ? ' (weather warning)' : ''}`
   const subject = parts.length ? `Follow-ups due: ${joined}${jobs.length ? ` · ${jobPart}` : ''}` : jobPart[0].toUpperCase() + jobPart.slice(1)
 
@@ -99,6 +110,18 @@ ${note ? `<div style="color:#555;font-size:13px;margin-top:4px">Last note: ${esc
 ${q.reminders.map((r) => `<div style="color:#b45309;font-size:13px">${esc(REMINDER_TEXT[r])}</div>`).join('')}
 ${q.valid_until ? `<div style="color:#555;font-size:13px">Valid until ${esc(q.valid_until)}</div>` : ''}
 <div style="margin-top:8px">${q.client_phone ? `<a href="tel:${esc(normalisePhone(q.client_phone))}">Call ${esc(q.client_phone)}</a>${wa ? ` · <a href="${wa}">WhatsApp</a>` : ''} · ` : ''}<a href="${link}">Open quote</a></div>`),
+        )
+        .join('\n')
+    : ''
+
+  const depositRows = deposits.map((d) => ({ d, wa: d.client_phone ? waLink(d.client_phone) : null, link: `${siteUrl}/admin/jobs/${d.job_id}` }))
+  const depositHtml = depositRows.length
+    ? heading('Deposits to secure') +
+      depositRows
+        .map(({ d, wa, link }) =>
+          card(`<div><strong>${esc(d.job_title ?? 'Job')}</strong> · ${esc(d.client_name ?? 'client not set')} · ${esc(d.when)}</div>
+<div style="color:#b91c1c;font-size:13px;font-weight:bold">${esc(d.issue)}</div>
+<div style="margin-top:8px">${d.client_phone ? `<a href="tel:${esc(normalisePhone(d.client_phone))}">Call ${esc(d.client_phone)}</a>${wa ? ` · <a href="${wa}">WhatsApp</a>` : ''} · ` : ''}<a href="${link}">Open job</a></div>`),
         )
         .join('\n')
     : ''
@@ -144,13 +167,21 @@ ${j.warning ? `<div style="color:#b91c1c;font-size:13px;font-weight:bold;margin-
     : ''
 
   const html = `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.5;max-width:600px">
-${jobHtml}${leadHtml}${quoteHtml}${invoiceHtml}
-${parts.length ? `<p style="font-size:12px;color:#777">Leads: to stop a reminder, open the lead and set a new date, clear it, or move it to Won or Lost. Quote reminders stop by themselves once the quote is accepted, declined or expired. Invoice reminders stop once the invoice is paid; void an invoice you have written off.</p>` : ''}
+${jobHtml}${depositHtml}${leadHtml}${quoteHtml}${invoiceHtml}
+${followUps ? `<p style="font-size:12px;color:#777">Leads: to stop a reminder, open the lead and set a new date, clear it, or move it to Won or Lost. Quote reminders stop by themselves once the quote is accepted, declined or expired. Invoice reminders stop once the invoice is paid; void an invoice you have written off.</p>` : ''}
 </div>`
 
   const text = [
     ...jobText("Today's jobs", todayJobs),
     ...jobText("Tomorrow's jobs", tomorrowJobs),
+    ...(depositRows.length
+      ? [
+          'Deposits to secure:',
+          '',
+          ...depositRows.map(({ d, link }) => [`- ${d.job_title ?? 'Job'} · ${d.client_name ?? 'client not set'} · ${d.when}`, `  ${d.issue}`, d.client_phone ? `  ${d.client_phone}` : '', `  ${link}`].filter(Boolean).join('\n')),
+          '',
+        ]
+      : []),
     ...(leadRows.length
       ? [
           `${leadRows.length} lead${leadRows.length === 1 ? '' : 's'} need a follow-up:`,
@@ -187,7 +218,7 @@ ${parts.length ? `<p style="font-size:12px;color:#777">Leads: to stop a reminder
           '',
         ]
       : []),
-    ...(parts.length ? ['Leads: set a new date, clear it, or move to Won or Lost to stop a reminder. Quote reminders stop by themselves once the quote is accepted, declined or expired. Invoice reminders stop once the invoice is paid; void an invoice you have written off.'] : []),
+    ...(followUps ? ['Leads: set a new date, clear it, or move to Won or Lost to stop a reminder. Quote reminders stop by themselves once the quote is accepted, declined or expired. Invoice reminders stop once the invoice is paid; void an invoice you have written off.'] : []),
   ].join('\n')
 
   return { subject, html, text }
