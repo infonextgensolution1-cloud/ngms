@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { REPLY_FROM, NOTIFY_TO } from '@/lib/lead-email'
-import { buildFollowUpEmail, type DueLead, type DueQuote } from '@/lib/lead-followup-email'
+import { buildFollowUpEmail, type DueInvoice, type DueLead, type DueQuote } from '@/lib/lead-followup-email'
+import { balanceOwed, invoiceChaseDay } from '@/lib/invoice-followup'
 import { quoteRemindersDue, sastDateOf } from '@/lib/quote-followup'
 import { todaySAST } from '@/lib/ngms-leads-ui'
 import { site } from '@/lib/site'
@@ -12,6 +13,7 @@ export const dynamic = 'force-dynamic'
 // Daily cron (vercel.json, 06:00 UTC = 08:00 SAST). Emails the owner one digest of:
 //  - open leads whose follow-up date is today or earlier
 //  - sent quotes hitting a reminder day (3 and 7 days after sending, 2 days before expiry)
+//  - unpaid invoices on a chase day (3, 7, 14 days overdue, then every 14 days)
 // Sends nothing when none are due.
 // Requires CRON_SECRET (same as plan-reminders); Vercel sends it as a bearer token.
 export async function GET(req: Request) {
@@ -76,9 +78,41 @@ export async function GET(req: Request) {
     }
   }
 
-  if (!due.length && !dueQuotes.length) return NextResponse.json({ ok: true, due: 0, quotes: 0, sent: false })
+  // Unpaid invoices past their due date, on a chase day.
+  const dueInvoices: DueInvoice[] = []
+  const { data: openInvoices, error: invoiceError } = await db
+    .from('invoices')
+    .select('id,invoice_number,client_id,total_amount,paid_amount,due_date')
+    .not('status', 'in', '(paid,void,draft)')
+    .not('due_date', 'is', null)
+    .lt('due_date', today)
+    .limit(200)
+  if (invoiceError) return NextResponse.json({ ok: false, error: invoiceError.message }, { status: 500 })
+  const chase = (openInvoices ?? [])
+    .map((inv) => ({ inv, day: invoiceChaseDay(inv.due_date, today), balance: balanceOwed(inv.total_amount, inv.paid_amount) }))
+    .filter((x) => x.day !== null && x.balance > 0)
+  if (chase.length) {
+    const ids = Array.from(new Set(chase.map((x) => x.inv.client_id).filter(Boolean))) as string[]
+    const { data: invClients } = ids.length ? await db.from('clients').select('id,name,phone').in('id', ids) : { data: [] }
+    const byClient = new Map((invClients ?? []).map((c) => [c.id, c]))
+    for (const { inv, day, balance } of chase) {
+      const c = inv.client_id ? byClient.get(inv.client_id) : undefined
+      dueInvoices.push({
+        id: inv.id,
+        invoice_number: inv.invoice_number,
+        client_name: c?.name ?? null,
+        client_phone: c?.phone ?? null,
+        total_amount: Number(inv.total_amount) || 0,
+        paid_amount: Number(inv.paid_amount) || 0,
+        balance,
+        days_overdue: day as number,
+      })
+    }
+  }
 
-  const { subject, html, text } = buildFollowUpEmail(due, site.url, dueQuotes)
+  if (!due.length && !dueQuotes.length && !dueInvoices.length) return NextResponse.json({ ok: true, due: 0, quotes: 0, invoices: 0, sent: false })
+
+  const { subject, html, text } = buildFollowUpEmail(due, site.url, dueQuotes, dueInvoices)
   const { error: sendError } = await new Resend(process.env.RESEND_API_KEY).emails.send({
     from: REPLY_FROM,
     to: NOTIFY_TO,
@@ -88,7 +122,7 @@ export async function GET(req: Request) {
   })
   if (sendError) {
     console.error('lead follow-up email failed', sendError.message)
-    return NextResponse.json({ ok: false, due: due.length, quotes: dueQuotes.length, error: sendError.message }, { status: 502 })
+    return NextResponse.json({ ok: false, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, error: sendError.message }, { status: 502 })
   }
-  return NextResponse.json({ ok: true, due: due.length, quotes: dueQuotes.length, sent: true })
+  return NextResponse.json({ ok: true, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, sent: true })
 }

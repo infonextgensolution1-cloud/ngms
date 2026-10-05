@@ -1,6 +1,7 @@
 import { followUpInfo, normalisePhone, waLink } from '@/lib/ngms-leads-ui'
 import { REMINDER_TEXT, type QuoteReminder } from '@/lib/quote-followup'
 import { groupThousands } from '@/lib/solar-pricing'
+import { invoiceChaseText } from '@/lib/invoice-followup'
 
 export type DueLead = {
   id: string
@@ -24,6 +25,17 @@ export type DueQuote = {
   reminders: QuoteReminder[]
 }
 
+export type DueInvoice = {
+  id: string
+  invoice_number: string | null
+  client_name: string | null
+  client_phone: string | null
+  total_amount: number
+  paid_amount: number
+  balance: number
+  days_overdue: number
+}
+
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 /** Last line of the lead's note history, trimmed, so the email shows where things were left. */
@@ -33,14 +45,18 @@ function lastNote(notes: string | null): string {
 }
 
 /** Subject, HTML and plain text for the daily follow-up email to the owner (leads and/or quotes). */
-export function buildFollowUpEmail(leads: DueLead[], siteUrl: string, quotes: DueQuote[] = []): { subject: string; html: string; text: string } {
+export function buildFollowUpEmail(leads: DueLead[], siteUrl: string, quotes: DueQuote[] = [], invoices: DueInvoice[] = []): { subject: string; html: string; text: string } {
   const parts: string[] = []
   if (leads.length) parts.push(`${leads.length} lead${leads.length === 1 ? '' : 's'}`)
   if (quotes.length) parts.push(`${quotes.length} quote${quotes.length === 1 ? '' : 's'}`)
-  const subject = `Follow-ups due: ${parts.join(' and ')}`
+  if (invoices.length) parts.push(`${invoices.length} invoice${invoices.length === 1 ? '' : 's'}`)
+  const joined = parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}` : parts[0]
+  const subject = `Follow-ups due: ${joined}`
 
   const leadRows = leads.map((l) => ({ l, info: followUpInfo(l.follow_up_at), wa: waLink(l.phone), link: `${siteUrl}/admin/leads/${l.id}`, note: lastNote(l.notes) }))
   const quoteRows = quotes.map((q) => ({ q, wa: q.client_phone ? waLink(q.client_phone) : null, link: `${siteUrl}/admin/quotes/${q.id}` }))
+
+  const invoiceRows = invoices.map((i) => ({ i, wa: i.client_phone ? waLink(i.client_phone) : null, link: `${siteUrl}/admin/invoices/${i.id}` }))
 
   const card = (inner: string) => `<div style="border:1px solid #ddd;border-radius:8px;padding:12px 14px;margin:0 0 10px">${inner}</div>`
   const heading = (t: string) => `<p style="margin:16px 0 8px"><strong>${t}</strong></p>`
@@ -69,9 +85,22 @@ ${q.valid_until ? `<div style="color:#555;font-size:13px">Valid until ${esc(q.va
         .join('\n')
     : ''
 
+  const owed = (i: DueInvoice) => (i.paid_amount > 0 ? `R${groupThousands(i.balance)} of R${groupThousands(i.total_amount)} still owed` : `R${groupThousands(i.balance)} owed`)
+
+  const invoiceHtml = invoiceRows.length
+    ? heading('Invoices to chase') +
+      invoiceRows
+        .map(({ i, wa, link }) =>
+          card(`<div><strong>${esc(i.invoice_number ?? 'Invoice')}</strong> · ${esc(i.client_name ?? 'client not set')} · ${esc(owed(i))}</div>
+<div style="color:#b45309;font-size:13px">${esc(invoiceChaseText(i.days_overdue))}</div>
+<div style="margin-top:8px">${i.client_phone ? `<a href="tel:${esc(normalisePhone(i.client_phone))}">Call ${esc(i.client_phone)}</a>${wa ? ` · <a href="${wa}">WhatsApp</a>` : ''} · ` : ''}<a href="${link}">Open invoice</a></div>`),
+        )
+        .join('\n')
+    : ''
+
   const html = `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.5;max-width:600px">
-${leadHtml}${quoteHtml}
-<p style="font-size:12px;color:#777">Leads: to stop a reminder, open the lead and set a new date, clear it, or move it to Won or Lost. Quote reminders stop by themselves once the quote is accepted, declined or expired.</p>
+${leadHtml}${quoteHtml}${invoiceHtml}
+<p style="font-size:12px;color:#777">Leads: to stop a reminder, open the lead and set a new date, clear it, or move it to Won or Lost. Quote reminders stop by themselves once the quote is accepted, declined or expired. Invoice reminders stop once the invoice is paid; void an invoice you have written off.</p>
 </div>`
 
   const text = [
@@ -99,7 +128,19 @@ ${leadHtml}${quoteHtml}
           '',
         ]
       : []),
-    'Leads: set a new date, clear it, or move to Won or Lost to stop a reminder. Quote reminders stop by themselves once the quote is accepted, declined or expired.',
+    ...(invoiceRows.length
+      ? [
+          'Invoices to chase:',
+          '',
+          ...invoiceRows.map(({ i, link }) =>
+            [`- ${i.invoice_number ?? 'Invoice'} · ${i.client_name ?? 'client not set'} · ${owed(i)}`, `  ${invoiceChaseText(i.days_overdue)}`, i.client_phone ? `  ${i.client_phone}` : '', `  ${link}`]
+              .filter(Boolean)
+              .join('\n'),
+          ),
+          '',
+        ]
+      : []),
+    'Leads: set a new date, clear it, or move to Won or Lost to stop a reminder. Quote reminders stop by themselves once the quote is accepted, declined or expired. Invoice reminders stop once the invoice is paid; void an invoice you have written off.',
   ].join('\n')
 
   return { subject, html, text }
