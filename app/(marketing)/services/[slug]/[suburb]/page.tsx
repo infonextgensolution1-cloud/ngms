@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { SERVICES, getService } from "@/lib/services";
 import { SUBURBS, getSuburb } from "@/lib/suburbs";
 import { SITE } from "@/lib/site";
+import { isIndexableServiceArea } from "@/lib/area-seo";
 import NgmsIcon from "@/components/NgmsIcon";
 
 // One thin, genuinely local page per service x suburb combination —
@@ -26,6 +27,8 @@ export async function generateMetadata({
     title: `${s.name} in ${sub.name}`,
     description: `${s.name} in ${sub.name}, ${sub.region}. ${sub.calloutNote} Same-day quotes from NextGen Solar Clean & Maintenance Solutions.`,
     alternates: { canonical: `/services/${s.slug}/${sub.slug}` },
+    // Short templated page: kept for visitors, but only the worthwhile ones are indexed (lib/area-seo.ts).
+    ...(isIndexableServiceArea(s.slug, sub.slug) ? {} : { robots: { index: false, follow: true } }),
   };
 }
 
