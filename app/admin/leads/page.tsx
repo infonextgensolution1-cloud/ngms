@@ -7,7 +7,7 @@ import StaffGate from '@/components/admin/StaffGate'
 import ExportButtons from '@/components/admin/ExportButtons'
 import { exportLeads } from '@/lib/admin-export'
 import { supabase } from '@/lib/supabaseClient'
-import { LEAD_COLUMNS, STATUS_LABEL, daysAgo, preferredDateOf, sast, waLink, type Lead } from '@/lib/ngms-leads-ui'
+import { LEAD_COLUMNS, STATUS_LABEL, daysAgo, followUpInfo, preferredDateOf, sast, todaySAST, waLink, type Lead } from '@/lib/ngms-leads-ui'
 import { jobWeather, useForecast } from '@/lib/job-weather'
 import { LeadPhotoLink } from '@/components/admin/LeadPhoto'
 
@@ -15,6 +15,7 @@ const STALE_DAYS = 3
 
 const FILTERS = [
   { key: 'open', label: 'Open' },
+  { key: 'due', label: 'Due' },
   { key: 'followup', label: 'Follow up' },
   { key: 'won', label: 'Won' },
   { key: 'lost', label: 'Lost' },
@@ -46,6 +47,7 @@ function LeadsList() {
       if (filter === 'won') q = q.eq('status', 'won')
       else if (filter === 'lost') q = q.eq('status', 'lost')
       else if (filter === 'open' || filter === 'followup') q = q.not('status', 'in', '(won,lost)')
+      else if (filter === 'due') q = q.not('status', 'in', '(won,lost)').not('follow_up_at', 'is', null).lte('follow_up_at', todaySAST())
       const { data, error } = await q.order('created_at', { ascending: false }).limit(200)
       if (error) throw new Error(error.message)
       let leads = (data ?? []) as Lead[]
@@ -54,7 +56,11 @@ function LeadsList() {
         const s = search.trim().toLowerCase()
         leads = leads.filter((l) => [l.name, l.phone, l.email, l.suburb, l.service, l.message].filter(Boolean).some((v) => String(v).toLowerCase().includes(s)))
       }
-      leads.sort((a, b) => (filter === 'followup' ? Date.parse(a.updated_at) - Date.parse(b.updated_at) : Date.parse(b.created_at) - Date.parse(a.created_at)))
+      leads.sort((a, b) => {
+        if (filter === 'due') return (a.follow_up_at ?? '').localeCompare(b.follow_up_at ?? '')
+        if (filter === 'followup') return Date.parse(a.updated_at) - Date.parse(b.updated_at)
+        return Date.parse(b.created_at) - Date.parse(a.created_at)
+      })
       setRows(leads)
     } catch (e) {
       setError((e as Error).message)
@@ -125,6 +131,7 @@ function LeadsList() {
                 const pref = preferredDateOf(l.message)
                 const wx = pref ? jobWeather(l.service ?? l.service_slug ?? '', pref, forecast) : null
                 const stale = !['won', 'lost'].includes(l.status) && daysAgo(l.updated_at) >= STALE_DAYS
+                const fu = ['won', 'lost'].includes(l.status) ? null : followUpInfo(l.follow_up_at)
                 return (
                   <li key={l.id} className="flex items-center gap-3 px-4 py-3">
                     <Link href={`/admin/leads/${l.id}`} className="min-w-0 flex-1 hover:opacity-90">
@@ -135,6 +142,7 @@ function LeadsList() {
                         {l.suburb ?? 'area not given'} · {l.source} · {sast(l.created_at)}
                         {stale && <span className="text-orange"> · {daysAgo(l.updated_at)}d since touch</span>}
                       </p>
+                      {fu && <p className={`text-xs truncate ${fu.due ? 'text-orange font-semibold' : 'text-mist'}`}>{fu.label}</p>}
                       {pref && (
                         <p className={`text-xs truncate ${wx ? 'text-orange' : 'text-mist'}`}>
                           Wants {pref}
@@ -162,7 +170,7 @@ function LeadsList() {
             </ul>
           ) : (
             <div className="px-4 py-10 text-center">
-              <p className="text-sm text-mist mb-4">No leads here yet.</p>
+              <p className="text-sm text-mist mb-4">{filter === 'due' ? 'Nothing due. Set a follow-up date on a lead to be reminded.' : 'No leads here yet.'}</p>
               <Link href="/admin/leads/new" className="inline-flex items-center gap-1.5 text-orange font-semibold text-sm">
                 <Plus className="w-4 h-4" /> Add your first lead
               </Link>
