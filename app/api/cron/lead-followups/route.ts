@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { REPLY_FROM, NOTIFY_TO } from '@/lib/lead-email'
-import { buildFollowUpEmail, type DueInvoice, type DueLead, type DueQuote, type UpcomingJob } from '@/lib/lead-followup-email'
+import { buildFollowUpEmail, type DepositAlert, type DueInvoice, type DueLead, type DueQuote, type UpcomingJob } from '@/lib/lead-followup-email'
+import { DEPOSIT_WARNING_DAYS, daysUntilJob, depositIssue, jobDayLabel } from '@/lib/deposit-warning'
 import { getWeather } from '@/lib/helderberg'
 import { jobWeather } from '@/lib/job-weather-core'
 import { balanceOwed, invoiceChaseDay } from '@/lib/invoice-followup'
@@ -14,6 +15,7 @@ export const dynamic = 'force-dynamic'
 
 // Daily cron (vercel.json, 06:00 UTC = 08:00 SAST). Emails the owner one digest of:
 //  - jobs scheduled for today and tomorrow, with a rain/wind warning from the forecast
+//  - jobs in the next 3 days whose quote deposit is not fully paid
 //  - open leads whose follow-up date is today or earlier
 //  - sent quotes hitting a reminder day (3 and 7 days after sending, 2 days before expiry)
 //  - unpaid invoices on a chase day (3, 7, 14 days overdue, then every 14 days)
@@ -146,9 +148,43 @@ export async function GET(req: Request) {
     }
   }
 
-  if (!due.length && !dueQuotes.length && !dueInvoices.length && !upcomingJobs.length) return NextResponse.json({ ok: true, due: 0, quotes: 0, invoices: 0, jobs: 0, sent: false })
+  // Jobs in the next few days whose quote deposit is not fully paid.
+  const depositAlerts: DepositAlert[] = []
+  const { data: windowJobs, error: windowError } = await db
+    .from('jobs')
+    .select('id,title,status,scheduled_date,client_id,quote_id')
+    .eq('status', 'scheduled')
+    .not('quote_id', 'is', null)
+    .gte('scheduled_date', today)
+    .lte('scheduled_date', addDaysSAST(DEPOSIT_WARNING_DAYS))
+    .order('scheduled_date', { ascending: true })
+    .limit(50)
+  if (windowError) return NextResponse.json({ ok: false, error: windowError.message }, { status: 500 })
+  if (windowJobs?.length) {
+    const quoteIds = Array.from(new Set(windowJobs.map((j) => j.quote_id).filter(Boolean))) as string[]
+    const { data: depQuotes } = await db.from('quotes').select('id,deposit_amount').in('id', quoteIds)
+    const { data: depInvoices } = await db.from('invoices').select('id,quote_id,invoice_number,status,paid_amount').in('quote_id', quoteIds)
+    const depClientIds = Array.from(new Set(windowJobs.map((j) => j.client_id).filter(Boolean))) as string[]
+    const { data: depClients } = depClientIds.length ? await db.from('clients').select('id,name,phone').in('id', depClientIds) : { data: [] }
+    const quoteById = new Map((depQuotes ?? []).map((q) => [q.id, q]))
+    const clientById = new Map((depClients ?? []).map((c) => [c.id, c]))
+    for (const j of windowJobs) {
+      const days = daysUntilJob(j.scheduled_date, today)
+      const quote = j.quote_id ? quoteById.get(j.quote_id) : undefined
+      if (days === null || !quote) continue
+      const issue = depositIssue(
+        quote.deposit_amount == null ? null : Number(quote.deposit_amount),
+        (depInvoices ?? []).filter((i) => i.quote_id === j.quote_id).map((i) => ({ id: i.id, invoice_number: i.invoice_number, status: i.status, paid_amount: i.paid_amount == null ? null : Number(i.paid_amount) })),
+      )
+      if (!issue) continue
+      const c = j.client_id ? clientById.get(j.client_id) : undefined
+      depositAlerts.push({ job_id: j.id, job_title: j.title, client_name: c?.name ?? null, client_phone: c?.phone ?? null, when: jobDayLabel(j.scheduled_date, days), issue: issue.text })
+    }
+  }
 
-  const { subject, html, text } = buildFollowUpEmail(due, site.url, dueQuotes, dueInvoices, upcomingJobs)
+  if (!due.length && !dueQuotes.length && !dueInvoices.length && !upcomingJobs.length && !depositAlerts.length) return NextResponse.json({ ok: true, due: 0, quotes: 0, invoices: 0, jobs: 0, deposits: 0, sent: false })
+
+  const { subject, html, text } = buildFollowUpEmail(due, site.url, dueQuotes, dueInvoices, upcomingJobs, depositAlerts)
   const { error: sendError } = await new Resend(process.env.RESEND_API_KEY).emails.send({
     from: REPLY_FROM,
     to: NOTIFY_TO,
@@ -158,7 +194,7 @@ export async function GET(req: Request) {
   })
   if (sendError) {
     console.error('lead follow-up email failed', sendError.message)
-    return NextResponse.json({ ok: false, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, jobs: upcomingJobs.length, error: sendError.message }, { status: 502 })
+    return NextResponse.json({ ok: false, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, jobs: upcomingJobs.length, deposits: depositAlerts.length, error: sendError.message }, { status: 502 })
   }
-  return NextResponse.json({ ok: true, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, jobs: upcomingJobs.length, sent: true })
+  return NextResponse.json({ ok: true, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, jobs: upcomingJobs.length, deposits: depositAlerts.length, sent: true })
 }
