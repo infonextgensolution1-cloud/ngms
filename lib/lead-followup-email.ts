@@ -1,4 +1,6 @@
 import { followUpInfo, normalisePhone, waLink } from '@/lib/ngms-leads-ui'
+import { REMINDER_TEXT, type QuoteReminder } from '@/lib/quote-followup'
+import { groupThousands } from '@/lib/solar-pricing'
 
 export type DueLead = {
   id: string
@@ -12,6 +14,16 @@ export type DueLead = {
   follow_up_at: string
 }
 
+export type DueQuote = {
+  id: string
+  quote_number: string | null
+  client_name: string | null
+  client_phone: string | null
+  total_amount: number | null
+  valid_until: string | null
+  reminders: QuoteReminder[]
+}
+
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 /** Last line of the lead's note history, trimmed, so the email shows where things were left. */
@@ -20,41 +32,74 @@ function lastNote(notes: string | null): string {
   return line.length > 160 ? `${line.slice(0, 157)}…` : line
 }
 
-/** Subject, HTML and plain text for the daily "leads to follow up today" email to the owner. */
-export function buildFollowUpEmail(leads: DueLead[], siteUrl: string): { subject: string; html: string; text: string } {
-  const subject = leads.length === 1 ? 'Lead follow-up due today: 1 lead' : `Lead follow-ups due: ${leads.length} leads`
-  const rows = leads.map((l) => {
-    const info = followUpInfo(l.follow_up_at)
-    const wa = waLink(l.phone)
-    const link = `${siteUrl}/admin/leads/${l.id}`
-    return { l, info, wa, link, note: lastNote(l.notes) }
-  })
+/** Subject, HTML and plain text for the daily follow-up email to the owner (leads and/or quotes). */
+export function buildFollowUpEmail(leads: DueLead[], siteUrl: string, quotes: DueQuote[] = []): { subject: string; html: string; text: string } {
+  const parts: string[] = []
+  if (leads.length) parts.push(`${leads.length} lead${leads.length === 1 ? '' : 's'}`)
+  if (quotes.length) parts.push(`${quotes.length} quote${quotes.length === 1 ? '' : 's'}`)
+  const subject = `Follow-ups due: ${parts.join(' and ')}`
 
-  const html = `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.5;max-width:600px">
-<p><strong>${leads.length === 1 ? '1 lead needs' : `${leads.length} leads need`} a follow-up.</strong></p>
-${rows
-  .map(
-    ({ l, info, wa, link, note }) => `<div style="border:1px solid #ddd;border-radius:8px;padding:12px 14px;margin:0 0 10px">
-<div><strong>${esc(l.name)}</strong> · ${esc(l.service ?? l.service_slug ?? 'service not given')}${l.suburb ? ` · ${esc(l.suburb)}` : ''}</div>
+  const leadRows = leads.map((l) => ({ l, info: followUpInfo(l.follow_up_at), wa: waLink(l.phone), link: `${siteUrl}/admin/leads/${l.id}`, note: lastNote(l.notes) }))
+  const quoteRows = quotes.map((q) => ({ q, wa: q.client_phone ? waLink(q.client_phone) : null, link: `${siteUrl}/admin/quotes/${q.id}` }))
+
+  const card = (inner: string) => `<div style="border:1px solid #ddd;border-radius:8px;padding:12px 14px;margin:0 0 10px">${inner}</div>`
+  const heading = (t: string) => `<p style="margin:16px 0 8px"><strong>${t}</strong></p>`
+
+  const leadHtml = leadRows.length
+    ? heading(`${leadRows.length === 1 ? '1 lead needs' : `${leadRows.length} leads need`} a follow-up`) +
+      leadRows
+        .map(({ l, info, wa, link, note }) =>
+          card(`<div><strong>${esc(l.name)}</strong> · ${esc(l.service ?? l.service_slug ?? 'service not given')}${l.suburb ? ` · ${esc(l.suburb)}` : ''}</div>
 <div style="color:#b45309;font-size:13px">${esc(info?.label ?? 'Follow-up due')} · stage: ${esc(l.status)}</div>
 ${note ? `<div style="color:#555;font-size:13px;margin-top:4px">Last note: ${esc(note)}</div>` : ''}
-<div style="margin-top:8px"><a href="tel:${esc(normalisePhone(l.phone))}">Call ${esc(l.phone)}</a>${wa ? ` · <a href="${wa}">WhatsApp</a>` : ''} · <a href="${link}">Open lead</a></div>
-</div>`,
-  )
-  .join('\n')}
-<p style="font-size:12px;color:#777">To stop a reminder, open the lead and set a new date, clear it, or move it to Won or Lost.</p>
+<div style="margin-top:8px"><a href="tel:${esc(normalisePhone(l.phone))}">Call ${esc(l.phone)}</a>${wa ? ` · <a href="${wa}">WhatsApp</a>` : ''} · <a href="${link}">Open lead</a></div>`),
+        )
+        .join('\n')
+    : ''
+
+  const quoteHtml = quoteRows.length
+    ? heading('Quotes awaiting an answer') +
+      quoteRows
+        .map(({ q, wa, link }) =>
+          card(`<div><strong>${esc(q.quote_number ?? 'Quote')}</strong> · ${esc(q.client_name ?? 'client not set')}${q.total_amount ? ` · R${groupThousands(q.total_amount)}` : ''}</div>
+${q.reminders.map((r) => `<div style="color:#b45309;font-size:13px">${esc(REMINDER_TEXT[r])}</div>`).join('')}
+${q.valid_until ? `<div style="color:#555;font-size:13px">Valid until ${esc(q.valid_until)}</div>` : ''}
+<div style="margin-top:8px">${q.client_phone ? `<a href="tel:${esc(normalisePhone(q.client_phone))}">Call ${esc(q.client_phone)}</a>${wa ? ` · <a href="${wa}">WhatsApp</a>` : ''} · ` : ''}<a href="${link}">Open quote</a></div>`),
+        )
+        .join('\n')
+    : ''
+
+  const html = `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.5;max-width:600px">
+${leadHtml}${quoteHtml}
+<p style="font-size:12px;color:#777">Leads: to stop a reminder, open the lead and set a new date, clear it, or move it to Won or Lost. Quote reminders stop by themselves once the quote is accepted, declined or expired.</p>
 </div>`
 
   const text = [
-    `${leads.length} lead${leads.length === 1 ? '' : 's'} need a follow-up:`,
-    '',
-    ...rows.map(({ l, info, link, note }) =>
-      [`- ${l.name} · ${l.service ?? l.service_slug ?? 'service not given'}${l.suburb ? ` · ${l.suburb}` : ''}`, `  ${info?.label ?? 'Follow-up due'} · ${l.phone}`, note ? `  Last note: ${note}` : '', `  ${link}`]
-        .filter(Boolean)
-        .join('\n'),
-    ),
-    '',
-    'To stop a reminder: set a new date, clear it, or move the lead to Won or Lost.',
+    ...(leadRows.length
+      ? [
+          `${leadRows.length} lead${leadRows.length === 1 ? '' : 's'} need a follow-up:`,
+          '',
+          ...leadRows.map(({ l, info, link, note }) =>
+            [`- ${l.name} · ${l.service ?? l.service_slug ?? 'service not given'}${l.suburb ? ` · ${l.suburb}` : ''}`, `  ${info?.label ?? 'Follow-up due'} · ${l.phone}`, note ? `  Last note: ${note}` : '', `  ${link}`]
+              .filter(Boolean)
+              .join('\n'),
+          ),
+          '',
+        ]
+      : []),
+    ...(quoteRows.length
+      ? [
+          'Quotes awaiting an answer:',
+          '',
+          ...quoteRows.map(({ q, link }) =>
+            [`- ${q.quote_number ?? 'Quote'} · ${q.client_name ?? 'client not set'}${q.total_amount ? ` · R${groupThousands(q.total_amount)}` : ''}`, ...q.reminders.map((r) => `  ${REMINDER_TEXT[r]}`), q.client_phone ? `  ${q.client_phone}` : '', `  ${link}`]
+              .filter(Boolean)
+              .join('\n'),
+          ),
+          '',
+        ]
+      : []),
+    'Leads: set a new date, clear it, or move to Won or Lost to stop a reminder. Quote reminders stop by themselves once the quote is accepted, declined or expired.',
   ].join('\n')
 
   return { subject, html, text }
