@@ -28,3 +28,21 @@ export function jobWeather(text: string, date: string | null, days: WxDay[]): Jo
   const why = [rain, wind].filter(Boolean).join(', ') || day.label.toLowerCase()
   return { hold: true, note: `${bad.map((c) => c.trade).join(' & ')}: ${bad[0].note.toLowerCase()} (${why} forecast). Consider moving it.`, day }
 }
+
+/** Is this a workable day for every weather-sensitive trade named in the job text? */
+export function isGoDay(text: string, day: WxDay): boolean {
+  const calls = tradeConditions(day)
+  return TRADES.filter((t) => t.match.test(text))
+    .map((t) => calls.find((c) => c.trade === t.trade))
+    .filter((c): c is NonNullable<typeof c> => !!c)
+    .every((c) => c.go)
+}
+
+/** The next `count` workable days after `afterDate` in the forecast (Sundays skipped when asked). */
+export function nextGoDays(text: string, afterDate: string, days: WxDay[], count: number, skipSundays: boolean): WxDay[] {
+  return days
+    .filter((d) => d.date > afterDate)
+    .filter((d) => !skipSundays || new Date(`${d.date}T12:00:00Z`).getUTCDay() !== 0)
+    .filter((d) => isGoDay(text, d))
+    .slice(0, count)
+}

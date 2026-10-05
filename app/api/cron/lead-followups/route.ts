@@ -11,11 +11,13 @@ import { quoteRemindersDue, sastDateOf } from '@/lib/quote-followup'
 import { addDaysSAST, todaySAST } from '@/lib/ngms-leads-ui'
 import { site } from '@/lib/site'
 import { isMondaySAST, sendWeekAheadEmail } from '@/lib/week-ahead'
+import { WATCH_FROM_DAYS, WATCH_TO_DAYS, weatherWatch, type WatchAlert } from '@/lib/weather-watch'
 
 export const dynamic = 'force-dynamic'
 
 // Daily cron (vercel.json, 06:00 UTC = 08:00 SAST). Emails the owner one digest of:
 //  - jobs scheduled for today and tomorrow, with a rain/wind warning from the forecast
+//  - weather watch: jobs 2 to 5 days out that the forecast says to hold, with replacement days (Sundays skipped)
 //  - jobs in the next 3 days whose quote deposit is not fully paid
 //  - open leads whose follow-up date is today or earlier
 //  - sent quotes hitting a reminder day (3 and 7 days after sending, 2 days before expiry)
@@ -142,8 +144,8 @@ export async function GET(req: Request) {
     .order('created_at', { ascending: true })
     .limit(50)
   if (jobError) return NextResponse.json({ ok: false, error: jobError.message }, { status: 500 })
+  const forecast = (await getWeather())?.days ?? [] // empty if the forecast is down: jobs are still listed, just without warnings
   if (jobRows?.length) {
-    const forecast = (await getWeather())?.days ?? [] // empty if the forecast is down: jobs still listed
     const jobClientIds = Array.from(new Set(jobRows.map((j) => j.client_id).filter(Boolean))) as string[]
     const { data: jobClients } = jobClientIds.length ? await db.from('clients').select('id,name,phone,suburb,address').in('id', jobClientIds) : { data: [] }
     const jobClient = new Map((jobClients ?? []).map((c) => [c.id, c]))
@@ -197,9 +199,33 @@ export async function GET(req: Request) {
     }
   }
 
-  if (!due.length && !dueQuotes.length && !dueInvoices.length && !upcomingJobs.length && !depositAlerts.length) return NextResponse.json({ ok: true, due: 0, quotes: 0, invoices: 0, jobs: 0, deposits: 0, sent: false, weekly })
+  // Weather watch: scheduled jobs 2 to 5 days out that the forecast says to hold.
+  let watchAlerts: WatchAlert[] = []
+  if (forecast.length) {
+    const { data: watchRows, error: watchError } = await db
+      .from('jobs')
+      .select('id,title,description,scheduled_date,client_id')
+      .eq('status', 'scheduled')
+      .gte('scheduled_date', addDaysSAST(WATCH_FROM_DAYS))
+      .lte('scheduled_date', addDaysSAST(WATCH_TO_DAYS))
+      .order('scheduled_date', { ascending: true })
+      .limit(50)
+    if (watchError) return NextResponse.json({ ok: false, error: watchError.message }, { status: 500 })
+    if (watchRows?.length) {
+      const wIds = Array.from(new Set(watchRows.map((j) => j.client_id).filter(Boolean))) as string[]
+      const { data: wClients } = wIds.length ? await db.from('clients').select('id,name,phone').in('id', wIds) : { data: [] }
+      const wById = new Map((wClients ?? []).map((c) => [c.id, c]))
+      watchAlerts = weatherWatch(
+        watchRows.map((j) => ({ id: j.id, title: j.title, description: j.description, scheduled_date: j.scheduled_date, client_name: wById.get(j.client_id)?.name ?? null, client_phone: wById.get(j.client_id)?.phone ?? null })),
+        forecast,
+        today,
+      )
+    }
+  }
 
-  const { subject, html, text } = buildFollowUpEmail(due, site.url, dueQuotes, dueInvoices, upcomingJobs, depositAlerts)
+  if (!due.length && !dueQuotes.length && !dueInvoices.length && !upcomingJobs.length && !depositAlerts.length && !watchAlerts.length) return NextResponse.json({ ok: true, due: 0, quotes: 0, invoices: 0, jobs: 0, deposits: 0, watch: 0, sent: false, weekly })
+
+  const { subject, html, text } = buildFollowUpEmail(due, site.url, dueQuotes, dueInvoices, upcomingJobs, depositAlerts, watchAlerts)
   const { error: sendError } = await new Resend(process.env.RESEND_API_KEY).emails.send({
     from: REPLY_FROM,
     to: NOTIFY_TO,
@@ -209,7 +235,7 @@ export async function GET(req: Request) {
   })
   if (sendError) {
     console.error('lead follow-up email failed', sendError.message)
-    return NextResponse.json({ ok: false, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, jobs: upcomingJobs.length, deposits: depositAlerts.length, weekly, error: sendError.message }, { status: 502 })
+    return NextResponse.json({ ok: false, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, jobs: upcomingJobs.length, deposits: depositAlerts.length, watch: watchAlerts.length, weekly, error: sendError.message }, { status: 502 })
   }
-  return NextResponse.json({ ok: true, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, jobs: upcomingJobs.length, deposits: depositAlerts.length, sent: true, weekly })
+  return NextResponse.json({ ok: true, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, jobs: upcomingJobs.length, deposits: depositAlerts.length, watch: watchAlerts.length, sent: true, weekly })
 }
