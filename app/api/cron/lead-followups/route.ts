@@ -2,14 +2,17 @@ import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { REPLY_FROM, NOTIFY_TO } from '@/lib/lead-email'
-import { buildFollowUpEmail, type DueLead } from '@/lib/lead-followup-email'
+import { buildFollowUpEmail, type DueLead, type DueQuote } from '@/lib/lead-followup-email'
+import { quoteRemindersDue, sastDateOf } from '@/lib/quote-followup'
 import { todaySAST } from '@/lib/ngms-leads-ui'
 import { site } from '@/lib/site'
 
 export const dynamic = 'force-dynamic'
 
-// Daily cron (vercel.json, 06:00 UTC = 08:00 SAST). Emails the owner one digest of open
-// leads whose follow-up date is today or earlier. Sends nothing when none are due.
+// Daily cron (vercel.json, 06:00 UTC = 08:00 SAST). Emails the owner one digest of:
+//  - open leads whose follow-up date is today or earlier
+//  - sent quotes hitting a reminder day (3 and 7 days after sending, 2 days before expiry)
+// Sends nothing when none are due.
 // Requires CRON_SECRET (same as plan-reminders); Vercel sends it as a bearer token.
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET
@@ -29,9 +32,53 @@ export async function GET(req: Request) {
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
 
   const due = (data ?? []) as DueLead[]
-  if (!due.length) return NextResponse.json({ ok: true, due: 0, sent: false })
 
-  const { subject, html, text } = buildFollowUpEmail(due, site.url)
+  // Quotes still awaiting an answer. "Sent" date = latest sent version, else the quote's last update.
+  const today = todaySAST()
+  const dueQuotes: DueQuote[] = []
+  const { data: sentQuotes, error: quoteError } = await db
+    .from('quotes')
+    .select('id,quote_number,client_id,total_amount,valid_until,updated_at')
+    .eq('status', 'sent')
+    .limit(200)
+  if (quoteError) return NextResponse.json({ ok: false, error: quoteError.message }, { status: 500 })
+  if (sentQuotes?.length) {
+    const ids = sentQuotes.map((q) => q.id)
+    const { data: versions } = await db
+      .from('quote_versions')
+      .select('quote_id,version_number,sent_at')
+      .in('quote_id', ids)
+      .eq('version_status', 'sent')
+      .not('sent_at', 'is', null)
+      .order('version_number', { ascending: false })
+    const sentAt = new Map<string, string>()
+    for (const v of versions ?? []) if (!sentAt.has(v.quote_id) && v.sent_at) sentAt.set(v.quote_id, v.sent_at)
+
+    const clientIds = Array.from(new Set(sentQuotes.map((q) => q.client_id).filter(Boolean))) as string[]
+    const { data: clients } = clientIds.length ? await db.from('clients').select('id,name,phone').in('id', clientIds) : { data: [] }
+    const byId = new Map((clients ?? []).map((c) => [c.id, c]))
+
+    for (const q of sentQuotes) {
+      const sent = sentAt.get(q.id) ?? q.updated_at
+      if (!sent) continue
+      const reminders = quoteRemindersDue(sastDateOf(sent), q.valid_until, today)
+      if (!reminders.length) continue
+      const c = q.client_id ? byId.get(q.client_id) : undefined
+      dueQuotes.push({
+        id: q.id,
+        quote_number: q.quote_number,
+        client_name: c?.name ?? null,
+        client_phone: c?.phone ?? null,
+        total_amount: q.total_amount == null ? null : Number(q.total_amount),
+        valid_until: q.valid_until,
+        reminders,
+      })
+    }
+  }
+
+  if (!due.length && !dueQuotes.length) return NextResponse.json({ ok: true, due: 0, quotes: 0, sent: false })
+
+  const { subject, html, text } = buildFollowUpEmail(due, site.url, dueQuotes)
   const { error: sendError } = await new Resend(process.env.RESEND_API_KEY).emails.send({
     from: REPLY_FROM,
     to: NOTIFY_TO,
@@ -41,7 +88,7 @@ export async function GET(req: Request) {
   })
   if (sendError) {
     console.error('lead follow-up email failed', sendError.message)
-    return NextResponse.json({ ok: false, due: due.length, error: sendError.message }, { status: 502 })
+    return NextResponse.json({ ok: false, due: due.length, quotes: dueQuotes.length, error: sendError.message }, { status: 502 })
   }
-  return NextResponse.json({ ok: true, due: due.length, sent: true })
+  return NextResponse.json({ ok: true, due: due.length, quotes: dueQuotes.length, sent: true })
 }
