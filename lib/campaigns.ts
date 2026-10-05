@@ -111,3 +111,8 @@ export function getCampaignService(slug: CampaignSlug, services: Service[]) {
   const config = campaignConfigs[slug];
   return services.find((service) => service.slug === config.serviceSlug);
 }
+
+export function campaignPathForService(serviceSlug?: string | null) {
+  const match = Object.values(campaignConfigs).find((campaign) => campaign.serviceSlug === serviceSlug);
+  return match ? `/campaign/${match.slug}` : "/";
+}
