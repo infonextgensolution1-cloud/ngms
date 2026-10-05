@@ -2,15 +2,18 @@ import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { REPLY_FROM, NOTIFY_TO } from '@/lib/lead-email'
-import { buildFollowUpEmail, type DueInvoice, type DueLead, type DueQuote } from '@/lib/lead-followup-email'
+import { buildFollowUpEmail, type DueInvoice, type DueLead, type DueQuote, type UpcomingJob } from '@/lib/lead-followup-email'
+import { getWeather } from '@/lib/helderberg'
+import { jobWeather } from '@/lib/job-weather-core'
 import { balanceOwed, invoiceChaseDay } from '@/lib/invoice-followup'
 import { quoteRemindersDue, sastDateOf } from '@/lib/quote-followup'
-import { todaySAST } from '@/lib/ngms-leads-ui'
+import { addDaysSAST, todaySAST } from '@/lib/ngms-leads-ui'
 import { site } from '@/lib/site'
 
 export const dynamic = 'force-dynamic'
 
 // Daily cron (vercel.json, 06:00 UTC = 08:00 SAST). Emails the owner one digest of:
+//  - jobs scheduled for today and tomorrow, with a rain/wind warning from the forecast
 //  - open leads whose follow-up date is today or earlier
 //  - sent quotes hitting a reminder day (3 and 7 days after sending, 2 days before expiry)
 //  - unpaid invoices on a chase day (3, 7, 14 days overdue, then every 14 days)
@@ -110,9 +113,42 @@ export async function GET(req: Request) {
     }
   }
 
-  if (!due.length && !dueQuotes.length && !dueInvoices.length) return NextResponse.json({ ok: true, due: 0, quotes: 0, invoices: 0, sent: false })
+  // Jobs today and tomorrow, with a forecast warning where the weather says hold.
+  const tomorrow = addDaysSAST(1)
+  const upcomingJobs: UpcomingJob[] = []
+  const { data: jobRows, error: jobError } = await db
+    .from('jobs')
+    .select('id,title,description,status,scheduled_date,client_id,created_at')
+    .in('scheduled_date', [today, tomorrow])
+    .not('status', 'in', '(completed,cancelled)')
+    .order('scheduled_date', { ascending: true })
+    .order('created_at', { ascending: true })
+    .limit(50)
+  if (jobError) return NextResponse.json({ ok: false, error: jobError.message }, { status: 500 })
+  if (jobRows?.length) {
+    const forecast = (await getWeather())?.days ?? [] // empty if the forecast is down: jobs still listed
+    const jobClientIds = Array.from(new Set(jobRows.map((j) => j.client_id).filter(Boolean))) as string[]
+    const { data: jobClients } = jobClientIds.length ? await db.from('clients').select('id,name,phone,suburb,address').in('id', jobClientIds) : { data: [] }
+    const jobClient = new Map((jobClients ?? []).map((c) => [c.id, c]))
+    for (const j of jobRows) {
+      const c = j.client_id ? jobClient.get(j.client_id) : undefined
+      upcomingJobs.push({
+        id: j.id,
+        title: j.title,
+        when: j.scheduled_date === today ? 'today' : 'tomorrow',
+        status: j.status,
+        client_name: c?.name ?? null,
+        client_phone: c?.phone ?? null,
+        suburb: c?.suburb ?? null,
+        address: c?.address ?? null,
+        warning: jobWeather(`${j.title ?? ''} ${j.description ?? ''}`, j.scheduled_date, forecast)?.note ?? null,
+      })
+    }
+  }
 
-  const { subject, html, text } = buildFollowUpEmail(due, site.url, dueQuotes, dueInvoices)
+  if (!due.length && !dueQuotes.length && !dueInvoices.length && !upcomingJobs.length) return NextResponse.json({ ok: true, due: 0, quotes: 0, invoices: 0, jobs: 0, sent: false })
+
+  const { subject, html, text } = buildFollowUpEmail(due, site.url, dueQuotes, dueInvoices, upcomingJobs)
   const { error: sendError } = await new Resend(process.env.RESEND_API_KEY).emails.send({
     from: REPLY_FROM,
     to: NOTIFY_TO,
@@ -122,7 +158,7 @@ export async function GET(req: Request) {
   })
   if (sendError) {
     console.error('lead follow-up email failed', sendError.message)
-    return NextResponse.json({ ok: false, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, error: sendError.message }, { status: 502 })
+    return NextResponse.json({ ok: false, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, jobs: upcomingJobs.length, error: sendError.message }, { status: 502 })
   }
-  return NextResponse.json({ ok: true, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, sent: true })
+  return NextResponse.json({ ok: true, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, jobs: upcomingJobs.length, sent: true })
 }
