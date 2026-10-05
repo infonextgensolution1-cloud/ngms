@@ -10,7 +10,7 @@ import DeleteRecord from '@/components/admin/DeleteRecord'
 import { LeadPhoto } from '@/components/admin/LeadPhoto'
 import { supabase } from '@/lib/supabaseClient'
 import { deleteLead } from '@/lib/admin-delete'
-import { LEAD_COLUMNS, STATUSES, STATUS_LABEL, appendNote, normalisePhone, sast, waLink, type Lead, type LeadStatus } from '@/lib/ngms-leads-ui'
+import { LEAD_COLUMNS, STATUSES, STATUS_LABEL, addDaysSAST, appendNote, followUpInfo, normalisePhone, sast, todaySAST, waLink, type Lead, type LeadStatus } from '@/lib/ngms-leads-ui'
 
 const STATUS_STYLE: Record<string, string> = {
   new: 'text-blue border-blue',
@@ -67,10 +67,29 @@ function LeadView() {
     setBusy(true)
     setMsg('')
     try {
-      const patch = { status, notes: appendNote(lead.notes, `Stage updated.`, `${lead.status} → ${status}`), updated_at: new Date().toISOString() }
+      const closed = status === 'won' || status === 'lost'
+      const patch = { status, notes: appendNote(lead.notes, `Stage updated.`, `${lead.status} → ${status}`), updated_at: new Date().toISOString(), ...(closed ? { follow_up_at: null } : {}) }
       const { error } = await supabase.from('leads').update(patch).eq('id', lead.id)
       if (error) throw new Error(error.message)
       setMsg(`Moved to ${STATUS_LABEL[status]}.`)
+      await load()
+    } catch (e) {
+      setMsg((e as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function setFollowUp(date: string | null) {
+    if (!lead) return
+    setBusy(true)
+    setMsg('')
+    try {
+      const note = date ? `Follow-up reminder set for ${date}.` : 'Follow-up reminder cleared.'
+      const patch = { follow_up_at: date, notes: appendNote(lead.notes, note), updated_at: new Date().toISOString() }
+      const { error } = await supabase.from('leads').update(patch).eq('id', lead.id)
+      if (error) throw new Error(error.message)
+      setMsg(date ? 'Follow-up reminder saved.' : 'Follow-up reminder cleared.')
       await load()
     } catch (e) {
       setMsg((e as Error).message)
@@ -187,6 +206,45 @@ function LeadView() {
           </div>
           {msg && <p className="text-xs text-mist mt-3">{msg}</p>}
         </section>
+
+        {/* Follow-up reminder */}
+        {!['won', 'lost'].includes(lead.status) && (
+          <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-4">
+            <h2 className="font-heading font-bold text-paper mb-1">Follow-up reminder</h2>
+            {(() => {
+              const fu = followUpInfo(lead.follow_up_at)
+              return (
+                <p className={`text-sm mb-3 ${fu?.due ? 'text-orange font-semibold' : 'text-mist'}`}>
+                  {fu ? `${fu.label} (${lead.follow_up_at})` : 'None set. You get an email at 08:00 on the day it is due, and each morning until you reschedule or close the lead.'}
+                </p>
+              )
+            })()}
+            <div className="flex flex-wrap items-center gap-2">
+              {[
+                ['Tomorrow', 1],
+                ['In 3 days', 3],
+                ['Next week', 7],
+              ].map(([label, n]) => (
+                <button key={label} onClick={() => setFollowUp(addDaysSAST(n as number))} disabled={busy} className="text-xs px-3 py-1.5 rounded-btn border border-darkgrey text-mist hover:text-paper disabled:opacity-50">
+                  {label}
+                </button>
+              ))}
+              <input
+                type="date"
+                min={todaySAST()}
+                value={lead.follow_up_at ?? ''}
+                onChange={(e) => e.target.value && setFollowUp(e.target.value)}
+                aria-label="Follow-up date"
+                className="bg-jet border border-darkgrey text-paper rounded-btn px-2 py-1.5 text-xs focus:outline-none focus:border-blue"
+              />
+              {lead.follow_up_at && (
+                <button onClick={() => setFollowUp(null)} disabled={busy} className="text-xs text-mist hover:text-orange underline disabled:opacity-50">
+                  Clear
+                </button>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Contact */}
         <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-4">
