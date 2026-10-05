@@ -101,6 +101,12 @@ const NAV_ITEMS: Array<{
     desc: 'Create Facebook, Instagram, WhatsApp, Reels, Stories, promotions and bilingual campaigns',
   },
   {
+    href: '/admin/media-studio',
+    icon: Sparkles,
+    title: 'Solar Forge Creative Studio',
+    desc: 'Turn approved campaigns into branded creative assets, Reels and Story packs',
+  },
+  {
     href: '/admin/prompts',
     icon: Sparkles,
     title: 'Prompt Dashboard',
