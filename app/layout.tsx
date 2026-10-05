@@ -142,7 +142,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <nav aria-label="Quick links">
               <p className="font-heading font-semibold text-paper mb-4 uppercase tracking-wide text-xs">Company</p>
               <ul className="grid grid-cols-2 sm:grid-cols-1 gap-x-3">
-                {[['/portfolio', 'Projects'], ['/gallery', 'Gallery'], ['/price-list', 'Price list'], ['/maintenance-packages', 'Maintenance plans'], ['/body-corporate-maintenance', 'Body corporates'], ['/roi-calculator', 'Solar ROI calculator'], ['/about', 'About'], ['/faq', 'FAQ'], ['/contact', 'Contact'], ['/portal', 'Client portal']].map(([href, label]) => <li key={href}><Link href={href} className="hover:text-blue inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">{label}</Link></li>)}
+                {[['/portfolio', 'Projects'], ['/gallery', 'Gallery'], ['/price-list', 'Price list'], ['/maintenance-packages', 'Maintenance plans'], ['/areas', 'Areas we serve'], ['/body-corporate-maintenance', 'Body corporates'], ['/roi-calculator', 'Solar ROI calculator'], ['/about', 'About'], ['/faq', 'FAQ'], ['/contact', 'Contact'], ['/portal', 'Client portal']].map(([href, label]) => <li key={href}><Link href={href} className="hover:text-blue inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">{label}</Link></li>)}
               </ul>
             </nav>
             <div>

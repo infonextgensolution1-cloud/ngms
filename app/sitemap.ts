@@ -3,6 +3,7 @@ import { services } from '@/lib/services'
 import { solarLocations } from '@/lib/solar-locations'
 import { SUBURBS } from '@/lib/suburbs'
 import { SOLAR_SUBURB_TO_LOCATION } from '@/lib/solar-pricing'
+import { isIndexableServiceArea } from '@/lib/area-seo'
 
 const BASE_URL = 'https://www.nextgensolarmaintenance.co.za'
 
@@ -21,6 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/terms`, lastModified, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${BASE_URL}/privacy`, lastModified, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${BASE_URL}/contact`, lastModified, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/areas`, lastModified, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE_URL}/quote`, lastModified, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE_URL}/solar-panel-cleaning/helderberg`, lastModified, changeFrequency: 'monthly', priority: 0.9 },
     { url: `${BASE_URL}/body-corporate-maintenance`, lastModified, changeFrequency: 'monthly', priority: 0.85 },
@@ -49,7 +51,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // redirect to the richer /solar-panel-cleaning/[location] pages above (see next.config.mjs).
   const serviceSuburbPages: MetadataRoute.Sitemap = services.flatMap((service) =>
     SUBURBS.filter(
-      (sub) => !(service.slug === 'solar-panel-cleaning' && SOLAR_SUBURB_TO_LOCATION[sub.slug]),
+      (sub) => !(service.slug === 'solar-panel-cleaning' && SOLAR_SUBURB_TO_LOCATION[sub.slug]) && isIndexableServiceArea(service.slug, sub.slug),
     ).map((sub) => ({
       url: `${BASE_URL}/services/${service.slug}/${sub.slug}`,
       lastModified,
