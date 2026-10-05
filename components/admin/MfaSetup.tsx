@@ -61,37 +61,20 @@ export default function MfaSetup() {
     }
   }
 
-  async function turnOff() {
-    if (!verifiedId) return
-    if (!window.confirm('Turn off two-step login? Your account will be protected by the password only.')) return
-    setBusy(true)
-    setMsg(null)
-    try {
-      const { error } = await supabase.auth.mfa.unenroll({ factorId: verifiedId })
-      if (error) throw error
-      setMsg({ ok: true, text: 'Two-step login is off.' })
-      await load()
-    } catch (e) {
-      setMsg({ ok: false, text: (e as Error).message })
-    } finally {
-      setBusy(false)
-    }
-  }
-
   if (loading) return null
 
   return (
     <div className="bg-cardgrey border border-darkgrey rounded-card p-6 mb-6">
       <div className="flex items-center gap-2 mb-1">
         <ShieldCheck className={`w-5 h-5 ${verifiedId ? 'text-blue' : 'text-orange'}`} />
-        <p className="font-heading font-bold text-paper">Two-step login: {verifiedId ? 'on' : 'off'}</p>
+        <p className="font-heading font-bold text-paper">Two-step login: {verifiedId ? 'on' : 'required'}</p>
       </div>
 
       {!enrol && !verifiedId && (
         <>
           <p className="text-sm text-mist mb-3">
-            Your admin holds client details, quotes and payroll. Add a 6-digit code from an authenticator app (Google Authenticator,
-            Microsoft Authenticator, Authy) so a stolen password alone is not enough.
+            Staff data (clients, quotes, payroll) is only available with a 6-digit code from an authenticator app (Google Authenticator,
+            Microsoft Authenticator, Authy). Set it up now to get access.
           </p>
           <button onClick={start} disabled={busy} className="bg-blue-fill hover:bg-blue-dark text-white text-sm font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-60 inline-flex items-center gap-2">
             {busy && <Loader2 className="w-4 h-4 animate-spin" />} Set up two-step login
@@ -131,9 +114,10 @@ export default function MfaSetup() {
       )}
 
       {verifiedId && !enrol && (
-        <button onClick={turnOff} disabled={busy} className="text-sm text-mist hover:text-orange underline mt-1">
-          Turn off
-        </button>
+        <p className="text-sm text-mist">
+          Required for all staff. Your data is only available after you enter the code from your authenticator app. Lost your phone?
+          Remove the old authenticator in Supabase (Auth → Users → your user → Factors), sign in with your password, and set it up again here.
+        </p>
       )}
 
       {msg && (

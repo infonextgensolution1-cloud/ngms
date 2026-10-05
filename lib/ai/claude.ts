@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { jwtAal, MFA_REQUIRED_MESSAGE } from '@/lib/jwt-aal'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { CONTEXT_HEADER } from '@/lib/prompt-library'
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/supabaseClient'
@@ -45,6 +46,8 @@ export async function requireStaff(request: Request): Promise<SupabaseClient> {
   })
   const { data, error } = await sb.auth.getUser(token)
   if (error || !data.user) throw new HttpError(401, 'Your session has expired. Sign in again.')
+
+  if (jwtAal(token) !== 'aal2') throw new HttpError(403, MFA_REQUIRED_MESSAGE)
 
   const allow = (process.env.STAFF_EMAILS ?? '')
     .split(',')
