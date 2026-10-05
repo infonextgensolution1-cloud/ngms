@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Send, BarChart3, Link2 } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
+import { campaignPathForService } from '@/lib/campaigns'
 
 const channels = ['facebook','instagram','whatsapp','reel','story'] as const
 
@@ -35,7 +36,7 @@ export default function MediaPublishingPage() {
   }
 
   const slug = useMemo(() => selected?.title ? selected.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') : 'ngms-campaign', [selected])
-  const trackingUrl = selected ? `https://www.nextgensolarmaintenance.co.za/?utm_source=${channel}&utm_medium=social&utm_campaign=${slug}` : ''
+  const trackingUrl = selected ? `https://www.nextgensolarmaintenance.co.za${campaignPathForService(selected.service_slug)}?utm_source=${channel}&utm_medium=social&utm_campaign=${slug}` : ''
 
   async function queuePublication(asset: any) {
     if (!selected) return
