@@ -6,13 +6,21 @@ import { supabase } from '@/lib/supabaseClient'
 
 export default function MediaStudioPage() {
   const [campaigns, setCampaigns] = useState<any[]>([])
-  const [selected, setSelected] = useState<any>(null)\n  const [assets, setAssets] = useState<any[]>([])\n  const [busy, setBusy] = useState('')\n  const [message, setMessage] = useState('')
+  const [selected, setSelected] = useState<any>(null)
+  const [assets, setAssets] = useState<any[]>([])
+  const [busy, setBusy] = useState('')
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
     void loadCampaigns()
   }, [])
 
-  async function loadAssets(campaignId: string) {\n    const { data } = await supabase.from('media_assets').select('*').eq('campaign_id', campaignId).order('created_at', { ascending: false })\n    setAssets(data || [])\n  }\n\n  async function loadCampaigns() {
+  async function loadAssets(campaignId: string) {
+    const { data } = await supabase.from('media_assets').select('*').eq('campaign_id', campaignId).order('created_at', { ascending: false })
+    setAssets(data || [])
+  }
+
+  async function loadCampaigns() {
     const { data } = await supabase
       .from('media_campaigns')
       .select('id,title,service_slug,objective,status,content')
@@ -22,10 +30,31 @@ export default function MediaStudioPage() {
     setCampaigns(data || [])
   }
 
-  async function createAsset(type: 'image_prompt' | 'reel_storyboard' | 'story_pack') {\n    if (!selected) return\n    setBusy(type); setMessage('')\n    const content = selected.content || {}\n    const source = JSON.stringify(content, null, 2)\n    const prompt = type === 'image_prompt' ? `Create a premium NGMS marketing image for the approved campaign. Service: ${selected.service_slug}. Use only approved campaign information. Helderberg Basin setting, realistic professional contractor, Jet Black workwear with restrained NextGen Blue and Solar Orange accents, cinematic natural light, clean space for headline and WhatsApp CTA. Do not invent prices or claims. Campaign:
+  async function createAsset(type: 'image_prompt' | 'reel_storyboard' | 'story_pack') {
+    if (!selected) return
+    setBusy(type); setMessage('')
+    const content = selected.content || {}
+    const source = JSON.stringify(content, null, 2)
+    const prompt = type === 'image_prompt' ? `Create a premium NGMS marketing image for the approved campaign. Service: ${selected.service_slug}. Use only approved campaign information. Helderberg Basin setting, realistic professional contractor, Jet Black workwear with restrained NextGen Blue and Solar Orange accents, cinematic natural light, clean space for headline and WhatsApp CTA. Do not invent prices or claims. Campaign:
 ${source}` : type === 'reel_storyboard' ? `Build a 15-30 second vertical Reel storyboard from this approved NGMS campaign. Use only approved claims and offer text. Include scene, on-screen text, voiceover, CTA and shot direction. No invented pricing or claims. Campaign:
 ${source}` : `Create a 3-frame Story/Status pack from this approved NGMS campaign. Hook, service/value, CTA. Preserve approved pricing and claims exactly; do not invent new ones. Campaign:
-${source}`\n    const title = type === 'image_prompt' ? 'Branded Image Prompt' : type === 'reel_storyboard' ? 'Reel Storyboard' : 'Story Pack'\n    const { data: auth } = await supabase.auth.getUser()\n    const { error } = await supabase.from('media_assets').insert({ campaign_id: selected.id, created_by: auth.user?.id || null, asset_type: type, title: `${selected.title} — ${title}`, status: 'draft', prompt, content: { source: content, generated: prompt } })\n    if (error) setMessage(error.message); else { setMessage('Asset created. Review it before approval.'); await loadAssets(selected.id) }\n    setBusy('')\n  }\n\n  async function approveAsset(asset: any) {\n    setBusy(asset.id)\n    const { data: auth } = await supabase.auth.getUser()\n    const { error } = await supabase.from('media_assets').update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: auth.user?.id || null }).eq('id', asset.id)\n    if (error) setMessage(error.message); else { setMessage('Asset approved.'); await loadAssets(selected.id) }\n    setBusy('')\n  }\n\n  return (
+${source}`
+    const title = type === 'image_prompt' ? 'Branded Image Prompt' : type === 'reel_storyboard' ? 'Reel Storyboard' : 'Story Pack'
+    const { data: auth } = await supabase.auth.getUser()
+    const { error } = await supabase.from('media_assets').insert({ campaign_id: selected.id, created_by: auth.user?.id || null, asset_type: type, title: `${selected.title} — ${title}`, status: 'draft', prompt, content: { source: content, generated: prompt } })
+    if (error) setMessage(error.message); else { setMessage('Asset created. Review it before approval.'); await loadAssets(selected.id) }
+    setBusy('')
+  }
+
+  async function approveAsset(asset: any) {
+    setBusy(asset.id)
+    const { data: auth } = await supabase.auth.getUser()
+    const { error } = await supabase.from('media_assets').update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: auth.user?.id || null }).eq('id', asset.id)
+    if (error) setMessage(error.message); else { setMessage('Asset approved.'); await loadAssets(selected.id) }
+    setBusy('')
+  }
+
+  return (
     <main className="min-h-screen bg-jet text-paper">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <p className="text-orange text-xs uppercase tracking-[0.2em] font-bold flex items-center gap-2">
