@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { jwtAal, MFA_REQUIRED_MESSAGE } from '@/lib/jwt-aal'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { sendPortalInvite } from '@/lib/lead-email'
 import { isEmail } from '@/lib/rate-limit'
@@ -30,6 +31,8 @@ export async function POST(request: Request) {
 
   const { data: auth, error: authError } = await db.auth.getUser(token)
   if (authError || !auth.user) return NextResponse.json({ error: 'Your session has expired. Sign in again.' }, { status: 401 })
+
+  if (jwtAal(token) !== 'aal2') return NextResponse.json({ error: MFA_REQUIRED_MESSAGE }, { status: 403 })
 
   const { data: staff } = await db.from('prompt_users').select('user_id').eq('user_id', auth.user.id).eq('active', true).maybeSingle()
   if (!staff) return NextResponse.json({ error: 'Staff only.' }, { status: 403 })
