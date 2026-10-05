@@ -68,6 +68,9 @@ export default function MediaWizardPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [copied, setCopied] = useState('')
+  const [campaignId, setCampaignId] = useState('')
+  const [status, setStatus] = useState<'draft'|'approved'>('draft')
+  const [history, setHistory] = useState<any[]>([])
 
   useEffect(() => {
     async function load() {
@@ -95,7 +98,7 @@ export default function MediaWizardPage() {
     }, 450)
   }
 
-  async function saveCampaign() {
+  async function loadHistory() {\n    const { data } = await supabase.from('media_campaigns').select('id,title,service_slug,objective,status,created_at,approved_at').order('created_at', { ascending: false }).limit(8)\n    setHistory(data || [])\n  }\n\n  async function approveCampaign() {\n    if (!campaignId) return\n    const { data: auth } = await supabase.auth.getSession()\n    if (!auth.session) { window.location.href = '/admin'; return }\n    const { error } = await supabase.from('media_campaigns').update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: auth.session.user.id }).eq('id', campaignId)\n    if (!error) { setStatus('approved'); void loadHistory() }\n  }\n\n  async function saveCampaign() {
     if (!campaign || !selectedService) return
     setSaving(true)
     const { data: auth } = await supabase.auth.getSession()
@@ -107,7 +110,7 @@ export default function MediaWizardPage() {
       brief: { service: selectedService.name, objective, language, platforms },
       content: campaign,
     })
-    setSaved(!error); setSaving(false)
+    if (!error) { setCampaignId(data?.[0]?.id || ''); setStatus('draft'); void loadHistory() }\n    setSaved(!error); setSaving(false)
   }
 
   async function copyText(key: string, value: string) {
@@ -153,10 +156,10 @@ export default function MediaWizardPage() {
               })}
             </div>
             <button onClick={generate} disabled={generating || !selectedService || platforms.length === 0} className="btn-primary w-full inline-flex items-center justify-center gap-2">{generating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}{generating ? 'Building campaign…' : 'Generate Campaign'}</button>
-            {campaign && <button onClick={saveCampaign} disabled={saving || saved} className="btn-dark w-full mt-2 inline-flex items-center justify-center gap-2">{saved ? <Check className="w-4 h-4 text-whatsapp" /> : <Save className="w-4 h-4" />}{saved ? 'Saved to Solar Forge' : saving ? 'Saving…' : 'Save Campaign'}</button>}
+            {campaign && <button onClick={saveCampaign} disabled={saving || saved} className="btn-dark w-full mt-2 inline-flex items-center justify-center gap-2">{saved ? <Check className="w-4 h-4 text-whatsapp" /> : <Save className="w-4 h-4" />}{saved ? 'Saved to Solar Forge' : saving ? 'Saving…' : 'Save Campaign'}</button>}\n            {campaign && saved && status !== 'approved' && <button onClick={approveCampaign} className="btn-primary w-full mt-2 inline-flex items-center justify-center gap-2"><Check className="w-4 h-4" /> Approve Campaign</button>}
           </aside>
 
-          <section className="space-y-4">
+          <section className="space-y-4">\n            {history.length > 0 && <div className="bg-cardgrey border border-darkgrey rounded-2xl p-5"><div className="flex items-center justify-between mb-3"><h2 className="font-heading font-bold">Solar Forge History</h2><span className="text-xs text-mist">{history.length} recent campaigns</span></div><div className="space-y-2">{history.map((h:any) => <div key={h.id} className="flex items-center justify-between gap-3 border border-darkgrey rounded-xl px-3 py-2 text-sm"><div><span className="font-semibold">{h.title}</span><span className="text-mist ml-2">{h.objective}</span></div><span className={h.status === 'approved' ? 'text-whatsapp text-xs uppercase' : 'text-orange text-xs uppercase'}>{h.status}</span></div>)}</div></div>}
             {!campaign ? (
               <div className="min-h-[500px] border border-dashed border-darkgrey rounded-2xl grid place-items-center text-center p-8">
                 <div><Megaphone className="w-12 h-12 text-orange mx-auto mb-4" /><h2 className="font-heading text-2xl font-bold">Ready to create</h2><p className="text-mist max-w-lg mt-2">Choose a service and campaign objective. Solar Forge will use the current NGMS service data and create platform-ready content without inventing prices or claims.</p></div>
