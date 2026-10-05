@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { Check, Copy, Facebook, Image as ImageIcon, Instagram, MessageCircle, Save, Sparkles, Wand2, Smartphone, Send, Megaphone, RefreshCw } from 'lucide-react'
+import { Check, Copy, Image as ImageIcon, Instagram, MessageCircle, Save, Sparkles, Wand2, Smartphone, Send, Megaphone, RefreshCw } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
 
 type Service = {
@@ -10,7 +10,7 @@ type Service = {
 }
 
 const PLATFORM_OPTIONS = [
-  { id: 'facebook', label: 'Facebook', icon: Facebook },
+  { id: 'facebook', label: 'Facebook', icon: Megaphone },
   { id: 'instagram', label: 'Instagram', icon: Instagram },
   { id: 'whatsapp', label: 'WhatsApp', icon: MessageCircle },
   { id: 'reel', label: 'Reel / Short', icon: Smartphone },
@@ -47,7 +47,7 @@ function buildCampaign(service: Service, objective: string, offer: string, langu
     facebook: { title: name + ' — Facebook', english, afrikaans },
     instagram: { title: name + ' — Instagram', english, afrikaans },
     whatsapp: { title: name + ' — WhatsApp Broadcast', english, afrikaans },
-    reel: { title: name + ' — Reel / Short', english: reel, afrikaans: reel.replace('BOOK', 'BESPREEK').replace('STOP WAITING', 'MOENIE WAG NIE') },
+    reel: { title: name + ' — Reel / Short', english: reel, afrikaans: reel.replace('BOOK', 'BESPREek').replace('STOP WAITING', 'MOENIE WAG NIE') },
     story: { title: name + ' — Story / Status', english: story, afrikaans: name + '\n\n' + (offer || benefit) + '\n\n📲 063 138 7945\n\nSTUUR ’N BOODSKAP AAN NGMS' },
     visual_prompt: { title: 'NGMS Visual Prompt', english: visual, afrikaans: visual },
   }
@@ -80,6 +80,7 @@ export default function MediaWizardPage() {
       setLoading(false)
     }
     void load()
+    void loadHistory()
   }, [])
 
   const selectedService = useMemo(() => services.find(s => s.slug === serviceSlug), [services, serviceSlug])
@@ -90,7 +91,7 @@ export default function MediaWizardPage() {
 
   function generate() {
     if (!selectedService || platforms.length === 0) return
-    setGenerating(true); setSaved(false)
+    setGenerating(true); setSaved(false); setCampaignId(''); setStatus('draft')
     setTimeout(() => {
       setTitle(selectedService.name + ' Campaign — ' + new Date().toLocaleDateString('en-ZA'))
       setCampaign(buildCampaign(selectedService, objective, offer, language, platforms))
@@ -98,19 +99,33 @@ export default function MediaWizardPage() {
     }, 450)
   }
 
-  async function loadHistory() {\n    const { data } = await supabase.from('media_campaigns').select('id,title,service_slug,objective,status,created_at,approved_at').order('created_at', { ascending: false }).limit(8)\n    setHistory(data || [])\n  }\n\n  async function approveCampaign() {\n    if (!campaignId) return\n    const { data: auth } = await supabase.auth.getSession()\n    if (!auth.session) { window.location.href = '/admin'; return }\n    const { error } = await supabase.from('media_campaigns').update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: auth.session.user.id }).eq('id', campaignId)\n    if (!error) { setStatus('approved'); void loadHistory() }\n  }\n\n  async function saveCampaign() {
+  async function loadHistory() {
+    const { data } = await supabase.from('media_campaigns').select('id,title,service_slug,objective,status,created_at,approved_at').order('created_at', { ascending: false }).limit(8)
+    setHistory(data || [])
+  }
+
+  async function approveCampaign() {
+    if (!campaignId) return
+    const { data: auth } = await supabase.auth.getSession()
+    if (!auth.session) { window.location.href = '/admin'; return }
+    const { error } = await supabase.from('media_campaigns').update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: auth.session.user.id }).eq('id', campaignId)
+    if (!error) { setStatus('approved'); void loadHistory() }
+  }
+
+  async function saveCampaign() {
     if (!campaign || !selectedService) return
     setSaving(true)
     const { data: auth } = await supabase.auth.getSession()
-    if (!auth.session) { window.location.href = '/admin'; return }
-    const { error } = await supabase.from('media_campaigns').insert({
+    if (!auth.session) { window.location.href = '/admin'; setSaving(false); return }
+    const { data, error } = await supabase.from('media_campaigns').insert({
       created_by: auth.session.user.id, title: title || selectedService.name + ' Campaign',
       service_slug: selectedService.slug, objective, language, platforms,
       offer_text: offer || null,
       brief: { service: selectedService.name, objective, language, platforms },
       content: campaign,
-    })
-    if (!error) { setCampaignId(data?.[0]?.id || ''); setStatus('draft'); void loadHistory() }\n    setSaved(!error); setSaving(false)
+    }).select('id').single()
+    if (!error) { setCampaignId(data?.id || ''); setStatus('draft'); void loadHistory() }
+    setSaved(!error); setSaving(false)
   }
 
   async function copyText(key: string, value: string) {
@@ -127,7 +142,7 @@ export default function MediaWizardPage() {
             <h1 className="font-heading text-3xl sm:text-5xl font-black">Media Wizard</h1>
             <p className="text-mist max-w-2xl mt-2">Create a complete NGMS campaign from the live service catalogue — Facebook, Instagram, WhatsApp, Reels, Stories and visual prompts.</p>
           </div>
-          <a href="/admin" className="btn-dark text-sm inline-flex items-center gap-2 w-fit"><RefreshCw className="w-4 h-4" /> Admin</a>
+          <a href="/admin" className="btn-dark text-sm inline-flex items-center gap-2"><RefreshCw className="w-4 h-4" /> Admin</a>
         </header>
 
         <section className="grid xl:grid-cols-[360px_1fr] gap-5">
@@ -156,10 +171,12 @@ export default function MediaWizardPage() {
               })}
             </div>
             <button onClick={generate} disabled={generating || !selectedService || platforms.length === 0} className="btn-primary w-full inline-flex items-center justify-center gap-2">{generating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}{generating ? 'Building campaign…' : 'Generate Campaign'}</button>
-            {campaign && <button onClick={saveCampaign} disabled={saving || saved} className="btn-dark w-full mt-2 inline-flex items-center justify-center gap-2">{saved ? <Check className="w-4 h-4 text-whatsapp" /> : <Save className="w-4 h-4" />}{saved ? 'Saved to Solar Forge' : saving ? 'Saving…' : 'Save Campaign'}</button>}\n            {campaign && saved && status !== 'approved' && <button onClick={approveCampaign} className="btn-primary w-full mt-2 inline-flex items-center justify-center gap-2"><Check className="w-4 h-4" /> Approve Campaign</button>}
+            {campaign && <button onClick={saveCampaign} disabled={saving || saved} className="btn-dark w-full mt-2 inline-flex items-center justify-center gap-2">{saved ? <Check className="w-4 h-4 text-whatsapp" /> : <Save className="w-4 h-4" />}{saved ? 'Saved to Solar Forge' : saving ? 'Saving…' : 'Save Campaign'}</button>}
+            {campaign && saved && status !== 'approved' && <button onClick={approveCampaign} className="btn-primary w-full mt-2 inline-flex items-center justify-center gap-2"><Check className="w-4 h-4" /> Approve Campaign</button>}
           </aside>
 
-          <section className="space-y-4">\n            {history.length > 0 && <div className="bg-cardgrey border border-darkgrey rounded-2xl p-5"><div className="flex items-center justify-between mb-3"><h2 className="font-heading font-bold">Solar Forge History</h2><span className="text-xs text-mist">{history.length} recent campaigns</span></div><div className="space-y-2">{history.map((h:any) => <div key={h.id} className="flex items-center justify-between gap-3 border border-darkgrey rounded-xl px-3 py-2 text-sm"><div><span className="font-semibold">{h.title}</span><span className="text-mist ml-2">{h.objective}</span></div><span className={h.status === 'approved' ? 'text-whatsapp text-xs uppercase' : 'text-orange text-xs uppercase'}>{h.status}</span></div>)}</div></div>}
+          <section className="space-y-4">
+            {history.length > 0 && <div className="bg-cardgrey border border-darkgrey rounded-2xl p-5"><div className="flex items-center justify-between mb-3"><h2 className="font-heading font-bold">Solar Forge History</h2><span className="text-xs text-mist">{history.length} recent campaigns</span></div><div className="space-y-2">{history.map((h:any) => <div key={h.id} className="flex items-center justify-between gap-3 border border-darkgrey rounded-xl px-3 py-2 text-sm"><div><span className="font-semibold">{h.title}</span><span className="text-mist ml-2">{h.objective}</span></div><span className={h.status === 'approved' ? 'text-whatsapp text-xs uppercase' : 'text-orange text-xs uppercase'}>{h.status}</span></div>)}</div></div>}
             {!campaign ? (
               <div className="min-h-[500px] border border-dashed border-darkgrey rounded-2xl grid place-items-center text-center p-8">
                 <div><Megaphone className="w-12 h-12 text-orange mx-auto mb-4" /><h2 className="font-heading text-2xl font-bold">Ready to create</h2><p className="text-mist max-w-lg mt-2">Choose a service and campaign objective. Solar Forge will use the current NGMS service data and create platform-ready content without inventing prices or claims.</p></div>
