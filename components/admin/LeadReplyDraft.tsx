@@ -9,13 +9,14 @@ type Channel = 'whatsapp' | 'email'
 
 const input = 'w-full bg-jet border border-darkgrey text-paper rounded-btn px-3 py-2.5 text-sm focus:outline-none focus:border-blue'
 
-/** "Draft follow-up" card on the lead page: Claude writes it, the owner edits and sends it themselves. */
+/** Draft follow-up card: AI writes it, staff review/approve it, then open the chosen channel. */
 export default function LeadReplyDraft({ lead }: { lead: Lead }) {
   const [channel, setChannel] = useState<Channel>(lead.email && !waLink(lead.phone) ? 'email' : 'whatsapp')
   const [extra, setExtra] = useState('')
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
+  const [approved, setApproved] = useState(false)
 
   async function draft() {
     setBusy(true)
@@ -23,6 +24,7 @@ export default function LeadReplyDraft({ lead }: { lead: Lead }) {
     try {
       const res = await callAi<{ text: string }>('lead-reply', { leadId: lead.id, channel, extra })
       setText(res.text)
+      setApproved(false)
     } catch (e) {
       setMsg((e as Error).message)
     } finally {
@@ -59,7 +61,7 @@ export default function LeadReplyDraft({ lead }: { lead: Lead }) {
   return (
     <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-4">
       <h2 className="font-heading font-bold text-paper mb-1">Draft follow-up</h2>
-      <p className="text-xs text-mist mb-3">Claude writes it from the enquiry and notes. Check it, then send it yourself.</p>
+      <p className="text-xs text-mist mb-3">AI drafts it from the enquiry and notes. Review and approve the exact text before opening WhatsApp or email.</p>
       <div className="flex gap-2 mb-3">
         {pick('whatsapp', 'WhatsApp')}
         {pick('email', 'Email')}
@@ -81,19 +83,25 @@ export default function LeadReplyDraft({ lead }: { lead: Lead }) {
       {text && (
         <>
           <textarea className={`${input} mt-3 min-h-[180px]`} value={text} onChange={(e) => setText(e.target.value)} aria-label="Draft message" />
+          <label className="mt-3 flex items-start gap-2 rounded-btn border border-darkgrey bg-jet px-3 py-2.5 text-xs text-mist cursor-pointer">
+            <input type="checkbox" checked={approved} onChange={(e) => setApproved(e.target.checked)} className="mt-0.5 accent-orange" />
+            <span><strong className="text-paper">I approve this message.</strong> I have checked the recipient, wording, pricing/claims and requested details.</span>
+          </label>
           <div className="flex flex-wrap gap-2 mt-2">
             {channel === 'whatsapp' && wa && (
               <a
                 href={`${wa}?text=${encodeURIComponent(text)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-btn bg-whatsapp hover:bg-whatsapp-dark text-white font-semibold"
+                aria-disabled={!approved}
+                onClick={(e) => { if (!approved) e.preventDefault() }}
+                className={`inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-btn bg-whatsapp hover:bg-whatsapp-dark text-white font-semibold ${!approved ? 'opacity-40 cursor-not-allowed' : ''}`}
               >
                 <MessageCircle className="w-4 h-4" /> Open in WhatsApp
               </a>
             )}
             {channel === 'email' && mailto && (
-              <a href={mailto} className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-btn bg-blue-fill hover:bg-blue-dark text-white font-semibold">
+              <a href={approved ? mailto : undefined} aria-disabled={!approved} onClick={(e) => { if (!approved) e.preventDefault() }} className={`inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-btn bg-blue-fill hover:bg-blue-dark text-white font-semibold ${!approved ? 'opacity-40 cursor-not-allowed' : ''}`}>
                 <Mail className="w-4 h-4" /> Open in email
               </a>
             )}
