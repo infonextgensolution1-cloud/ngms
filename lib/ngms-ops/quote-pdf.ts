@@ -101,27 +101,75 @@ export function buildQuotePdf(input: {
 }
 
 function makePdf(pageOps: string[][]): Uint8Array {
+  // Build the PDF from ASCII-only strings and calculate every PDF offset/length
+  // from encoded bytes. This matters because PDF xref offsets and stream
+  // lengths are byte counts, not JavaScript character counts.
+  const encoder = new TextEncoder()
   const objects: string[] = []
-  const add = (body: string) => { objects.push(body); return objects.length }
+  const add = (body: string) => {
+    objects.push(body)
+    return objects.length
+  }
+
   const font1 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>')
   const font2 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>')
   const pagesObj = add('')
   const pageIds: number[] = []
+
   for (const ops of pageOps) {
-    const stream = ops.join('\n')
-    const contentId = add('<< /Length ' + stream.length + ' >>\nstream\n' + stream + '\nendstream')
-    pageIds.push(add(''))
-    const pageId = pageIds[pageIds.length - 1]
-    objects[pageId - 1] = '<< /Type /Page /Parent ' + pagesObj + ' 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ' + font1 + ' 0 R /F2 ' + font2 + ' 0 R >> >> /Contents ' + contentId + ' 0 R >>'
+    const stream = ops.join('\\n')
+    const streamBytes = encoder.encode(stream)
+    const contentId = add('<< /Length ' + streamBytes.byteLength + ' >>\\nstream\\n' + stream + '\\nendstream')
+    const pageId = add('')
+    pageIds.push(pageId)
+    objects[pageId - 1] =
+      '<< /Type /Page /Parent ' + pagesObj +
+      ' 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ' +
+      font1 + ' 0 R /F2 ' + font2 +
+      ' 0 R >> >> /Contents ' + contentId + ' 0 R >>'
   }
-  objects[pagesObj - 1] = '<< /Type /Pages /Kids [' + pageIds.map(id => id + ' 0 R').join(' ') + '] /Count ' + pageIds.length + ' >>'
+
+  objects[pagesObj - 1] =
+    '<< /Type /Pages /Kids [' + pageIds.map(id => id + ' 0 R').join(' ') +
+    '] /Count ' + pageIds.length + ' >>'
+
   const catalog = add('<< /Type /Catalog /Pages ' + pagesObj + ' 0 R >>')
-  const chunks = ['%PDF-1.4\n%NGMS\n'], offsets = [0]
-  let offset = chunks[0].length
-  for (let i = 0; i < objects.length; i++) { offsets.push(offset); const part = (i + 1) + ' 0 obj\n' + objects[i] + '\nendobj\n'; chunks.push(part); offset += part.length }
-  const xref = offset
-  chunks.push('xref\n0 ' + (objects.length + 1) + '\n0000000000 65535 f \n')
-  for (let i = 1; i <= objects.length; i++) chunks.push(String(offsets[i]).padStart(10, '0') + ' 00000 n \n')
-  chunks.push('trailer\n<< /Size ' + (objects.length + 1) + ' /Root ' + catalog + ' 0 R >>\nstartxref\n' + xref + '\n%%EOF')
-  return new TextEncoder().encode(chunks.join(''))
+
+  const header = '%PDF-1.4\\n%NGMS\\n'
+  const chunks: Uint8Array[] = [encoder.encode(header)]
+  const offsets: number[] = [0]
+  let offset = chunks[0].byteLength
+
+  for (let i = 0; i < objects.length; i++) {
+    const part = encoder.encode((i + 1) + ' 0 obj\\n' + objects[i] + '\\nendobj\\n')
+    offsets.push(offset)
+    chunks.push(part)
+    offset += part.byteLength
+  }
+
+  const xrefOffset = offset
+  const xref = [
+    'xref',
+    '0 ' + (objects.length + 1),
+    '0000000000 65535 f ',
+    ...Array.from({ length: objects.length }, (_, i) =>
+      String(offsets[i + 1]).padStart(10, '0') + ' 00000 n '
+    ),
+    'trailer',
+    '<< /Size ' + (objects.length + 1) + ' /Root ' + catalog + ' 0 R >>',
+    'startxref',
+    String(xrefOffset),
+    '%%EOF',
+  ].join('\\n') + '\\n'
+
+  chunks.push(encoder.encode(xref))
+
+  const total = chunks.reduce((n, chunk) => n + chunk.byteLength, 0)
+  const out = new Uint8Array(total)
+  let cursor = 0
+  for (const chunk of chunks) {
+    out.set(chunk, cursor)
+    cursor += chunk.byteLength
+  }
+  return out
 }
