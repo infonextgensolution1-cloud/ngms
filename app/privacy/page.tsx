@@ -16,7 +16,7 @@ export const metadata = {
 //   - Leads, quotes, jobs, invoices and the customer portal: Supabase, region us-east-1 (USA)
 //   - Site hosting and server functions: Vercel, functions in dub1 (Ireland)
 //   - Lead notifications and auto-replies: Resend (email)
-//   - Admin "draft a reply"/quote helpers: Anthropic (Claude API)
+//   - Admin "draft a reply"/quote helpers: OpenAI API
 //   - Quote photos: PRIVATE Supabase bucket "public-leads"; staff-only, viewed via signed links
 //   - Analytics: Vercel Web Analytics + Speed Insights (cookie-free); live-visitor
 //     presence via Supabase Realtime stores nothing
@@ -102,7 +102,7 @@ const SECTIONS: { title: string; body: React.ReactNode[] }[] = [
         <strong className="text-paper">Meta (WhatsApp)</strong> — when you message us on WhatsApp.
       </>,
       <>
-        <strong className="text-paper">Anthropic</strong> — an AI assistant that helps us draft replies and quote line
+        <strong className="text-paper">OpenAI</strong> — an AI assistant that helps us draft replies and quote line
         items in our admin system. We review everything before it is sent.
       </>,
       'We may also share information with our own team members working on your job, or where the law requires it. We do not share it with anyone else for their own marketing.',
