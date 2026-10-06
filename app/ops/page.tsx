@@ -25,7 +25,7 @@ import { rand, type ToolResult } from '@/lib/ngms-ops/core'
 /**
  * /ops — mobile-first daily ops screen for NGSMS.
  * Runs the same handlers as the NGSMS Ops connector (lib/ngms-ops) with the
- * signed-in admin's Supabase session, so the numbers match what Claude reports.
+ * signed-in admin's Supabase session, so the numbers match what OpenAI reports.
  *
  * Shows: 5-day Strand weather (Open-Meteo, no API key), today's and next-7-day
  * jobs with one-tap Start / Hold / Done, rain warnings for paint, waterproofing
