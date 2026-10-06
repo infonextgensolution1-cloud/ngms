@@ -34,7 +34,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (upload.error) throw upload.error
     const { error: updateError } = await admin.from('quotes').update({ pdf_path: path, updated_at: new Date().toISOString() }).eq('id', quote.id)
     if (updateError) throw updateError
-    return new NextResponse(pdf as BodyInit, { headers: { 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename="' + quote.quote_number + '.pdf"', 'Cache-Control': 'no-store', 'X-NGMS-PDF-Saved': 'true' } })
+    return new NextResponse(pdf as BodyInit, { headers: { 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename="' + quote.quote_number + '.pdf"', 'Cache-Control': 'no-store', 'Content-Length': String(pdf.byteLength), 'X-NGMS-PDF-Saved': 'true' } })
   } catch (e) { return errorResponse(e) }
 }
 
