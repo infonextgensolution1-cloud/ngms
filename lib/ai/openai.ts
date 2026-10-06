@@ -12,7 +12,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/supabaseClient'
  *   STAFF_EMAILS    optional — comma-separated allowlist.
  *
  * Uses the OpenAI Responses API directly so the site does not need a second
- * provider SDK dependency. See OpenAI's current Responses API guidance.
+ * provider SDK dependency.
  */
 
 export const MODEL = process.env.OPENAI_MODEL || 'gpt-6-luna'
@@ -30,7 +30,8 @@ export class HttpError extends Error {
 
 /** Supabase client acting as the signed-in staff member, after checking their token. */
 export async function requireStaff(request: Request): Promise<SupabaseClient> {
-  const token = request.headers.get('authorization')?.replace(/^Bearer\\s+/i, '')
+  // Keep this auth helper independent of OpenAI availability/configuration.
+  const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
   if (!token) throw new HttpError(401, 'Sign in to /admin first.')
 
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
