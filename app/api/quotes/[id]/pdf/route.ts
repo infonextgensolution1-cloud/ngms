@@ -21,8 +21,6 @@ async function load(id: string) {
   return { admin, quote: q, client: client as Client | null, items: (items || []) as Item[], settings, money }
 }
 
-async function auth() { await requireStaff(new Request('http://ngms.local', { headers: { authorization: 'Bearer ' + '' } })) }
-
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireStaff(request)
@@ -32,7 +30,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const terms = QUOTE_TERMS.map(t => t.replace('{deposit}', String(money.deposit_percent)))
     const pdf = buildQuotePdf({ quote, client, items, settings, money, terms, expired })
     const path = 'pdf/' + quote.id + '/' + quote.quote_number + '.pdf'
-    const upload = await admin.storage.from('quotes').upload(path, pdf, { contentType: 'application/pdf', upsert: true })
+    const upload = await admin.storage.from('quotes').upload(path, new Blob([pdf], { type: 'application/pdf' }), { contentType: 'application/pdf', upsert: true })
     if (upload.error) throw upload.error
     const { error: updateError } = await admin.from('quotes').update({ pdf_path: path, updated_at: new Date().toISOString() }).eq('id', quote.id)
     if (updateError) throw updateError
