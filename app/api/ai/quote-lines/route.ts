@@ -1,4 +1,4 @@
-import { ask, errorResponse, HttpError, requireStaff } from '@/lib/ai/claude'
+import { ask, errorResponse, HttpError, requireStaff } from '@/lib/ai/openai'
 import type { QuoteDraft } from '@/lib/ai/client'
 import { CALLOUT_FEE, RATE_CARD } from '@/lib/rate-card'
 
