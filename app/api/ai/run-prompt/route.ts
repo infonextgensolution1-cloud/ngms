@@ -1,4 +1,4 @@
-import { ask, errorResponse, HttpError, requireStaff } from '@/lib/ai/claude'
+import { ask, errorResponse, HttpError, requireStaff } from '@/lib/ai/openai'
 
 // Runs a finished prompt from the admin Prompt Dashboard and returns Claude's answer.
 
