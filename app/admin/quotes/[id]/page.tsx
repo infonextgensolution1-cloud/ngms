@@ -1,4 +1,5 @@
 'use client'
+import AdminAiButton from '@/components/admin/AdminAiButton'
 
 import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
@@ -210,7 +211,7 @@ function QuoteView() {
 
           <div className="flex items-center justify-between gap-3 mb-4">
             <div>
-              <h1 className="font-heading text-2xl font-bold text-paper">{quote.quote_number}</h1>
+              <h1 className="font-heading text-2xl font-bold text-paper">{quote.quote_number}</h1>\n          <AdminAiButton contextType="quote" contextId={params.id} />
               <span className={`inline-block mt-1 text-[10px] uppercase tracking-wider border rounded px-2 py-0.5 ${STATUS_STYLE[badgeKey] ?? 'text-mist border-darkgrey'}`}>
                 {badgeKey}
               </span>

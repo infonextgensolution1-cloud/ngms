@@ -1,4 +1,5 @@
 'use client'
+import AdminAiButton from '@/components/admin/AdminAiButton'
 
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
@@ -181,7 +182,7 @@ function LeadView() {
 
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="min-w-0">
-            <h1 className="font-heading text-2xl font-bold text-paper truncate">{lead.name}</h1>
+            <h1 className="font-heading text-2xl font-bold text-paper truncate">{lead.name}</h1>\n          <AdminAiButton contextType="lead" contextId={lead.id} />
             <p className="text-sm text-mist truncate">{lead.service ?? lead.service_slug ?? 'service not given'} · {lead.suburb ?? 'area not given'}</p>
           </div>
           <span className={`shrink-0 text-[10px] uppercase tracking-wider border rounded px-2 py-0.5 ${STATUS_STYLE[lead.status] ?? 'text-mist border-darkgrey'}`}>

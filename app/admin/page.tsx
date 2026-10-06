@@ -18,6 +18,12 @@ const NAV_ITEMS: Array<{
   desc: string
 }> = [
   {
+    href: '/admin/ai',
+    icon: Sparkles,
+    title: 'NGMS AI Operations',
+    desc: 'Draft messages, build Solar Forge prompts, quote wording, campaigns and job documents',
+  },
+  {
     href: '/admin/leads',
     icon: Users,
     title: 'Leads',

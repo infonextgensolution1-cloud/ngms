@@ -1,4 +1,5 @@
 'use client'
+import AdminAiButton from '@/components/admin/AdminAiButton'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
@@ -279,7 +280,7 @@ function JobDetail() {
 
           <div className="flex items-start justify-between gap-3 mb-2">
             <div>
-              <h1 className="font-heading text-2xl font-bold text-paper">{job.title ?? 'Untitled job'}</h1>
+              <h1 className="font-heading text-2xl font-bold text-paper">{job.title ?? 'Untitled job'}</h1>\n          <AdminAiButton contextType="job" contextId={job.id} />
               <p className="text-sm text-mist">
                 {client?.name ?? '—'}{client?.suburb ? `, ${client.suburb}` : ''} · {job.scheduled_date ?? 'no date set'}
               </p>
