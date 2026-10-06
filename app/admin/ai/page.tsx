@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import { supabase } from '@/lib/supabaseClient'
 import { ArrowLeft, Copy, Loader2, MessageSquareText, Sparkles, WandSparkles } from 'lucide-react'
@@ -22,7 +22,8 @@ export default function NgmsAiPage() {
   const [output, setOutput] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const [copied, setCopied] = useState(false)\n  const [recordLabel, setRecordLabel] = useState('')\n  const [recordContext, setRecordContext] = useState('')
+  const [copied, setCopied] = useState(false)
+  const [recordLabel, setRecordLabel] = useState('')\n  const [recordContext, setRecordContext] = useState('')
 
   async function loadRecordContext(type: string, id: string) {
     const token = (await supabase.auth.getSession()).data.session?.access_token
@@ -38,7 +39,7 @@ export default function NgmsAiPage() {
     setContext(data.context || '')
   }
 
-  useState(() => {
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const type = params.get('type')
     const id = params.get('id')
