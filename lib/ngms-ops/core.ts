@@ -80,13 +80,13 @@ export const OVERBERG = /kleinmond|grabouw|elgin|bot ?rivi|botrivier|hermanus|be
 export const WET_WEATHER_TRADES = /paint|waterproof|torch|membrane|paving|pave|sealant|roof coat/i
 
 export const CLIENT_COLS = 'id,name,email,phone,address,suburb,notes,created_at'
-export const QUOTE_COLS = 'id,quote_number,client_id,lead_id,status,vat_included,deposit_amount,total_amount,notes,valid_until,created_at,updated_at'
+export const QUOTE_COLS = 'id,quote_number,client_id,lead_id,status,vat_included,deposit_amount,total_amount,notes,valid_until,created_at,updated_at,pdf_path'
 export const INVOICE_COLS = 'id,invoice_number,quote_id,client_id,status,total_amount,paid_amount,due_date,notes,created_at'
 export const JOB_COLS = 'id,client_id,quote_id,title,description,status,scheduled_date,completed_date,created_at'
 export const ITEM_COLS = 'id,description,quantity,unit,unit_price'
 
 export type Client = { id: string; name: string; email: string | null; phone: string | null; address: string | null; suburb: string | null; notes: string | null; created_at: string }
-export type Quote = { id: string; quote_number: string; client_id: string | null; lead_id: string | null; status: string; vat_included: boolean | null; deposit_amount: number | null; total_amount: number | null; notes: string | null; valid_until: string | null; created_at: string; updated_at: string }
+export type Quote = { id: string; quote_number: string; client_id: string | null; lead_id: string | null; status: string; vat_included: boolean | null; deposit_amount: number | null; total_amount: number | null; notes: string | null; valid_until: string | null; created_at: string; updated_at: string; pdf_path?: string | null }
 export type Invoice = { id: string; invoice_number: string; quote_id: string | null; client_id: string | null; status: string; total_amount: number | null; paid_amount: number | null; due_date: string | null; notes: string | null; created_at: string }
 export type Job = { id: string; client_id: string | null; quote_id: string | null; title: string | null; description: string | null; status: string; scheduled_date: string | null; completed_date: string | null; created_at: string }
 export type Item = { id?: string; description: string; quantity: number; unit: string; unit_price: number; service_id?: string | null }
