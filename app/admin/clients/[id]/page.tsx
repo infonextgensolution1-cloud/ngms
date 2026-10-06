@@ -1,4 +1,5 @@
 'use client'
+import AdminAiButton from '@/components/admin/AdminAiButton'
 
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
@@ -132,7 +133,7 @@ function ClientView() {
         <Link href="/admin/clients" className="text-xs text-mist hover:text-paper inline-flex items-center gap-1 mb-3">
           <ArrowLeft className="w-3.5 h-3.5" /> Clients
         </Link>
-        <h1 className="font-heading text-2xl font-bold text-paper">{client.name}</h1>
+        <h1 className="font-heading text-2xl font-bold text-paper">{client.name}</h1>\n          <AdminAiButton contextType="client" contextId={client.id} />
         <p className="text-sm text-mist mb-4">Client since {day(client.created_at)}</p>
 
         <div className="grid grid-cols-3 gap-2 mb-4">
