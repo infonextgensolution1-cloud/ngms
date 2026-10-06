@@ -97,9 +97,9 @@ export default function ContactPage() {
               external
             />
             <ContactCard
-              href="mailto:info.nextgensolution1@gmail.com"
+              href="mailto:nextgensolarmaintenance@gmail.com"
               label="Email"
-              value="info.nextgensolution1@gmail.com"
+              value="nextgensolarmaintenance@gmail.com"
               icon={<NgmsIcon name="mail" index={3} className="h-9 w-9" />}
             />
           </div>
@@ -152,10 +152,10 @@ export default function ContactPage() {
               063 138 7945
             </a>
             <a
-              href="mailto:info.nextgensolution1@gmail.com"
+              href="mailto:nextgensolarmaintenance@gmail.com"
               className="mt-4 block break-all font-heading text-xl font-bold text-paper transition hover:text-orange sm:text-3xl"
             >
-              info.nextgensolution1@gmail.com
+              nextgensolarmaintenance@gmail.com
             </a>
           </div>
           <div className="lg:text-right">
