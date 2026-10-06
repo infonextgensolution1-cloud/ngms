@@ -89,6 +89,39 @@ function QuoteView() {
     load()
   }, [load])
 
+  async function downloadSavedPdf() {
+    if (!quote) return
+    setBusy('pdf-download')
+    setMsg('')
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('Your session has expired. Sign in again.')
+      const response = await fetch('/api/quotes/' + quote.id + '/pdf', {
+        method: 'GET',
+        headers: { Authorization: 'Bearer ' + token },
+      })
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}))
+        throw new Error(body.error || 'Could not download the saved PDF.')
+      }
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = quote.quote_number + '.pdf'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+      setMsg('Saved PDF downloaded.')
+    } catch (e) {
+      setMsg((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
+  }
+
   async function savePdf() {
     if (!quote) return
     setBusy('pdf')
@@ -113,7 +146,7 @@ function QuoteView() {
       document.body.appendChild(a)
       a.click()
       a.remove()
-      URL.revokeObjectURL(url)
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
       setPdfSaved(true)
       setMsg('PDF saved to NGMS and downloaded.')
       await load()
@@ -238,7 +271,6 @@ function QuoteView() {
       `}</style>
 
       <div className="max-w-2xl mx-auto">
-        {/* -------- screen-only toolbar -------- */}
         <div className="no-print">
           <Link href="/admin/quotes" className="text-xs text-mist hover:text-paper inline-flex items-center gap-1 mb-3">
             <ArrowLeft className="w-3.5 h-3.5" /> Quotes
@@ -261,12 +293,15 @@ function QuoteView() {
                 {busy === 'pdf' ? 'Generating…' : pdfSaved || quote.pdf_path ? 'Save / Download PDF' : 'Generate & Save PDF'}
               </button>
               {quote.pdf_path && (
-                <a
-                  href={'/api/quotes/' + quote.id + '/pdf'}
-                  className="inline-flex items-center gap-2 border border-darkgrey hover:border-blue text-mist hover:text-paper font-heading font-semibold px-3 py-2.5 rounded-btn shrink-0"
+                <button
+                  type="button"
+                  onClick={downloadSavedPdf}
+                  disabled={!!busy}
+                  className="inline-flex items-center gap-2 border border-darkgrey hover:border-blue text-mist hover:text-paper font-heading font-semibold px-3 py-2.5 rounded-btn shrink-0 disabled:opacity-50"
                 >
-                  <Download className="w-4 h-4" /> Saved PDF
-                </a>
+                  {busy === 'pdf-download' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                  Saved PDF
+                </button>
               )}
               <button
                 onClick={() => window.print()}
@@ -328,65 +363,37 @@ function QuoteView() {
 
           <div className="flex flex-wrap items-center gap-2 mb-4">
             {quote.status === 'draft' && (
-              <button
-                onClick={() => setStatus('sent')}
-                disabled={!!busy}
-                className="inline-flex items-center gap-1.5 bg-blue-fill hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
-              >
+              <button onClick={() => setStatus('sent')} disabled={!!busy} className="inline-flex items-center gap-1.5 bg-blue-fill hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50">
                 {busy === 'sent' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Mark as sent
               </button>
             )}
             {quote.status === 'sent' && (
               <>
-                <button
-                  onClick={() => setStatus('accepted')}
-                  disabled={!!busy}
-                  className="inline-flex items-center gap-1.5 bg-whatsapp hover:opacity-90 text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
-                >
+                <button onClick={() => setStatus('accepted')} disabled={!!busy} className="inline-flex items-center gap-1.5 bg-whatsapp hover:opacity-90 text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50">
                   {busy === 'accepted' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Accepted
                 </button>
-                <button
-                  onClick={() => setStatus('declined')}
-                  disabled={!!busy}
-                  className="inline-flex items-center gap-1.5 border border-darkgrey hover:border-orange text-mist hover:text-orange text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
-                >
-                  {busy === 'declined' ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />} Declined
+                <button onClick={() => setStatus('declined')} disabled={!!busy} className="inline-flex items-center gap-1.5 border border-darkgrey hover:border-orange text-mist hover:text-orange text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50">
+                  {busy === 'declined' ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />} Declined
                 </button>
               </>
             )}
             {quote.status === 'accepted' && money.deposit > 0 && !liveInvoices.length && (
-              <button
-                onClick={createDepositInvoice}
-                disabled={!!busy}
-                className="inline-flex items-center gap-1.5 bg-orange hover:opacity-90 text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
-              >
+              <button onClick={createDepositInvoice} disabled={!!busy} className="inline-flex items-center gap-1.5 bg-orange hover:opacity-90 text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50">
                 {busy === 'invoice' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Receipt className="w-4 h-4" />} Create deposit invoice
               </button>
             )}
             {['sent', 'accepted'].includes(quote.status) && !jobs.some((j) => j.status !== 'cancelled') && !booking && (
-              <button
-                onClick={() => setBooking(true)}
-                disabled={!!busy}
-                className="inline-flex items-center gap-1.5 bg-blue-fill hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
-              >
+              <button onClick={() => setBooking(true)} disabled={!!busy} className="inline-flex items-center gap-1.5 bg-blue-fill hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50">
                 <CalendarPlus className="w-4 h-4" /> Book job
               </button>
             )}
             {quote.status === 'accepted' && !liveInvoices.length && (
-              <button
-                onClick={() => createInvoice('full')}
-                disabled={!!busy}
-                className="inline-flex items-center gap-1.5 border border-darkgrey hover:border-orange text-paper text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
-              >
+              <button onClick={() => createInvoice('full')} disabled={!!busy} className="inline-flex items-center gap-1.5 border border-darkgrey hover:border-orange text-paper text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50">
                 {busy === 'full' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Receipt className="w-4 h-4" />} Invoice in full
               </button>
             )}
             {quote.status === 'accepted' && liveInvoices.length > 0 && invoicedTotal < money.total - 0.5 && (
-              <button
-                onClick={() => createInvoice('balance')}
-                disabled={!!busy}
-                className="inline-flex items-center gap-1.5 bg-orange hover:opacity-90 text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
-              >
+              <button onClick={() => createInvoice('balance')} disabled={!!busy} className="inline-flex items-center gap-1.5 bg-orange hover:opacity-90 text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50">
                 {busy === 'balance' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Receipt className="w-4 h-4" />} Final invoice ({rand(money.total - invoicedTotal)})
               </button>
             )}
@@ -399,18 +406,11 @@ function QuoteView() {
                 <button onClick={bookJob} disabled={!!busy} className="inline-flex items-center gap-1.5 bg-blue-fill hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50">
                   {busy === 'job' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Book it
                 </button>
-                <button onClick={() => setBooking(false)} className="text-sm text-mist hover:text-paper py-2">
-                  Cancel
-                </button>
+                <button onClick={() => setBooking(false)} className="text-sm text-mist hover:text-paper py-2">Cancel</button>
                 <p className="w-full text-[11px] text-mist">{quote.status === 'sent' ? 'Booking marks the quote accepted and the lead as won.' : 'Creates the job with the quote\'s scope and client.'}</p>
               </div>
             )}
-            <DeleteRecord
-              label="Delete quote"
-              confirmText={`Delete ${quote.quote_number}${client?.name ? ` for ${client.name}` : ''} and its line items?`}
-              onDelete={() => deleteQuote(supabase, quote.id)}
-              redirectTo="/admin/quotes"
-            />
+            <DeleteRecord label="Delete quote" confirmText={`Delete ${quote.quote_number}${client?.name ? ` for ${client.name}` : ''} and its line items?`} onDelete={() => deleteQuote(supabase, quote.id)} redirectTo="/admin/quotes" />
           </div>
 
           {msg && <p className="text-xs text-mist mb-4">{msg}</p>}
@@ -419,38 +419,21 @@ function QuoteView() {
             <div className="grid gap-2 mb-6">
               {!!invoices.length && (
                 <div className="bg-cardgrey border border-darkgrey rounded-card px-3.5 py-3">
-                  <p className="text-xs font-heading font-semibold text-paper flex items-center gap-1.5 mb-1.5">
-                    <Receipt className="w-3.5 h-3.5" /> Invoices
-                  </p>
-                  {invoices.map((i) => (
-                    <Link key={i.id} href={`/admin/invoices/${i.id}`} className="block text-xs text-blue hover:text-paper">
-                      {i.invoice_number} · {i.status} · {rand(i.total_amount ?? 0)} (paid {rand(i.paid_amount ?? 0)})
-                    </Link>
-                  ))}
+                  <p className="text-xs font-heading font-semibold text-paper flex items-center gap-1.5 mb-1.5"><Receipt className="w-3.5 h-3.5" /> Invoices</p>
+                  {invoices.map((i) => <Link key={i.id} href={`/admin/invoices/${i.id}`} className="block text-xs text-blue hover:text-paper">{i.invoice_number} · {i.status} · {rand(i.total_amount ?? 0)} (paid {rand(i.paid_amount ?? 0)})</Link>)}
                 </div>
               )}
               {!!jobs.length && (
                 <div className="bg-cardgrey border border-darkgrey rounded-card px-3.5 py-3">
-                  <p className="text-xs font-heading font-semibold text-paper flex items-center gap-1.5 mb-1.5">
-                    <Briefcase className="w-3.5 h-3.5" /> Jobs
-                  </p>
-                  {jobs.map((j) => (
-                    <Link key={j.id} href={`/admin/jobs/${j.id}`} className="block text-xs text-blue hover:text-paper">
-                      {j.title ?? 'Job'} · {j.status} · {j.scheduled_date ?? 'no date set'}
-                    </Link>
-                  ))}
+                  <p className="text-xs font-heading font-semibold text-paper flex items-center gap-1.5 mb-1.5"><Briefcase className="w-3.5 h-3.5" /> Jobs</p>
+                  {jobs.map((j) => <Link key={j.id} href={`/admin/jobs/${j.id}`} className="block text-xs text-blue hover:text-paper">{j.title ?? 'Job'} · {j.status} · {j.scheduled_date ?? 'no date set'}</Link>)}
                 </div>
               )}
             </div>
           )}
         </div>
 
-        {/* -------- printable quote sheet -------- */}
-        <div
-          id="print-area"
-          className="rounded-card shadow-xl"
-          style={{ background: '#fff', color: BRAND.black, padding: '28px 26px', fontFamily: 'Inter, system-ui, sans-serif' }}
-        >
+        <div id="print-area" className="rounded-card shadow-xl" style={{ background: '#fff', color: BRAND.black, padding: '28px 26px', fontFamily: 'Inter, system-ui, sans-serif' }}>
           <div className="flex items-start justify-between gap-4" style={{ borderBottom: `3px solid ${BRAND.purple}`, paddingBottom: 16, marginBottom: 20 }}>
             <img src={LOGO_DATA_URI} alt="NGMS logo" style={{ height: 52, width: 'auto', objectFit: 'contain' }} />
             <div style={{ textAlign: 'right', fontSize: 12, color: BRAND.grey, lineHeight: 1.5 }}>
@@ -463,17 +446,10 @@ function QuoteView() {
           </div>
 
           <div className="flex items-start justify-between gap-4" style={{ marginBottom: 18 }}>
-            <div>
-              <p style={{ fontFamily: 'Space Grotesk, Inter, sans-serif', fontWeight: 700, fontSize: 22, color: BRAND.black, letterSpacing: 0.5 }}>QUOTE</p>
-              <p style={{ fontSize: 13, color: BRAND.grey, marginTop: 2 }}>{quote.quote_number}</p>
-            </div>
+            <div><p style={{ fontFamily: 'Space Grotesk, Inter, sans-serif', fontWeight: 700, fontSize: 22, color: BRAND.black, letterSpacing: 0.5 }}>QUOTE</p><p style={{ fontSize: 13, color: BRAND.grey, marginTop: 2 }}>{quote.quote_number}</p></div>
             <div style={{ textAlign: 'right', fontSize: 12, color: BRAND.grey }}>
-              <p>
-                Date: <strong style={{ color: BRAND.black }}>{sastDate(quote.created_at)}</strong>
-              </p>
-              <p>
-                Valid until: <strong style={{ color: expired ? BRAND.orange : BRAND.black }}>{quote.valid_until ?? '—'}</strong>
-              </p>
+              <p>Date: <strong style={{ color: BRAND.black }}>{sastDate(quote.created_at)}</strong></p>
+              <p>Valid until: <strong style={{ color: expired ? BRAND.orange : BRAND.black }}>{quote.valid_until ?? '—'}</strong></p>
               <p style={{ marginTop: 4, textTransform: 'uppercase', fontSize: 10, letterSpacing: 1, fontWeight: 700, color: statusColor(badgeKey) }}>{badgeKey}</p>
             </div>
           </div>
@@ -487,73 +463,29 @@ function QuoteView() {
           </div>
 
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5, marginBottom: 4 }}>
-            <thead>
-              <tr style={{ background: BRAND.black, color: '#fff' }}>
-                <th style={{ textAlign: 'left', padding: '7px 8px', fontWeight: 600 }}>Description</th>
-                <th style={{ textAlign: 'right', padding: '7px 8px', fontWeight: 600, width: 46 }}>Qty</th>
-                <th style={{ textAlign: 'left', padding: '7px 8px', fontWeight: 600, width: 60 }}>Unit</th>
-                <th style={{ textAlign: 'right', padding: '7px 8px', fontWeight: 600, width: 84 }}>Price</th>
-                <th style={{ textAlign: 'right', padding: '7px 8px', fontWeight: 600, width: 90 }}>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((it, i) => (
-                <tr key={it.id ?? i} style={{ borderBottom: `1px solid ${BRAND.line}` }}>
-                  <td style={{ padding: '7px 8px' }}>{it.description}</td>
-                  <td style={{ padding: '7px 8px', textAlign: 'right' }}>{it.quantity}</td>
-                  <td style={{ padding: '7px 8px' }}>{it.unit}</td>
-                  <td style={{ padding: '7px 8px', textAlign: 'right' }}>{rand(it.unit_price)}</td>
-                  <td style={{ padding: '7px 8px', textAlign: 'right', fontWeight: 600 }}>{rand(it.quantity * it.unit_price)}</td>
-                </tr>
-              ))}
-            </tbody>
+            <thead><tr style={{ background: BRAND.black, color: '#fff' }}>
+              <th style={{ textAlign: 'left', padding: '7px 8px', fontWeight: 600 }}>Description</th>
+              <th style={{ textAlign: 'right', padding: '7px 8px', fontWeight: 600, width: 46 }}>Qty</th>
+              <th style={{ textAlign: 'left', padding: '7px 8px', fontWeight: 600, width: 60 }}>Unit</th>
+              <th style={{ textAlign: 'right', padding: '7px 8px', fontWeight: 600, width: 84 }}>Price</th>
+              <th style={{ textAlign: 'right', padding: '7px 8px', fontWeight: 600, width: 90 }}>Amount</th>
+            </tr></thead>
+            <tbody>{items.map((it, i) => <tr key={it.id ?? i} style={{ borderBottom: `1px solid ${BRAND.line}` }}>
+              <td style={{ padding: '7px 8px' }}>{it.description}</td><td style={{ padding: '7px 8px', textAlign: 'right' }}>{it.quantity}</td><td style={{ padding: '7px 8px' }}>{it.unit}</td><td style={{ padding: '7px 8px', textAlign: 'right' }}>{rand(it.unit_price)}</td><td style={{ padding: '7px 8px', textAlign: 'right', fontWeight: 600 }}>{rand(it.quantity * it.unit_price)}</td>
+            </tr>)}</tbody>
           </table>
 
-          <div className="flex justify-end" style={{ marginBottom: 18 }}>
-            <div style={{ width: 240, fontSize: 13 }}>
-              <Row label="Subtotal" value={rand(money.subtotal)} />
-              {quote.vat_included ? (
-                <Row label={`VAT (${settings.vat_rate}%)`} value={rand(money.vat)} />
-              ) : (
-                <p style={{ fontSize: 10.5, color: BRAND.grey, fontStyle: 'italic', margin: '2px 0 6px' }}>Prices exclude VAT — not VAT registered.</p>
-              )}
-              <Row label="Total" value={rand(money.total)} bold border />
-              <Row label={`Deposit (${money.deposit_percent}%)`} value={rand(money.deposit)} accent={BRAND.purple} />
-              <Row label="Balance on completion" value={rand(money.balance)} />
-            </div>
-          </div>
+          <div className="flex justify-end" style={{ marginBottom: 18 }}><div style={{ width: 240, fontSize: 13 }}>
+            <Row label="Subtotal" value={rand(money.subtotal)} />{quote.vat_included ? <Row label={`VAT (${settings.vat_rate}%)`} value={rand(money.vat)} /> : <p style={{ fontSize: 10.5, color: BRAND.grey, fontStyle: 'italic', margin: '2px 0 6px' }}>Prices exclude VAT — not VAT registered.</p>}<Row label="Total" value={rand(money.total)} bold border /><Row label={`Deposit (${money.deposit_percent}%)`} value={rand(money.deposit)} accent={BRAND.purple} /><Row label="Balance on completion" value={rand(money.balance)} />
+          </div></div>
 
-          {quote.notes && (
-            <div style={{ marginBottom: 18, fontSize: 12.5 }}>
-              <p style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, color: BRAND.grey, marginBottom: 3 }}>Notes</p>
-              <p style={{ whiteSpace: 'pre-line' }}>{quote.notes}</p>
-            </div>
-          )}
+          {quote.notes && <div style={{ marginBottom: 18, fontSize: 12.5 }}><p style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, color: BRAND.grey, marginBottom: 3 }}>Notes</p><p style={{ whiteSpace: 'pre-line' }}>{quote.notes}</p></div>}
 
-          <div style={{ marginBottom: 18, fontSize: 11, color: BRAND.grey }}>
-            <p style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, color: BRAND.grey, marginBottom: 4, fontWeight: 700 }}>Terms</p>
-            <ul style={{ paddingLeft: 16, margin: 0 }}>
-              {terms.map((t, i) => (
-                <li key={i} style={{ marginBottom: 2 }}>
-                  {t}
-                </li>
-              ))}
-            </ul>
-          </div>
+          <div style={{ marginBottom: 18, fontSize: 11, color: BRAND.grey }}><p style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, color: BRAND.grey, marginBottom: 4, fontWeight: 700 }}>Terms</p><ul style={{ paddingLeft: 16, margin: 0 }}>{terms.map((t, i) => <li key={i} style={{ marginBottom: 2 }}>{t}</li>)}</ul></div>
 
-          <div style={{ borderTop: `1px solid ${BRAND.line}`, paddingTop: 14, fontSize: 12 }}>
-            <p style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, color: BRAND.grey, marginBottom: 4, fontWeight: 700 }}>Banking details</p>
-            {bankPlaceholder ? (
-              <p style={{ color: BRAND.orange }}>Banking details to follow — please contact us before paying a deposit.</p>
-            ) : (
-              <p style={{ whiteSpace: 'pre-line' }}>{settings.bank_details}</p>
-            )}
-          </div>
+          <div style={{ borderTop: `1px solid ${BRAND.line}`, paddingTop: 14, fontSize: 12 }}><p style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, color: BRAND.grey, marginBottom: 4, fontWeight: 700 }}>Banking details</p>{bankPlaceholder ? <p style={{ color: BRAND.orange }}>Banking details to follow — please contact us before paying a deposit.</p> : <p style={{ whiteSpace: 'pre-line' }}>{settings.bank_details}</p>}</div>
 
-          <div style={{ textAlign: 'center', marginTop: 22, paddingTop: 12, borderTop: `1px solid ${BRAND.line}`, fontSize: 11, color: BRAND.grey }}>
-            Thank you for the opportunity to quote — {settings.business_name}
-            {settings.whatsapp ? ` · WhatsApp ${settings.phone ?? settings.whatsapp}` : ''}
-          </div>
+          <div style={{ textAlign: 'center', marginTop: 22, paddingTop: 12, borderTop: `1px solid ${BRAND.line}`, fontSize: 11, color: BRAND.grey }}>Thank you for the opportunity to quote — {settings.business_name}{settings.whatsapp ? ` · WhatsApp ${settings.phone ?? settings.whatsapp}` : ''}</div>
         </div>
       </div>
     </main>
@@ -561,23 +493,7 @@ function QuoteView() {
 }
 
 function Row({ label, value, bold, border, accent }: { label: string; value: string; bold?: boolean; border?: boolean; accent?: string }) {
-  return (
-    <div
-      className="flex items-center justify-between"
-      style={{
-        padding: '3px 0',
-        fontWeight: bold ? 700 : 400,
-        fontSize: bold ? 15 : 13,
-        borderTop: border ? `2px solid ${BRAND.black}` : undefined,
-        marginTop: border ? 4 : 0,
-        paddingTop: border ? 6 : 3,
-        color: accent ?? BRAND.black,
-      }}
-    >
-      <span>{label}</span>
-      <span>{value}</span>
-    </div>
-  )
+  return <div className="flex items-center justify-between" style={{ padding: '3px 0', fontWeight: bold ? 700 : 400, fontSize: bold ? 15 : 13, borderTop: border ? `2px solid ${BRAND.black}` : undefined, marginTop: border ? 4 : 0, paddingTop: border ? 6 : 3, color: accent ?? BRAND.black }}><span>{label}</span><span>{value}</span></div>
 }
 
 function statusColor(status: string): string {
@@ -592,9 +508,5 @@ function sastDate(iso: string): string {
 }
 
 export default function QuoteDetailPage() {
-  return (
-    <StaffGate title="Quote">
-      <QuoteView />
-    </StaffGate>
-  )
+  return <StaffGate title="Quote"><QuoteView /></StaffGate>
 }
