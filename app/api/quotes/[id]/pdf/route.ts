@@ -37,7 +37,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (upload.error) throw upload.error
     const { error: updateError } = await admin.from('quotes').update({ pdf_path: path, updated_at: new Date().toISOString() }).eq('id', quote.id)
     if (updateError) throw updateError
-    return new NextResponse(pdf as BodyInit, { headers: { 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename="' + quote.quote_number + '.pdf"', 'Cache-Control': 'no-store', 'Content-Length': String(pdf.byteLength), 'X-NGMS-PDF-Saved': 'true' } })
+    return new NextResponse(pdf as BodyInit, { headers: { 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename="' + fileName + '"', 'Cache-Control': 'no-store', 'Content-Length': String(pdf.byteLength), 'X-NGMS-PDF-Saved': 'true' } })
   } catch (e) { return errorResponse(e) }
 }
 
@@ -49,6 +49,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     if (!quote.pdf_path) return NextResponse.json({ error: 'No saved PDF exists yet. Generate it first.' }, { status: 404 })
     const { data, error } = await admin.storage.from('quotes').download(quote.pdf_path)
     if (error || !data) throw error || new Error('Saved PDF could not be downloaded.')
-    return new NextResponse(data as BodyInit, { headers: { 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename="' + quote.quote_number + '.pdf"', 'Cache-Control': 'no-store' } })
+    return new NextResponse(data as BodyInit, { headers: { 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename="' + (quote.pdf_path.split('/').pop() || quote.quote_number + '.pdf') + '"', 'Cache-Control': 'no-store' } })
   } catch (e) { return errorResponse(e) }
 }
