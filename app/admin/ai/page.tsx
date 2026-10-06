@@ -23,7 +23,8 @@ export default function NgmsAiPage() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [recordLabel, setRecordLabel] = useState('')\n  const [recordContext, setRecordContext] = useState('')
+  const [recordLabel, setRecordLabel] = useState('')
+  const [recordContext, setRecordContext] = useState('')
 
   async function loadRecordContext(type: string, id: string) {
     const token = (await supabase.auth.getSession()).data.session?.access_token
@@ -46,7 +47,7 @@ export default function NgmsAiPage() {
     if (type && id && ['lead','client','quote','job'].includes(type)) {
       void loadRecordContext(type, id).catch((e) => setError(e instanceof Error ? e.message : 'Could not load record.'))
     }
-  })
+  }, [])
 
   async function run() {
     setError('')
