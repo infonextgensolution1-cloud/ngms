@@ -122,14 +122,20 @@ function QuoteView() {
     }
   }
 
-  async function savePdf() {
+  async function generatePdf(options?: { shareWhatsApp?: boolean }) {
     if (!quote) return
     setBusy('pdf')
     setMsg('')
+    let shareWindow: Window | null = null
+    if (options?.shareWhatsApp) {
+      shareWindow = window.open('', '_blank')
+    }
+
     try {
       const { data: sessionData } = await supabase.auth.getSession()
       const token = sessionData.session?.access_token
       if (!token) throw new Error('Your session has expired. Sign in again.')
+
       const response = await fetch('/api/quotes/' + quote.id + '/pdf', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + token },
@@ -138,24 +144,80 @@ function QuoteView() {
         const body = await response.json().catch(() => ({}))
         throw new Error(body.error || 'Could not generate the PDF.')
       }
+
       const blob = await response.blob()
+      const disposition = response.headers.get('content-disposition') || ''
+      const match = disposition.match(/filename="([^"]+)"/i)
+      const fileName = match?.[1] || `${quote.quote_number}.pdf`
       const url = URL.createObjectURL(blob)
+
+      // Always download locally as a reliable fallback.
       const a = document.createElement('a')
       a.href = url
-      a.download = quote.quote_number + '.pdf'
+      a.download = fileName
       document.body.appendChild(a)
       a.click()
       a.remove()
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+
       setPdfSaved(true)
-      setMsg('PDF saved to NGMS and downloaded.')
       await load()
+
+      if (options?.shareWhatsApp) {
+        const message = quoteMessage({
+          client: client?.name ?? null,
+          number: quote.quote_number,
+          total: money?.total ?? Number(quote.total_amount ?? 0),
+          deposit: money?.deposit ?? Number(quote.deposit_amount ?? 0),
+          depositPct: money?.deposit_percent ?? 70,
+          validUntil: quote.valid_until,
+        })
+
+        const file = new File([blob], fileName, { type: 'application/pdf' })
+        const canShareFile =
+          typeof navigator.share === 'function' &&
+          typeof navigator.canShare === 'function' &&
+          navigator.canShare({ files: [file] })
+
+        if (canShareFile) {
+          await navigator.share({
+            files: [file],
+            text: message,
+            title: `NGMS ${quote.quote_number}`,
+          })
+          setMsg('PDF generated and ready to share via WhatsApp.')
+        } else if (waQuote) {
+          const target = shareWindow || window.open('', '_blank')
+          if (target) {
+            target.location.href = waQuote
+          } else {
+            window.location.href = waQuote
+          }
+          setMsg('PDF generated and downloaded. WhatsApp opened — attach the downloaded PDF.')
+        } else {
+          if (shareWindow) shareWindow.close()
+          setMsg('PDF generated and downloaded.')
+        }
+      } else {
+        setMsg('PDF saved to NGMS and downloaded.')
+      }
+
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
     } catch (e) {
-      setMsg((e as Error).message)
+      if (shareWindow) shareWindow.close()
+      if ((e as Error).name === 'AbortError') {
+        setMsg('PDF generated and downloaded. Sharing was cancelled.')
+      } else {
+        setMsg((e as Error).message)
+      }
     } finally {
       setBusy(null)
     }
   }
+
+  async function savePdf() {
+    return generatePdf()
+  }
+
 
   async function setStatus(status: 'sent' | 'accepted' | 'declined') {
     if (!quote) return
@@ -323,21 +385,19 @@ function QuoteView() {
           )}
 
           {waQuote ? (
-            <a
-              href={waQuote}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => {
-                if (quote.status === 'draft') setStatus('sent')
-              }}
-              className="flex items-center justify-center gap-2 bg-whatsapp hover:opacity-90 text-white font-heading font-semibold px-4 py-3 rounded-btn mb-2"
+            <button
+              type="button"
+              onClick={() => generatePdf({ shareWhatsApp: true })}
+              disabled={!!busy}
+              className="flex w-full items-center justify-center gap-2 bg-whatsapp hover:opacity-90 text-white font-heading font-semibold px-4 py-3 rounded-btn mb-2 disabled:opacity-50"
             >
-              <MessageCircle className="w-4 h-4" /> Send on WhatsApp{client?.name ? ` to ${client.name.split(/\s+/)[0]}` : ''}
-            </a>
+              {busy === 'pdf' ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />}
+              {busy === 'pdf' ? 'Generating PDF…' : `Generate PDF & Send on WhatsApp${client?.name ? ` to ${client.name.split(/\s+/)[0]}` : ''}`}
+            </button>
           ) : (
             <p className="text-xs text-mist mb-2">No WhatsApp number on file for this client. Add one on their client page to send from here.</p>
           )}
-          <p className="text-[11px] text-mist mb-4">Opens WhatsApp with the message written. Print / Save as PDF first if you want to attach the quote.</p>
+          <p className="text-[11px] text-mist mb-4">The PDF is generated and saved first. On supported phones, WhatsApp opens with the PDF attached; otherwise WhatsApp opens with the message and the downloaded PDF can be attached.</p>
 
           {customerLink && (
             <div className="mb-4 rounded-card border border-blue bg-cardgrey p-3">
