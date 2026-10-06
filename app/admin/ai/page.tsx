@@ -22,7 +22,30 @@ export default function NgmsAiPage() {
   const [output, setOutput] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState(false)\n  const [recordLabel, setRecordLabel] = useState('')\n  const [recordContext, setRecordContext] = useState('')
+
+  async function loadRecordContext(type: string, id: string) {
+    const token = (await supabase.auth.getSession()).data.session?.access_token
+    const res = await fetch('/api/admin/ai/context', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token || ''}` },
+      body: JSON.stringify({ type, id }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok || !data.ok) throw new Error(data.error || 'Could not load record context.')
+    setRecordLabel(data.label || `${type} ${id}`)
+    setRecordContext(data.context || '')
+    setContext(data.context || '')
+  }
+
+  useState(() => {
+    const params = new URLSearchParams(window.location.search)
+    const type = params.get('type')
+    const id = params.get('id')
+    if (type && id && ['lead','client','quote','job'].includes(type)) {
+      void loadRecordContext(type, id).catch((e) => setError(e instanceof Error ? e.message : 'Could not load record.'))
+    }
+  })
 
   async function run() {
     setError('')
@@ -66,6 +89,7 @@ export default function NgmsAiPage() {
           <div className="inline-flex items-center gap-2 text-blue text-sm font-heading font-semibold mb-2"><Sparkles className="w-4 h-4" /> NGMS AI OPERATIONS</div>
           <h1 className="font-heading text-3xl sm:text-4xl font-bold text-paper">AI Ops Copilot</h1>
           <p className="text-mist mt-2 max-w-2xl">Draft customer messages, prompts, quote wording, campaigns and job documents from the protected staff panel. Nothing is sent automatically.</p>
+          {recordLabel && <div className="mt-4 inline-flex items-center gap-2 border border-blue/40 bg-cardgrey rounded-btn px-3 py-2 text-xs text-paper"><Sparkles className="w-4 h-4 text-blue" /> Context loaded: {recordLabel}</div>}
         </div>
 
         <div className="grid lg:grid-cols-[280px_1fr] gap-5">
@@ -85,7 +109,7 @@ export default function NgmsAiPage() {
             <label className="block text-sm font-heading font-semibold text-paper mb-2">What do you need?</label>
             <textarea value={task} onChange={e => setTask(e.target.value)} rows={6} placeholder="Example: Draft a WhatsApp follow-up for a customer who requested an exterior painting quote but has not replied." className="w-full bg-jet border border-darkgrey text-paper rounded-btn px-4 py-3 focus:outline-none focus:border-blue resize-y" />
 
-            <label className="block text-sm font-heading font-semibold text-paper mt-5 mb-2">Optional context</label>
+            <label className="block text-sm font-heading font-semibold text-paper mt-5 mb-2">Context</label>
             <textarea value={context} onChange={e => setContext(e.target.value)} rows={5} placeholder="Paste lead details, approved pricing, scope, previous message, job notes or campaign information. Avoid passwords and payment credentials." className="w-full bg-jet border border-darkgrey text-paper rounded-btn px-4 py-3 focus:outline-none focus:border-blue resize-y" />
 
             {error && <p className="text-sm text-orange mt-4">{error}</p>}
