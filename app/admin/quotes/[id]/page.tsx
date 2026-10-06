@@ -373,7 +373,7 @@ function QuoteView() {
                   {busy === 'accepted' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Accepted
                 </button>
                 <button onClick={() => setStatus('declined')} disabled={!!busy} className="inline-flex items-center gap-1.5 border border-darkgrey hover:border-orange text-mist hover:text-orange text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50">
-                  {busy === 'declined' ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />} Declined
+                  {busy === 'declined' ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />} Declined
                 </button>
               </>
             )}
