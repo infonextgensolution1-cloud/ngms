@@ -1,4 +1,4 @@
-// NGMS Prompt Library data: ready-to-paste prompts for Claude, filled in for NGMS.
+// NGMS Prompt Library data: ready-to-paste prompts for OpenAI, filled in for NGMS.
 // Numbers follow the original 50-prompt list (1-6 not included).
 
 export type PackPrompt = { n: number; c: string; t: string; p: string; af: boolean }
