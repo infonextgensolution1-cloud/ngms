@@ -11,7 +11,7 @@ import WeekAheadButton from '@/components/admin/WeekAheadButton'
 import { supabase } from '@/lib/supabaseClient'
 import { Loader2, Image as ImageIcon, LogOut, Sparkles, Send, Users, Receipt, FileText, Cloud, LucideIcon, HardHat, Wallet, Boxes, Contact, CalendarDays, BarChart3, Activity, RefreshCw } from 'lucide-react'
 
-const NAV_ITEMS: Array<{\n  {
+const NAV_ITEMS: Array<{
     href: '/admin/ai',
     icon: Sparkles,
     title: 'NGMS AI Operations',
