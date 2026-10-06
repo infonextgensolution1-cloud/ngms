@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, Printer, Check, X, Send, AlertTriangle, Receipt, Briefcase, CalendarPlus, MessageCircle } from 'lucide-react'
+import { ArrowLeft, Loader2, Printer, Download, Check, X, Send, AlertTriangle, Receipt, Briefcase, CalendarPlus, MessageCircle } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import DeleteRecord from '@/components/admin/DeleteRecord'
 import { supabase } from '@/lib/supabaseClient'
@@ -50,6 +50,7 @@ function QuoteView() {
   const [jobDate, setJobDate] = useState('')
   const [customerLink, setCustomerLink] = useState<string | null>(null)
   const [linkCopied, setLinkCopied] = useState(false)
+  const [pdfSaved, setPdfSaved] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -87,6 +88,41 @@ function QuoteView() {
   useEffect(() => {
     load()
   }, [load])
+
+  async function savePdf() {
+    if (!quote) return
+    setBusy('pdf')
+    setMsg('')
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('Your session has expired. Sign in again.')
+      const response = await fetch('/api/quotes/' + quote.id + '/pdf', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token },
+      })
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}))
+        throw new Error(body.error || 'Could not generate the PDF.')
+      }
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = quote.quote_number + '.pdf'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+      setPdfSaved(true)
+      setMsg('PDF saved to NGMS and downloaded.')
+      await load()
+    } catch (e) {
+      setMsg((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
+  }
 
   async function setStatus(status: 'sent' | 'accepted' | 'declined') {
     if (!quote) return
@@ -215,12 +251,30 @@ function QuoteView() {
                 {badgeKey}
               </span>
             </div>
-            <button
-              onClick={() => window.print()}
-              className="inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn shrink-0"
-            >
-              <Printer className="w-4 h-4" /> Print / Save as PDF
-            </button>
+            <div className="flex flex-wrap justify-end gap-2">
+              <button
+                onClick={savePdf}
+                disabled={!!busy}
+                className="inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn shrink-0 disabled:opacity-50"
+              >
+                {busy === 'pdf' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                {busy === 'pdf' ? 'Generating…' : pdfSaved || quote.pdf_path ? 'Save / Download PDF' : 'Generate & Save PDF'}
+              </button>
+              {quote.pdf_path && (
+                <a
+                  href={'/api/quotes/' + quote.id + '/pdf'}
+                  className="inline-flex items-center gap-2 border border-darkgrey hover:border-blue text-mist hover:text-paper font-heading font-semibold px-3 py-2.5 rounded-btn shrink-0"
+                >
+                  <Download className="w-4 h-4" /> Saved PDF
+                </a>
+              )}
+              <button
+                onClick={() => window.print()}
+                className="inline-flex items-center gap-2 border border-darkgrey hover:border-blue text-mist hover:text-paper font-heading font-semibold px-3 py-2.5 rounded-btn shrink-0"
+              >
+                <Printer className="w-4 h-4" /> Browser Print
+              </button>
+            </div>
           </div>
 
           {bankPlaceholder && (
