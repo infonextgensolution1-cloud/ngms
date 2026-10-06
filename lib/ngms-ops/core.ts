@@ -218,7 +218,7 @@ export async function getSettings(sb: SupabaseClient): Promise<Settings> {
     vat_number: vatNumber,
     vat_rate: n0(s.vat_rate) || 15,
     vat_registered: !!vatNumber && /\d{6,}/.test(vatNumber) && !/not\s*reg/i.test(vatNumber),
-    quote_expiry_days: n0(s.quote_expiry_days) || 30,
+    quote_expiry_days: 7,
     phone: (s.phone as string) ?? null,
     email: (s.email as string) ?? null,
     whatsapp: (s.whatsapp as string) ?? null,
