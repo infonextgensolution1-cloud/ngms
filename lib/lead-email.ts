@@ -1,7 +1,7 @@
 import { Resend } from 'resend'
 import { site } from '@/lib/site'
 
-export const NOTIFY_TO = 'info.nextgensolution1@gmail.com'
+export const NOTIFY_TO = 'nextgensolarmaintenance@gmail.com'
 export const NOTIFY_FROM = 'NGSMS Website <leads@nextgensolarmaintenance.co.za>'
 export const REPLY_FROM = 'NextGen Solar Clean & Maintenance <leads@nextgensolarmaintenance.co.za>'
 
