@@ -61,6 +61,7 @@ export default function QuoteForm({
   initialSize?: string;
 }) {
   const [status, setStatus] = useState<Status>("idle");
+  const [step, setStep] = useState(1);
   const [phoneErr, setPhoneErr] = useState("");
   const [fallbackWa, setFallbackWa] = useState("");
   // Only accept a ?service= value that is a real service, otherwise the select and the saved lead disagree.
@@ -203,14 +204,21 @@ export default function QuoteForm({
   }
 
   return (
-    <form className="grid grid-cols-1 gap-3.5 w-full max-w-[520px] mx-auto" onSubmit={onSubmit}>
+    <form data-quote-step={step} className="grid grid-cols-1 gap-3.5 w-full max-w-[520px] mx-auto" onSubmit={onSubmit}>
+      <div className="rounded-panel border border-darkgrey bg-cardgrey/60 p-3" aria-label="Quote progress">
+        <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.16em] text-mist"><span>Step {step} of 4</span><span className="text-paper">{["Job","Property","Photos","Contact"][step - 1]}</span></div>
+        <ol className="mt-2 grid grid-cols-4 gap-1" aria-label="Quote steps">
+          {["Job","Property","Photos","Contact"].map((label, i) => <li key={label} aria-current={step === i + 1 ? "step" : undefined} className={`h-1.5 rounded-full ${i < step ? "bg-blue" : "bg-darkgrey"}`}><span className="sr-only">{label}</span></li>)}
+        </ol>
+        <p className="text-xs text-mist mt-2">Takes about 2 minutes. You can send photos on the next step.</p>
+      </div>
       <p className="rounded-panel border border-blue/30 bg-blue/10 text-paper text-center text-xs sm:text-sm py-2.5 px-3">
         Solar panel cleaning from R550 (up to 10 panels) · 10% off your first booking on all other services
       </p>
-      <Field label="Full name">
+      <Field step={4} label="Full name">
         <input required name="name" autoComplete="name" maxLength={120} placeholder="Your name" className="field" />
       </Field>
-      <Field label="Phone / WhatsApp">
+      <Field step={4} label="Phone / WhatsApp">
         <input
           required
           type="tel"
@@ -231,24 +239,24 @@ export default function QuoteForm({
           </span>
         )}
       </Field>
-      <Field label="Email (optional)">
+      <Field step={4} label="Email (optional)">
         <input type="email" name="email" autoComplete="email" maxLength={254} placeholder="you@example.com" className="field" />
       </Field>
-      <Field label="Area">
+      <Field step={2} label="Area">
         <select name="area" defaultValue={matchArea(initialArea)} className="field">
           {AREA_OPTIONS.map((a) => (
             <option key={a}>{a}</option>
           ))}
         </select>
       </Field>
-      <Field label="Service">
+      <Field step={1} label="Service">
         <select name="service" value={serviceName} onChange={(e) => setServiceName(e.target.value)} className="field">
           {SERVICES.map((s) => (
             <option key={s.slug}>{s.name}</option>
           ))}
         </select>
       </Field>
-      <Field label="Size / details">
+      <Field step={1} label="Size / details">
         <input name="size" value={sizeText} onChange={(e) => setSizeText(e.target.value)} placeholder="e.g. 20 panels, 60 m²" className="field" />
       </Field>
       {estimate && (
@@ -257,7 +265,7 @@ export default function QuoteForm({
           <span className="block text-mist text-xs mt-1">A guide only. Your firm quote follows once we&rsquo;ve seen the job.</span>
         </div>
       )}
-      <Field label="Add a photo of the job (optional, but speeds up your quote)">
+      <Field step={3} label="Add a photo of the job (optional, but speeds up your quote)">
         <span className="block text-mist text-xs mb-1.5">
           A clear photo or two lets us give a firm price without a site visit first. Stand back so the whole area
           (roof, wall, paving, pool) is in the shot. Photos are private; only our team sees them (
@@ -286,7 +294,7 @@ export default function QuoteForm({
         )}
         {photoErr && <span role="alert" className="block text-orange text-xs mt-1.5">{photoErr}</span>}
       </Field>
-      <Field label="Preferred date (optional)">
+      <Field step={2} label="Preferred date (optional)">
         <input type="date" min={today} value={prefDate} onChange={(e) => setPrefDate(e.target.value)} className="field" />
         {dateWarning && <span className="block text-orange text-xs mt-1.5" role="alert">Weather heads-up: {dateWarning}</span>}
         {goodDays.length > 0 && (
@@ -305,14 +313,14 @@ export default function QuoteForm({
           </span>
         )}
       </Field>
-      <Field label="Preferred contact">
+      <Field step={4} label="Preferred contact">
         <select name="pref" className="field">
           <option>WhatsApp</option>
           <option>Phone call</option>
           <option>Email</option>
         </select>
       </Field>
-      <Field label="Notes">
+      <Field step={3} label="Notes">
         <textarea name="notes" maxLength={2000} placeholder="What needs doing? Access, timing, anything we should know." className="field min-h-[110px]" />
       </Field>
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
@@ -323,9 +331,14 @@ export default function QuoteForm({
           set out in our <a href="/privacy" className="underline">privacy policy</a> (POPIA).
         </span>
       </label>
-      <button className="btn btn-quote" type="submit" disabled={status === "sending"}>
+      <button data-quote-submit className="btn btn-quote" type="submit" disabled={status === "sending"}>
         {status === "sending" ? "Sending..." : "Send quote request"}
       </button>
+      {step < 4 && <div className="flex gap-2 pt-1" data-quote-navigation>
+        {step > 1 && <button type="button" className="btn-outline flex-1" onClick={() => setStep((s) => s - 1)}>Back</button>}
+        <button type="button" className="btn-quote flex-1" onClick={() => setStep((s) => s + 1)}>Continue</button>
+      </div>}
+      {step === 4 && step > 1 && <button type="button" className="btn-outline w-full" onClick={() => setStep((s) => s - 1)}>Back</button>}
       {status === "error" && (
         <div role="alert" className="rounded-panel border border-orange/50 bg-orange/10 p-4 text-sm text-center">
           <p className="text-paper font-semibold">We couldn&rsquo;t send that from here.</p>
@@ -339,7 +352,7 @@ export default function QuoteForm({
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children, step }: { label: string; children: React.ReactNode; step?: number }) {
   return (
     <label>
       <span className="block text-mist text-sm font-semibold mb-1.5">{label}</span>

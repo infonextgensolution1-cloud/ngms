@@ -267,6 +267,22 @@ textarea:disabled {
   color: theme('colors.blue.DEFAULT');
 }
 
+/* ---------- Quote wizard ---------- */
+form[data-quote-step="1"] [data-quote-step]:not([data-quote-step="1"]),
+form[data-quote-step="2"] [data-quote-step]:not([data-quote-step="2"]),
+form[data-quote-step="3"] [data-quote-step]:not([data-quote-step="3"]),
+form[data-quote-step="4"] [data-quote-step]:not([data-quote-step="4"]) {
+  display: none;
+}
+form[data-quote-step="1"] [data-quote-submit],
+form[data-quote-step="2"] [data-quote-submit],
+form[data-quote-step="3"] [data-quote-submit] {
+  display: none;
+}
+form[data-quote-step="4"] [data-quote-navigation] {
+  display: none;
+}
+
 /* ---------- Phone touch + legibility ---------- */
 /* Slider inputs (calculators): a finger-sized touch area on touch screens */
 @media (pointer: coarse) {

@@ -21,8 +21,8 @@ const INTERVAL_MS = 6000
 export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', close = '19:00' }: { slides: LandingSlide[]; days?: string; open?: string; close?: string }) {
   const PROOF = [
     ['12 trades', 'one accountable team'],
-    ['Written quotes', 'fixed before we start'],
-    [days, `${open} – ${close}`],
+    ['Free site assessment', 'written quote before work'],
+    ['Helderberg Basin', 'no callout fee'],
   ]
   const usable = slides.filter((s) => s.image_url).slice(0, MAX_SLIDES)
   const count = usable.length
@@ -129,8 +129,8 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
             <span className="block text-blue">All solutions.</span>
           </h1>
           <p className="mt-6 text-base sm:text-lg text-paper/85 max-w-xl leading-relaxed">
-            Solar panel cleaning, painting, waterproofing, plumbing, electrical and seven more trades — one accountable
-            team for homes, body corporates and security complexes in Strand, Gordon&rsquo;s Bay and Somerset West.
+            One accountable team for solar, painting, waterproofing, paving, plumbing, electrical and seven more trades —
+            serving homes, body corporates and security complexes across the Helderberg Basin.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link href="/quote" className="btn-quote !text-[0.95rem] !px-7 !py-3.5">
@@ -142,7 +142,7 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
               rel="noopener noreferrer"
               className="btn-wa !text-[0.95rem] !px-7 !py-3.5"
             >
-              WhatsApp us
+              WhatsApp a photo
             </a>
             <a href={`tel:${SITE.phone}`} className="text-sm text-paper/80 hover:text-blue px-2 py-3">
               or call <span className="font-semibold text-paper">{SITE.phoneDisplay}</span>
