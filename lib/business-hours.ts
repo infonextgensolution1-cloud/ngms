@@ -5,7 +5,7 @@ import { supabase } from './ngms-public-supabase'
 
 export type BusinessHours = { days: string; open: string; close: string }
 
-export const DEFAULT_HOURS: BusinessHours = { days: 'Mon–Sat', open: '07:00', close: '19:00' }
+export const DEFAULT_HOURS: BusinessHours = { days: 'Mon–Sat', open: '07:00', close: '17:00' }
 
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 const ABBR = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
