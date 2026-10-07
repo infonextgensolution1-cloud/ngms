@@ -166,10 +166,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <AdminLink />
           </div>
         </footer>
-        <a data-site-marketing href={WHATSAPP_URL} aria-label="WhatsApp NextGen" target="_blank" rel="noopener noreferrer" className="fixed z-50 flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14" style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom))', right: 'calc(1rem + env(safe-area-inset-right))' }}>
+        <a data-site-marketing href={WHATSAPP_URL} aria-label="WhatsApp NextGen" target="_blank" rel="noopener noreferrer" className="hidden sm:flex fixed z-50 items-center justify-center h-12 w-12 sm:h-14 sm:w-14" style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom))', right: 'calc(1rem + env(safe-area-inset-right))' }}>
           <span aria-hidden className="absolute inset-0 rounded-full bg-whatsapp animate-wa-ping" />
           <span className="relative flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-lg bg-whatsapp"><WhatsAppIcon className="h-6 w-6 sm:h-7 sm:w-7 text-white" /></span>
         </a>
+        <div className="sm:hidden fixed inset-x-0 bottom-0 z-50 px-3 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] bg-jet/95 backdrop-blur-xl border-t border-darkgrey" data-site-marketing>
+          <div className="grid grid-cols-2 gap-2">
+            <Link href="/quote" className="btn-quote !min-h-12 !py-2">Get a free quote</Link>
+            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn-wa !min-h-12 !py-2">WhatsApp a photo</a>
+          </div>
+        </div>
         <SpeedInsights />
         <Analytics />
       </body>
