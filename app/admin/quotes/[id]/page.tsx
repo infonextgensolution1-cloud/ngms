@@ -106,10 +106,13 @@ function QuoteView() {
         throw new Error(body.error || 'Could not download the saved PDF.')
       }
       const blob = await response.blob()
+      const disposition = response.headers.get('content-disposition') || ''
+      const match = disposition.match(/filename="([^"]+)"/i)
+      const fileName = match?.[1] || `${quote.quote_number}.pdf`
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = quote.quote_number + '.pdf'
+      a.download = fileName
       document.body.appendChild(a)
       a.click()
       a.remove()
