@@ -60,6 +60,19 @@ export function ServicesOverview({
             </Link>
           }
         />
+        <div className="mb-7 grid grid-cols-2 sm:grid-cols-4 gap-2" aria-label="Service categories">
+          {[
+            ['Property', 'Solar, plumbing, electrical'],
+            ['Exterior', 'Painting, paving, waterproofing'],
+            ['Cleaning', 'Solar, pressure washing, gutters'],
+            ['Repairs', 'Steelwork, handyman, rubble removal'],
+          ].map(([label, sub]) => (
+            <div key={label} className="rounded-panel border border-darkgrey bg-cardgrey/60 px-3 py-3">
+              <span className="block font-heading font-semibold text-sm text-paper">{label}</span>
+              <span className="block mt-1 text-[11px] leading-snug text-mist">{sub}</span>
+            </div>
+          ))}
+        </div>
         <ul className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {services.map((s, i) => {
             const img = images[s.slug]
