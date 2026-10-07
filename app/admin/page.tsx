@@ -18,6 +18,12 @@ const NAV_ITEMS: Array<{
   desc: string
 }> = [
   {
+    href: '/admin/ai-quote-intake',
+    icon: Sparkles,
+    title: 'AI Quote Intake',
+    desc: 'Turn WhatsApp/site notes into structured quote-ready scope for staff review',
+  },
+  {
     href: '/admin/leads',
     icon: Users,
     title: 'Leads',
@@ -93,7 +99,7 @@ const NAV_ITEMS: Array<{
     href: '/admin/media',
     icon: ImageIcon,
     title: 'Media',
-    desc: 'Manage hero slides, before/after pairs & the gallery',
+    desc: 'Manage admin-driven hero slides, promotions, before/after pairs & the gallery',
   },
   {
     href: '/admin/media-wizard',
