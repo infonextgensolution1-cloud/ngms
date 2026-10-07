@@ -1,7 +1,8 @@
 import type { Config } from 'tailwindcss'
 
-// Solar Forge theme — one grey ramp (dark to light), NextGen Blue as the technology accent,
-// and Solar Orange reserved for the primary "Get a quote" CTA and rare attention marks.
+// Solar Forge theme — Black / Graphite / Steel / White / Silver blocks,
+// NextGen Blue technology accents, and a layered Solar Orange CTA system.
+// Functional channel colours (WhatsApp, Facebook/socials and service icons) stay intact.
 // Spec: docs/solar-forge-theme.md
 //
 //   Dark greys:   jet  cardgrey  graphite  darkgrey
@@ -16,30 +17,30 @@ const config: Config = {
     extend: {
       colors: {
         // Jet Black — primary page background
-        jet: '#0A0A0A',
+        jet: '#08090B',
         // Graphite — section/band background, hover cards
-        graphite: '#1F2023',
+        graphite: '#1B2026',
         // Steel Line — borders / dividers
-        darkgrey: '#2E3035',
+        darkgrey: '#343B44',
         // Carbon — card/panel background
-        cardgrey: '#141517',
+        cardgrey: '#111418',
         // Slate — secondary text on light bands (4.9:1 on Concrete, 5.8:1 on Fog)
-        slate: '#55585E',
+        slate: '#5F6873',
         // Ash — secondary text on dark
-        mist: '#9A9CA1',
+        mist: '#AEB6C0',
         // Chalk — primary text on dark, cards on light bands
-        paper: '#F4F4F2',
+        paper: '#FFFFFF',
         // Fog — the main light band background
-        fog: '#E7E7E4',
+        fog: '#F1F3F5',
         // Concrete — light tiles, borders and dividers on light bands
-        concrete: '#D6D6D3',
+        concrete: '#C7CDD4',
         // Ember Deep — orange TEXT on light bands only (Chalk 5.5:1, Fog 4.9:1).
         // Bright Solar Orange fails contrast as small text on light greys.
-        'ember-deep': '#A84300',
+        'ember-deep': '#B83E00',
         // Solar Orange — the conversion colour: primary "Get a quote" CTAs and rare attention marks only
         orange: {
-          DEFAULT: '#F57C1B',
-          dark: '#FF5A1F',
+          DEFAULT: '#FF6A00',
+          dark: '#D94F00',
         },
         // NextGen Blue — the technology accent: kickers, links, icons, focus rings, active states.
         //   DEFAULT  text/icons on dark (5.96:1 on Jet)
@@ -47,10 +48,10 @@ const config: Config = {
         //   dark     hover/pressed fill (5.43:1 under white)
         //   deep     blue TEXT on light bands (4.9:1 on Fog, 5.5:1 on Chalk)
         blue: {
-          DEFAULT: '#3B8BFF',
+          DEFAULT: '#147BFF',
           fill: '#1F6FEB',
-          dark: '#1D64D8',
-          deep: '#1A5BD0',
+          dark: '#0D5FD7',
+          deep: '#0A56C7',
         },
         // WhatsApp Green — WhatsApp buttons only (functional, kept)
         whatsapp: {
@@ -59,14 +60,14 @@ const config: Config = {
         },
         // Luminous Orange — "Get a quote" / CTA buttons (black text, Eco Green border)
         glow: {
-          DEFAULT: '#FF8A1F',
-          bright: '#FFA033',
+          DEFAULT: '#FF9D2E',
+          bright: '#FFB45C',
         },
         // Legacy 'power' token (was purple) now follows NextGen Blue so older
         // components stay on-palette without edits.
         power: {
           DEFAULT: '#1F6FEB',
-          dark: '#1D64D8',
+          dark: '#0D5FD7',
           light: '#3B8BFF',
         },
         // Eco Green — CTA button border
