@@ -90,7 +90,7 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
                 sizes="100vw"
                 quality={70}
                 priority={i === 0}
-                className={`object-cover transition-[opacity,transform] duration-[1200ms] ease-out ${
+                unoptimized={s.image_url.includes(".supabase.co/storage/")}\n                className={`object-cover transition-[opacity,transform] duration-[1200ms] ease-out ${
                   i === index ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.03]'
                 }`}
               />
