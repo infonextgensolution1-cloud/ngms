@@ -98,6 +98,7 @@ export function SiteHeader({ hours = 'Mon–Sat 07:00–19:00' }: { hours?: stri
           >
             <WhatsAppIcon className="h-6 w-6" />
           </a>
+          <Link href="/roi-calculator" className="hidden 2xl:inline-flex items-center px-3 py-2 text-sm font-semibold text-mist hover:text-paper transition-colors">Solar ROI</Link>
           <Link href="/quote" className="btn-quote !text-xs !px-4 !py-2.5 hidden sm:inline-flex">
             Get a quote
           </Link>
