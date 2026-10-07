@@ -84,7 +84,7 @@ export function ServicesOverview({
               <li key={s.slug} className={feature ? 'col-span-2 row-span-2' : wide ? 'col-span-2' : ''}>
                 <Link
                   href={`/services/${s.slug}`}
-                  className={`group relative flex h-full flex-col justify-end overflow-hidden rounded-panel border border-darkgrey bg-cardgrey ${
+                  className={`group forge-interactive relative flex h-full flex-col justify-end overflow-hidden rounded-panel border border-darkgrey bg-cardgrey ${
                     feature ? 'min-h-[340px] sm:min-h-[460px]' : 'min-h-[190px] sm:min-h-[220px]'
                   }`}
                 >
@@ -140,7 +140,7 @@ export function SolarFeature({ photo }: { photo?: Photo }) {
             wash — no abrasive pads and no high pressure on the glass — and check the array while we&rsquo;re up there.
           </p>
 
-          <div className="relative mt-8 aspect-[16/9] overflow-hidden rounded-panel bg-graphite">
+          <div className="relative mt-8 aspect-[16/9] overflow-hidden rounded-panel bg-graphite forge-shimmer">
             <PhotoFill photo={photo} sizes="(max-width: 1024px) 100vw, 55vw" />
             {photo?.caption && (
               <p className="absolute left-3 bottom-3 rounded-btn bg-jet/75 backdrop-blur px-3 py-1.5 text-xs text-paper">{photo.caption}</p>
@@ -192,7 +192,7 @@ export function SolarFeature({ photo }: { photo?: Photo }) {
         </div>
 
         <div className="lg:col-span-5 min-w-0 lg:sticky lg:top-24">
-          <SolarRoiCalculator />
+          <div className="forge-reveal"><SolarRoiCalculator /></div>
         </div>
       </div>
     </section>
