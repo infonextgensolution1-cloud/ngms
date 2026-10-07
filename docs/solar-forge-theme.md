@@ -1,28 +1,28 @@
 # NGMS Theme — "Solar Forge"
 
-Builds on Ember Grid (`docs/ember-grid-theme.md`). One grey ramp from Jet Black to Chalk, **NextGen Blue** as the technology accent, and **Solar Orange reserved for conversion** (the primary "Get a quote" CTA). Type: **Poppins** for headings, **Inter** for body/UI, both loaded with `next/font` in `app/layout.tsx`.
+A premium black / grey / blue / white / silver system with layered Solar Orange accents. Dark cinematic surfaces, bright white information blocks, electric blue technology states, and orange conversion bands define the visual language. **WhatsApp green, social-network colours and existing service icon artwork remain functional and recognisable.** Type: **Poppins** for headings, **Inter** for body/UI.
 
 ## Grey ramp (dark to light)
 
 | Name | Tailwind | Hex | Use |
 |---|---|---|---|
-| Jet | `jet` | `#0A0A0A` | Page background, header, footer |
-| Carbon | `cardgrey` | `#141517` | Cards on black |
-| Graphite | `graphite` | `#1F2023` | Dark bands; text on light bands |
-| Steel | `darkgrey` | `#2E3035` | Lines and borders on dark |
-| Slate | `slate` (new) | `#55585E` | Secondary text on light bands |
-| Ash | `mist` | `#9A9CA1` | Secondary text on dark |
-| Concrete | `concrete` | `#D6D6D3` | Light tiles, borders on light |
+| Jet | `jet` | `#08090B` | Page background, header, footer |
+| Carbon | `cardgrey` | `#111418` | Cards on black |
+| Graphite | `graphite` | `#1B2026` | Dark bands; text on light bands |
+| Steel | `darkgrey` | `#343B44` | Lines and borders on dark |
+| Slate | `slate` (new) | `#5F6873` | Secondary text on light bands |
+| Ash | `mist` | `#AEB6C0` | Secondary text on dark |
+| Concrete | `concrete` | `#C7CDD4` | Light tiles, borders on light |
 | Fog## Accents
 
 | Name | Tailwind | Hex | Use |
 |---|---|---|---|
-| NextGen Blue | `blue` | `#3B8BFF` | Kickers, links, icons, focus ring, active nav — text on dark (5.96:1 on Jet) |
+| NextGen Blue | `blue` | `#147BFF` | Kickers, links, icons, focus ring, active nav — text on dark (5.96:1 on Jet) |
 | Blue Fill | `blue-fill` | `#1F6FEB` | Solid buttons/badges with white text (4.63:1) — `.btn-blue` |
 | Blue Dark | `blue-dark` | `#1D64D8` | Hover/pressed blue fills |
 | Blue Deep | `blue-deep` | `#1A5BD0` | Blue TEXT on light bands (4.9:1 on Fog) — applied automatically in `.band-light` |
-| Solar Orange | `orange` | `#F57C1B` | Primary "Get a quote" CTA (`.btn-quote`, jet text 7.3:1) and rare attention marks only |
-| Ember Deep | `ember-deep` | `#A84300` | Orange TEXT on Chalk or Fog |
+| Solar Orange | `orange` | `#FF6A00` | Primary "Get a quote" CTA (`.btn-quote`, jet text 7.3:1) and rare attention marks only |
+| Ember Deep | `ember-deep` | `#B83E00` | Orange TEXT on Chalk or Fog |
 
 `power` (formerly purple) now maps to the blue values, so legacy `.btn-power` renders as a blue secondary button.
 
@@ -66,3 +66,17 @@ Inside it, `text-mist`, `.tag`, `.kicker`, `.card`, orange text, headings and da
 ## Orange panel
 
 `btn-jet` and `btn-outline-jet` are the button styles for text on the orange panel.
+
+
+## Block hierarchy
+
+- **Black block:** hero, header, navigation and footer.
+- **Grey block:** cards, service panels, forms and secondary content.
+- **White block:** trust, quote and high-readability information.
+- **Silver block:** borders, metadata and supporting UI.
+- **Blue block:** active states, technology/AI interactions, links and focus.
+- **Orange block:** CTAs, offers, service highlights and conversion moments.
+- **Orange tiers:** Solar Orange #FF6A00, Burnt Orange #D94F00, Amber #FF9D2E.
+- **Functional colours:** WhatsApp and social icons remain their platform colours; service icon artwork remains intact.
+
+Target balance: approximately 70% black/grey, 15% white/silver, 10% blue and 5% orange, with deliberate orange or white section blocks used as visual anchors.
