@@ -35,6 +35,7 @@ export default function BodyCorporateSection({ photo }: { photo?: { src: string;
           <h2 id="bc-title" className="text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1.05]">
             One contractor for the whole complex.
           </h2>
+          <div className="mt-5 grid grid-cols-3 gap-2 max-w-xl"><div className="rounded-card border border-darkgrey bg-cardgrey p-3"><p className="font-heading font-bold text-paper">01</p><p className="text-xs text-mist mt-1">Assess</p></div><div className="rounded-card border border-darkgrey bg-cardgrey p-3"><p className="font-heading font-bold text-paper">02</p><p className="text-xs text-mist mt-1">Quote</p></div><div className="rounded-card border border-darkgrey bg-cardgrey p-3"><p className="font-heading font-bold text-paper">03</p><p className="text-xs text-mist mt-1">Maintain</p></div></div>
           <p className="text-mist text-base sm:text-lg mt-4 max-w-xl leading-relaxed">
             Quarterly and annual maintenance plans for complexes across Strand, Somerset West and Gordon&apos;s Bay.
             Recent complex work includes painting, paving and waterproofing at Cosmos Mews in Strand.
@@ -52,10 +53,10 @@ export default function BodyCorporateSection({ photo }: { photo?: { src: string;
           </ul>
           <div className="flex gap-3 flex-wrap mt-8">
             <Link href="/quote" className="btn-quote">
-              Book a site walk-through
+              Request a complex assessment
             </Link>
             <Link href="/maintenance-packages" className="btn-outline">
-              Maintenance plans
+              View body corporate plans
             </Link>
           </div>
         </div>
@@ -65,7 +66,7 @@ export default function BodyCorporateSection({ photo }: { photo?: { src: string;
             <>
               <Image src={photo.src} alt={photo.caption} fill sizes="(max-width: 1024px) 100vw, 50vw" quality={70} className="object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-jet/70 via-transparent" />
-              <p className="absolute left-4 right-4 bottom-4 text-sm text-paper/90">{photo.caption}</p>
+              <div className="absolute left-4 right-4 bottom-4"><p className="text-xs uppercase tracking-[0.16em] text-orange font-semibold">Complex maintenance</p><p className="text-sm text-paper/90 mt-1">{photo.caption}</p></div>
             </>
           ) : (
             <div className="absolute inset-0 grid place-items-center text-mist text-sm">Complex maintenance</div>

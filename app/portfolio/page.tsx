@@ -41,6 +41,7 @@ export default async function PortfolioPage() {
       </section>
 
       <section className="bg-graphite py-14 border-y border-darkgrey">
+        <div className="max-w-5xl mx-auto px-4 mb-8 grid grid-cols-2 sm:grid-cols-4 gap-3">{[['Real work','Completed jobs'],['Before / after','Visible proof'],['Helderberg','Local coverage'],['Multi-trade','One contractor']].map(([a,b])=><div key={a} className="rounded-card border border-darkgrey bg-cardgrey p-4"><p className="font-heading font-semibold text-paper">{a}</p><p className="text-xs text-mist mt-1">{b}</p></div>)}</div>
         {projects.length > 0 ? (
           <div className="max-w-5xl mx-auto px-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((p) => (
@@ -56,7 +57,8 @@ export default async function PortfolioPage() {
                   </div>
                 </div>
                 <div className="p-5">
-                  <p className="font-heading font-semibold text-paper">{p.caption || 'Completed Project'}</p>
+                  <p className="text-xs uppercase tracking-[0.16em] text-orange font-semibold">{p.service_slug?.replaceAll('-', ' ') || 'Project'}</p>
+                  <p className="font-heading font-semibold text-paper mt-1">{p.caption || 'Completed Project'}</p>
                   <p className="text-blue text-sm mt-1">&#128205; {p.location}</p>
                 </div>
               </div>
@@ -81,7 +83,7 @@ export default async function PortfolioPage() {
         </p>
         <div className="flex gap-4 justify-center flex-wrap mt-8">
           <Link href="/quote" className="btn-glow font-heading font-semibold px-6 py-3 rounded-btn">
-            Get a Free Quote
+            Start a similar project
           </Link>
           <Link href="/services" className="border border-mist text-paper font-heading font-semibold px-6 py-3 rounded-btn hover:border-blue hover:text-blue">
             View Services

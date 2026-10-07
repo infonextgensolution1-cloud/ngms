@@ -85,7 +85,7 @@ export function ServicesOverview({
                 <Link
                   href={`/services/${s.slug}`}
                   className={`group relative flex h-full flex-col justify-end overflow-hidden rounded-panel border border-darkgrey bg-cardgrey ${
-                    feature ? 'min-h-[300px] sm:min-h-[420px]' : 'min-h-[170px] sm:min-h-[210px]'
+                    feature ? 'min-h-[340px] sm:min-h-[460px]' : 'min-h-[190px] sm:min-h-[220px]'
                   }`}
                 >
                   {img && (
@@ -108,6 +108,7 @@ export function ServicesOverview({
                       {s.name}
                     </span>
                     <span className={`mt-1 text-paper/70 text-xs sm:text-sm ${feature ? 'block' : 'hidden sm:block'}`}>{s.tagline}</span>
+                    {feature && <span className="mt-2 inline-flex rounded-full bg-orange px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-jet">Flagship</span>}
                     <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-blue">
                       View service
                       <span aria-hidden className="transition-transform group-hover:translate-x-1">&rarr;</span>
@@ -130,9 +131,9 @@ export function SolarFeature({ photo }: { photo?: Photo }) {
     <section className="band-light bg-fog py-16 sm:py-24 px-4" aria-labelledby="solar-title">
       <div className="max-w-6xl mx-auto grid gap-10 lg:grid-cols-12 lg:items-start">
         <div className="lg:col-span-7 min-w-0">
-          <p className="kicker">Flagship service</p>
+          <p className="kicker">Flagship service · Solar</p>
           <h2 id="solar-title" className="text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1.05]">
-            Solar panel cleaning, done carefully.
+            The Solar Forge flagship: clean panels. Clear proof. A measurable next step.
           </h2>
           <p className="text-slate mt-4 text-base sm:text-lg leading-relaxed max-w-xl">
             Salt spray, dust, pollen and bird droppings build up on Helderberg roofs. We clean panels with a gentle soft
@@ -184,8 +185,8 @@ export function SolarFeature({ photo }: { photo?: Photo }) {
             <Link href="/quote?service=Solar%20Panel%20Cleaning" className="btn-quote">
               Get a solar cleaning quote
             </Link>
-            <Link href="/services/solar-panel-cleaning" className="btn bg-jet text-paper hover:bg-graphite">
-              How we clean
+            <Link href="/roi-calculator" className="btn bg-paper border border-concrete text-graphite hover:bg-fog">
+              Calculate your cleaning ROI
             </Link>
           </div>
         </div>
