@@ -354,7 +354,7 @@ export default function QuoteForm({
 
 function Field({ label, children, step }: { label: string; children: React.ReactNode; step?: number }) {
   return (
-    <label data-quote-field-step={step}>
+    <label data-quote-step={step}>
       <span className="block text-mist text-sm font-semibold mb-1.5">{label}</span>
       {children}
     </label>
