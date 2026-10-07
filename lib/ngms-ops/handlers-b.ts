@@ -281,6 +281,9 @@ export const handlersB: Record<string, Handler> = {
     const changed: string[] = []
     const status = oneOf(args, 'status', JOB_STATUSES)
     if (status && status !== job.status) {
+      if (['completed', 'cancelled'].includes(job.status)) {
+        throw new ToolError(`A ${job.status} job is terminal and cannot be moved back to another status.`)
+      }
       patch.status = status
       changed.push(`status ${job.status} → ${status}`)
     }
