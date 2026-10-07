@@ -9,7 +9,7 @@ html {
 }
 
 body {
-  background-color: #0a0a0a;
+  background-color: #08090B;
   color: #ffffff;
   /* Mobile-first safety net: nothing may push the page wider than the screen.
      (clip, not hidden, so the sticky header keeps working.) */
@@ -32,7 +32,7 @@ h3 {
 
 /* One visible, consistent keyboard focus ring site-wide (NextGen Blue) */
 :focus-visible {
-  outline: 2px solid #3b8bff;
+  outline: 2px solid #147BFF;
   outline-offset: 2px;
 }
 
@@ -58,27 +58,27 @@ h3 {
 input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="color"]),
 select,
 textarea {
-  background-color: #161616 !important;
+  background-color: #111418 !important;
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff;
-  border: 1px solid #3a3a3a;
+  border: 1px solid #343B44;
   border-radius: 6px;
   padding: 0.55rem 0.75rem;
   font-size: 16px; /* stops iOS zoom-on-focus */
   line-height: 1.4;
-  caret-color: #3b8bff;
+  caret-color: #147BFF;
 }
 
 select option,
 select optgroup {
-  background-color: #161616;
+  background-color: #111418;
   color: #ffffff;
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #8a8a8a !important;
-  -webkit-text-fill-color: #8a8a8a;
+  color: #AEB6C0 !important;
+  -webkit-text-fill-color: #AEB6C0;
   opacity: 1;
 }
 
@@ -86,8 +86,8 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: #3b8bff !important;
-  box-shadow: 0 0 0 3px rgba(59, 139, 255, 0.25);
+  border-color: #147BFF !important;
+  box-shadow: 0 0 0 3px rgba(20, 123, 255, 0.25);
 }
 
 /* Chrome/Android autofill paints a light-blue box - keep it dark */
@@ -97,8 +97,8 @@ input:-webkit-autofill:focus,
 textarea:-webkit-autofill,
 select:-webkit-autofill {
   -webkit-text-fill-color: #ffffff !important;
-  -webkit-box-shadow: 0 0 0 1000px #161616 inset !important;
-  box-shadow: 0 0 0 1000px #161616 inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #111418 inset !important;
+  box-shadow: 0 0 0 1000px #111418 inset !important;
   transition: background-color 9999s ease-in-out 0s;
 }
 
@@ -376,7 +376,7 @@ form[data-quote-step="4"] [data-quote-navigation] {
 .group:focus-visible .ngms-icon,
 .group:active .ngms-icon {
   transform: scale(1.12) rotate(-6deg);
-  filter: drop-shadow(0 6px 12px rgba(59, 139, 255, 0.45));
+  filter: drop-shadow(0 6px 12px rgba(20, 123, 255, 0.45));
 }
 
 @media (prefers-reduced-motion: reduce) {
