@@ -32,6 +32,9 @@ export default function RoiCalculatorPage() {
       </section>
 
       <section className="bg-graphite py-14 border-y border-darkgrey">
+        <div className="max-w-5xl mx-auto px-4 mb-8 grid sm:grid-cols-3 gap-3">
+          {[["01","System size","How many panels are on the roof?"],["02","Your saving","What does solar save you each month?"],["03","Soiling","Use a conservative dirt-loss assumption."]].map(([n,t,d]) => <div key={n} className="rounded-card border border-darkgrey bg-cardgrey p-4"><p className="text-xs font-bold tracking-[0.18em] text-orange">{n}</p><p className="font-heading font-semibold text-paper mt-2">{t}</p><p className="text-xs text-mist mt-1 leading-relaxed">{d}</p></div>)}
+        </div>
         <div className="max-w-2xl mx-auto px-4 grid sm:grid-cols-2 gap-6 mb-8">
           <div>
             <label htmlFor="roi-panels" className="block text-sm font-semibold mb-1.5 text-paper">Number of panels</label>
@@ -58,7 +61,8 @@ export default function RoiCalculatorPage() {
         </div>
 
         <div className="max-w-2xl mx-auto px-4">
-          <div className="panel p-6 space-y-4" aria-live="polite">
+          <div className="panel p-6 space-y-4 shadow-2xl" aria-live="polite">
+            <div className="flex items-center justify-between gap-4 border-b border-darkgrey pb-4"><div><p className="kicker">Your estimate</p><p className="text-sm text-mist">Transparent inputs. No inflated savings claim.</p></div><span className="rounded-full bg-orange/15 border border-orange/30 px-3 py-1 text-xs font-bold text-orange">LIVE</span></div>
             <Row label={`Estimated monthly loss (${soilingPct}% of ${rand(monthlySaving)})`} value={`${rand(result.monthlyLoss)}/month`} strong />
             <Row label="Same loss over a year" value={`${rand(result.annualLoss)}/year`} />
             <div className="h-px bg-darkgrey" />
@@ -78,8 +82,9 @@ export default function RoiCalculatorPage() {
         </div>
       </section>
 
-      <section className="bg-jet text-white text-center py-14 px-4">
-        <h2 className="font-heading text-2xl font-bold mb-3 text-paper">Want an exact price for your roof?</h2>
+      <section className="bg-jet text-white text-center py-14 px-4 border-t border-darkgrey">
+        <p className="kicker">Next step</p>
+        <h2 className="font-heading text-2xl font-bold mb-3 text-paper">Turn the estimate into a real quote.</h2>
         <div className="flex gap-4 justify-center flex-wrap mt-4">
           <Link href={`/quote?service=${encodeURIComponent('Solar Panel Cleaning')}&size=${encodeURIComponent(`${panels} panels`)}`} className="btn-quote">
             Get a free quote
