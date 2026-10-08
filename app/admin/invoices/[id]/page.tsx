@@ -68,7 +68,7 @@ function InvoiceView() {
       setMoney(sc.money)
       setQuoteNumber(sc.quote_number)
       setBusiness(sc.business)
-      const { data: linkedJob } = invoice?.quote_id ? await supabase.from('jobs').select('id,status').eq('quote_id', invoice.quote_id).neq('status','cancelled').order('created_at',{ascending:false}).limit(1).maybeSingle() : { data: null }
+      const { data: linkedJob } = sc.invoice.quote_id ? await supabase.from('jobs').select('id,status').eq('quote_id', sc.invoice.quote_id).neq('status','cancelled').order('created_at',{ascending:false}).limit(1).maybeSingle() : { data: null }
       setJobId((linkedJob as {id:string;status:string}|null)?.id ?? null)
       setJobStatus((linkedJob as {id:string;status:string}|null)?.status ?? null)
       setPayAmount(sc.money.balance > 0 ? String(sc.money.balance) : '')
