@@ -153,40 +153,56 @@ textarea:disabled {
     @apply bg-cardgrey border border-darkgrey rounded-panel shadow-panel;
   }
 
-  /* Buttons — one shared shape + interaction, colour only changes by role:
-     Solar Orange = primary "get a quote" CTA, WhatsApp Green = every WhatsApp CTA,
-     NextGen Blue = secondary actions, outline/dark = tertiary. */
+  /* Solar Forge buttons — one shared near-square shape; colour changes by role. */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 font-heading font-bold text-sm uppercase tracking-wide px-6 py-3 rounded-btn border-2 border-transparent transition-all duration-200 shadow-sm;
+    @apply inline-flex items-center justify-center gap-2 font-heading font-bold text-sm uppercase tracking-wide px-6 py-3 rounded-btn border-2 transition-all duration-200;
+    min-height: 3rem;
+    box-shadow: 0 2px 0 rgba(0,0,0,.34), 0 6px 14px rgba(0,0,0,.14);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
   }
-  .btn:hover {
-    @apply -translate-y-0.5 shadow-md;
+  .btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-120%);
+    background: linear-gradient(100deg, transparent 35%, rgba(255,255,255,.12) 50%, transparent 65%);
+    pointer-events: none;
+    z-index: -1;
   }
-  .btn:active {
-    @apply translate-y-0 shadow-sm;
-  }
+  .btn:hover { @apply -translate-y-0.5; box-shadow: 0 2px 0 rgba(0,0,0,.26), 0 10px 20px rgba(0,0,0,.22); }
+  .btn:hover::after { animation: forge-btn-sweep .55s ease-out 1; }
+  .btn:focus-visible { outline: 2px solid #FF6A00; outline-offset: 3px; }
+  .btn:active { transform: translateY(1px) scale(.99); box-shadow: 0 1px 0 rgba(0,0,0,.3), 0 3px 8px rgba(0,0,0,.14); }
+  .btn svg, .btn .icon, .btn [data-icon] { transition: transform .2s cubic-bezier(.2,.8,.2,1); flex: 0 0 auto; }
+  .btn:hover svg, .btn:hover .icon, .btn:hover [data-icon] { transform: translateX(3px); }
 
-  /* Every WhatsApp button: solid WhatsApp green, white bold caps */
-  .btn-wa,
-  .btn-wa-price {
-    @apply btn bg-whatsapp text-white hover:bg-whatsapp-dark;
-  }
+  .btn-wa, .btn-wa-price { @apply btn bg-whatsapp text-white border-whatsapp hover:bg-whatsapp-dark; }
 
-  /* Every "Get a quote" button: solid Solar Orange, jet text (7.3:1 contrast) */
-  .btn-glow,
-  .btn-quote {
-    @apply btn bg-orange text-jet hover:bg-orange-dark;
+  .btn-glow, .btn-quote {
+    @apply btn bg-orange text-jet border-orange hover:bg-orange-dark hover:border-orange-dark;
+    box-shadow: 0 2px 0 rgba(0,0,0,.3), 0 7px 16px rgba(255,106,0,.16);
   }
+  .btn-quote:hover, .btn-glow:hover { box-shadow: 0 2px 0 rgba(0,0,0,.24), 0 12px 24px rgba(255,106,0,.24); }
 
-  /* "Most popular" badge-button: dark grey fill, orange border + text */
-  .btn-popular {
-    @apply inline-block bg-cardgrey text-orange font-heading font-bold uppercase tracking-wide border-2 border-orange rounded-btn px-3 py-1;
-  }
+  .btn-popular { @apply inline-block bg-cardgrey text-orange font-heading font-bold uppercase tracking-wide border-2 border-orange rounded-btn px-3 py-1; }
 
-  /* "Get in touch" buttons: dark grey, white text */
-  .btn-touch {
-    @apply btn bg-cardgrey text-white border-darkgrey hover:bg-graphite hover:border-blue;
-  }
+  .btn-touch { @apply btn bg-cardgrey text-white border-darkgrey hover:bg-graphite hover:border-orange; }
+  .btn-facebook { @apply btn bg-facebook text-white border-facebook hover:bg-facebook-dark; }
+
+  .btn-outline { @apply btn bg-transparent border-mist/40 text-paper hover:border-orange hover:text-orange; }
+  .btn-dark { @apply btn bg-cardgrey border-darkgrey text-paper hover:border-orange hover:text-orange; }
+
+  /* Only controls permitted on the full orange panel. */
+  .btn-jet { @apply btn bg-jet text-paper border-jet hover:bg-graphite; }
+  .btn-outline-jet { @apply btn bg-transparent border-jet text-jet hover:bg-jet hover:text-paper; }
+
+  /* Power Purple role is retained through the existing legacy token mapping. */
+  .btn-blue, .btn-power, .btn-quote-popup { @apply btn bg-blue-fill text-white border-blue-fill hover:bg-blue-dark hover:border-blue-dark; }
+
+  /* One-off hero action; do not reuse hero-teal elsewhere. */
+  .btn-quote-hero { @apply btn bg-hero-teal text-jet border-hero-teal hover:brightness-95; }
 
   /* Before / After photo labels */
   .badge-glow {
@@ -352,6 +368,9 @@ form[data-quote-step="4"] [data-quote-navigation] {
 .animate-fade-up {
   animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+/* Solar Forge button sweep */
+@keyframes forge-btn-sweep { from { transform: translateX(-120%); } to { transform: translateX(120%); } }
 
 /* Brand icons (components/NgmsIcon.tsx): hover gently while on the page,
    lift + tilt with an orange glow on hover, keyboard focus or tap. The float
