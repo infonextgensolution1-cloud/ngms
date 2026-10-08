@@ -33,7 +33,7 @@ async function upload(file: File) {
     upsert: false,
   })
   if (error) throw error
-  return supabase.storage.from('before-after-photos').getPublicUrl(path).data.publicUrl
+  return supabase.storage.from('before-after-photos').getPublicUrl(path, { transform: { width: 1600, quality: 82 } }).data.publicUrl
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
