@@ -39,7 +39,7 @@ export async function POST(request:Request){
     '',
     'Your completion report, job photos and account information are available in your NextGen Customer Portal:',
     portal,
-    balance>0?\`Outstanding final balance: R ${balance.toFixed(2)}`:'Your account shows no outstanding balance.',
+    balance>0?`Outstanding final balance: R ${balance.toFixed(2)}`:'Your account shows no outstanding balance.',
     '',
     settings?.google_review_url?`Google review: ${settings.google_review_url}`:null,
     settings?.facebook_review_url?`Facebook review: ${settings.facebook_review_url}`:null,
