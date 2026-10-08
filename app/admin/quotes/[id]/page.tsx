@@ -53,6 +53,7 @@ function QuoteView() {
   const [linkCopied, setLinkCopied] = useState(false)
   const [pdfSaved, setPdfSaved] = useState(false)
   const [versions, setVersions] = useState<QuoteVersionRow[]>([])
+  const [sourceQuote, setSourceQuote] = useState<{ id: string; quote_number: string } | null>(null)
   const [revisionOpen, setRevisionOpen] = useState(false)
   const [revisionReason, setRevisionReason] = useState('')
 
@@ -83,6 +84,12 @@ function QuoteView() {
       setSettings(s)
       const versionRows = (versionRes.data ?? []) as QuoteVersionRow[]
       setVersions(versionRows)
+      if (sc.quote.revision_of_quote_id) {
+        const { data: source } = await supabase.from('quotes').select('id,quote_number').eq('id', sc.quote.revision_of_quote_id).maybeSingle()
+        setSourceQuote(source as { id: string; quote_number: string } | null)
+      } else {
+        setSourceQuote(null)
+      }
       const latestVersion = versionRows[0]
       setCustomerLink(latestVersion?.public_token ? `${window.location.origin}/quote/${latestVersion.public_token}` : null)
     } catch (e) {
@@ -439,6 +446,16 @@ function QuoteView() {
             <p className="text-xs text-mist mb-2">No WhatsApp number on file for this client. Add one on their client page to send from here.</p>
           )}
           <p className="text-[11px] text-mist mb-4">The PDF is generated and saved first. On supported phones, WhatsApp opens with the PDF attached; otherwise WhatsApp opens with the message and the downloaded PDF can be attached.</p>
+
+          {sourceQuote && (
+            <div className="mb-4 rounded-card border border-blue bg-cardgrey p-3">
+              <p className="text-xs font-heading font-semibold text-paper">Revision lineage</p>
+              <p className="mt-1 text-[11px] text-mist">This draft was created from the original quote:</p>
+              <Link href={`/admin/quotes/${sourceQuote.id}`} className="mt-1 inline-flex text-xs text-blue hover:text-paper font-heading font-semibold">
+                ← {sourceQuote.quote_number}
+              </Link>
+            </div>
+          )}
 
           {versions.length > 0 && (
             <div className="mb-4 rounded-card border border-darkgrey bg-cardgrey p-3">
