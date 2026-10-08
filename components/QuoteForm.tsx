@@ -71,11 +71,15 @@ export default function QuoteForm({
   const [sizeText, setSizeText] = useState(initialSize ?? "");
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoErr, setPhotoErr] = useState("");
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoMeta, setPhotoMeta] = useState<{ width: number; height: number; size: number } | null>(null);
   const [prefDate, setPrefDate] = useState("");
+  const [notes, setNotes] = useState("");
   const days = useForecast();
 
   const svc = SERVICES.find((x) => x.name === serviceName);
   const estimate = useMemo(() => instantEstimate(svc?.slug, sizeText), [svc?.slug, sizeText]);
+  const leadScore = useMemo(() => Math.min(100, 25 + (serviceName ? 15 : 0) + (sizeText.trim() ? 20 : 0) + (photo ? 20 : 0) + (prefDate ? 10 : 0) + (notes.trim().length >= 30 ? 10 : 0)), [serviceName, sizeText, photo, prefDate, notes]);
   const wxTrade = svc ? WEATHER_TRADES[svc.slug] : undefined;
   const dateWarning = useMemo(
     () => (prefDate && svc ? jobWeather(svc.name, prefDate, days)?.note ?? null : null),
@@ -277,7 +281,7 @@ export default function QuoteForm({
           className="field"
           onChange={(e) => {
             const f = e.target.files?.[0] ?? null;
-            if (f && f.size > 15 * 1024 * 1024) {
+            if (photoPreview) URL.revokeObjectURL(photoPreview);\n            if (f && f.size > 15 * 1024 * 1024) {
               setPhotoErr("That photo is over 15MB. Please pick a smaller one.");
               setPhoto(null);
               e.target.value = "";

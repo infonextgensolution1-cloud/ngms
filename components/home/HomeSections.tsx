@@ -14,7 +14,7 @@ export type Photo = { src: string; caption: string }
 
 function PhotoFill({ photo, sizes, className = '' }: { photo?: Photo; sizes: string; className?: string }) {
   if (!photo?.src) return <div className={`absolute inset-0 bg-graphite ${className}`} />
-  return <Image src={photo.src} alt={photo.caption} fill sizes={sizes} quality={70} unoptimized={photo.src.includes(".supabase.co/storage/")} className={`object-cover ${className}`} />
+  return <Image src={photo.src} alt={photo.caption} fill sizes={sizes} quality={70} className={`object-cover ${className}`} />
 }
 
 function SectionHead({ kicker, title, intro, action }: { kicker: string; title: ReactNode; intro?: ReactNode; action?: ReactNode }) {
@@ -84,7 +84,7 @@ export function ServicesOverview({
               <li key={s.slug} className={feature ? 'col-span-2 row-span-2' : wide ? 'col-span-2' : ''}>
                 <Link
                   href={`/services/${s.slug}`}
-                  className={`group relative flex h-full flex-col justify-end overflow-hidden rounded-panel border border-darkgrey bg-cardgrey ${
+                  className={`group forge-interactive relative flex h-full flex-col justify-end overflow-hidden rounded-panel border border-darkgrey bg-cardgrey ${
                     feature ? 'min-h-[340px] sm:min-h-[460px]' : 'min-h-[190px] sm:min-h-[220px]'
                   }`}
                 >
@@ -140,7 +140,7 @@ export function SolarFeature({ photo }: { photo?: Photo }) {
             wash — no abrasive pads and no high pressure on the glass — and check the array while we&rsquo;re up there.
           </p>
 
-          <div className="relative mt-8 aspect-[16/9] overflow-hidden rounded-panel bg-graphite">
+          <div className="relative mt-8 aspect-[16/9] overflow-hidden rounded-panel bg-graphite forge-shimmer">
             <PhotoFill photo={photo} sizes="(max-width: 1024px) 100vw, 55vw" />
             {photo?.caption && (
               <p className="absolute left-3 bottom-3 rounded-btn bg-jet/75 backdrop-blur px-3 py-1.5 text-xs text-paper">{photo.caption}</p>
@@ -192,7 +192,7 @@ export function SolarFeature({ photo }: { photo?: Photo }) {
         </div>
 
         <div className="lg:col-span-5 min-w-0 lg:sticky lg:top-24">
-          <SolarRoiCalculator />
+          <div className="forge-reveal"><SolarRoiCalculator /></div>
         </div>
       </div>
     </section>
@@ -375,7 +375,7 @@ export function FinalCta({ photo }: { photo?: Photo }) {
   return (
     <section className="relative isolate overflow-hidden bg-jet text-paper px-4 py-20 sm:py-28" aria-labelledby="cta-title">
       <div className="absolute inset-0 -z-10" aria-hidden>
-        {photo?.src && <Image src={photo.src} alt="" fill sizes="100vw" quality={60} unoptimized={photo.src.includes(".supabase.co/storage/")} className="object-cover opacity-35" />}
+        {photo?.src && <Image src={photo.src} alt="" fill sizes="100vw" quality={60} className="object-cover opacity-35" />}
         <div className="absolute inset-0 bg-gradient-to-r from-jet via-jet/85 to-jet/50" />
       </div>
       <div className="max-w-6xl mx-auto">
