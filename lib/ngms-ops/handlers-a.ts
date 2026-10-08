@@ -229,7 +229,6 @@ export const handlersA: Record<string, Handler> = {
   // ---------------------------------------------------------- quotes
   async ngms_list_quotes(sb, args) {
     const { limit, offset } = page(args)
-    const status = oneOf(args, 'status', QUOTE_STATUSES)
     const clientId = uuid(args, 'client_id', 'from ngms_list_clients', false)
     const search = str(args, 'search', { max: 100 })
     const sinceDays = num(args, 'since_days', { min: 1, max: 730, integer: true })
@@ -387,11 +386,16 @@ export const handlersA: Record<string, Handler> = {
     const revisionReason = str(args, 'revision_reason', { max: 500 })
     const hasContentChange = args.items !== undefined || args.apply_vat !== undefined || args.deposit_amount !== undefined || args.deposit_percent !== undefined || args.valid_until !== undefined || args.notes !== undefined
 
-    if (quote.status === 'accepted' && hasContentChange) {
-      throw new ToolError(`${quote.quote_number} is accepted and locked. Create a new quote revision instead of changing the accepted version.`)
+    const requestedStatus = oneOf(args, 'status', QUOTE_STATUSES)
+    const terminalStatus = quote.status === 'accepted' || quote.status === 'declined'
+    if (terminalStatus && (hasContentChange || (requestedStatus && requestedStatus !== quote.status))) {
+      throw new ToolError(`${quote.quote_number} is ${quote.status} and locked. Create a new quote revision instead of changing the closed version.`)
     }
     if (quote.status === 'sent' && hasContentChange && !revisionReason) {
       throw new ToolError(`${quote.quote_number} has already been sent. Add a revision_reason before changing customer-facing content.`)
+    }
+    if (quote.status === 'sent' && requestedStatus === 'draft') {
+      throw new ToolError(`${quote.quote_number} has already been sent. It cannot be moved back to draft; create a new quote revision instead.`)
     }
 
     const newItems = args.items !== undefined ? parseItems(args) : null
