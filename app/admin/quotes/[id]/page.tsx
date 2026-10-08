@@ -81,7 +81,8 @@ function QuoteView() {
       setSettings(s)
       const versionRows = (versionRes.data ?? []) as QuoteVersionRow[]
       setVersions(versionRows)
-      const latestVersion = versionRows[0]\n      setCustomerLink(latestVersion?.public_token ? `${window.location.origin}/quote/${latestVersion.public_token}` : null)
+      const latestVersion = versionRows[0]
+      setCustomerLink(latestVersion?.public_token ? `${window.location.origin}/quote/${latestVersion.public_token}` : null)
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -282,7 +283,8 @@ function QuoteView() {
     setMsg('')
     try {
       const res = await handlersB.ngms_create_invoice(supabase, { quote_id: quote.id, kind: 'deposit' })
-      setMsg(res.content[0]?.text?.split('\n')[0] ?? (res.isError ? 'Could not create the invoice' : 'Deposit invoice created.'))
+      setMsg(res.content[0]?.text?.split('
+')[0] ?? (res.isError ? 'Could not create the invoice' : 'Deposit invoice created.'))
       if (!res.isError) await load()
     } catch (e) {
       setMsg((e as Error).message)
@@ -407,7 +409,27 @@ function QuoteView() {
           <p className="text-[11px] text-mist mb-4">The PDF is generated and saved first. On supported phones, WhatsApp opens with the PDF attached; otherwise WhatsApp opens with the message and the downloaded PDF can be attached.</p>
 
           {versions.length > 0 && (
-            <div className="mb-4 rounded-card border border-darkgrey bg-cardgrey p-3">\n              <div className="flex items-center justify-between gap-3 mb-2">\n                <div>\n                  <p className="text-xs font-heading font-semibold text-paper">Quote version history</p>\n                  <p className="text-[11px] text-mist mt-0.5">Customer-facing versions are preserved as snapshots.</p>\n                </div>\n                <span className="text-[10px] uppercase tracking-wider text-mist">{versions.length} version{versions.length === 1 ? '' : 's'}</span>\n              </div>\n              <div className="space-y-2">\n                {versions.map((v) => (\n                  <div key={v.id} className="rounded-btn border border-darkgrey px-3 py-2">\n                    <div className="flex flex-wrap items-center justify-between gap-2">\n                      <span className="text-xs font-heading font-semibold text-paper">v{v.version_number} · {v.version_status}</span>\n                      <span className="text-[10px] text-mist">{new Date(v.created_at).toLocaleString('en-ZA')}</span>\n                    </div>\n                    {v.change_summary && <p className="mt-1 text-[11px] text-mist">{v.change_summary}</p>}\n                    {v.revision_reason && <p className="mt-1 text-[11px] text-paper">Reason: {v.revision_reason}</p>}\n                  </div>\n                ))}\n              </div>\n            </div>
+            <div className="mb-4 rounded-card border border-darkgrey bg-cardgrey p-3">
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <div>
+                  <p className="text-xs font-heading font-semibold text-paper">Quote version history</p>
+                  <p className="text-[11px] text-mist mt-0.5">Customer-facing versions are preserved as snapshots.</p>
+                </div>
+                <span className="text-[10px] uppercase tracking-wider text-mist">{versions.length} version{versions.length === 1 ? '' : 's'}</span>
+              </div>
+              <div className="space-y-2">
+                {versions.map((v) => (
+                  <div key={v.id} className="rounded-btn border border-darkgrey px-3 py-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-xs font-heading font-semibold text-paper">v{v.version_number} · {v.version_status}</span>
+                      <span className="text-[10px] text-mist">{new Date(v.created_at).toLocaleString('en-ZA')}</span>
+                    </div>
+                    {v.change_summary && <p className="mt-1 text-[11px] text-mist">{v.change_summary}</p>}
+                    {v.revision_reason && <p className="mt-1 text-[11px] text-paper">Reason: {v.revision_reason}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
           {customerLink && (
