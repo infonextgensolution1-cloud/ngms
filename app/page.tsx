@@ -8,7 +8,7 @@ import BodyCorporateSection from '@/components/BodyCorporateSection'
 import HelderbergToday from '@/components/home/HelderbergToday'
 import HomeHero from '@/components/home/HomeHero'
 import { getBusinessHours } from '@/lib/business-hours'
-import { AreasAndFaq, FinalCta, RecentWork, ServicesOverview, SolarFeature, WhyNgms, type Photo } from '@/components/home/HomeSections'
+import { AreasAndFaq, FinalCta, GoogleReviews, RecentWork, ServicesOverview, SolarFeature, WhyNgms, type Photo } from '@/components/home/HomeSections'
 import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages, getSlotPhotos } from '@/lib/queries'
 
 export const revalidate = 300
@@ -71,6 +71,7 @@ export default async function HomePage() {
       <ServicesOverview services={services} images={serviceImages} />
       <SolarFeature photo={slot('hero_solar') ?? solarPhotos[0] ?? pick(0)} />
       <RecentWork photos={recent} />
+      <GoogleReviews />
       <TrustStrip beforeAfter={beforeAfter} />
       <WhyNgms photo={slot('mission_left') ?? pick(1)} />
       <HowItWorks />
