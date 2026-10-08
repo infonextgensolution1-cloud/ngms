@@ -160,6 +160,12 @@ export const TOOLS = [
     annotations: WRITE,
   },
   {
+    name: 'ngms_create_quote_revision', title: 'Create quote revision',
+    description: 'Create a new draft quote from an existing quote without mutating the original customer-facing record. Copies client, line items, VAT and deposit percentage, resets validity from today, and records the revision reason.',
+    inputSchema: { type: 'object', properties: { quote_id: { type: 'string' }, revision_reason: { type: 'string', maxLength: 500 }, valid_days: { type: 'integer', minimum: 1, maximum: 365 } }, required: ['quote_id', 'revision_reason'], additionalProperties: false },
+    outputSchema: obj, annotations: WRITE,
+  },
+  {
     name: 'ngms_update_quote',
     title: 'Update quote',
     description:
