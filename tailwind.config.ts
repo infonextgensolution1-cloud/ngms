@@ -38,19 +38,19 @@ const config: Config = {
         'ember-deep': '#B83E00',
         // Solar Orange — the conversion colour: primary "Get a quote" CTAs and rare attention marks only
         orange: {
-          DEFAULT: '#FF4B24',
-          dark: '#D83A17',
+          DEFAULT: '#FF6A00',
+          dark: '#D94F00',
         },
-        // NextGen Blue — the technology accent: kickers, links, icons, focus rings, active states.
+        // Legacy blue utility names map to the NGMS orange accent for backwards compatibility.
         //   DEFAULT  text/icons on dark (5.96:1 on Jet)
         //   fill     solid fills under white text (4.63:1)
         //   dark     hover/pressed fill (5.43:1 under white)
         //   deep     blue TEXT on light bands (4.9:1 on Fog, 5.5:1 on Chalk)
         blue: {
-          DEFAULT: '#FF4B24',
-          fill: '#E84320',
-          dark: '#C93617',
-          deep: '#B83218',
+          DEFAULT: '#FF6A00',
+          fill: '#E65A00',
+          dark: '#C94D00',
+          deep: '#B83E00',
         },
         // WhatsApp Green — WhatsApp buttons only (functional, kept)
         whatsapp: {
@@ -59,18 +59,18 @@ const config: Config = {
         },
         // Luminous Orange — "Get a quote" / CTA buttons (black text, Eco Green border)
         glow: {
-          DEFAULT: '#FF6A45',
+          DEFAULT: '#FF6A00',
           bright: '#FF896B',
         },
         // Legacy 'power' token (was purple) now follows NextGen Blue so older
         // components stay on-palette without edits.
         power: {
-          DEFAULT: '#FF4B24',
-          dark: '#C93617',
-          light: '#FF8063',
+          DEFAULT: '#FF6A00',
+          dark: '#C94D00',
+          light: '#FF8A3D',
         },
-        // Eco Green — CTA button border
-        ecogreen: '#FF4B24',
+        // Solar Orange — legacy CTA border token
+        ecogreen: '#FF6A00',
         // Facebook Blue — Facebook icon and the "Book a site walk-through" button
         facebook: {
           DEFAULT: '#1877F2',
