@@ -85,7 +85,24 @@ function InvoiceView() {
 
   async function setStatus(status: 'sent' | 'void') {
     if (!invoice) return
-    if (status === 'void' && !window.confirm(`Void ${invoice.invoice_number}? It stays on record as cancelled and drops out of your totals.`)) return
+    if (status === 'void') {
+      const reason = window.prompt(`Why are you voiding ${invoice.invoice_number}? This keeps the invoice on record but removes it from active totals.`, 'Created incorrectly')
+      if (reason === null) return
+      if (!reason.trim()) { setMsg('A reason is required when voiding an invoice.'); return }
+      setBusy(status)
+      setMsg('')
+      try {
+        const res = await handlersB.ngms_update_invoice(supabase, { invoice_id: invoice.id, status, note: `VOID REASON: ${reason.trim()}` })
+        if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not void the invoice')
+        setMsg('Invoice voided and the reason was recorded.')
+        await load()
+      } catch (e) {
+        setMsg((e as Error).message)
+      } finally {
+        setBusy(null)
+      }
+      return
+    }
     setBusy(status)
     setMsg('')
     try {
@@ -274,14 +291,14 @@ function InvoiceView() {
                 disabled={!!busy}
                 className="inline-flex items-center gap-1.5 border border-darkgrey hover:border-orange text-mist hover:text-orange text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
               >
-                {busy === 'void' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />} Void (cancel)
+                {busy === 'void' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />} Void invoice
               </button>
             )}
             {/* Only unsent drafts can be deleted; issued invoices are voided so they stay on record. */}
             {invoice.status === 'draft' && money.paid <= 0.004 && (
               <DeleteRecord
-                label="Delete draft"
-                confirmText={`Delete draft ${invoice.invoice_number}${client?.name ? ` for ${client.name}` : ''}?`}
+                label="Delete draft invoice"
+                confirmText={`Permanently delete draft ${invoice.invoice_number}${client?.name ? ` for ${client.name}` : ''}? This cannot be undone. Only unpaid drafts can be deleted.`}
                 onDelete={() => deleteDraftInvoice(supabase, invoice.id)}
                 redirectTo="/admin/invoices"
               />
