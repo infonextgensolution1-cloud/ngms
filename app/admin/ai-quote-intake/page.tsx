@@ -2,11 +2,10 @@
 
 import { useState } from 'react'
 import StaffGate from '@/components/admin/StaffGate'
-import PageShell from '@/components/admin/PageShell'
 import { supabase } from '@/lib/supabaseClient'
 
 export default function AiQuoteIntakePage() {
-  return <StaffGate><AiQuoteIntake /></StaffGate>
+  return <StaffGate title="AI Quote Intake"><AiQuoteIntake /></StaffGate>
 }
 
 function AiQuoteIntake() {
@@ -33,7 +32,7 @@ function AiQuoteIntake() {
     } catch (e) { setError((e as Error).message) } finally { setBusy(false) }
   }
 
-  return <PageShell title="AI Quote Intake"><main className="min-h-[70vh] bg-jet px-4 py-16"><div className="max-w-4xl mx-auto">
+  return <main className="min-h-[70vh] bg-jet px-4 py-16"><div className="max-w-4xl mx-auto">
     <p className="kicker">Solar Forge · AI Ops</p>
     <h1 className="text-3xl sm:text-5xl">AI-assisted quote intake</h1>
     <p className="text-mist mt-3 max-w-2xl">Paste a WhatsApp enquiry, site note or photo description. The protected AI tool structures the job into quote-ready lines for staff review. Nothing is sent or approved automatically.</p>
@@ -52,5 +51,5 @@ function AiQuoteIntake() {
         {result ? <pre className="mt-4 whitespace-pre-wrap text-xs text-mist bg-jet rounded-panel p-4 overflow-auto max-h-[480px]">{result}</pre> : <p className="text-mist mt-4 text-sm">The AI draft will appear here. Verify scope, quantities, pricing and site conditions before creating or sending a quote.</p>}
       </section>
     </div>
-  </div></main></PageShell>
+  </div></main>
 }
