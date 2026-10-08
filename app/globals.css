@@ -422,118 +422,191 @@ form[data-quote-step="4"] [data-quote-navigation] {
 @media (prefers-reduced-motion: reduce) { .forge-interactive,.forge-reveal,.forge-shimmer::after { animation:none!important; transition:none!important; transform:none!important; } }
 
 
-/* ---------- NGMS Pinterest visual direction (public UI styling only) ----------
-   Palette: carbon black, signal orange, warm off-white, concrete grey and white.
-   Channel colours are reserved: WhatsApp green and Facebook blue only. */
+
+/* ---------- NGMS public design system: Pinterest orange + warm neutrals ----------
+   Public website only. Quote/invoice print templates retain their own palette.
+   Orange is the sole NGMS brand accent; channel colours remain functional. */
 :root {
-  --ngms-orange: #FF4B24;
-  --ngms-black: #0B0D0F;
-  --ngms-charcoal: #151719;
-  --ngms-offwhite: #F3F0E9;
-  --ngms-concrete: #D5D4D0;
-  --ngms-white: #FFFFFF;
-}
-html { color-scheme: dark; }
-body { background-color: var(--ngms-black); }
-:focus-visible { outline-color: var(--ngms-orange); }
-.skip-link { background: var(--ngms-orange); color: var(--ngms-black); }
-input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="color"]),
-select, textarea { caret-color: var(--ngms-orange); }
-input:focus, select:focus, textarea:focus {
-  border-color: var(--ngms-orange) !important;
-  box-shadow: 0 0 0 3px rgba(255,75,36,.22);
-}
-.btn:focus-visible { outline-color: var(--ngms-orange); }
-.btn-glow, .btn-quote {
-  box-shadow: 0 2px 0 rgba(0,0,0,.3), 0 5px 12px rgba(255,75,36,.16);
-}
-.btn-quote:hover, .btn-glow:hover {
-  box-shadow: 0 2px 0 rgba(0,0,0,.26), 0 9px 18px rgba(255,75,36,.22);
-}
-.btn-touch:hover svg, .btn-touch:hover .icon, .btn-touch:hover [data-icon] {
-  color: var(--ngms-orange);
-}
-.btn-outline:hover, .btn-dark:hover { border-color: var(--ngms-orange); color: var(--ngms-orange); }
-.band-light { background-color: var(--ngms-offwhite); }
-.band-light .text-blue, .band-light .kicker { color: #B83218; }
-.ngms-icon:hover, .group:hover .ngms-icon, .group:focus-visible .ngms-icon, .group:active .ngms-icon {
-  filter: drop-shadow(0 6px 12px rgba(255,75,36,.32));
-}
-@keyframes forge-power-edge {
-  0% { box-shadow:0 0 0 0 rgba(255,75,36,0); }
-  45% { box-shadow:0 0 0 2px rgba(255,75,36,.5),0 0 14px rgba(255,75,36,.2); }
-  100% { box-shadow:0 2px 0 rgba(0,0,0,.32),0 4px 10px rgba(0,0,0,.12); }
-}
-/* Keep the two approved social-channel colours functional and recognisable. */
-.btn-wa, .btn-wa-price { background-color:#25D366; border-color:#25D366; color:#FFFFFF; }
-.btn-facebook { background-color:#1877F2; border-color:#1877F2; color:#FFFFFF; }
-/* End NGMS Pinterest visual direction */
-
-
-/* Editorial architecture-inspired type and controls for the public site */
-h1, h2, h3 {
-  font-family: Impact, "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
-  font-stretch: condensed;
-  letter-spacing: -.025em;
-}
-.kicker, .tag {
-  color: var(--ngms-orange);
-}
-[aria-labelledby="hero-title"] {
-  min-height: 680px;
-}
-[aria-labelledby="hero-title"] h1 {
-  font-size: clamp(3.4rem, 8.4vw, 7.2rem);
-  line-height: .84;
-  letter-spacing: -.045em;
-  max-width: 10ch;
-}
-[aria-labelledby="hero-title"] h1 span {
-  color: transparent !important;
-  -webkit-text-stroke: 1.3px rgba(255,255,255,.72);
-}
-[aria-labelledby="hero-title"] > div:first-of-type > p:first-child {
-  border-radius: 2px;
-  border-color: rgba(255,75,36,.45);
-}
-[aria-labelledby="hero-title"] > div:first-of-type > p:first-child span {
-  background-color: var(--ngms-orange);
-}
-[aria-labelledby="hero-title"] ul {
-  border-radius: 2px;
-}
-[data-site-marketing] h1, [data-site-marketing] h2, [data-site-marketing] h3 {
-  font-family: Impact, "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
-}
-@media (max-width: 639px) {
-  [aria-labelledby="hero-title"] { min-height: 600px; }
-  [aria-labelledby="hero-title"] h1 { font-size: clamp(3.1rem, 14vw, 4.5rem); }
-}
-
-/* Success states use the brand accent; green is reserved for WhatsApp only. */
-.btn.is-success, .btn[data-state="success"] {
-  border-color: var(--ngms-orange);
-  box-shadow: 0 0 0 1px rgba(255,75,36,.22);
-}
-
-
-/* Pinterest-inspired NGMS public palette: orange, ink, warm paper and concrete.
-   Keep admin/print templates independent; these tokens style the public website. */
-:root {
+  color-scheme: dark;
   --ngms-orange: #FF6A00;
-  --ngms-orange-deep: #D94F00;
+  --ngms-orange-hover: #D94F00;
   --ngms-ink: #111111;
-  --ngms-paper: #F7F4EF;
+  --ngms-charcoal: #1B1B1B;
+  --ngms-grey-900: #262626;
+  --ngms-grey-700: #555555;
+  --ngms-grey-500: #888782;
   --ngms-concrete: #D7D3CD;
+  --ngms-paper: #F7F4EF;
+  --ngms-white: #FFFFFF;
+  --ngms-whatsapp: #25D366;
+  --ngms-facebook: #1877F2;
+  --ngms-border-dark: #383838;
+  --ngms-field: #171717;
+  --ngms-radius-card: 6px;
+  --ngms-radius-control: 4px;
+  --ngms-shadow-card: 0 12px 30px rgba(0,0,0,.18);
 }
 html { color-scheme: dark; }
-body { background-color: #111111; }
-:focus-visible { outline-color: var(--ngms-orange); }
-.skip-link { background: var(--ngms-orange); color: #111111; }
-.band-light .text-blue,
-.band-light .kicker { color: var(--ngms-orange-deep); }
+body {
+  background: var(--ngms-ink);
+  color: var(--ngms-white);
+  overflow-x: clip;
+}
+h1, h2, h3, h4 {
+  font-family: var(--font-heading), Poppins, system-ui, sans-serif;
+  text-wrap: balance;
+}
+:focus-visible {
+  outline: 2px solid var(--ngms-orange);
+  outline-offset: 3px;
+}
+.skip-link {
+  background: var(--ngms-orange);
+  color: var(--ngms-ink);
+  border-radius: var(--ngms-radius-control);
+}
+.kicker, .tag { color: var(--ngms-orange); }
 .text-blue { color: var(--ngms-orange) !important; }
 .bg-blue { background-color: var(--ngms-orange) !important; }
 .border-blue { border-color: var(--ngms-orange) !important; }
 .hover\\:text-blue:hover { color: var(--ngms-orange) !important; }
 .hover\\:border-blue:hover { border-color: var(--ngms-orange) !important; }
+
+/* Shared surfaces: a single neutral ramp, with no purple/teal/blue brand accents. */
+.card, .panel {
+  border-radius: var(--ngms-radius-card);
+  border-color: var(--ngms-border-dark);
+}
+.card { background: var(--ngms-charcoal); }
+.panel { background: #151515; box-shadow: var(--ngms-shadow-card); }
+.border-darkgrey, .border-line { border-color: var(--ngms-border-dark); }
+.bg-graphite { background-color: var(--ngms-charcoal); }
+.bg-cardgrey { background-color: #171717; }
+.text-mist { color: #C4C1BB; }
+.text-paper { color: var(--ngms-white); }
+
+/* Primary actions use orange; secondary actions stay neutral. */
+.btn {
+  border-radius: 2px;
+  min-height: 3rem;
+  transition: transform .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.btn-glow, .btn-quote, .btn-quote-popup, .btn-blue, .btn-power, .btn-quote-hero {
+  background: var(--ngms-orange) !important;
+  border-color: var(--ngms-orange) !important;
+  color: var(--ngms-ink) !important;
+}
+.btn-glow:hover, .btn-quote:hover, .btn-quote-popup:hover, .btn-blue:hover, .btn-power:hover, .btn-quote-hero:hover {
+  background: var(--ngms-orange-hover) !important;
+  border-color: var(--ngms-orange-hover) !important;
+  color: var(--ngms-white) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255,106,0,.18);
+}
+.btn-touch, .btn-dark, .btn-jet {
+  background-color: #202020;
+  border-color: #484848;
+  color: var(--ngms-white);
+}
+.btn-touch:hover, .btn-dark:hover, .btn-jet:hover, .btn-outline:hover {
+  border-color: var(--ngms-orange);
+  color: var(--ngms-orange);
+}
+.btn-outline {
+  border-color: #77736D;
+  color: var(--ngms-paper);
+}
+.btn-wa, .btn-wa-price {
+  background: var(--ngms-whatsapp) !important;
+  border-color: var(--ngms-whatsapp) !important;
+  color: #FFFFFF !important;
+}
+.btn-wa:hover, .btn-wa-price:hover { background: #1DA851 !important; border-color: #1DA851 !important; color: #FFFFFF !important; }
+.btn-wa svg, .btn-wa .icon, .btn-wa [data-icon], .btn-wa-price svg { color: #FFFFFF; }
+.btn-facebook {
+  background: var(--ngms-facebook) !important;
+  border-color: var(--ngms-facebook) !important;
+  color: #FFFFFF !important;
+}
+.btn.is-success, .btn[data-state="success"] {
+  border-color: var(--ngms-orange);
+  box-shadow: 0 0 0 1px rgba(255,106,0,.22);
+}
+
+/* Form controls: legible on dark surfaces, consistent focus and mobile sizing. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="color"]),
+select, textarea {
+  background-color: var(--ngms-field) !important;
+  color: var(--ngms-white) !important;
+  -webkit-text-fill-color: var(--ngms-white);
+  border: 1px solid #484848;
+  border-radius: var(--ngms-radius-control);
+  font-size: 16px;
+  caret-color: var(--ngms-orange);
+}
+select option, select optgroup { background: var(--ngms-field); color: var(--ngms-white); }
+input::placeholder, textarea::placeholder {
+  color: #C4C1BB !important;
+  -webkit-text-fill-color: #C4C1BB;
+  opacity: 1;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--ngms-orange) !important;
+  box-shadow: 0 0 0 3px rgba(255,106,0,.2);
+}
+input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus,
+textarea:-webkit-autofill, select:-webkit-autofill {
+  -webkit-text-fill-color: var(--ngms-white) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--ngms-field) inset !important;
+  box-shadow: 0 0 0 1000px var(--ngms-field) inset !important;
+}
+input:disabled, select:disabled, textarea:disabled { opacity: .6; cursor: not-allowed; }
+
+/* Light editorial bands use warm paper and concrete; dark panels remain dark. */
+.band-light {
+  background-color: var(--ngms-paper);
+  color: #262626;
+}
+.band-light :is(h1,h2,h3,h4) { color: #262626; }
+.band-light .text-paper { color: #262626; }
+.band-light .text-mist, .band-light .tag { color: #57534E; }
+.band-light .text-orange, .band-light .text-blue, .band-light .kicker { color: #B83E00 !important; }
+.band-light .card { background: var(--ngms-white); border-color: var(--ngms-concrete); }
+.band-light .border-darkgrey, .band-light .border-line { border-color: var(--ngms-concrete); }
+.band-light .panel { background: #171717; color: var(--ngms-white); }
+.band-light .panel :is(h1,h2,h3,h4), .band-light .panel .text-paper { color: var(--ngms-white); }
+.band-light .panel .text-mist, .band-light .panel .tag { color: #C4C1BB; }
+
+/* Homepage hero: retain the admin-managed carousel, with readable type and imagery. */
+[aria-labelledby="hero-title"] { min-height: 680px; }
+[aria-labelledby="hero-title"] h1 {
+  font-size: clamp(3.4rem, 8.4vw, 7.2rem);
+  line-height: .9;
+  letter-spacing: -.045em;
+  max-width: 10ch;
+}
+[aria-labelledby="hero-title"] h1 span { color: var(--ngms-orange) !important; -webkit-text-stroke: 0; }
+[aria-labelledby="hero-title"] > div:first-of-type > p:first-child {
+  border-radius: 2px;
+  border-color: rgba(255,106,0,.5);
+}
+[aria-labelledby="hero-title"] > div:first-of-type > p:first-child span { background: var(--ngms-orange); }
+[aria-labelledby="hero-title"] ul { border-radius: 2px; }
+@media (max-width: 639px) {
+  [aria-labelledby="hero-title"] { min-height: 600px; }
+  [aria-labelledby="hero-title"] h1 { font-size: clamp(3rem, 13vw, 4.5rem); }
+  .card, .panel { min-width: 0; }
+}
+/* Brand icons remain subtle; orange is the only NGMS accent. */
+.ngms-icon:hover, .group:hover .ngms-icon, .group:focus-visible .ngms-icon, .group:active .ngms-icon {
+  filter: drop-shadow(0 6px 12px rgba(255,106,0,.28));
+}
+@keyframes forge-power-edge {
+  0% { box-shadow: 0 0 0 0 rgba(255,106,0,0); }
+  45% { box-shadow: 0 0 0 2px rgba(255,106,0,.45), 0 0 14px rgba(255,106,0,.18); }
+  100% { box-shadow: 0 2px 0 rgba(0,0,0,.32), 0 4px 10px rgba(0,0,0,.12); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn, .forge-interactive, .forge-reveal, .forge-shimmer::after { animation: none !important; transition: none !important; transform: none !important; }
+}
