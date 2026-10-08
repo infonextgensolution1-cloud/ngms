@@ -32,19 +32,23 @@ function BusinessSettings() {
   const [name, setName] = useState('')
   const [bank, setBank] = useState('')
   const [address, setAddress] = useState('')
+  const [googleReview, setGoogleReview] = useState('')
+  const [facebookReview, setFacebookReview] = useState('')
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
 
   useEffect(() => {
     supabase
       .from('settings')
-      .select('business_name,bank_details,address')
+      .select('business_name,bank_details,address,google_review_url,facebook_review_url')
       .eq('id', 1)
       .maybeSingle()
       .then(({ data }) => {
         setName((data?.business_name as string) ?? '')
         setBank((data?.bank_details as string) ?? '')
         setAddress((data?.address as string) ?? '')
+        setGoogleReview((data?.google_review_url as string) ?? '')
+        setFacebookReview((data?.facebook_review_url as string) ?? '')
         if (!data?.bank_details || PLACEHOLDER_ACC.test(String(data.bank_details))) setOpen(true)
       })
   }, [])
@@ -54,7 +58,7 @@ function BusinessSettings() {
     setMsg('')
     const { error } = await supabase
       .from('settings')
-      .update({ business_name: name.trim() || null, bank_details: bank.trim() || null, address: address.trim() || null, updated_at: new Date().toISOString() })
+      .update({ business_name: name.trim() || null, bank_details: bank.trim() || null, address: address.trim() || null, google_review_url: googleReview.trim() || null, facebook_review_url: facebookReview.trim() || null, updated_at: new Date().toISOString() })
       .eq('id', 1)
     setMsg(error ? error.message : 'Saved.')
     setSaving(false)
@@ -98,6 +102,18 @@ function BusinessSettings() {
             />
           </label>
           <p className="text-[11px] text-mist">Check the account number twice. It goes on every quote you send.</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="text-xs text-mist">
+              Google Business review URL
+              <input className={`${input} mt-1`} value={googleReview} onChange={(e) => setGoogleReview(e.target.value)} placeholder="Paste your Google review link" />
+            </label>
+            <label className="text-xs text-mist">
+              Facebook review / recommendation URL
+              <input className={`${input} mt-1`} value={facebookReview} onChange={(e) => setFacebookReview(e.target.value)} placeholder="Paste your Facebook review link" />
+            </label>
+          </div>
+          <p className="text-[11px] text-mist">These links are reused automatically in completion reports and review requests.</p>
+
           <div className="flex items-center gap-3">
             <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save
