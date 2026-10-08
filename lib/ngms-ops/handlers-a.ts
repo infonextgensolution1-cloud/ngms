@@ -335,6 +335,15 @@ export const handlersA: Record<string, Handler> = {
     const { quote, items: oldItems } = await quoteById(sb, args)
     const patch: Record<string, unknown> = {}
     const changed: string[] = []
+    const revisionReason = str(args, 'revision_reason', { max: 500 })
+    const hasContentChange = args.items !== undefined || args.apply_vat !== undefined || args.deposit_amount !== undefined || args.deposit_percent !== undefined || args.valid_until !== undefined || args.notes !== undefined
+
+    if (quote.status === 'accepted' && hasContentChange) {
+      throw new ToolError(`${quote.quote_number} is accepted and locked. Create a new quote revision instead of changing the accepted version.`)
+    }
+    if (quote.status === 'sent' && hasContentChange && !revisionReason) {
+      throw new ToolError(`${quote.quote_number} has already been sent. Add a revision_reason before changing customer-facing content.`)
+    }
 
     const newItems = args.items !== undefined ? parseItems(args) : null
     if (newItems) {
@@ -421,7 +430,7 @@ export const handlersA: Record<string, Handler> = {
       quote_id: quote.id,
       version_number: nextVersion,
       version_status: versionStatus,
-      revision_reason: str(args, 'revision_reason', { max: 500 }) ?? null,
+      revision_reason: revisionReason ?? null,
       change_summary: changed.join('; '),
       snapshot: { quote: cur.quote, client: cur.client, items: cur.items, money: quoteMoney(cur.quote, cur.items, s.vat_rate), version: nextVersion },
       public_token: publicToken,
