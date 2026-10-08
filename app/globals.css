@@ -468,3 +468,44 @@ input:focus, select:focus, textarea:focus {
 .btn-wa, .btn-wa-price { background-color:#25D366; border-color:#25D366; color:#FFFFFF; }
 .btn-facebook { background-color:#1877F2; border-color:#1877F2; color:#FFFFFF; }
 /* End NGMS Pinterest visual direction */
+
+
+/* Editorial architecture-inspired type and controls for the public site */
+h1, h2, h3 {
+  font-family: Impact, "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+  font-stretch: condensed;
+  letter-spacing: -.025em;
+}
+.kicker, .tag {
+  color: var(--ngms-orange);
+}
+[aria-labelledby="hero-title"] {
+  min-height: 680px;
+}
+[aria-labelledby="hero-title"] h1 {
+  font-size: clamp(3.4rem, 8.4vw, 7.2rem);
+  line-height: .84;
+  letter-spacing: -.045em;
+  max-width: 10ch;
+}
+[aria-labelledby="hero-title"] h1 span {
+  color: transparent !important;
+  -webkit-text-stroke: 1.3px rgba(255,255,255,.72);
+}
+[aria-labelledby="hero-title"] > div:first-of-type > p:first-child {
+  border-radius: 2px;
+  border-color: rgba(255,75,36,.45);
+}
+[aria-labelledby="hero-title"] > div:first-of-type > p:first-child span {
+  background-color: var(--ngms-orange);
+}
+[aria-labelledby="hero-title"] ul {
+  border-radius: 2px;
+}
+[data-site-marketing] h1, [data-site-marketing] h2, [data-site-marketing] h3 {
+  font-family: Impact, "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+}
+@media (max-width: 639px) {
+  [aria-labelledby="hero-title"] { min-height: 600px; }
+  [aria-labelledby="hero-title"] h1 { font-size: clamp(3.1rem, 14vw, 4.5rem); }
+}
