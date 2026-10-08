@@ -283,8 +283,7 @@ function QuoteView() {
     setMsg('')
     try {
       const res = await handlersB.ngms_create_invoice(supabase, { quote_id: quote.id, kind: 'deposit' })
-      setMsg(res.content[0]?.text?.split('
-')[0] ?? (res.isError ? 'Could not create the invoice' : 'Deposit invoice created.'))
+      setMsg(res.content[0]?.text?.split('\\n')[0] ?? (res.isError ? 'Could not create the invoice' : 'Deposit invoice created.'))
       if (!res.isError) await load()
     } catch (e) {
       setMsg((e as Error).message)
