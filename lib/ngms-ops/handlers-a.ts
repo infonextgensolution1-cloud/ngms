@@ -353,6 +353,7 @@ export const handlersA: Record<string, Handler> = {
     const s = await getSettings(sb)
     const { quote: source, client, items } = await quoteById(sb, args)
     const reason = str(args, 'revision_reason', { max: 500 })
+    if (!client) throw new ToolError(`${source.quote_number} has no linked client and cannot be revised.`)
     if (!reason) throw new ToolError('revision_reason is required so the customer-facing change is documented.')
     const validDays = num(args, 'valid_days', { min: 1, max: 365, integer: true }) ?? s.quote_expiry_days
     const total = totals(items, !!source.vat_included, s.vat_rate).total
