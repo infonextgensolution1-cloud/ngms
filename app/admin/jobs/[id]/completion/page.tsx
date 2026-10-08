@@ -10,7 +10,7 @@ import { handlersB } from '@/lib/ngms-ops/handlers-b'
 import { handlersC } from '@/lib/ngms-ops/handlers-c'
 import { LOGO_DATA_URI } from '@/lib/logo'
 
-type Job = { id:string; title:string|null; description:string|null; status:string; scheduled_date:string|null; completed_date:string|null; quote_id:string|null }
+type Job = { id:string; client_id:string|null; title:string|null; description:string|null; status:string; scheduled_date:string|null; completed_date:string|null; quote_id:string|null }
 type Client = { name:string; phone:string|null; email:string|null; address:string|null; suburb:string|null }
 type Photo = { id:string; photo_url:string; type:string; caption:string|null }
 type Settings = { google_review_url:string|null; facebook_review_url:string|null }
@@ -68,9 +68,8 @@ function CompletionView(){
     setAction('review')
     setError('')
     try{
-      const {data:clientRow}=await supabase.from('clients').select('id').eq('name',client.name).eq('phone',client.phone).limit(1).maybeSingle()
       const {error:e}=await supabase.from('review_requests').insert({
-        client_id:clientRow?.id ?? undefined,
+        client_id:job.client_id ?? undefined,
         job_id:job.id,
         google_review_url:settings.google_review_url,
         facebook_review_url:settings.facebook_review_url,
