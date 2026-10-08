@@ -401,3 +401,57 @@ export function FinalCta({ photo }: { photo?: Photo }) {
     </section>
   )
 }
+
+
+/* ---------- GOOGLE REVIEWS ---------- */
+
+export async function GoogleReviews() {
+  const { getGoogleReviews } = await import('@/lib/google-reviews')
+  const data = await getGoogleReviews()
+
+  return (
+    <section className="bg-fog text-graphite py-16 sm:py-24 px-4" aria-labelledby="google-reviews-title">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex flex-wrap items-end justify-between gap-6 mb-10">
+          <div className="max-w-2xl">
+            <p className="kicker">Google reviews</p>
+            <h2 id="google-reviews-title" className="text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1.05]">Real feedback from NextGen customers.</h2>
+            <p className="text-slate mt-4 text-base sm:text-lg leading-relaxed">Live reviews from our Google Business Profile, with a direct option for customers to leave their own review.</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <a href={data.writeAReviewUri} target="_blank" rel="noopener noreferrer" className="btn-quote">★ Leave a Google review</a>
+            <a href={data.reviewsUri} target="_blank" rel="noopener noreferrer" className="btn bg-paper border border-concrete text-graphite hover:bg-white">Read all Google reviews</a>
+          </div>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+          <div className="rounded-panel border border-concrete bg-paper p-6">
+            <p className="text-xs uppercase tracking-[0.16em] text-slate font-semibold">Google rating</p>
+            <div className="mt-3 flex items-center gap-3">
+              <span className="font-heading text-5xl font-bold">{data.rating ? data.rating.toFixed(1) : '—'}</span>
+              <div><span className="text-orange tracking-[0.12em]" aria-hidden>★★★★★</span><p className="text-xs text-slate mt-1">{data.userRatingCount ? `${data.userRatingCount} reviews` : 'Live Google rating'}</p></div>
+            </div>
+            <p className="text-xs text-slate mt-6 leading-relaxed">Powered by Google. Reviews remain on Google.</p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {data.reviews.length > 0 ? data.reviews.slice(0, 4).map((review, index) => (
+              <article key={review.googleMapsUri ?? `google-review-${index}`} className="rounded-panel border border-concrete bg-paper p-5">
+                <div className="flex items-center justify-between gap-3"><p className="font-heading font-semibold">{review.authorName ?? 'Google customer'}</p><span className="text-orange tracking-[0.12em]" aria-hidden>★★★★★</span></div>
+                {review.relativePublishTimeDescription && <p className="text-xs text-slate mt-1">{review.relativePublishTimeDescription}</p>}
+                {review.text && <p className="text-sm leading-relaxed text-graphite/85 mt-4">{review.text}</p>}
+                {review.googleMapsUri && <a href={review.googleMapsUri} target="_blank" rel="noopener noreferrer" className="inline-block mt-4 text-xs font-semibold text-blue hover:underline">View on Google →</a>}
+              </article>
+            )) : (
+              <div className="md:col-span-2 rounded-panel border border-concrete bg-paper p-6">
+                <p className="font-heading font-semibold">See our latest Google reviews</p>
+                <p className="text-sm text-slate mt-2">Open our Google profile to see the newest customer feedback.</p>
+                <a href={data.reviewsUri} target="_blank" rel="noopener noreferrer" className="inline-block mt-4 text-sm font-semibold text-blue hover:underline">Open Google reviews →</a>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
