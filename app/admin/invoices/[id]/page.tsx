@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, Printer, Send, Ban, AlertTriangle, Save, CircleDollarSign, MessageCircle, BellRing } from 'lucide-react'
+import { ArrowLeft, Loader2, Printer, Send, Ban, AlertTriangle, Save, CircleDollarSign, MessageCircle, BellRing, CheckCircle2 } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import DeleteRecord from '@/components/admin/DeleteRecord'
 import { supabase } from '@/lib/supabaseClient'
@@ -48,6 +48,8 @@ function InvoiceView() {
   const [busy, setBusy] = useState<string | null>(null)
   const [msg, setMsg] = useState('')
   const [note, setNote] = useState('')
+  const [jobId, setJobId] = useState<string | null>(null)
+  const [jobStatus, setJobStatus] = useState<string | null>(null)
 
   const [payAmount, setPayAmount] = useState('')
   const [payMethod, setPayMethod] = useState<(typeof PAY_METHODS)[number]>('eft')
@@ -66,6 +68,9 @@ function InvoiceView() {
       setMoney(sc.money)
       setQuoteNumber(sc.quote_number)
       setBusiness(sc.business)
+      const { data: linkedJob } = invoice?.quote_id ? await supabase.from('jobs').select('id,status').eq('quote_id', invoice.quote_id).neq('status','cancelled').order('created_at',{ascending:false}).limit(1).maybeSingle() : { data: null }
+      setJobId((linkedJob as {id:string;status:string}|null)?.id ?? null)
+      setJobStatus((linkedJob as {id:string;status:string}|null)?.status ?? null)
       setPayAmount(sc.money.balance > 0 ? String(sc.money.balance) : '')
     } catch (e) {
       setError((e as Error).message)
@@ -109,6 +114,23 @@ function InvoiceView() {
       if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not record the payment')
       setMsg(`Payment of ${rand(amount)} recorded.`)
       setPayRef('')
+      await load()
+    } catch (e) {
+      setMsg((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function completeJobAndRequestFinal() {
+    if (!jobId) return
+    if (!window.confirm('Mark this job completed and create/request the outstanding final balance invoice?')) return
+    setBusy('complete')
+    setMsg('')
+    try {
+      const res = await handlersB.ngms_update_job(supabase, { job_id: jobId, status: 'completed', note: 'Job completed from invoice workflow. Final balance requested; completion report/review workflow unlocked.' })
+      if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not complete the job')
+      setMsg('Job completed. The outstanding balance invoice has been created or confirmed. Next: send the completion report and review request.')
       await load()
     } catch (e) {
       setMsg((e as Error).message)
@@ -295,6 +317,30 @@ function InvoiceView() {
               <button onClick={recordPayment} disabled={!!busy} className="mt-3 inline-flex items-center gap-2 bg-whatsapp hover:opacity-90 text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50">
                 {busy === 'payment' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Record payment
               </button>
+            </section>
+          )}
+
+          {jobId && invoice.status === 'paid' && invoice.notes?.toLowerCase().includes('deposit invoice') && (
+            <section className="bg-cardgrey border border-blue/40 rounded-card p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 text-whatsapp shrink-0" />
+                <div className="flex-1">
+                  <h2 className="font-heading font-bold text-paper">Deposit received — next step</h2>
+                  <p className="mt-1 text-xs text-mist">The deposit is paid. Complete the job to automatically calculate the actual outstanding balance and unlock the completion/review workflow.</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {jobStatus === 'completed' ? (
+                      <Link href={`/admin/jobs/${jobId}/completion`} className="inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-3.5 py-2.5 rounded-btn">
+                        View completion report
+                      </Link>
+                    ) : (
+                      <button onClick={completeJobAndRequestFinal} disabled={!!busy} className="inline-flex items-center gap-2 bg-whatsapp hover:opacity-90 text-white font-heading font-semibold px-3.5 py-2.5 rounded-btn disabled:opacity-50">
+                        {busy === 'complete' ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                        Complete job &amp; request final balance
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
             </section>
           )}
 
