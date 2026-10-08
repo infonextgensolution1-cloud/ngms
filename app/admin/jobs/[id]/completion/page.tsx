@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, CheckCircle2, Image as ImageIcon, Loader2, MessageCircle, Printer } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Image as ImageIcon, Loader2, MessageCircle, Printer, Receipt, Mail } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import { supabase } from '@/lib/supabaseClient'
 import { handlersB } from '@/lib/ngms-ops/handlers-b'
@@ -30,6 +30,8 @@ function CompletionView(){
   const [reviewRequested,setReviewRequested]=useState(false)
   const [action,setAction]=useState<string|null>(null)
   const [deliveryMsg,setDeliveryMsg]=useState('')
+  const [finalBusy,setFinalBusy]=useState(false)
+  const [finalRequested,setFinalRequested]=useState(false)
 
   const load=useCallback(async()=>{
     setLoading(true); setError('')
@@ -47,6 +49,7 @@ function CompletionView(){
         const {data:invoices}=await supabase.from('invoices').select('id,invoice_number,total_amount,paid_amount,status,notes').eq('quote_id',sc.job.quote_id).neq('status','void').order('created_at',{ascending:false})
         const b=(invoices??[]).find((i:any)=>/balance/i.test(String(i.notes??'')))
         setBalance((b as Balance|null)??null)
+        setFinalRequested(!!b && /FINAL PAYMENT (EMAIL SENT|WHATSAPP PREPARED)/i.test(String((b as any).notes??'')))
       }
       if(sc.job.client_id){
         const {data:rr}=await supabase.from('review_requests').select('id').eq('job_id',sc.job.id).neq('status','closed').limit(1).maybeSingle()
@@ -82,22 +85,44 @@ function CompletionView(){
     finally{setAction(null)}
   }
 
-  async function deliver(channel:'email'|'whatsapp'|'both'){
+  async function deliver(channel:'email'|'whatsapp'|'both', mode:'completion'|'final'='completion'){
     if(!job||!client) return
-    setAction('delivery'); setDeliveryMsg('')
+    if(mode==='final' && !balance) { setDeliveryMsg('Create the final balance invoice first.'); return }
+    if(mode==='final'){
+      const amount=Math.max(0,Number(balance?.total_amount||0)-Number(balance?.paid_amount||0))
+      if(amount<=0.004){ setDeliveryMsg('No outstanding final balance remains.'); return }
+      if(!window.confirm(`Request the final balance of R ${amount.toFixed(2)} from ${client.name} via ${channel}?`)) return
+    }
+    setAction(mode==='final'?'final-delivery':'delivery'); setDeliveryMsg('')
     try{
       const {data:{session}}=await supabase.auth.getSession()
       if(!session?.access_token) throw new Error('Admin session expired. Sign in again.')
-      const res=await fetch('/api/admin/completion-delivery',{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${session.access_token}`},body:JSON.stringify({jobId:job.id,channel})})
+      const res=await fetch('/api/admin/completion-delivery',{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${session.access_token}`},body:JSON.stringify({jobId:job.id,channel,mode})})
       const data=await res.json()
       if(!res.ok) throw new Error(data.error||'Delivery failed')
       if(channel==='whatsapp'&&data.whatsappText&&client.phone){
         const digits=client.phone.replace(/\\D/g,'').replace(/^0/,'27')
         window.open(`https://wa.me/${digits}?text=${encodeURIComponent(data.whatsappText)}`,'_blank','noopener,noreferrer')
       }
-      setDeliveryMsg(channel==='email'?'Completion email sent.':channel==='whatsapp'?'WhatsApp opened with the completion message.':'Completion email sent; WhatsApp is ready.')
+      if(mode==='final') setFinalRequested(true)
+      setDeliveryMsg(mode==='final'
+        ? (channel==='email'?'Final payment request email sent.':channel==='whatsapp'?'Final payment WhatsApp message prepared.':'Final payment email sent; WhatsApp is ready.')
+        : (channel==='email'?'Completion email sent.':channel==='whatsapp'?'WhatsApp opened with the completion message.':'Completion email sent; WhatsApp is ready.'))
+      await load()
     }catch(e){setDeliveryMsg((e as Error).message)}
     finally{setAction(null)}
+  }
+
+  async function createFinalInvoice(){
+    if(!job?.quote_id) return
+    setFinalBusy(true); setError(''); setDeliveryMsg('')
+    try{
+      const res=await handlersB.ngms_create_invoice(supabase,{quote_id:job.quote_id,kind:'balance'})
+      if(res.isError) throw new Error(res.content[0]?.text??'Could not create the final balance invoice')
+      setDeliveryMsg('Final balance invoice created. The outstanding amount is now ready to request.')
+      await load()
+    }catch(e){setError((e as Error).message)}
+    finally{setFinalBusy(false)}
   }
 
   function whatsapp(){
@@ -122,7 +147,7 @@ function CompletionView(){
         <Link href={`/admin/jobs/${job.id}`} className="inline-flex items-center gap-1 text-sm text-mist hover:text-paper"><ArrowLeft className="h-4 w-4"/> Job</Link>
         <div className="flex gap-2">
           {client?.phone&&<button onClick={()=>deliver('whatsapp')} disabled={!!action} className="inline-flex items-center gap-2 rounded-btn bg-[#25D366] px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"><MessageCircle className="h-4 w-4"/> Send WhatsApp</button>}
-          {client?.email&&<button onClick={()=>deliver('email')} disabled={!!action} className="inline-flex items-center gap-2 rounded-btn bg-blue-fill px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">Send Email</button>}
+          {client?.email&&<button onClick={()=>deliver('email')} disabled={!!action} className="inline-flex items-center gap-2 rounded-btn bg-blue-fill px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"><Mail className="h-4 w-4"/> Send Email</button>}
           <button onClick={()=>window.print()} className="inline-flex items-center gap-2 rounded-btn border border-darkgrey px-3 py-2 text-sm text-mist hover:border-blue hover:text-paper"><Printer className="h-4 w-4"/> Print / PDF</button>
         </div>
       </div>
@@ -158,14 +183,31 @@ function CompletionView(){
         </div>
 
         <div className="mt-7 rounded-xl border p-4" style={{borderColor:brand.line,background:'#FAFAFA'}}>
-          <p className="text-sm font-bold" style={{color:brand.black}}>Final payment</p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-bold" style={{color:brand.black}}>Final 30% payment</p>
+            {finalRequested&&<span className="text-[10px] uppercase tracking-wider font-bold" style={{color:'#2E7D32'}}>Request recorded</span>}
+          </div>
           {balance ? (
-            <div className="mt-2 grid grid-cols-2 gap-3 text-xs sm:grid-cols-3">
-              <div><span style={{color:brand.grey}}>Balance invoice</span><div className="font-bold">{balance.invoice_number}</div></div>
-              <div><span style={{color:brand.grey}}>Outstanding</span><div className="font-bold">R {(Number(balance.total_amount)-Number(balance.paid_amount)).toFixed(2)}</div></div>
-              <div><span style={{color:brand.grey}}>Status</span><div className="font-bold uppercase">{balance.status}</div></div>
+            <>
+              <div className="mt-2 grid grid-cols-2 gap-3 text-xs sm:grid-cols-3">
+                <div><span style={{color:brand.grey}}>Balance invoice</span><div className="font-bold">{balance.invoice_number}</div></div>
+                <div><span style={{color:brand.grey}}>Outstanding</span><div className="font-bold">R {(Number(balance.total_amount)-Number(balance.paid_amount)).toFixed(2)}</div></div>
+                <div><span style={{color:brand.grey}}>Status</span><div className="font-bold uppercase">{balance.status}</div></div>
+              </div>
+              {Number(balance.total_amount)-Number(balance.paid_amount)>0.004 && !finalRequested && <div className="no-print mt-4 flex flex-wrap gap-2">
+                {client?.phone&&<button onClick={()=>deliver('whatsapp','final')} disabled={!!action} className="inline-flex items-center gap-2 rounded-btn bg-[#25D366] px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"><MessageCircle className="h-4 w-4"/> Request final 30% on WhatsApp</button>}
+                {client?.email&&<button onClick={()=>deliver('email','final')} disabled={!!action} className="inline-flex items-center gap-2 rounded-btn bg-blue-fill px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"><Mail className="h-4 w-4"/> Request final 30% by email</button>}
+                {client?.phone&&client?.email&&<button onClick={()=>deliver('both','final')} disabled={!!action} className="inline-flex items-center gap-2 rounded-btn border px-3 py-2 text-xs font-semibold disabled:opacity-50" style={{borderColor:brand.line,color:brand.black}}>Both</button>}
+              </div>}
+              {finalRequested&&<p className="no-print mt-3 text-xs" style={{color:brand.grey}}>The final payment request has already been recorded. This prevents accidental duplicate requests.</p>}
+            </>
+          ) : job.quote_id ? (
+            <div className="mt-2">
+              <p className="text-xs" style={{color:brand.grey}}>The job has a linked quote but no final balance invoice yet.</p>
+              <button onClick={createFinalInvoice} disabled={finalBusy} className="no-print mt-3 inline-flex items-center gap-2 rounded-btn bg-[#F57C1B] px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"><Receipt className="h-4 w-4"/>{finalBusy?'Creating…':'Create final 30% invoice'}</button>
             </div>
-          ) : <p className="mt-1 text-xs" style={{color:brand.grey}}>No balance invoice linked yet. Complete the job from the invoice workflow to create the actual outstanding balance.</p>}
+          ) : <p className="mt-1 text-xs" style={{color:brand.grey}}>No quote is linked to this job yet. Link the correct quote before requesting payment.</p>}
+          {deliveryMsg&&<p className="no-print mt-3 text-xs" style={{color:brand.grey}}>{deliveryMsg}</p>}
         </div>
 
         <div className="mt-6 rounded-xl border p-4" style={{borderColor:brand.line,background:'#F7F5FA'}}>
