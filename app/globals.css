@@ -420,3 +420,51 @@ form[data-quote-step="4"] [data-quote-navigation] {
 .forge-shimmer::after { content:""; position:absolute; inset:0; transform:translateX(-120%); background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.10) 50%,transparent 65%); animation:forge-shimmer 5s ease-in-out infinite; pointer-events:none; }
 @keyframes forge-shimmer { 0%,60%,100% { transform:translateX(-120%); } 78% { transform:translateX(120%); } }
 @media (prefers-reduced-motion: reduce) { .forge-interactive,.forge-reveal,.forge-shimmer::after { animation:none!important; transition:none!important; transform:none!important; } }
+
+
+/* ---------- NGMS Pinterest visual direction (public UI styling only) ----------
+   Palette: carbon black, signal orange, warm off-white, concrete grey and white.
+   Channel colours are reserved: WhatsApp green and Facebook blue only. */
+:root {
+  --ngms-orange: #FF4B24;
+  --ngms-black: #0B0D0F;
+  --ngms-charcoal: #151719;
+  --ngms-offwhite: #F3F0E9;
+  --ngms-concrete: #D5D4D0;
+  --ngms-white: #FFFFFF;
+}
+html { color-scheme: dark; }
+body { background-color: var(--ngms-black); }
+:focus-visible { outline-color: var(--ngms-orange); }
+.skip-link { background: var(--ngms-orange); color: var(--ngms-black); }
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="color"]),
+select, textarea { caret-color: var(--ngms-orange); }
+input:focus, select:focus, textarea:focus {
+  border-color: var(--ngms-orange) !important;
+  box-shadow: 0 0 0 3px rgba(255,75,36,.22);
+}
+.btn:focus-visible { outline-color: var(--ngms-orange); }
+.btn-glow, .btn-quote {
+  box-shadow: 0 2px 0 rgba(0,0,0,.3), 0 5px 12px rgba(255,75,36,.16);
+}
+.btn-quote:hover, .btn-glow:hover {
+  box-shadow: 0 2px 0 rgba(0,0,0,.26), 0 9px 18px rgba(255,75,36,.22);
+}
+.btn-touch:hover svg, .btn-touch:hover .icon, .btn-touch:hover [data-icon] {
+  color: var(--ngms-orange);
+}
+.btn-outline:hover, .btn-dark:hover { border-color: var(--ngms-orange); color: var(--ngms-orange); }
+.band-light { background-color: var(--ngms-offwhite); }
+.band-light .text-blue, .band-light .kicker { color: #B83218; }
+.ngms-icon:hover, .group:hover .ngms-icon, .group:focus-visible .ngms-icon, .group:active .ngms-icon {
+  filter: drop-shadow(0 6px 12px rgba(255,75,36,.32));
+}
+@keyframes forge-power-edge {
+  0% { box-shadow:0 0 0 0 rgba(255,75,36,0); }
+  45% { box-shadow:0 0 0 2px rgba(255,75,36,.5),0 0 14px rgba(255,75,36,.2); }
+  100% { box-shadow:0 2px 0 rgba(0,0,0,.32),0 4px 10px rgba(0,0,0,.12); }
+}
+/* Keep the two approved social-channel colours functional and recognisable. */
+.btn-wa, .btn-wa-price { background-color:#25D366; border-color:#25D366; color:#FFFFFF; }
+.btn-facebook { background-color:#1877F2; border-color:#1877F2; color:#FFFFFF; }
+/* End NGMS Pinterest visual direction */
