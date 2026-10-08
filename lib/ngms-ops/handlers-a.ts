@@ -320,6 +320,24 @@ export const handlersA: Record<string, Handler> = {
       warnings.push(`⚠️ ${client.suburb} is outside the Helderberg Basin — no callout line found. Standard is a flat R350 callout.`)
     }
     const loaded = await loadQuote(sb, quote.id)
+
+    if (status === 'sent') {
+      const publicToken = typeof globalThis.crypto?.randomUUID === 'function'
+        ? globalThis.crypto.randomUUID().replaceAll('-', '')
+        : String(Date.now().toString(36) + Math.random().toString(36).slice(2))
+      const now = new Date().toISOString()
+      const { error: versionError } = await sb.from('quote_versions').insert({
+        quote_id: quote.id,
+        version_number: 1,
+        version_status: 'sent',
+        change_summary: 'Initial customer-facing version',
+        snapshot: { quote: loaded.quote, client: loaded.client, items: loaded.items, money: quoteMoney(loaded.quote, loaded.items, s.vat_rate), version: 1 },
+        public_token: publicToken,
+        sent_at: now,
+      })
+      fail('Could not save customer quote version', versionError)
+    }
+
     const extra = ['', ...[clientNote, leadMsg, ...warnings].filter((x): x is string => !!x)]
     return ok(`Quote created.\n\n${quoteDoc(loaded.quote, loaded.client, loaded.items, s, extra)}`, {
       quote: loaded.quote,
