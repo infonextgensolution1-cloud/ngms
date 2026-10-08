@@ -30,8 +30,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const terms = QUOTE_TERMS.map(t => t.replace('{deposit}', String(money.deposit_percent)))
     const pdf = buildQuotePdf({ quote, client, items, settings, money, terms, expired })
     const clientName = (client?.name || 'Client').trim().replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'Client'
-    const sentDate = todaySast().replace(/-/g, '')
-    const fileName = `${sentDate}_${quote.quote_number}_${clientName}.pdf`
+    const { data: sentVersion } = await admin.from('quote_versions').select('sent_at,created_at').eq('quote_id', quote.id).eq('version_status', 'sent').not('sent_at', 'is', null).order('sent_at', { ascending: false }).limit(1).maybeSingle()
+    const fileDate = (sentVersion?.sent_at || sentVersion?.created_at || quote.created_at || new Date().toISOString()).slice(0, 10).replace(/-/g, '')
+    const fileName = `${fileDate}_${quote.quote_number}_${clientName}.pdf`
     const path = 'pdf/' + quote.id + '/' + fileName
     const upload = await admin.storage.from('quotes').upload(path, new Blob([pdf], { type: 'application/pdf' }), { contentType: 'application/pdf', upsert: true })
     if (upload.error) throw upload.error
