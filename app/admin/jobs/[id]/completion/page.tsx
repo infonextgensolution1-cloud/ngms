@@ -29,6 +29,7 @@ function CompletionView(){
   const [balance,setBalance]=useState<Balance|null>(null)
   const [reviewRequested,setReviewRequested]=useState(false)
   const [action,setAction]=useState<string|null>(null)
+  const [deliveryMsg,setDeliveryMsg]=useState('')
 
   const load=useCallback(async()=>{
     setLoading(true); setError('')
@@ -81,6 +82,24 @@ function CompletionView(){
     finally{setAction(null)}
   }
 
+  async function deliver(channel:'email'|'whatsapp'|'both'){
+    if(!job||!client) return
+    setAction('delivery'); setDeliveryMsg('')
+    try{
+      const {data:{session}}=await supabase.auth.getSession()
+      if(!session?.access_token) throw new Error('Admin session expired. Sign in again.')
+      const res=await fetch('/api/admin/completion-delivery',{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${session.access_token}`},body:JSON.stringify({jobId:job.id,channel})})
+      const data=await res.json()
+      if(!res.ok) throw new Error(data.error||'Delivery failed')
+      if(channel==='whatsapp'&&data.whatsappText&&client.phone){
+        const digits=client.phone.replace(/\\D/g,'').replace(/^0/,'27')
+        window.open(`https://wa.me/${digits}?text=${encodeURIComponent(data.whatsappText)}`,'_blank','noopener,noreferrer')
+      }
+      setDeliveryMsg(channel==='email'?'Completion email sent.':channel==='whatsapp'?'WhatsApp opened with the completion message.':'Completion email sent; WhatsApp is ready.')
+    }catch(e){setDeliveryMsg((e as Error).message)}
+    finally{setAction(null)}
+  }
+
   function whatsapp(){
     if(!client?.phone||!job) return
     const digits=client.phone.replace(/\D/g,'').replace(/^0/,'27')
@@ -102,7 +121,8 @@ function CompletionView(){
       <div className="no-print mb-5 flex items-center justify-between gap-3">
         <Link href={`/admin/jobs/${job.id}`} className="inline-flex items-center gap-1 text-sm text-mist hover:text-paper"><ArrowLeft className="h-4 w-4"/> Job</Link>
         <div className="flex gap-2">
-          {client?.phone&&<button onClick={whatsapp} className="inline-flex items-center gap-2 rounded-btn bg-[#25D366] px-3 py-2 text-sm font-semibold text-white"><MessageCircle className="h-4 w-4"/> WhatsApp</button>}
+          {client?.phone&&<button onClick={()=>deliver('whatsapp')} disabled={!!action} className="inline-flex items-center gap-2 rounded-btn bg-[#25D366] px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"><MessageCircle className="h-4 w-4"/> Send WhatsApp</button>}
+          {client?.email&&<button onClick={()=>deliver('email')} disabled={!!action} className="inline-flex items-center gap-2 rounded-btn bg-blue-fill px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">Send Email</button>}
           <button onClick={()=>window.print()} className="inline-flex items-center gap-2 rounded-btn border border-darkgrey px-3 py-2 text-sm text-mist hover:border-blue hover:text-paper"><Printer className="h-4 w-4"/> Print / PDF</button>
         </div>
       </div>
