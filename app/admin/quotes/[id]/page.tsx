@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, Printer, Download, Check, X, Send, AlertTriangle, Receipt, Briefcase, CalendarPlus, MessageCircle } from 'lucide-react'
+import { ArrowLeft, Loader2, Printer, Download, Eye, Check, X, Send, AlertTriangle, Receipt, Briefcase, CalendarPlus, MessageCircle } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import DeleteRecord from '@/components/admin/DeleteRecord'
 import { supabase } from '@/lib/supabaseClient'
@@ -133,6 +133,45 @@ function QuoteView() {
       window.setTimeout(() => URL.revokeObjectURL(url), 1000)
       setMsg('Saved PDF downloaded.')
     } catch (e) {
+      setMsg((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function viewSavedPdf() {
+    if (!quote) return
+    setBusy('pdf-view')
+    setMsg('')
+    const viewWindow = window.open('', '_blank')
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('Your session has expired. Sign in again.')
+
+      const response = await fetch('/api/quotes/' + quote.id + '/pdf', {
+        method: 'GET',
+        headers: { Authorization: 'Bearer ' + token },
+      })
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}))
+        throw new Error(body.error || 'Could not open the saved PDF.')
+      }
+
+      const blob = await response.blob()
+      if (!blob.size) throw new Error('The saved PDF is empty.')
+      const url = URL.createObjectURL(blob)
+
+      if (viewWindow) {
+        viewWindow.location.href = url
+        window.setTimeout(() => URL.revokeObjectURL(url), 60000)
+      } else {
+        window.open(url, '_blank')
+        window.setTimeout(() => URL.revokeObjectURL(url), 60000)
+      }
+      setMsg('Saved quote opened for viewing.')
+    } catch (e) {
+      if (viewWindow) viewWindow.close()
       setMsg((e as Error).message)
     } finally {
       setBusy(null)
@@ -403,15 +442,26 @@ function QuoteView() {
                 {busy === 'pdf' ? 'Generating…' : pdfSaved || quote.pdf_path ? 'Save / Download PDF' : 'Generate & Save PDF'}
               </button>
               {quote.pdf_path && (
-                <button
-                  type="button"
-                  onClick={downloadSavedPdf}
-                  disabled={!!busy}
-                  className="inline-flex items-center gap-2 border border-darkgrey hover:border-blue text-mist hover:text-paper font-heading font-semibold px-3 py-2.5 rounded-btn shrink-0 disabled:opacity-50"
-                >
-                  {busy === 'pdf-download' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                  Saved PDF
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={viewSavedPdf}
+                    disabled={!!busy}
+                    className="inline-flex items-center gap-2 border border-darkgrey hover:border-blue text-mist hover:text-paper font-heading font-semibold px-3 py-2.5 rounded-btn shrink-0 disabled:opacity-50"
+                  >
+                    {busy === 'pdf-view' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+                    {busy === 'pdf-view' ? 'Opening…' : 'View Saved PDF'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={downloadSavedPdf}
+                    disabled={!!busy}
+                    className="inline-flex items-center gap-2 border border-darkgrey hover:border-blue text-mist hover:text-paper font-heading font-semibold px-3 py-2.5 rounded-btn shrink-0 disabled:opacity-50"
+                  >
+                    {busy === 'pdf-download' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                    Download Saved PDF
+                  </button>
+                </>
               )}
               <button
                 onClick={() => window.print()}
