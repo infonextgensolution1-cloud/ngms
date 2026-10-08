@@ -53,6 +53,8 @@ function QuoteView() {
   const [linkCopied, setLinkCopied] = useState(false)
   const [pdfSaved, setPdfSaved] = useState(false)
   const [versions, setVersions] = useState<QuoteVersionRow[]>([])
+  const [revisionOpen, setRevisionOpen] = useState(false)
+  const [revisionReason, setRevisionReason] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -235,6 +237,37 @@ function QuoteView() {
       const res = await handlersA.ngms_update_quote(supabase, { quote_id: quote.id, status })
       if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not update the quote')
       setMsg(`Marked as ${status}.`)
+      await load()
+    } catch (e) {
+      setMsg((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function createQuoteRevision() {
+    if (!quote) return
+    const reason = revisionReason.trim()
+    if (!reason) {
+      setMsg('Add a revision reason before creating the new quote.')
+      return
+    }
+    setBusy('revision')
+    setMsg('')
+    try {
+      const res = await handlersA.ngms_create_quote_revision(supabase, {
+        quote_id: quote.id,
+        revision_reason: reason,
+      })
+      if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not create the quote revision')
+      const revised = res.structuredContent?.quote as { id?: string } | undefined
+      setRevisionOpen(false)
+      setRevisionReason('')
+      if (revised?.id) {
+        router.push(`/admin/quotes/${revised.id}`)
+        return
+      }
+      setMsg('Quote revision created.')
       await load()
     } catch (e) {
       setMsg((e as Error).message)
@@ -450,6 +483,56 @@ function QuoteView() {
                 </button>
               </div>
               <p className="mt-2 text-[11px] text-mist">This link opens the exact latest quote version. Send it to the customer for review and acceptance.</p>
+            </div>
+          )}
+
+          {(['sent', 'accepted'].includes(quote.status) || expired) && (
+            <div className="mb-4 rounded-card border border-orange/50 bg-cardgrey p-3.5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-heading font-semibold text-paper">Need to change this quote?</p>
+                  <p className="text-[11px] text-mist mt-0.5">Create a new draft revision. The current customer-facing version stays unchanged.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setRevisionOpen((v) => !v)}
+                  disabled={!!busy}
+                  className="inline-flex items-center gap-1.5 border border-orange text-orange hover:bg-orange hover:text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
+                >
+                  {busy === 'revision' ? <Loader2 className="w-4 h-4 animate-spin" /> : <AlertTriangle className="w-4 h-4" />}
+                  Create revision
+                </button>
+              </div>
+              {revisionOpen && (
+                <div className="mt-3 border-t border-darkgrey pt-3">
+                  <label className="block text-xs text-mist">
+                    Revision reason
+                    <textarea
+                      value={revisionReason}
+                      onChange={(e) => setRevisionReason(e.target.value)}
+                      maxLength={500}
+                      rows={3}
+                      placeholder="e.g. Customer requested 6 additional panels and revised access date."
+                      className="mt-1.5 block w-full bg-jet border border-darkgrey text-paper rounded-btn px-3 py-2.5 text-sm placeholder:text-mist/60 focus:border-blue outline-none"
+                    />
+                  </label>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={createQuoteRevision}
+                      disabled={!!busy || !revisionReason.trim()}
+                      className="inline-flex items-center gap-1.5 bg-blue-fill hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
+                    >
+                      {busy === 'revision' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                      Create new draft
+                    </button>
+                    <button type="button" onClick={() => { setRevisionOpen(false); setRevisionReason('') }} disabled={!!busy} className="text-sm text-mist hover:text-paper py-2">
+                      Cancel
+                    </button>
+                    <span className="text-[11px] text-mist">{revisionReason.length}/500</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
