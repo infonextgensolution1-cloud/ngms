@@ -364,6 +364,7 @@ export const handlersA: Record<string, Handler> = {
     const notes = [`Revision of ${source.quote_number}.`, `Reason: ${reason}`, source.notes ?? ''].filter(Boolean).join('\\n\\n')
     const revised = await insertNumbered<Quote>(sb, 'quotes', 'quote_number', 'Q', {
       client_id: client.id, lead_id: source.lead_id, status: 'draft', vat_included: !!source.vat_included,
+    revision_of_quote_id: source.id,
       deposit_amount: deposit, total_amount: total, notes, valid_until: addDays(todaySast(), validDays),
     }, QUOTE_COLS)
     const itemErr = await writeItems(sb, 'quote_items', 'quote_id', revised.id, items.map((i) => ({ ...i, id: undefined })))
