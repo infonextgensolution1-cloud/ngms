@@ -509,3 +509,9 @@ h1, h2, h3 {
   [aria-labelledby="hero-title"] { min-height: 600px; }
   [aria-labelledby="hero-title"] h1 { font-size: clamp(3.1rem, 14vw, 4.5rem); }
 }
+
+/* Success states use the brand accent; green is reserved for WhatsApp only. */
+.btn.is-success, .btn[data-state="success"] {
+  border-color: var(--ngms-orange);
+  box-shadow: 0 0 0 1px rgba(255,75,36,.22);
+}
