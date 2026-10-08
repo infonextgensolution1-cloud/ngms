@@ -348,6 +348,35 @@ export const handlersA: Record<string, Handler> = {
     })
   },
 
+
+  async ngms_create_quote_revision(sb, args) {
+    const s = await getSettings(sb)
+    const { quote: source, client, items } = await quoteById(sb, args)
+    const reason = str(args, 'revision_reason', { max: 500 })
+    if (!reason) throw new ToolError('revision_reason is required so the customer-facing change is documented.')
+    const validDays = num(args, 'valid_days', { min: 1, max: 365, integer: true }) ?? s.quote_expiry_days
+    const total = totals(items, !!source.vat_included, s.vat_rate).total
+    const oldDeposit = r2(n0(source.deposit_amount))
+    const oldTotal = r2(n0(source.total_amount))
+    const depositPercent = oldTotal > 0 ? oldDeposit / oldTotal : DEFAULT_DEPOSIT_PERCENT / 100
+    const deposit = r2(total * depositPercent)
+    const notes = [`Revision of ${source.quote_number}.`, `Reason: ${reason}`, source.notes ?? ''].filter(Boolean).join('\\n\\n')
+    const revised = await insertNumbered<Quote>(sb, 'quotes', 'quote_number', 'Q', {
+      client_id: client.id, lead_id: source.lead_id, status: 'draft', vat_included: !!source.vat_included,
+      deposit_amount: deposit, total_amount: total, notes, valid_until: addDays(todaySast(), validDays),
+    }, QUOTE_COLS)
+    const itemErr = await writeItems(sb, 'quote_items', 'quote_id', revised.id, items.map((i) => ({ ...i, id: undefined })))
+    if (itemErr) {
+      await sb.from('quotes').delete().eq('id', revised.id)
+      throw new ToolError(`Could not copy quote lines (revision rolled back): ${itemErr.message}`)
+    }
+    const loaded = await loadQuote(sb, revised.id)
+    return ok(`Revision created from ${source.quote_number}: ${revised.quote_number}. The original quote remains unchanged and locked.\\n\\n${quoteDoc(loaded.quote, loaded.client, loaded.items, s, ['', `Revision reason: ${reason}`])}`, {
+      source_quote: source, quote: loaded.quote, client: loaded.client, items: loaded.items,
+      money: quoteMoney(loaded.quote, loaded.items, s.vat_rate), revision_reason: reason,
+    })
+  },
+
   async ngms_update_quote(sb, args) {
     const s = await getSettings(sb)
     const { quote, items: oldItems } = await quoteById(sb, args)
