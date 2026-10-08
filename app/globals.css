@@ -32,7 +32,7 @@ h3 {
 
 /* One visible, consistent keyboard focus ring site-wide (NextGen Blue) */
 :focus-visible {
-  outline: 2px solid #147BFF;
+  outline: 2px solid #FF6A00;
   outline-offset: 2px;
 }
 
@@ -42,7 +42,7 @@ h3 {
   left: 1rem;
   top: -4rem;
   z-index: 100;
-  background: #1f6feb;
+  background: #FF6A00;
   color: #fff;
   padding: 0.6rem 1rem;
   border-radius: 4px;
@@ -66,7 +66,7 @@ textarea {
   padding: 0.55rem 0.75rem;
   font-size: 16px; /* stops iOS zoom-on-focus */
   line-height: 1.4;
-  caret-color: #147BFF;
+  caret-color: #FF6A00;
 }
 
 select option,
@@ -86,8 +86,8 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: #147BFF !important;
-  box-shadow: 0 0 0 3px rgba(20, 123, 255, 0.25);
+  border-color: #FF6A00 !important;
+  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.22);
 }
 
 /* Chrome/Android autofill paints a light-blue box - keep it dark */
@@ -515,3 +515,25 @@ h1, h2, h3 {
   border-color: var(--ngms-orange);
   box-shadow: 0 0 0 1px rgba(255,75,36,.22);
 }
+
+
+/* Pinterest-inspired NGMS public palette: orange, ink, warm paper and concrete.
+   Keep admin/print templates independent; these tokens style the public website. */
+:root {
+  --ngms-orange: #FF6A00;
+  --ngms-orange-deep: #D94F00;
+  --ngms-ink: #111111;
+  --ngms-paper: #F7F4EF;
+  --ngms-concrete: #D7D3CD;
+}
+html { color-scheme: dark; }
+body { background-color: #111111; }
+:focus-visible { outline-color: var(--ngms-orange); }
+.skip-link { background: var(--ngms-orange); color: #111111; }
+.band-light .text-blue,
+.band-light .kicker { color: var(--ngms-orange-deep); }
+.text-blue { color: var(--ngms-orange) !important; }
+.bg-blue { background-color: var(--ngms-orange) !important; }
+.border-blue { border-color: var(--ngms-orange) !important; }
+.hover\\:text-blue:hover { color: var(--ngms-orange) !important; }
+.hover\\:border-blue:hover { border-color: var(--ngms-orange) !important; }
