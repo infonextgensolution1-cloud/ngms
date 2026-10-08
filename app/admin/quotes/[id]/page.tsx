@@ -18,7 +18,8 @@ import { QUOTE_TERMS, PLACEHOLDER_ACC } from '@/lib/quote-terms'
 
 type Money = { subtotal: number; vat: number; total: number; deposit: number; deposit_percent: number; balance: number }
 type JobRow = { id: string; title: string | null; status: string; scheduled_date: string | null }
-type InvoiceRow = { id: string; invoice_number: string; status: string; total_amount: number | null; paid_amount: number | null }\ntype QuoteVersionRow = { id: string; version_number: number; version_status: string; revision_reason: string | null; change_summary: string | null; created_at: string; sent_at: string | null; accepted_at: string | null; public_token: string | null }
+type InvoiceRow = { id: string; invoice_number: string; status: string; total_amount: number | null; paid_amount: number | null }
+type QuoteVersionRow = { id: string; version_number: number; version_status: string; revision_reason: string | null; change_summary: string | null; created_at: string; sent_at: string | null; accepted_at: string | null; public_token: string | null }
 
 const BRAND = { black: '#0A0A0A', purple: '#8B1BF5', orange: '#F57C1B', green: '#39D353', grey: '#5B5B5B', line: '#E4E4E4' }
 
@@ -50,7 +51,8 @@ function QuoteView() {
   const [jobDate, setJobDate] = useState('')
   const [customerLink, setCustomerLink] = useState<string | null>(null)
   const [linkCopied, setLinkCopied] = useState(false)
-  const [pdfSaved, setPdfSaved] = useState(false)\n  const [versions, setVersions] = useState<QuoteVersionRow[]>([])
+  const [pdfSaved, setPdfSaved] = useState(false)
+  const [versions, setVersions] = useState<QuoteVersionRow[]>([])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -77,7 +79,9 @@ function QuoteView() {
       setJobs(sc.jobs ?? [])
       setInvoices(sc.invoices ?? [])
       setSettings(s)
-      const versionRows = (versionRes.data ?? []) as QuoteVersionRow[]\n      setVersions(versionRows)\n      const latestVersion = versionRows[0]\n      setCustomerLink(latestVersion?.public_token ? `${window.location.origin}/quote/${latestVersion.public_token}` : null)
+      const versionRows = (versionRes.data ?? []) as QuoteVersionRow[]
+      setVersions(versionRows)
+      const latestVersion = versionRows[0]\n      setCustomerLink(latestVersion?.public_token ? `${window.location.origin}/quote/${latestVersion.public_token}` : null)
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -402,7 +406,11 @@ function QuoteView() {
           )}
           <p className="text-[11px] text-mist mb-4">The PDF is generated and saved first. On supported phones, WhatsApp opens with the PDF attached; otherwise WhatsApp opens with the message and the downloaded PDF can be attached.</p>
 
-          {versions.length > 0 && (\n            <div className="mb-4 rounded-card border border-darkgrey bg-cardgrey p-3">\n              <div className="flex items-center justify-between gap-3 mb-2">\n                <div>\n                  <p className="text-xs font-heading font-semibold text-paper">Quote version history</p>\n                  <p className="text-[11px] text-mist mt-0.5">Customer-facing versions are preserved as snapshots.</p>\n                </div>\n                <span className="text-[10px] uppercase tracking-wider text-mist">{versions.length} version{versions.length === 1 ? '' : 's'}</span>\n              </div>\n              <div className="space-y-2">\n                {versions.map((v) => (\n                  <div key={v.id} className="rounded-btn border border-darkgrey px-3 py-2">\n                    <div className="flex flex-wrap items-center justify-between gap-2">\n                      <span className="text-xs font-heading font-semibold text-paper">v{v.version_number} · {v.version_status}</span>\n                      <span className="text-[10px] text-mist">{new Date(v.created_at).toLocaleString('en-ZA')}</span>\n                    </div>\n                    {v.change_summary && <p className="mt-1 text-[11px] text-mist">{v.change_summary}</p>}\n                    {v.revision_reason && <p className="mt-1 text-[11px] text-paper">Reason: {v.revision_reason}</p>}\n                  </div>\n                ))}\n              </div>\n            </div>\n          )}\n\n          {customerLink && (
+          {versions.length > 0 && (
+            <div className="mb-4 rounded-card border border-darkgrey bg-cardgrey p-3">\n              <div className="flex items-center justify-between gap-3 mb-2">\n                <div>\n                  <p className="text-xs font-heading font-semibold text-paper">Quote version history</p>\n                  <p className="text-[11px] text-mist mt-0.5">Customer-facing versions are preserved as snapshots.</p>\n                </div>\n                <span className="text-[10px] uppercase tracking-wider text-mist">{versions.length} version{versions.length === 1 ? '' : 's'}</span>\n              </div>\n              <div className="space-y-2">\n                {versions.map((v) => (\n                  <div key={v.id} className="rounded-btn border border-darkgrey px-3 py-2">\n                    <div className="flex flex-wrap items-center justify-between gap-2">\n                      <span className="text-xs font-heading font-semibold text-paper">v{v.version_number} · {v.version_status}</span>\n                      <span className="text-[10px] text-mist">{new Date(v.created_at).toLocaleString('en-ZA')}</span>\n                    </div>\n                    {v.change_summary && <p className="mt-1 text-[11px] text-mist">{v.change_summary}</p>}\n                    {v.revision_reason && <p className="mt-1 text-[11px] text-paper">Reason: {v.revision_reason}</p>}\n                  </div>\n                ))}\n              </div>\n            </div>
+          )}
+
+          {customerLink && (
             <div className="mb-4 rounded-card border border-blue bg-cardgrey p-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
