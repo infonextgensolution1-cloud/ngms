@@ -32,7 +32,7 @@ function SectionHead({ kicker, title, intro, action }: { kicker: string; title: 
 
 function Check() {
   return (
-    <svg viewBox="0 0 20 20" className="h-5 w-5 shrink-0 text-blue mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+    <svg viewBox="0 0 20 20" className="h-5 w-5 shrink-0 text-orange mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
       <path d="M4 10.5l4 4 8-9" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
@@ -109,7 +109,7 @@ export function ServicesOverview({
                     </span>
                     <span className={`mt-1 text-paper/70 text-xs sm:text-sm ${feature ? 'block' : 'hidden sm:block'}`}>{s.tagline}</span>
                     {feature && <span className="mt-2 inline-flex rounded-full bg-orange px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-jet">Flagship</span>}
-                    <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-blue">
+                    <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-orange">
                       View service
                       <span aria-hidden className="transition-transform group-hover:translate-x-1">&rarr;</span>
                     </span>
@@ -245,7 +245,7 @@ export function WhyNgms({ photo }: { photo?: Photo }) {
           <ul className="mt-10 grid sm:grid-cols-2 gap-px bg-darkgrey rounded-panel overflow-hidden border border-darkgrey">
             {REASONS.map((r, i) => (
               <li key={r.title} className="bg-cardgrey p-5">
-                <p className="font-heading text-xs text-blue font-semibold tracking-[0.18em]">{String(i + 1).padStart(2, '0')}</p>
+                <p className="font-heading text-xs text-orange font-semibold tracking-[0.18em]">{String(i + 1).padStart(2, '0')}</p>
                 <h3 className="text-base mt-2 normal-case tracking-normal font-heading font-semibold">{r.title}</h3>
                 <p className="text-mist text-sm mt-1.5 leading-relaxed">{r.body}</p>
               </li>
@@ -319,7 +319,7 @@ export function AreasAndFaq() {
             <p className="text-xs uppercase tracking-[0.16em] text-mist font-semibold">No callout fee</p>
             <ul className="mt-3 flex flex-wrap gap-2">
               {CORE_AREAS.map((a) => (
-                <li key={a} className="rounded-btn border border-blue/40 bg-blue/10 px-3 py-1.5 text-sm font-medium">{a}</li>
+                <li key={a} className="rounded-btn border border-orange/40 bg-orange/10 px-3 py-1.5 text-sm font-medium">{a}</li>
               ))}
             </ul>
             <p className="text-xs uppercase tracking-[0.16em] text-mist font-semibold mt-6">R350 callout</p>
@@ -336,7 +336,7 @@ export function AreasAndFaq() {
               ['/property-maintenance/gordons-bay', "Property maintenance in Gordon's Bay"],
             ].map(([href, label]) => (
               <li key={href}>
-                <Link href={href} className="text-mist hover:text-blue">
+                <Link href={href} className="text-mist hover:text-orange">
                   {label} &rarr;
                 </Link>
               </li>
@@ -352,15 +352,15 @@ export function AreasAndFaq() {
           <div className="mt-8 divide-y divide-darkgrey border-y border-darkgrey">
             {faqs.map((f) => (
               <details key={f.q} className="group">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 font-medium text-paper hover:text-blue [&::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 font-medium text-paper hover:text-orange [&::-webkit-details-marker]:hidden">
                   {f.q}
-                  <span aria-hidden className="text-blue text-xl leading-none transition-transform group-open:rotate-45">+</span>
+                  <span aria-hidden className="text-orange text-xl leading-none transition-transform group-open:rotate-45">+</span>
                 </summary>
                 <p className="pb-5 -mt-1 text-mist leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
-          <Link href="/faq" className="inline-block mt-5 text-sm font-semibold text-blue hover:underline">
+          <Link href="/faq" className="inline-block mt-5 text-sm font-semibold text-orange hover:underline">
             All questions &rarr;
           </Link>
         </div>
@@ -393,7 +393,7 @@ export function FinalCta({ photo }: { photo?: Photo }) {
           <a href={whatsappLink("Hi NextGen, I'd like a quote please.")} target="_blank" rel="noopener noreferrer" className="btn-wa !px-7 !py-3.5">
             WhatsApp {SITE.phoneDisplay}
           </a>
-          <Link href="/body-corporate-maintenance" className="text-sm text-paper/80 hover:text-blue px-2 py-3">
+          <Link href="/body-corporate-maintenance" className="text-sm text-paper/80 hover:text-orange px-2 py-3">
             Body corporate? Book a site walk-through &rarr;
           </Link>
         </div>
@@ -440,13 +440,13 @@ export async function GoogleReviews() {
                 <div className="flex items-center justify-between gap-3"><p className="font-heading font-semibold">{review.authorName ?? 'Google customer'}</p><span className="text-orange tracking-[0.12em]" aria-hidden>★★★★★</span></div>
                 {review.relativePublishTimeDescription && <p className="text-xs text-slate mt-1">{review.relativePublishTimeDescription}</p>}
                 {review.text && <p className="text-sm leading-relaxed text-graphite/85 mt-4">{review.text}</p>}
-                {review.googleMapsUri && <a href={review.googleMapsUri} target="_blank" rel="noopener noreferrer" className="inline-block mt-4 text-xs font-semibold text-blue hover:underline">View on Google →</a>}
+                {review.googleMapsUri && <a href={review.googleMapsUri} target="_blank" rel="noopener noreferrer" className="inline-block mt-4 text-xs font-semibold text-orange hover:underline">View on Google →</a>}
               </article>
             )) : (
               <div className="md:col-span-2 rounded-panel border border-concrete bg-paper p-6">
                 <p className="font-heading font-semibold">See our latest Google reviews</p>
                 <p className="text-sm text-slate mt-2">Open our Google profile to see the newest customer feedback.</p>
-                <a href={data.reviewsUri} target="_blank" rel="noopener noreferrer" className="inline-block mt-4 text-sm font-semibold text-blue hover:underline">Open Google reviews →</a>
+                <a href={data.reviewsUri} target="_blank" rel="noopener noreferrer" className="inline-block mt-4 text-sm font-semibold text-orange hover:underline">Open Google reviews →</a>
               </div>
             )}
           </div>
