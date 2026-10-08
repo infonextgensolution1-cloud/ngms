@@ -32,7 +32,7 @@ h3 {
 
 /* One visible, consistent keyboard focus ring site-wide (NextGen Blue) */
 :focus-visible {
-  outline: 2px solid #147BFF;
+  outline: 2px solid #FF6A00;
   outline-offset: 2px;
 }
 
@@ -42,7 +42,7 @@ h3 {
   left: 1rem;
   top: -4rem;
   z-index: 100;
-  background: #1f6feb;
+  background: #FF6A00;
   color: #fff;
   padding: 0.6rem 1rem;
   border-radius: 4px;
@@ -66,7 +66,7 @@ textarea {
   padding: 0.55rem 0.75rem;
   font-size: 16px; /* stops iOS zoom-on-focus */
   line-height: 1.4;
-  caret-color: #147BFF;
+  caret-color: #FF6A00;
 }
 
 select option,
@@ -86,8 +86,8 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: #147BFF !important;
-  box-shadow: 0 0 0 3px rgba(20, 123, 255, 0.25);
+  border-color: #FF6A00 !important;
+  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.22);
 }
 
 /* Chrome/Android autofill paints a light-blue box - keep it dark */
@@ -420,3 +420,120 @@ form[data-quote-step="4"] [data-quote-navigation] {
 .forge-shimmer::after { content:""; position:absolute; inset:0; transform:translateX(-120%); background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.10) 50%,transparent 65%); animation:forge-shimmer 5s ease-in-out infinite; pointer-events:none; }
 @keyframes forge-shimmer { 0%,60%,100% { transform:translateX(-120%); } 78% { transform:translateX(120%); } }
 @media (prefers-reduced-motion: reduce) { .forge-interactive,.forge-reveal,.forge-shimmer::after { animation:none!important; transition:none!important; transform:none!important; } }
+
+
+/* ---------- NGMS Pinterest visual direction (public UI styling only) ----------
+   Palette: carbon black, signal orange, warm off-white, concrete grey and white.
+   Channel colours are reserved: WhatsApp green and Facebook blue only. */
+:root {
+  --ngms-orange: #FF4B24;
+  --ngms-black: #0B0D0F;
+  --ngms-charcoal: #151719;
+  --ngms-offwhite: #F3F0E9;
+  --ngms-concrete: #D5D4D0;
+  --ngms-white: #FFFFFF;
+}
+html { color-scheme: dark; }
+body { background-color: var(--ngms-black); }
+:focus-visible { outline-color: var(--ngms-orange); }
+.skip-link { background: var(--ngms-orange); color: var(--ngms-black); }
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="color"]),
+select, textarea { caret-color: var(--ngms-orange); }
+input:focus, select:focus, textarea:focus {
+  border-color: var(--ngms-orange) !important;
+  box-shadow: 0 0 0 3px rgba(255,75,36,.22);
+}
+.btn:focus-visible { outline-color: var(--ngms-orange); }
+.btn-glow, .btn-quote {
+  box-shadow: 0 2px 0 rgba(0,0,0,.3), 0 5px 12px rgba(255,75,36,.16);
+}
+.btn-quote:hover, .btn-glow:hover {
+  box-shadow: 0 2px 0 rgba(0,0,0,.26), 0 9px 18px rgba(255,75,36,.22);
+}
+.btn-touch:hover svg, .btn-touch:hover .icon, .btn-touch:hover [data-icon] {
+  color: var(--ngms-orange);
+}
+.btn-outline:hover, .btn-dark:hover { border-color: var(--ngms-orange); color: var(--ngms-orange); }
+.band-light { background-color: var(--ngms-offwhite); }
+.band-light .text-blue, .band-light .kicker { color: #B83218; }
+.ngms-icon:hover, .group:hover .ngms-icon, .group:focus-visible .ngms-icon, .group:active .ngms-icon {
+  filter: drop-shadow(0 6px 12px rgba(255,75,36,.32));
+}
+@keyframes forge-power-edge {
+  0% { box-shadow:0 0 0 0 rgba(255,75,36,0); }
+  45% { box-shadow:0 0 0 2px rgba(255,75,36,.5),0 0 14px rgba(255,75,36,.2); }
+  100% { box-shadow:0 2px 0 rgba(0,0,0,.32),0 4px 10px rgba(0,0,0,.12); }
+}
+/* Keep the two approved social-channel colours functional and recognisable. */
+.btn-wa, .btn-wa-price { background-color:#25D366; border-color:#25D366; color:#FFFFFF; }
+.btn-facebook { background-color:#1877F2; border-color:#1877F2; color:#FFFFFF; }
+/* End NGMS Pinterest visual direction */
+
+
+/* Editorial architecture-inspired type and controls for the public site */
+h1, h2, h3 {
+  font-family: Impact, "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+  font-stretch: condensed;
+  letter-spacing: -.025em;
+}
+.kicker, .tag {
+  color: var(--ngms-orange);
+}
+[aria-labelledby="hero-title"] {
+  min-height: 680px;
+}
+[aria-labelledby="hero-title"] h1 {
+  font-size: clamp(3.4rem, 8.4vw, 7.2rem);
+  line-height: .84;
+  letter-spacing: -.045em;
+  max-width: 10ch;
+}
+[aria-labelledby="hero-title"] h1 span {
+  color: transparent !important;
+  -webkit-text-stroke: 1.3px rgba(255,255,255,.72);
+}
+[aria-labelledby="hero-title"] > div:first-of-type > p:first-child {
+  border-radius: 2px;
+  border-color: rgba(255,75,36,.45);
+}
+[aria-labelledby="hero-title"] > div:first-of-type > p:first-child span {
+  background-color: var(--ngms-orange);
+}
+[aria-labelledby="hero-title"] ul {
+  border-radius: 2px;
+}
+[data-site-marketing] h1, [data-site-marketing] h2, [data-site-marketing] h3 {
+  font-family: Impact, "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+}
+@media (max-width: 639px) {
+  [aria-labelledby="hero-title"] { min-height: 600px; }
+  [aria-labelledby="hero-title"] h1 { font-size: clamp(3.1rem, 14vw, 4.5rem); }
+}
+
+/* Success states use the brand accent; green is reserved for WhatsApp only. */
+.btn.is-success, .btn[data-state="success"] {
+  border-color: var(--ngms-orange);
+  box-shadow: 0 0 0 1px rgba(255,75,36,.22);
+}
+
+
+/* Pinterest-inspired NGMS public palette: orange, ink, warm paper and concrete.
+   Keep admin/print templates independent; these tokens style the public website. */
+:root {
+  --ngms-orange: #FF6A00;
+  --ngms-orange-deep: #D94F00;
+  --ngms-ink: #111111;
+  --ngms-paper: #F7F4EF;
+  --ngms-concrete: #D7D3CD;
+}
+html { color-scheme: dark; }
+body { background-color: #111111; }
+:focus-visible { outline-color: var(--ngms-orange); }
+.skip-link { background: var(--ngms-orange); color: #111111; }
+.band-light .text-blue,
+.band-light .kicker { color: var(--ngms-orange-deep); }
+.text-blue { color: var(--ngms-orange) !important; }
+.bg-blue { background-color: var(--ngms-orange) !important; }
+.border-blue { border-color: var(--ngms-orange) !important; }
+.hover\\:text-blue:hover { color: var(--ngms-orange) !important; }
+.hover\\:border-blue:hover { border-color: var(--ngms-orange) !important; }
