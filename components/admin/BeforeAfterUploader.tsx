@@ -25,15 +25,65 @@ function urls(row: Row, side: 'before' | 'after') {
   return legacy ? [legacy] : []
 }
 
-async function upload(file: File) {
-  const ext = file.name.split('.').pop() || 'jpg'
-  const path = `projects/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-  const { error } = await supabase.storage.from('before-after-photos').upload(path, file, {
+async function upload(file: File, serviceName: string, stage: 'BEFORE' | 'AFTER') {
+  const objectUrl = URL.createObjectURL(file)
+  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error('Could not read image.'))
+    img.src = objectUrl
+  })
+  const scale = Math.min(1, 1600 / Math.max(image.naturalWidth, image.naturalHeight))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round(image.naturalWidth * scale))
+  canvas.height = Math.max(1, Math.round(image.naturalHeight * scale))
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Could not process image.')
+  ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
+  URL.revokeObjectURL(objectUrl)
+
+  const pad = Math.max(12, Math.round(canvas.width * .018))
+  try {
+    const logo = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => resolve(img)
+      img.onerror = reject
+      img.src = '/logo.png'
+    })
+    const w = Math.min(180, Math.round(canvas.width * .16))
+    const h = Math.round(w * logo.naturalHeight / logo.naturalWidth)
+    ctx.fillStyle = 'rgba(0,0,0,.72)'
+    ctx.fillRect(pad, canvas.height - h - pad * 2, w + pad * 1.2, h + pad)
+    ctx.drawImage(logo, pad + 6, canvas.height - h - pad * 1.5, w, h)
+  } catch {}
+
+  const label = `NEXTGEN ${serviceName.toUpperCase()}`
+  ctx.font = `800 ${Math.max(16, Math.round(canvas.width * .022))}px Arial`
+  const tw = ctx.measureText(label).width
+  const th = Math.max(28, Math.round(canvas.width * .045))
+  const x = canvas.width - tw - pad * 2.2
+  const y = canvas.height - th - pad
+  ctx.fillStyle = 'rgba(0,0,0,.82)'
+  ctx.fillRect(x, y, tw + pad * 1.8, th)
+  ctx.fillStyle = '#F97316'
+  ctx.beginPath()
+  ctx.arc(x + pad * .65, y + th / 2, 4, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.fillStyle = '#fff'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(label, x + pad * 1.3, y + th / 2)
+
+  const branded = await new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob(b => b ? resolve(b) : reject(new Error('Could not encode image.')), 'image/jpeg', .84)
+  )
+  const path = `projects/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`
+  const { error } = await supabase.storage.from('before-after-photos').upload(path, branded, {
     cacheControl: '31536000',
+    contentType: 'image/jpeg',
     upsert: false,
   })
   if (error) throw error
-  return supabase.storage.from('before-after-photos').getPublicUrl(path, { transform: { width: 1600, quality: 82 } }).data.publicUrl
+  return supabase.storage.from('before-after-photos').getPublicUrl(path).data.publicUrl
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -79,8 +129,8 @@ export default function BeforeAfterUploader() {
     try {
       const beforeUrls: string[] = []
       const afterUrls: string[] = []
-      for (const file of before) beforeUrls.push(await upload(file))
-      for (const file of after) afterUrls.push(await upload(file))
+      for (const file of before) beforeUrls.push(await upload(file, serviceName, 'BEFORE'))
+      for (const file of after) afterUrls.push(await upload(file, serviceName, 'AFTER'))
 
       const { error } = await supabase.from('before_after_photos').insert({
         before_image_url: beforeUrls[0],
