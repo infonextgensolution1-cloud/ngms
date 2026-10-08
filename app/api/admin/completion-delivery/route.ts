@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { jwtAal, MFA_REQUIRED_MESSAGE } from '@/lib/jwt-aal'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { sendLeadEmail } from '@/lib/lead-email'
+import { sendCustomerCompletionEmail } from '@/lib/lead-email'
 import { isEmail } from '@/lib/rate-limit'
 import { SITE } from '@/lib/site'
 
@@ -49,7 +49,13 @@ export async function POST(request:Request){
     'ONE CALL. ALL SOLUTIONS.'
   ].filter((x):x is string=>Boolean(x))
   if((channel==='email'||channel==='both')&&isEmail(client.email)){
-    try{await sendLeadEmail(`Job completed — ${job.title||'NextGen service'}`,lines,client.email)}catch(err){console.error('completion delivery email failed',err);return NextResponse.json({error:'Could not send the completion email.'},{status:502})}
+    try{
+      await sendCustomerCompletionEmail({
+        to:client.email!, name:client.name, jobTitle:job.title||'Maintenance service',
+        completedDate:job.completed_date, portalLink:portal, balance,
+        googleReviewUrl:settings?.google_review_url, facebookReviewUrl:settings?.facebook_review_url
+      })
+    }catch(err){console.error('completion delivery email failed',err);return NextResponse.json({error:'Could not send the completion email.'},{status:502})}
   }else if(channel==='email') return NextResponse.json({error:'Client has no valid email address.'},{status:400})
   return NextResponse.json({ok:true,channel,sentTo:channel==='whatsapp'?client.phone:client.email,whatsappText:lines.join('\\n')})
 }
