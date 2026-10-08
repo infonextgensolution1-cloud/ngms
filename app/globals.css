@@ -469,8 +469,6 @@ h1, h2, h3, h4 {
 .text-blue { color: var(--ngms-orange) !important; }
 .bg-blue { background-color: var(--ngms-orange) !important; }
 .border-blue { border-color: var(--ngms-orange) !important; }
-.hover\\:text-blue:hover { color: var(--ngms-orange) !important; }
-.hover\\:border-blue:hover { border-color: var(--ngms-orange) !important; }
 
 /* Shared surfaces: a single neutral ramp, with no purple/teal/blue brand accents. */
 .card, .panel {
