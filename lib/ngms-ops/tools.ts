@@ -182,6 +182,7 @@ export const TOOLS = [
         valid_until: { type: 'string', description: 'YYYY-MM-DD' },
         apply_vat: { type: 'boolean' },
         notes: { type: 'string', maxLength: 4000, description: 'Replaces the quote notes.' },
+        revision_reason: { type: 'string', maxLength: 500, description: 'Required when changing customer-facing content on a quote that has already been sent.' },
       },
       required: ['quote_id'],
       additionalProperties: false,
