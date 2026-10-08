@@ -117,9 +117,9 @@ function makePdf(pageOps: string[][]): Uint8Array {
   const pageIds: number[] = []
 
   for (const ops of pageOps) {
-    const stream = ops.join('\\n')
+    const stream = ops.join('\n')
     const streamBytes = encoder.encode(stream)
-    const contentId = add('<< /Length ' + streamBytes.byteLength + ' >>\\nstream\\n' + stream + '\\nendstream')
+    const contentId = add('<< /Length ' + streamBytes.byteLength + ' >>\nstream\n' + stream + '\nendstream')
     const pageId = add('')
     pageIds.push(pageId)
     objects[pageId - 1] =
@@ -135,13 +135,13 @@ function makePdf(pageOps: string[][]): Uint8Array {
 
   const catalog = add('<< /Type /Catalog /Pages ' + pagesObj + ' 0 R >>')
 
-  const header = '%PDF-1.4\\n%NGMS\\n'
+  const header = '%PDF-1.4\n%NGMS\n'
   const chunks: Uint8Array[] = [encoder.encode(header)]
   const offsets: number[] = [0]
   let offset = chunks[0].byteLength
 
   for (let i = 0; i < objects.length; i++) {
-    const part = encoder.encode((i + 1) + ' 0 obj\\n' + objects[i] + '\\nendobj\\n')
+    const part = encoder.encode((i + 1) + ' 0 obj\n' + objects[i] + '\nendobj\n')
     offsets.push(offset)
     chunks.push(part)
     offset += part.byteLength
@@ -160,7 +160,7 @@ function makePdf(pageOps: string[][]): Uint8Array {
     'startxref',
     String(xrefOffset),
     '%%EOF',
-  ].join('\\n') + '\\n'
+  ].join('\n') + '\n'
 
   chunks.push(encoder.encode(xref))
 
