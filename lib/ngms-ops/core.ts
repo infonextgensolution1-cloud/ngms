@@ -86,7 +86,7 @@ export const JOB_COLS = 'id,client_id,quote_id,title,description,status,schedule
 export const ITEM_COLS = 'id,description,quantity,unit,unit_price'
 
 export type Client = { id: string; name: string; email: string | null; phone: string | null; address: string | null; suburb: string | null; notes: string | null; created_at: string }
-export type Quote = { id: string; quote_number: string; client_id: string | null; lead_id: string | null; status: string; vat_included: boolean | null; deposit_amount: number | null; total_amount: number | null; notes: string | null; valid_until: string | null; created_at: string; updated_at: string; pdf_path?: string | null }
+export type Quote = { id: string; quote_number: string; client_id: string | null; lead_id: string | null; status: string; vat_included: boolean | null; deposit_amount: number | null; total_amount: number | null; notes: string | null; valid_until: string | null; created_at: string; updated_at: string; pdf_path?: string | null; revision_of_quote_id?: string | null }
 export type Invoice = { id: string; invoice_number: string; quote_id: string | null; client_id: string | null; status: string; total_amount: number | null; paid_amount: number | null; due_date: string | null; notes: string | null; created_at: string }
 export type Job = { id: string; client_id: string | null; quote_id: string | null; title: string | null; description: string | null; status: string; scheduled_date: string | null; completed_date: string | null; created_at: string }
 export type Item = { id?: string; description: string; quantity: number; unit: string; unit_price: number; service_id?: string | null }
