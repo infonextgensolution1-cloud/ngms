@@ -16,6 +16,8 @@ type BeforeAfter = {
   caption: string | null
   before_image_url: string
   after_image_url: string
+  before_image_urls?: string[] | null
+  after_image_urls?: string[] | null
 }
 
 async function getProjects(): Promise<BeforeAfter[]> {
@@ -46,14 +48,24 @@ export default async function PortfolioPage() {
           <div className="max-w-5xl mx-auto px-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((p) => (
               <div key={p.id} className="bg-cardgrey border border-darkgrey rounded-card overflow-hidden">
-                <div className="grid grid-cols-2">
-                  <div className="relative h-36">
-                    <Image src={p.before_image_url} alt="Before" fill sizes="(max-width: 640px) 45vw, 200px" quality={70} className="object-cover" />
-                    <span className="badge-glow absolute top-2 left-2 bg-jet/80 text-paper text-[10px] uppercase tracking-wide px-2 py-1 rounded-btn">Before</span>
+                <div className="grid grid-cols-2 gap-1 bg-jet p-1">
+                  <div className="grid grid-cols-2 gap-1">
+                    {(Array.isArray(p.before_image_urls) && p.before_image_urls.length ? p.before_image_urls : [p.before_image_url]).slice(0,4).map((url, i) => (
+                      <div key={url} className="relative aspect-video overflow-hidden rounded">
+                        <Image src={url} alt={`Before ${i + 1}`} fill sizes="(max-width: 640px) 45vw, 180px" quality={72} className="object-cover" />
+                        <span className="absolute top-1 left-1 bg-jet/80 text-paper text-[9px] uppercase px-1.5 py-0.5 rounded">Before</span>
+                        <img src="/logo.png" alt="" className="absolute bottom-1 left-1 w-8 h-8 object-contain" />
+                      </div>
+                    ))}
                   </div>
-                  <div className="relative h-36">
-                    <Image src={p.after_image_url} alt="After" fill sizes="(max-width: 640px) 45vw, 200px" quality={70} className="object-cover" />
-                    <span className="badge-glow absolute top-2 left-2 bg-orange/90 text-white text-[10px] uppercase tracking-wide px-2 py-1 rounded-btn">After</span>
+                  <div className="grid grid-cols-2 gap-1">
+                    {(Array.isArray(p.after_image_urls) && p.after_image_urls.length ? p.after_image_urls : [p.after_image_url]).slice(0,4).map((url, i) => (
+                      <div key={url} className="relative aspect-video overflow-hidden rounded">
+                        <Image src={url} alt={`After ${i + 1}`} fill sizes="(max-width: 640px) 45vw, 180px" quality={72} className="object-cover" />
+                        <span className="absolute top-1 left-1 bg-orange/90 text-white text-[9px] uppercase px-1.5 py-0.5 rounded">After</span>
+                        <img src="/logo.png" alt="" className="absolute bottom-1 left-1 w-8 h-8 object-contain" />
+                      </div>
+                    ))}
                   </div>
                 </div>
                 <div className="p-5">
