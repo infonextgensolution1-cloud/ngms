@@ -42,7 +42,7 @@ export default async function GalleryPage() {
           <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
             {photos.map((photo) => (
               <div key={photo.id} className="aspect-square bg-cardgrey border border-darkgrey rounded-card overflow-hidden relative group">
-                <Image src={photo.image_url} alt={photo.caption ?? ''} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 320px" quality={70} className="object-cover" />
+                <Image src={photo.image_url} alt={photo.caption ?? ''} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 320px" quality={70} unoptimized className="object-cover" />
                 {photo.caption && (
                   <p className="absolute bottom-0 left-0 right-0 bg-jet/80 text-paper text-xs p-2">{photo.caption}</p>
                 )}
