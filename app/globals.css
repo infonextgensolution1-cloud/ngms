@@ -466,12 +466,12 @@ h1, h2, h3, h4 {
   min-height: 3rem;
   transition: transform .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
-.btn-glow, .btn-quote, .btn-quote-popup, .btn-blue, .btn-power, .btn-quote-hero {
+.btn-glow, .btn-quote, .btn-quote-popup, .btn-quote-hero {
   background: #B7FF00 !important;
   border-color: #B7FF00 !important;
   color: #101010 !important;
 }
-.btn-glow:hover, .btn-quote:hover, .btn-quote-popup:hover, .btn-blue:hover, .btn-power:hover, .btn-quote-hero:hover {
+.btn-glow:hover, .btn-quote:hover, .btn-quote-popup:hover, .btn-quote-hero:hover {
   background: #A5E600 !important;
   border-color: #A5E600 !important;
   color: #101010 !important;
