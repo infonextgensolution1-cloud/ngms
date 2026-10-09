@@ -13,52 +13,39 @@ export const metadata = {
 
 function SectionLabel({ index, children, light = false }: { index: string; children: React.ReactNode; light?: boolean }) {
   return (
-    <div className={`flex items-center gap-3 text-xs uppercase tracking-[.18em] font-bold ${light ? 'text-[#B83E00]' : 'text-orange'}`}>
-      <span className={`inline-flex h-7 w-7 items-center justify-center border ${light ? 'border-[#B83E00]' : 'border-orange'}`}>{index}</span>
+    <div className={`flex items-center gap-3 text-xs uppercase tracking-[.18em] font-bold ${light ? 'text-[#D94324]' : 'text-[#F04427]'}`}>
+      <span className={`inline-flex h-7 w-7 items-center justify-center border ${light ? 'border-[#D94324]' : 'border-[#F04427]'}`}>{index}</span>
       <span>{children}</span>
     </div>
   )
 }
 
-function PackageGrid({ packages, joinable = false, light = false }: { packages: Package[]; joinable?: boolean; light?: boolean }) {
+function PackageGrid({ packages, joinable = false }: { packages: Package[]; joinable?: boolean }) {
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {packages.map((pkg, i) => (
         <article
           key={pkg.name}
-          className={`group relative flex min-w-0 flex-col border p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_38px_rgba(0,0,0,.14)] ${light ? 'bg-[#F7F4EF] text-[#171717] border-[#BDB9B1] hover:border-[#FF6A00]' : 'bg-[#171717] text-white border-[#3A3A3A] hover:border-[#FF6A00]'} ${pkg.featured ? 'ring-1 ring-[#FF6A00]' : ''}`}
+          className={`group relative flex min-w-0 flex-col overflow-hidden border border-[#DEDDE1] bg-white p-5 text-[#28282D] transition-all duration-300 hover:-translate-y-1 hover:border-[#F04427] hover:shadow-[0_18px_38px_rgba(35,35,40,.09)] sm:p-6 ${pkg.featured ? 'ring-1 ring-[#F04427]' : ''}`}
         >
-          <div className="absolute right-0 top-0 h-1 w-16 bg-[#FF6A00] transition-all duration-300 group-hover:w-full" />
+          <div className="absolute right-0 top-0 h-1 w-16 bg-[#F04427] transition-all duration-300 group-hover:w-full" />
           <div className="flex items-start justify-between gap-4">
-            <div className={`flex h-12 w-12 items-center justify-center border ${light ? 'border-[#BDB9B1] bg-white' : 'border-[#454545] bg-[#101010]'}`}>
+            <div className="flex h-12 w-12 items-center justify-center border border-[#E1E0E4] bg-[#F7F7F9]">
               <NgmsIcon name={pkg.icon} index={i} className="h-9 w-9" />
             </div>
-            {pkg.featured && (
-              <span className="border border-[#FF6A00] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[.12em] text-[#FF6A00]">
-                {pkg.badge || 'Featured'}
-              </span>
-            )}
+            {pkg.featured && <span className="border border-[#F04427] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[.12em] text-[#D94324]">{pkg.badge || 'Featured'}</span>}
           </div>
-          <p className={`mt-6 text-xs font-bold uppercase tracking-[.15em] ${light ? 'text-[#B83E00]' : 'text-[#FF6A00]'}`}>{pkg.frequency}</p>
+          <p className="mt-6 text-xs font-bold uppercase tracking-[.15em] text-[#D94324]">{pkg.frequency}</p>
           <h3 className="mt-2 text-2xl font-bold uppercase leading-tight tracking-[-.035em]">{pkg.name}</h3>
-          <div className={`mt-5 border-t pt-4 ${light ? 'border-[#D2CEC6]' : 'border-[#393939]'}`}>
+          <div className="mt-5 border-t border-[#E1E0E4] pt-4">
             <p className="text-3xl font-bold tracking-[-.04em]">{pkg.price}</p>
-            <p className={`mt-1 text-xs ${light ? 'text-[#625F59]' : 'text-[#C4C1BB]'}`}>{pkg.unit} · VAT excl.</p>
+            <p className="mt-1 text-xs text-[#777780]">{pkg.unit} · VAT excl.</p>
           </div>
           <ul className="mt-5 flex-1 space-y-3">
-            {pkg.features.map((feature) => (
-              <li key={feature} className="flex items-start gap-2.5 text-sm leading-snug">
-                <Check aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-[#FF6A00]" strokeWidth={2.5} />
-                <span>{feature}</span>
-              </li>
-            ))}
+            {pkg.features.map((feature) => <li key={feature} className="flex items-start gap-2.5 text-sm leading-snug"><Check aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-[#F04427]" strokeWidth={2.5} /><span>{feature}</span></li>)}
           </ul>
-          <Link
-            href={joinable ? '#join' : '/quote'}
-            className="mt-7 inline-flex min-h-12 items-center justify-between gap-3 border-2 border-[#FF6A00] bg-[#FF6A00] px-4 py-3 font-bold uppercase tracking-wide text-sm text-[#111111] transition-colors hover:bg-[#D94F00] hover:border-[#D94F00] hover:text-white"
-          >
-            <span>{joinable ? 'Choose this plan' : 'Request this package'}</span>
-            <ArrowUpRight aria-hidden="true" className="h-5 w-5 shrink-0" />
+          <Link href={joinable ? '#join' : '/quote'} className="mt-7 inline-flex min-h-12 items-center justify-between gap-3 border border-[#28282D] px-4 py-3 text-sm font-bold uppercase tracking-wide text-[#28282D] transition-colors hover:border-[#F04427] hover:bg-[#F04427] hover:text-white">
+            <span>{joinable ? 'Choose this plan' : 'Request this package'}</span><ArrowUpRight aria-hidden="true" className="h-5 w-5 shrink-0" />
           </Link>
         </article>
       ))}
@@ -68,115 +55,126 @@ function PackageGrid({ packages, joinable = false, light = false }: { packages: 
 
 export default function MaintenancePackagesPage() {
   return (
-    <main className="bg-[#F7F4EF] text-[#171717]">
-      <section className="relative isolate overflow-hidden bg-[#111111] px-4 py-14 text-white sm:py-20 lg:py-24">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -right-20 top-[-6rem] h-[28rem] w-[28rem] rounded-full border border-[#FF6A00]/40 sm:right-[-4rem] sm:h-[38rem] sm:w-[38rem]" />
-          <div className="absolute -right-8 top-[-2rem] h-[22rem] w-[22rem] rounded-full border border-[#FF6A00]/25 sm:right-8 sm:h-[29rem] sm:w-[29rem]" />
-          <div className="absolute right-[22%] top-[20%] hidden h-3 w-3 bg-[#FF6A00] sm:block" />
-          <div className="absolute bottom-0 left-0 h-1 w-2/3 bg-[#FF6A00]" />
-          <div className="absolute bottom-8 right-8 hidden font-mono text-[10px] uppercase tracking-[.3em] text-white/40 lg:block">NGMS / FIELD CARE / 01—04</div>
+    <main id="main-content" className="overflow-hidden bg-[#F4F3F7] text-[#29292F]">
+      <section className="relative isolate mx-auto max-w-[1440px] overflow-hidden border-x border-[#E0DFE5] bg-[#F4F3F7] px-4 sm:px-7 lg:px-10">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+          <div className="absolute inset-x-0 top-[44%] border-t border-[#E4E2E8]" />
+          <div className="absolute left-1/2 top-[-10rem] h-[36rem] w-[36rem] -translate-x-1/2 rounded-full border border-[#E6E4EA] sm:top-[-13rem] sm:h-[49rem] sm:w-[49rem]" />
+          <div className="absolute left-1/2 top-[-10rem] h-[36rem] w-[36rem] -translate-x-1/2 rounded-full border border-[#E9E7ED] sm:top-[-13rem] sm:h-[49rem] sm:w-[49rem]" />
+          <div className="absolute left-[49.8%] top-0 h-[44%] border-l border-[#E5E3E9]" />
+          <div className="absolute right-[16%] top-0 hidden h-[44%] w-px origin-top rotate-[48deg] bg-[#E6E4EA] sm:block" />
+          <div className="absolute bottom-0 left-0 h-px w-full bg-[#DE DDE3]" />
         </div>
-        <div className="relative mx-auto grid max-w-7xl items-end gap-10 lg:grid-cols-[1.2fr_.8fr]">
-          <div>
-            <SectionLabel index="01">Planned care. Fewer surprises.</SectionLabel>
-            <h1 className="mt-8 max-w-4xl text-5xl font-bold uppercase leading-[.88] tracking-[-.065em] text-white sm:text-7xl lg:text-[6.5rem]">
-              Maintenance
-              <span className="block text-[#FF6A00]">that works.</span>
+
+        <div className="relative z-10 grid min-h-[620px] grid-cols-2 grid-rows-[auto_1fr] sm:min-h-[690px]">
+          <div className="col-span-2 flex items-start justify-between gap-4 border-b border-[#E0DFE5] py-5 sm:py-6">
+            <nav aria-label="Maintenance page sections" className="flex flex-col gap-1.5 text-[10px] uppercase tracking-[.1em] text-[#7E7D85] sm:text-xs">
+              <a className="transition-colors hover:text-[#F04427]" href="#recurring">Maintenance plans</a>
+              <a className="transition-colors hover:text-[#F04427]" href="#seasonal">Seasonal care</a>
+              <a className="transition-colors hover:text-[#F04427]" href="#commercial">Complexes</a>
+              <a className="transition-colors hover:text-[#F04427]" href="#join">Contact</a>
+            </nav>
+            <p className="pt-1 text-center text-[10px] font-semibold tracking-[.08em] text-[#4E4D55] sm:text-sm">NextGen Maintenance Solutions<span className="text-[#F04427]">.</span></p>
+            <Link href="/quote" className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#29292F] px-4 py-2 text-[10px] font-bold uppercase tracking-wide text-white transition-transform hover:scale-[1.03] sm:px-5 sm:text-xs">
+              Get a quote <span className="text-[#F04427]">●</span>
+            </Link>
+          </div>
+
+          <div className="col-span-2 flex min-h-[420px] flex-col justify-end border-b border-[#E0DFE5] py-12 sm:min-h-[470px] sm:py-16 lg:col-span-1 lg:pr-8">
+            <div className="mb-4 flex items-start gap-3 sm:mb-6">
+              <span className="mt-1 text-xs font-semibold text-[#F04427]">01 / 04</span>
+              <p className="max-w-[135px] text-[10px] leading-relaxed text-[#777780] sm:text-xs">Property care.<br />Planned around you.<br />Made straightforward.</p>
+            </div>
+            <h1 className="max-w-[760px] text-[clamp(3.2rem,9vw,7.7rem)] font-medium uppercase leading-[.82] tracking-[-.085em] text-[#29292F]">
+              Planned<br />Maintenance<span className="text-[#F04427]">.</span>
             </h1>
-            <p className="mt-7 max-w-xl text-base leading-relaxed text-[#D7D3CD] sm:text-lg">
-              One reliable point of contact for property upkeep across Strand, Gordon’s Bay and Somerset West.
-              Choose a recurring plan, prepare for the season, or maintain a whole complex.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="#recurring" className="inline-flex min-h-12 items-center gap-3 border-2 border-[#FF6A00] bg-[#FF6A00] px-5 py-3 text-sm font-bold uppercase tracking-wide text-[#111111] hover:bg-[#D94F00] hover:text-white">
-                Explore plans <ArrowDownRight aria-hidden="true" className="h-5 w-5" />
-              </Link>
-              <Link href="/quote" className="inline-flex min-h-12 items-center gap-3 border border-white/50 px-5 py-3 text-sm font-bold uppercase tracking-wide text-white hover:border-[#FF6A00] hover:text-[#FF6A00]">
-                Get a tailored quote <ArrowUpRight aria-hidden="true" className="h-5 w-5" />
-              </Link>
+            <p className="mt-6 max-w-lg text-sm leading-relaxed text-[#686770] sm:mt-8 sm:text-base">Reliable property upkeep across Strand, Gordon’s Bay and Somerset West. One point of contact for recurring care, seasonal jobs and shared properties.</p>
+            <div className="mt-7 flex flex-wrap gap-3 lg:hidden">
+              <Link href="#recurring" className="inline-flex min-h-12 items-center gap-3 bg-[#F04427] px-5 py-3 text-xs font-bold uppercase text-white">Explore plans <ArrowDownRight className="h-4 w-4" /></Link>
+              <Link href="/quote" className="inline-flex min-h-12 items-center gap-3 border border-[#29292F] px-5 py-3 text-xs font-bold uppercase">Request a quote <ArrowUpRight className="h-4 w-4" /></Link>
             </div>
           </div>
-          <div className="relative max-w-xl border border-white/20 bg-[#1B1B1B] p-5 sm:p-7 lg:justify-self-end">
-            <div className="mb-7 flex items-center justify-between border-b border-white/20 pb-4">
-              <span className="text-xs font-bold uppercase tracking-[.2em] text-[#FF6A00]">The NGMS approach</span>
-              <span className="font-mono text-xs text-white/45">01 / 03</span>
-            </div>
-            <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-6">
-              <CalendarDays className="h-6 w-6 text-[#FF6A00]" aria-hidden="true" />
-              <div><h2 className="text-lg font-bold uppercase">Scheduled, not scrambled</h2><p className="mt-1 text-sm leading-relaxed text-[#C4C1BB]">Plan visits around your property and the Western Cape seasons.</p></div>
-              <ShieldCheck className="h-6 w-6 text-[#FF6A00]" aria-hidden="true" />
-              <div><h2 className="text-lg font-bold uppercase">Scope agreed upfront</h2><p className="mt-1 text-sm leading-relaxed text-[#C4C1BB]">Confirm the work and price before the first visit.</p></div>
-              <Wrench className="h-6 w-6 text-[#FF6A00]" aria-hidden="true" />
-              <div><h2 className="text-lg font-bold uppercase">One point of contact</h2><p className="mt-1 text-sm leading-relaxed text-[#C4C1BB]">Solar panel cleaning and multiple property maintenance trades, coordinated simply.</p></div>
-            </div>
-            <div className="mt-7 flex items-center gap-3 border-t border-white/20 pt-4 text-xs uppercase tracking-[.15em] text-white/55">
-              <span className="h-2 w-2 bg-[#FF6A00]" /> Helderberg Basin · Western Cape
-            </div>
+
+          <div className="relative col-span-2 hidden min-h-[470px] items-end justify-center border-b border-[#E0DFE5] pb-8 lg:col-span-1 lg:flex">
+            <Link href="#recurring" aria-label="Explore maintenance plans" className="group relative mb-3 flex h-40 w-40 flex-col items-center justify-center rounded-full bg-[#F04427] text-center text-white shadow-[0_10px_28px_rgba(240,68,39,.12)] transition-transform duration-300 hover:scale-105 xl:h-48 xl:w-48">
+              <span className="max-w-[120px] text-xs font-semibold uppercase leading-snug tracking-wide xl:text-sm">Explore maintenance plans</span>
+              <ArrowDownRight aria-hidden="true" className="mt-3 h-6 w-6 transition-transform group-hover:translate-x-1 group-hover:translate-y-1" />
+            </Link>
+            <span className="absolute bottom-7 right-3 text-[10px] uppercase tracking-[.14em] text-[#85848D]">Strand / Helderberg / Western Cape</span>
+          </div>
+        </div>
+
+        <div className="relative z-10 py-5 sm:py-7">
+          <div className="mb-5 flex items-center justify-between">
+            <span className="text-2xl font-light text-[#F04427]">+</span>
+            <span className="text-[10px] uppercase tracking-[.14em] text-[#85848D] sm:text-xs">How we keep things running</span>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {[
+              { n: '01/', title: 'Made around your property', body: 'Practical maintenance plans shaped around your site and priorities.', href: '#recurring', dark: false },
+              { n: '02/', title: 'Seasonal, not last-minute', body: 'Prepare for rain, refresh for summer and plan work in advance.', href: '#seasonal', dark: false },
+              { n: '03/', title: 'One coordinated team', body: 'Bring multiple maintenance trades together through one contact.', href: '#commercial', dark: false },
+              { n: '04/', title: 'Clear scope. Clear quote.', body: 'Confirm the work and price before the first visit.', href: '#join', dark: true },
+            ].map((item) => (
+              <a key={item.n} href={item.href} className={`group flex min-h-[180px] flex-col justify-between p-5 transition-transform duration-300 hover:-translate-y-1 sm:min-h-[205px] sm:p-6 [clip-path:polygon(0_1.7rem,1.7rem_0,100%_0,100%_100%,0_100%)] ${item.dark ? 'bg-[#29292F] text-white' : 'bg-[#FBFAFC] text-[#29292F]'}`}>
+                <div className="flex items-start justify-between"><span className={`text-xs font-medium ${item.dark ? 'text-white/45' : 'text-[#B9B8C0]'}`}>{item.n}</span><ArrowUpRight aria-hidden="true" className={`h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1 ${item.dark ? 'text-[#F04427]' : 'text-[#9C9BA3]'}`} /></div>
+                <div><h2 className="max-w-[240px] text-lg font-semibold leading-tight tracking-[-.035em] sm:text-xl">{item.title}</h2><p className={`mt-2 max-w-[260px] text-xs leading-relaxed sm:text-sm ${item.dark ? 'text-white/65' : 'text-[#777780]'}`}>{item.body}</p></div>
+              </a>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="bg-[#D7D3CD] px-4 py-5 text-[#171717]">
-        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-4 sm:grid-cols-4">
-          {[['01', 'Recurring property care'], ['02', 'Seasonal maintenance'], ['03', 'Complex & commercial'], ['04', 'Written quotes']].map(([n, label]) => (
-            <div key={n} className="flex items-center gap-3 border-l-2 border-[#FF6A00] pl-3 py-1">
-              <span className="font-mono text-xs text-[#B83E00]">{n}</span><span className="text-xs font-bold uppercase tracking-wide sm:text-sm">{label}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section id="recurring" className="scroll-mt-20 bg-[#F7F4EF] px-4 py-14 sm:py-20">
+      <section id="recurring" className="scroll-mt-20 bg-[#F4F3F7] px-4 py-14 sm:px-7 sm:py-20 lg:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="mb-9 grid gap-5 md:grid-cols-[.85fr_1.15fr] md:items-end">
-            <div><SectionLabel index="02" light>Recurring plans</SectionLabel><h2 className="mt-5 text-4xl font-bold uppercase leading-[.92] tracking-[-.055em] sm:text-6xl">Keep ahead<br />of the work.</h2></div>
-            <p className="max-w-2xl text-base leading-relaxed text-[#55534E] md:justify-self-end">Choose the visit frequency that fits your property. Plans combine practical maintenance services so you can budget ahead and reduce last-minute call-outs.</p>
+            <div><SectionLabel index="02" light>Recurring plans</SectionLabel><h2 className="mt-5 text-4xl font-medium uppercase leading-[.9] tracking-[-.07em] sm:text-6xl">Keep ahead<br />of the work<span className="text-[#F04427]">.</span></h2></div>
+            <p className="max-w-2xl text-base leading-relaxed text-[#686770] md:justify-self-end">Choose the visit frequency that fits your property. Plans combine practical maintenance services so you can budget ahead and reduce last-minute call-outs.</p>
           </div>
-          <PackageGrid packages={RECURRING_PACKAGES} joinable light />
-          <p className="mt-6 max-w-3xl text-xs leading-relaxed text-[#625F59]">Panel counts above 20 are quoted at the standard per-panel rate. Every plan can be tailored during a free site assessment; exact scope and pricing are confirmed before the first visit.</p>
+          <PackageGrid packages={RECURRING_PACKAGES} joinable />
+          <p className="mt-6 max-w-3xl text-xs leading-relaxed text-[#777780]">Panel counts above 20 are quoted at the standard per-panel rate. Every plan can be tailored during a free site assessment; exact scope and pricing are confirmed before the first visit.</p>
         </div>
       </section>
 
-      <section id="join" className="scroll-mt-20 border-y border-[#3A3A3A] bg-[#171717] px-4 py-14 text-white sm:py-20">
+      <section id="join" className="scroll-mt-20 border-y border-[#DE DDE3] bg-[#29292F] px-4 py-14 text-white sm:px-7 sm:py-20 lg:px-10">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-start">
-          <div><SectionLabel index="03">Start a plan</SectionLabel><h2 className="mt-5 text-4xl font-bold uppercase leading-[.92] tracking-[-.055em] sm:text-6xl">Make upkeep<br /><span className="text-[#FF6A00]">automatic.</span></h2><p className="mt-5 max-w-md leading-relaxed text-[#C4C1BB]">Send through your details and we’ll confirm the plan and first visit with you.</p><div className="mt-7 border-l-2 border-[#FF6A00] pl-4 text-sm text-[#D7D3CD]">No guesswork. We confirm the scope before work begins.</div></div>
-          <div className="border border-[#424242] bg-[#111111] p-4 sm:p-6"><PlanSignupForm /></div>
+          <div><SectionLabel index="03">Start a plan</SectionLabel><h2 className="mt-5 text-4xl font-medium uppercase leading-[.9] tracking-[-.07em] sm:text-6xl">Make upkeep<br /><span className="text-[#F04427]">automatic.</span></h2><p className="mt-5 max-w-md leading-relaxed text-white/65">Send through your details and we’ll confirm the plan and first visit with you.</p><div className="mt-7 border-l-2 border-[#F04427] pl-4 text-sm text-white/75">No guesswork. We confirm the scope before work begins.</div></div>
+          <div className="border border-white/15 bg-[#33333A] p-4 sm:p-6"><PlanSignupForm /></div>
         </div>
       </section>
 
-      <section className="bg-[#D7D3CD] px-4 py-14 sm:py-20">
+      <section id="seasonal" className="scroll-mt-20 bg-[#E9E8ED] px-4 py-14 sm:px-7 sm:py-20 lg:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="mb-9 grid gap-5 md:grid-cols-[.85fr_1.15fr] md:items-end">
-            <div><SectionLabel index="04" light>Seasonal combinations</SectionLabel><h2 className="mt-5 text-4xl font-bold uppercase leading-[.92] tracking-[-.055em] sm:text-6xl">Built for<br />Cape weather.</h2></div>
-            <p className="max-w-2xl text-base leading-relaxed text-[#55534E] md:justify-self-end">Prepare for winter rain or refresh your property for summer. These once-off combinations bring the right jobs together in one coordinated visit.</p>
+            <div><SectionLabel index="04" light>Seasonal combinations</SectionLabel><h2 className="mt-5 text-4xl font-medium uppercase leading-[.9] tracking-[-.07em] sm:text-6xl">Built for<br />Cape weather<span className="text-[#F04427]">.</span></h2></div>
+            <p className="max-w-2xl text-base leading-relaxed text-[#686770] md:justify-self-end">Prepare for winter rain or refresh your property for summer. These once-off combinations bring the right jobs together in one coordinated visit.</p>
           </div>
-          <PackageGrid packages={SEASONAL_COMBOS} light />
-          <p className="mt-6 text-xs leading-relaxed text-[#625F59]">Once-off project pricing; final scope confirmed on-site. Ask whether a seasonal combination can be paired with a recurring plan.</p>
+          <PackageGrid packages={SEASONAL_COMBOS} />
+          <p className="mt-6 text-xs leading-relaxed text-[#777780]">Once-off project pricing; final scope confirmed on-site. Ask whether a seasonal combination can be paired with a recurring plan.</p>
         </div>
       </section>
 
-      <section className="bg-[#111111] px-4 py-14 text-white sm:py-20">
+      <section id="commercial" className="scroll-mt-20 bg-[#F4F3F7] px-4 py-14 sm:px-7 sm:py-20 lg:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="mb-9 grid gap-5 md:grid-cols-[.85fr_1.15fr] md:items-end">
-            <div><SectionLabel index="05">For shared properties</SectionLabel><h2 className="mt-5 text-4xl font-bold uppercase leading-[.92] tracking-[-.055em] sm:text-6xl">One team.<br /><span className="text-[#FF6A00]">One plan.</span></h2></div>
-            <p className="max-w-2xl text-base leading-relaxed text-[#C4C1BB] md:justify-self-end">Volume-conscious maintenance for body corporates, security complexes and light commercial sites — with a single point of contact for coordinated work.</p>
+            <div><SectionLabel index="05" light>For shared properties</SectionLabel><h2 className="mt-5 text-4xl font-medium uppercase leading-[.9] tracking-[-.07em] sm:text-6xl">One team.<br />One plan<span className="text-[#F04427]">.</span></h2></div>
+            <p className="max-w-2xl text-base leading-relaxed text-[#686770] md:justify-self-end">Volume-conscious maintenance for body corporates, security complexes and light commercial sites — with a single point of contact for coordinated work.</p>
           </div>
           <PackageGrid packages={COMMERCIAL_COMBOS} />
-          <p className="mt-6 text-xs leading-relaxed text-[#C4C1BB]">Prices reflect typical starting scopes. Larger complexes and multi-building sites are quoted after a site walk-through.</p>
+          <p className="mt-6 text-xs leading-relaxed text-[#777780]">Prices reflect typical starting scopes. Larger complexes and multi-building sites are quoted after a site walk-through.</p>
         </div>
       </section>
 
-      <section className="bg-[#F7F4EF] px-4 py-14 text-[#171717] sm:py-20">
-        <div className="mx-auto grid max-w-7xl gap-6 border-y-2 border-[#171717] py-8 md:grid-cols-[1fr_auto] md:items-center">
-          <div><p className="text-xs font-bold uppercase tracking-[.18em] text-[#B83E00]">Not sure where to start?</p><h2 className="mt-3 text-3xl font-bold uppercase leading-tight tracking-[-.04em] sm:text-5xl">Let’s plan your maintenance.</h2><p className="mt-3 max-w-2xl text-[#55534E]">Request a quote or ask us about the right package for your home, complex or business.</p></div>
+      <section className="bg-[#F4F3F7] px-4 pb-14 sm:px-7 sm:pb-20 lg:px-10">
+        <div className="mx-auto grid max-w-7xl gap-6 border-y border-[#DAD9E0] py-8 md:grid-cols-[1fr_auto] md:items-center">
+          <div><p className="text-xs font-bold uppercase tracking-[.18em] text-[#D94324]">Not sure where to start?</p><h2 className="mt-3 text-3xl font-medium uppercase leading-tight tracking-[-.06em] sm:text-5xl">Let’s plan your maintenance.</h2><p className="mt-3 max-w-2xl text-[#686770]">Request a quote or ask us about the right package for your home, complex or business.</p></div>
           <div className="flex flex-wrap items-center gap-3">
-            <Link href="/quote" className="inline-flex min-h-12 items-center gap-3 border-2 border-[#FF6A00] bg-[#FF6A00] px-5 py-3 text-sm font-bold uppercase text-[#111111] hover:bg-[#D94F00] hover:text-white">Request a quote <ArrowUpRight aria-hidden="true" className="h-5 w-5" /></Link>
-            <a href="https://wa.me/27631387945" aria-label="Contact NextGen Maintenance Solutions on WhatsApp" title="WhatsApp NextGen Maintenance Solutions" className="inline-flex h-12 w-12 items-center justify-center border-2 border-[#171717] text-[#171717] transition-colors hover:border-[#25D366] hover:text-[#25D366]"><MessageCircle aria-hidden="true" className="h-6 w-6" /></a>
-            <Link href="/price-list" className="inline-flex min-h-12 items-center border border-[#8A867F] px-4 py-3 text-sm font-bold uppercase hover:border-[#FF6A00] hover:text-[#B83E00]">Full price list</Link>
+            <Link href="/quote" className="inline-flex min-h-12 items-center gap-3 bg-[#F04427] px-5 py-3 text-sm font-bold uppercase text-white hover:bg-[#D94324]">Request a quote <ArrowUpRight aria-hidden="true" className="h-5 w-5" /></Link>
+            <a href="https://wa.me/27631387945" aria-label="Contact NextGen Maintenance Solutions on WhatsApp" title="WhatsApp NextGen Maintenance Solutions" className="inline-flex h-12 w-12 items-center justify-center border border-[#29292F] text-[#29292F] transition-colors hover:border-[#25D366] hover:text-[#25D366]"><MessageCircle aria-hidden="true" className="h-6 w-6" /></a>
+            <Link href="/price-list" className="inline-flex min-h-12 items-center border border-[#B7B6BF] px-4 py-3 text-sm font-bold uppercase hover:border-[#F04427] hover:text-[#D94324]">Full price list</Link>
           </div>
         </div>
-        <p className="mx-auto mt-5 max-w-7xl text-[11px] uppercase tracking-[.12em] text-[#77736D]">NextGen Maintenance Solutions · One Call. All Solutions. · Strand / Gordon’s Bay / Somerset West</p>
+        <p className="mx-auto mt-5 max-w-7xl text-[11px] uppercase tracking-[.12em] text-[#85848D]">NextGen Maintenance Solutions · One Call. All Solutions. · Strand / Gordon’s Bay / Somerset West</p>
       </section>
     </main>
   )
