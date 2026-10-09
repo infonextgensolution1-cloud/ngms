@@ -48,7 +48,7 @@ export function ServicesOverview({
   images: Record<string, string>
 }) {
   return (
-    <section className="bg-jet text-paper py-16 sm:py-24 px-4" aria-labelledby="services-title">
+    <section className="band-light bg-fog text-graphite py-16 sm:py-24 px-4 ngms-services-editorial" aria-labelledby="services-title">
       <div className="max-w-6xl mx-auto">
         <SectionHead
           kicker="What we do"
@@ -67,9 +67,9 @@ export function ServicesOverview({
             ['Cleaning', 'Solar, pressure washing, gutters'],
             ['Repairs', 'Steelwork, handyman, rubble removal'],
           ].map(([label, sub]) => (
-            <div key={label} className="rounded-panel border border-darkgrey bg-cardgrey/60 px-3 py-3">
-              <span className="block font-heading font-semibold text-sm text-paper">{label}</span>
-              <span className="block mt-1 text-[11px] leading-snug text-mist">{sub}</span>
+            <div key={label} className="rounded-panel border border-concrete bg-paper px-3 py-3 shadow-[0_8px_24px_rgba(18,22,26,.045)]">
+              <span className="block font-heading font-semibold text-sm text-graphite">{label}</span>
+              <span className="block mt-1 text-[11px] leading-snug text-slate">{sub}</span>
             </div>
           ))}
         </div>
@@ -84,7 +84,7 @@ export function ServicesOverview({
               <li key={s.slug} className={feature ? 'col-span-2 row-span-2' : wide ? 'col-span-2' : ''}>
                 <Link
                   href={`/services/${s.slug}`}
-                  className={`group forge-interactive relative flex h-full flex-col justify-end overflow-hidden rounded-panel border border-darkgrey bg-cardgrey ${
+                  className={`group forge-interactive ngms-service-tile relative flex h-full flex-col justify-end overflow-hidden rounded-panel border border-concrete bg-graphite shadow-[0_14px_36px_rgba(18,22,26,.12)] ${
                     feature ? 'min-h-[340px] sm:min-h-[460px]' : 'min-h-[190px] sm:min-h-[220px]'
                   }`}
                 >
