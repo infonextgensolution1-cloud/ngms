@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowDownRight, ArrowUpRight, Check, CalendarDays, MessageCircle, ShieldCheck, Wrench } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight, Check, MessageCircle } from 'lucide-react'
 import NgmsIcon from '@/components/NgmsIcon'
 import PlanSignupForm from '@/components/PlanSignupForm'
 import { COMMERCIAL_COMBOS, RECURRING_PACKAGES, SEASONAL_COMBOS, type Package } from '@/lib/packages'
@@ -63,7 +63,7 @@ export default function MaintenancePackagesPage() {
           <div className="absolute left-1/2 top-[-10rem] h-[36rem] w-[36rem] -translate-x-1/2 rounded-full border border-[#E9E7ED] sm:top-[-13rem] sm:h-[49rem] sm:w-[49rem]" />
           <div className="absolute left-[49.8%] top-0 h-[44%] border-l border-[#E5E3E9]" />
           <div className="absolute right-[16%] top-0 hidden h-[44%] w-px origin-top rotate-[48deg] bg-[#E6E4EA] sm:block" />
-          <div className="absolute bottom-0 left-0 h-px w-full bg-[#DE DDE3]" />
+          <div className="absolute bottom-0 left-0 h-px w-full bg-[#DEDEE3]" />
         </div>
 
         <div className="relative z-10 grid min-h-[620px] grid-cols-2 grid-rows-[auto_1fr] sm:min-h-[690px]">
@@ -136,7 +136,7 @@ export default function MaintenancePackagesPage() {
         </div>
       </section>
 
-      <section id="join" className="scroll-mt-20 border-y border-[#DE DDE3] bg-[#29292F] px-4 py-14 text-white sm:px-7 sm:py-20 lg:px-10">
+      <section id="join" className="scroll-mt-20 border-y border-[#DEDEE3] bg-[#29292F] px-4 py-14 text-white sm:px-7 sm:py-20 lg:px-10">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-start">
           <div><SectionLabel index="03">Start a plan</SectionLabel><h2 className="mt-5 text-4xl font-medium uppercase leading-[.9] tracking-[-.07em] sm:text-6xl">Make upkeep<br /><span className="text-[#F04427]">automatic.</span></h2><p className="mt-5 max-w-md leading-relaxed text-white/65">Send through your details and we’ll confirm the plan and first visit with you.</p><div className="mt-7 border-l-2 border-[#F04427] pl-4 text-sm text-white/75">No guesswork. We confirm the scope before work begins.</div></div>
           <div className="border border-white/15 bg-[#33333A] p-4 sm:p-6"><PlanSignupForm /></div>
