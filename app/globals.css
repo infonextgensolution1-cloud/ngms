@@ -665,3 +665,99 @@ input:disabled, select:disabled, textarea:disabled { opacity: .6; cursor: not-al
     transform: none;
   }
 }
+
+
+/* NGMS admin command-centre: warm-paper modular grid, scoped to admin home. */
+.admin-app main:has(> div.max-w-4xl) {
+  background: #f1f0ec !important;
+  color: #151515 !important;
+  padding-top: clamp(2rem, 5vw, 4.5rem);
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+}
+.admin-app main:has(> div.max-w-4xl) > div.max-w-4xl {
+  max-width: 76rem;
+}
+.admin-app main:has(> div.max-w-4xl) h1,
+.admin-app main:has(> div.max-w-4xl) h2,
+.admin-app main:has(> div.max-w-4xl) h3 {
+  color: #111 !important;
+  letter-spacing: -.045em;
+}
+.admin-app main:has(> div.max-w-4xl) .text-mist,
+.admin-app main:has(> div.max-w-4xl) .text-paper,
+.admin-app main:has(> div.max-w-4xl) .text-white {
+  color: #222 !important;
+}
+.admin-app main:has(> div.max-w-4xl) .text-orange {
+  color: #e84a24 !important;
+}
+.admin-app main:has(> div.max-w-4xl) .bg-cardgrey,
+.admin-app main:has(> div.max-w-4xl) .bg-jet {
+  background-color: #f8f7f4 !important;
+}
+.admin-app main:has(> div.max-w-4xl) .border-darkgrey {
+  border-color: #bdbbb5 !important;
+}
+.admin-app main:has(> div.max-w-4xl) .rounded-card {
+  border-radius: 0 !important;
+}
+.admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a {
+  min-height: 8rem;
+  align-items: stretch;
+  padding: 1.35rem;
+  border: 1px solid #b8b6b0;
+  border-radius: 0;
+  background:
+    linear-gradient(90deg, transparent calc(100% - 3px), #e84a24 calc(100% - 3px)),
+    #f8f7f4;
+  box-shadow: 0 2px 0 rgba(20,20,20,.04);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a:hover {
+  transform: translateY(-3px);
+  border-color: #e84a24 !important;
+  box-shadow: 0 14px 28px rgba(25,25,25,.09);
+}
+.admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a > div:first-child {
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 1px solid #b8b6b0;
+  border-radius: 0;
+  background: #171717 !important;
+  color: #ff6a00 !important;
+}
+.admin-app main:has(> div.max-w-4xl) form {
+  background: #f8f7f4 !important;
+  border-color: #b8b6b0 !important;
+  border-radius: 0 !important;
+  box-shadow: 0 18px 48px rgba(20,20,20,.08);
+}
+.admin-app main:has(> div.max-w-4xl) button {
+  border-radius: 0 !important;
+}
+.admin-app main:has(> div.max-w-4xl) input {
+  background: #fff !important;
+  color: #111 !important;
+  -webkit-text-fill-color: #111 !important;
+  border-radius: 0 !important;
+  border-color: #aaa !important;
+}
+@media (max-width: 640px) {
+  .admin-app main:has(> div.max-w-4xl) {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a {
+    min-height: 6.5rem;
+    padding: 1rem;
+    gap: .85rem;
+  }
+  .admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a > div:first-child {
+    width: 2.8rem;
+    height: 2.8rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a { transition: none; }
+  .admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a:hover { transform: none; }
+}
