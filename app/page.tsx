@@ -63,7 +63,7 @@ export default async function HomePage() {
   }).slice(0, 10)
 
   return (
-    <main className="bg-jet">
+    <main className="bg-jet ngms-home-refresh" data-ngms-home-refresh>
       <SeasonalBanner />
       <DiscountPopup />
 
