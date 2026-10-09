@@ -206,30 +206,7 @@ textarea:disabled {
     text-shadow: 0 0 6px rgba(255, 255, 255, 0.85), 0 0 14px rgba(255, 255, 255, 0.45);
   }
 
-  /* "Book a site walk-through": Facebook blue, same as the Facebook icon */
-  .btn-facebook {
-    @apply btn bg-facebook text-white hover:bg-facebook-dark;
-  }
-  .btn-outline {
-    @apply btn bg-transparent border-mist/40 text-paper hover:border-blue hover:text-blue;
-  }
-  .btn-dark {
-    @apply btn bg-cardgrey border-darkgrey text-paper hover:border-blue hover:text-blue;
-  }
-  /* Buttons for the orange panel: black fill, or black outline */
-  .btn-jet {
-    @apply btn bg-jet text-paper hover:bg-graphite;
-  }
-  .btn-outline-jet {
-    @apply btn bg-transparent border-jet text-jet hover:bg-jet hover:text-paper;
-  }
 
-  /* NextGen Blue secondary buttons (legacy names .btn-power / .btn-quote-popup kept) */
-  .btn-blue,
-  .btn-power,
-  .btn-quote-popup {
-    @apply btn bg-blue-fill text-white border-blue-fill hover:bg-blue-dark hover:border-blue-dark;
-  }
 }
 
 /* ---------- Solar Forge: light bands ----------
