@@ -410,7 +410,7 @@ export async function GoogleReviews() {
   const data = await getGoogleReviews()
 
   return (
-    <section className="bg-fog text-graphite py-16 sm:py-24 px-4" aria-labelledby="google-reviews-title">
+    <section id="reviews" className="bg-fog text-graphite py-16 sm:py-24 px-4" aria-labelledby="google-reviews-title">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-wrap items-end justify-between gap-6 mb-10">
           <div className="max-w-2xl">
