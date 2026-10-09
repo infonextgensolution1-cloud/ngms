@@ -14,7 +14,7 @@ export type Photo = { src: string; caption: string }
 
 function PhotoFill({ photo, sizes, className = '' }: { photo?: Photo; sizes: string; className?: string }) {
   if (!photo?.src) return <div className={`absolute inset-0 bg-graphite ${className}`} />
-  return <Image src={photo.src} alt={photo.caption} fill sizes={sizes} quality={70} className={`object-cover ${className}`} />
+  return <Image src={photo.src} alt={photo.caption} fill sizes={sizes} quality={70} unoptimized className={`object-cover ${className}`} />
 }
 
 function SectionHead({ kicker, title, intro, action }: { kicker: string; title: ReactNode; intro?: ReactNode; action?: ReactNode }) {
@@ -375,7 +375,7 @@ export function FinalCta({ photo }: { photo?: Photo }) {
   return (
     <section className="relative isolate overflow-hidden bg-jet text-paper px-4 py-20 sm:py-28" aria-labelledby="cta-title">
       <div className="absolute inset-0 -z-10" aria-hidden>
-        {photo?.src && <Image src={photo.src} alt="" fill sizes="100vw" quality={60} className="object-cover opacity-35" />}
+        {photo?.src && <Image src={photo.src} alt="" fill sizes="100vw" quality={60} unoptimized className="object-cover opacity-35" />}
         <div className="absolute inset-0 bg-gradient-to-r from-jet via-jet/85 to-jet/50" />
       </div>
       <div className="max-w-6xl mx-auto">

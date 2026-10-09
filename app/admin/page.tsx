@@ -99,7 +99,7 @@ const NAV_ITEMS: Array<{
     href: '/admin/media',
     icon: ImageIcon,
     title: 'Media',
-    desc: 'Manage admin-driven hero slides, promotions, before/after pairs & the gallery',
+    desc: 'Manage homepage photos, hero slides, service images, before/after pairs and the gallery',
   },
   {
     href: '/admin/media-wizard',
