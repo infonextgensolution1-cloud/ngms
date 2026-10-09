@@ -52,7 +52,7 @@ export default async function PortfolioPage() {
                   <div className="grid grid-cols-2 gap-1">
                     {(Array.isArray(p.before_image_urls) && p.before_image_urls.length ? p.before_image_urls : [p.before_image_url]).slice(0,4).map((url, i) => (
                       <div key={url} className="relative aspect-video overflow-hidden rounded">
-                        <Image src={url} alt={`Before ${i + 1}`} fill sizes="(max-width: 640px) 45vw, 180px" quality={72} className="object-cover" />
+                        <Image src={url} alt={`Before ${i + 1}`} fill sizes="(max-width: 640px) 45vw, 180px" quality={72} unoptimized className="object-cover" />
                         <span className="absolute top-1 left-1 bg-jet/80 text-paper text-[9px] uppercase px-1.5 py-0.5 rounded">Before</span>
                         <img src="/logo.png" alt="" className="absolute bottom-1 left-1 w-8 h-8 object-contain" />
                       </div>
