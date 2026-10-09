@@ -168,12 +168,12 @@ textarea:disabled {
   .btn svg, .btn .icon, .btn [data-icon] { transition:transform .18s cubic-bezier(.2,.8,.2,1),color .18s ease; flex:0 0 auto; }
   .btn:hover svg, .btn:hover .icon, .btn:hover [data-icon] { transform:translateX(3px); }
 
-  .btn-wa, .btn-wa-price { @apply btn bg-whatsapp text-white border-whatsapp hover:bg-whatsapp-dark; box-shadow:0 2px 0 rgba(0,0,0,.25),0 4px 10px rgba(37,211,102,.10); }
-  .btn-wa:hover, .btn-wa-price:hover { transform:translateY(-2px); box-shadow:0 2px 0 rgba(0,0,0,.2),0 8px 16px rgba(37,211,102,.18); }
-  .btn-wa svg, .btn-wa .icon, .btn-wa [data-icon], .btn-wa-price svg { color:#fff; }
+  .btn-wa, .btn-wa-price { @apply btn bg-jet text-white border-orange hover:bg-cardgrey; box-shadow:0 2px 0 rgba(0,0,0,.25),0 4px 10px rgba(255,106,0,.08); }
+  .btn-wa:hover, .btn-wa-price:hover { transform:translateY(-2px); box-shadow:0 2px 0 rgba(0,0,0,.2),0 8px 16px rgba(255,106,0,.14); }
+  .btn-wa svg, .btn-wa .icon, .btn-wa [data-icon], .btn-wa-price svg { color:#B7FF00; filter:drop-shadow(0 0 5px rgba(183,255,0,.55)); }
 
-  .btn-glow, .btn-quote { @apply btn bg-orange text-jet border-orange hover:bg-orange-dark hover:border-orange-dark; box-shadow:0 2px 0 rgba(0,0,0,.3),0 5px 12px rgba(255,106,0,.14); }
-  .btn-quote:hover, .btn-glow:hover { transform:translateY(-2px); box-shadow:0 2px 0 rgba(0,0,0,.26),0 9px 18px rgba(255,106,0,.2); }
+  .btn-glow, .btn-quote { @apply btn text-jet border-[#B7FF00] bg-[#B7FF00] hover:bg-[#A5E600] hover:border-[#A5E600]; box-shadow:0 2px 0 rgba(0,0,0,.3),0 5px 12px rgba(183,255,0,.12); }
+  .btn-quote:hover, .btn-glow:hover { transform:translateY(-2px); box-shadow:0 2px 0 rgba(0,0,0,.26),0 9px 18px rgba(183,255,0,.18); }
   .btn-quote:hover::after, .btn-glow:hover::after { animation:forge-btn-sweep .55s ease-out 1; }
   .btn-popular { @apply inline-block bg-cardgrey text-orange font-heading font-bold uppercase tracking-wide border-2 border-orange px-3 py-1; border-radius:2px; }
   .btn-touch { @apply btn bg-cardgrey text-white border-darkgrey hover:bg-graphite hover:border-orange; }
@@ -460,23 +460,23 @@ h1, h2, h3, h4 {
 .text-mist { color: #C4C1BB; }
 .text-paper { color: var(--ngms-white); }
 
-/* Primary actions use orange; secondary actions stay neutral. */
+/* Primary quote actions use lime; orange remains a restrained border accent. */
 .btn {
   border-radius: 2px;
   min-height: 3rem;
   transition: transform .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
 .btn-glow, .btn-quote, .btn-quote-popup, .btn-blue, .btn-power, .btn-quote-hero {
-  background: var(--ngms-orange) !important;
-  border-color: var(--ngms-orange) !important;
-  color: var(--ngms-ink) !important;
+  background: #B7FF00 !important;
+  border-color: #B7FF00 !important;
+  color: #101010 !important;
 }
 .btn-glow:hover, .btn-quote:hover, .btn-quote-popup:hover, .btn-blue:hover, .btn-power:hover, .btn-quote-hero:hover {
-  background: var(--ngms-orange-hover) !important;
-  border-color: var(--ngms-orange-hover) !important;
-  color: var(--ngms-white) !important;
+  background: #A5E600 !important;
+  border-color: #A5E600 !important;
+  color: #101010 !important;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(255,106,0,.18);
+  box-shadow: 0 8px 20px rgba(183,255,0,.18);
 }
 .btn-touch, .btn-dark, .btn-jet {
   background-color: #202020;
@@ -492,12 +492,12 @@ h1, h2, h3, h4 {
   color: var(--ngms-paper);
 }
 .btn-wa, .btn-wa-price {
-  background: var(--ngms-whatsapp) !important;
-  border-color: var(--ngms-whatsapp) !important;
+  background: #101010 !important;
+  border-color: var(--ngms-orange) !important;
   color: #FFFFFF !important;
 }
-.btn-wa:hover, .btn-wa-price:hover { background: #1DA851 !important; border-color: #1DA851 !important; color: #FFFFFF !important; }
-.btn-wa svg, .btn-wa .icon, .btn-wa [data-icon], .btn-wa-price svg { color: #FFFFFF; }
+.btn-wa:hover, .btn-wa-price:hover { background: #202020 !important; border-color: var(--ngms-orange) !important; color: #FFFFFF !important; }
+.btn-wa svg, .btn-wa .icon, .btn-wa [data-icon], .btn-wa-price svg { color: #B7FF00 !important; filter: drop-shadow(0 0 5px rgba(183,255,0,.55)); }
 .btn-facebook {
   background: var(--ngms-facebook) !important;
   border-color: var(--ngms-facebook) !important;
