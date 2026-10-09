@@ -27,6 +27,7 @@ export default function ServiceCard({
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
             quality={70}
+            unoptimized
             className="object-cover group-hover:scale-105 transition duration-300"
           />
         </div>
