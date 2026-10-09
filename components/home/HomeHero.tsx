@@ -119,7 +119,7 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
       <div className="max-w-6xl mx-auto px-4 pt-14 pb-10 sm:pt-20 lg:pt-28 lg:pb-14 min-h-[640px] lg:min-h-[720px] flex flex-col">
         <div className="max-w-2xl">
           <p className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur px-3 py-1.5 text-xs font-medium text-paper/90">
-            <span className="h-1.5 w-1.5 rounded-full bg-blue" aria-hidden />
+            <span className="h-1.5 w-1.5 rounded-full bg-orange" aria-hidden />
             Property maintenance · Helderberg Basin
           </p>
           <h1
@@ -127,7 +127,7 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
             className="font-heading font-bold text-[2.6rem] leading-[0.98] sm:text-6xl lg:text-7xl tracking-[-0.03em] mt-5"
           >
             One call.
-            <span className="block text-blue">All solutions.</span>
+            <span className="block text-orange">All solutions.</span>
           </h1>
           <p className="mt-6 text-base sm:text-lg text-paper/85 max-w-xl leading-relaxed">
             One accountable team for solar, painting, waterproofing, paving, plumbing, electrical and seven more trades —
@@ -145,7 +145,7 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
             >
               WhatsApp a photo
             </a>
-            <a href={`tel:${SITE.phone}`} className="text-sm text-paper/80 hover:text-blue px-2 py-3">
+            <a href={`tel:${SITE.phone}`} className="text-sm text-paper/80 hover:text-orange px-2 py-3">
               or call <span className="font-semibold text-paper">{SITE.phoneDisplay}</span>
             </a>
           </div>
