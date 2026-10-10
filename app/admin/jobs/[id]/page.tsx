@@ -16,6 +16,7 @@ import { handlersC } from '@/lib/ngms-ops/handlers-c'
 import { rand, JOB_STATUSES, COST_CATEGORIES, PHOTO_TYPES } from '@/lib/ngms-ops/core'
 import type { Job, Client } from '@/lib/ngms-ops/core'
 import { LOGO_DATA_URI } from '@/lib/logo'
+import { prepareJobPhoto, withJobPhotoTimeout } from '@/lib/job-photo-upload'
 
 const BRAND = { black: '#0A0A0A', purple: '#8B1BF5', orange: '#F57C1B', green: '#39D353', grey: '#5B5B5B', line: '#E4E4E4' }
 const input = 'w-full bg-jet border border-darkgrey text-paper rounded-btn px-3 py-2.5 text-sm focus:outline-none focus:border-blue'
@@ -139,17 +140,24 @@ function PhotoUploader({ jobId, onSaved }: { jobId: string; onSaved: () => void 
     setUploading(true)
     setError('')
     try {
-      const ext = file.name.split('.').pop()
-      const path = `${jobId}/${type}-${Date.now()}.${ext}`
-      const { error: upErr } = await supabase.storage.from('job-photos').upload(path, file, { cacheControl: '3600', upsert: false })
+      const prepared = await prepareJobPhoto(file)
+      const extension = prepared.type === 'image/webp' ? 'webp' : 'jpg'
+      const path = `${jobId}/${type}-${Date.now()}.${extension}`
+      const { error: upErr } = await withJobPhotoTimeout(
+        supabase.storage.from('job-photos').upload(path, prepared, {
+          cacheControl: '3600', upsert: false, contentType: prepared.type,
+        }),
+      )
       if (upErr) throw upErr
       const { data } = supabase.storage.from('job-photos').getPublicUrl(path)
-      const res = await handlersC.ngms_save_job_photo(supabase, { job_id: jobId, photo_url: data.publicUrl, type, caption: caption.trim() || undefined })
-      if (res.isError) throw new Error(res.content[0]?.text)
+      const res = await withJobPhotoTimeout(handlersC.ngms_save_job_photo(supabase, {
+        job_id: jobId, photo_url: data.publicUrl, type, caption: caption.trim() || undefined,
+      }))
+      if (res.isError) throw new Error(res.content[0]?.text || 'Could not save the photo record.')
       setCaption('')
-      onSaved()
+      await onSaved()
     } catch (e) {
-      setError((e as Error).message)
+      setError(e instanceof Error ? e.message : 'Photo upload failed. Please try again.')
     } finally {
       setUploading(false)
     }
@@ -169,7 +177,7 @@ function PhotoUploader({ jobId, onSaved }: { jobId: string; onSaved: () => void 
       </div>
       <label className="inline-flex items-center gap-2 text-sm text-mist hover:text-paper border border-darkgrey hover:border-blue rounded-btn px-3 py-2 mt-2 cursor-pointer">
         {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} {uploading ? 'Uploading…' : 'Upload photo'}
-        <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
+        <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="hidden" disabled={uploading} onChange={(e) => { const input = e.currentTarget; const file = input.files?.[0]; input.value = ''; if (file) void upload(file) }} />
       </label>
       {error && <p className="text-xs text-orange mt-2">{error}</p>}
     </div>
