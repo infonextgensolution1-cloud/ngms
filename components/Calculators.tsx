@@ -180,7 +180,7 @@ function Paving() {
           ...(callout ? [{ label: 'Callout', value: rand(callout) }] : []),
           { label: 'Estimated from', value: rand(base + callout), big: true },
         ]}
-        note="Starting estimate excluding VAT, using standard paving stock from Builders Warehouse. Excavation depth, base prep, edge restraints, levels and paver choice all affect the final price — confirmed after a free site visit."
+        note="Starting estimate using standard paving stock from Builders Warehouse. Excavation depth, base prep, edge restraints, levels and paver choice all affect the final price — confirmed after a free site visit."
       />
     </div>
   )
@@ -253,7 +253,7 @@ function Painting() {
           (belowMin
             ? 'Note: our minimum interior job is 120 m² — smaller jobs are quoted individually. '
             : '') +
-          'Excludes VAT. Includes labour and standard mid-range acrylic. Surface condition drives the price: crack repair, old paint stripping, damp treatment and coastal-grade coatings are quoted separately after a site visit.'
+          'Includes labour and standard mid-range acrylic. Surface condition drives the price: crack repair, old paint stripping, damp treatment and coastal-grade coatings are quoted separately after a site visit.'
         }
       />
     </div>
@@ -308,7 +308,7 @@ function Pool() {
           { label: 'Wetted surface area', value: `${area.toFixed(1)} m²` },
           { label: 'Fibre lining @ R450/m²', value: rand(cost), big: true },
         ]}
-        note="Excludes VAT. Surface area includes a 20% allowance for steps, curves and shaping. Includes surface prep. Existing shell condition, structural cracks and drainage all affect the final quote — confirmed on site."
+        note="Surface area includes a 20% allowance for steps, curves and shaping. Includes surface prep. Existing shell condition, structural cracks and drainage all affect the final quote — confirmed on site."
       />
     </div>
   )
