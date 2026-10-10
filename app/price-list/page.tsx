@@ -216,7 +216,7 @@ export default function PriceListPage() {
           </div>
 
           <div className="border-t border-[#C6C1B9] pt-5 font-mono text-[10px] uppercase leading-relaxed tracking-[0.08em] text-[#77736D]">
-            <p>Prices exclude VAT where applicable. Materials and specialist requirements are confirmed in your written quote.</p>
+            <p>Materials and specialist requirements are confirmed in your written quote.</p>
             <p className="mt-2">Materials sourced through established suppliers, including Builders Warehouse. Payment terms are shown on the accepted quote.</p>
           </div>
         </div>
