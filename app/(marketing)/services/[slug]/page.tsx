@@ -82,7 +82,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
               </table>
             </div>
             <p className="text-mist text-xs mt-3">
-              Prices exclude VAT. No callout fee in Strand, Gordon&rsquo;s Bay or Somerset West &mdash; R350 callout
+              No callout fee in Strand, Gordon&rsquo;s Bay or Somerset West &mdash; R350 callout
               outside the Helderberg (Overberg, Stellenbosch, Paarl, Worcester, Cape Town). Maintenance plan (every 4&ndash;6 months) gets 15% off with priority booking.
             </p>
             <div className="card mt-6 text-center">
