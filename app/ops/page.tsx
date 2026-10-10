@@ -455,7 +455,7 @@ export default function OpsPage() {
         </Card>
 
         <p className="text-[11px] text-mist text-center mt-6">
-          Prices ex VAT · same data as the NGSMS Ops connector · rain flag at {RAIN_HOLD_PROB}%+ for paint, waterproofing &amp; paving
+          Same rate card as the NGSMS Ops connector · rain flag at {RAIN_HOLD_PROB}%+ for paint, waterproofing &amp; paving
         </p>
       </div>
     </main>
