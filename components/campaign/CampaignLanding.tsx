@@ -146,7 +146,7 @@ export default function CampaignLanding({
                 </div>
               ))}
             </div>
-            <p className="text-mist text-xs mt-4">Prices exclude VAT. No callout fee in Strand, Gordon’s Bay or Somerset West. R350 callout applies outside the Helderberg service area.</p>
+            <p className="text-mist text-xs mt-4">No callout fee in Strand, Gordon’s Bay or Somerset West. R350 callout applies outside the Helderberg service area.</p>
           </div>
         </section>
       ) : null}
