@@ -141,7 +141,8 @@ function PhotoUploader({ jobId, onSaved }: { jobId: string; onSaved: () => void 
     setError('')
     try {
       const prepared = await prepareJobPhoto(file)
-      const path = `${jobId}/${type}-${Date.now()}.jpg`
+      const extension = prepared.type === 'image/webp' ? 'webp' : 'jpg'
+      const path = `${jobId}/${type}-${Date.now()}.${extension}`
       const { error: upErr } = await withJobPhotoTimeout(
         supabase.storage.from('job-photos').upload(path, prepared, {
           cacheControl: '3600', upsert: false, contentType: prepared.type,
