@@ -87,7 +87,7 @@ export function buildQuotePdf(input: {
 
   ensure(110); y -= 8; row('Subtotal', money(m.subtotal))
   if (q.vat_included) row('VAT', money(m.vat))
-  else { txt('F1', 7.5, 390, y, 'Prices exclude VAT — not VAT registered.'); y -= 14 }
+  else { /* No VAT line is displayed when VAT is not applicable. */ }
   op(lineOp(390, y + 4, 555, y + 4, '0A0A0A', 1.2)); row('TOTAL', money(m.total), true)
   row('Deposit (' + m.deposit_percent + '%)', money(m.deposit)); row('Balance on completion', money(m.balance))
 
