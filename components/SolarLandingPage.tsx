@@ -155,7 +155,7 @@ export default async function SolarLandingPage({
             Call {site.phoneDisplay}
           </a>
         </div>
-        <p className="text-mist text-sm mt-4">Send your panel count and suburb · No obligation · Prices excl. VAT</p>
+        <p className="text-mist text-sm mt-4">Send your panel count and suburb · No obligation</p>
 
         <ul className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-8 text-sm text-paper">
           <li>
