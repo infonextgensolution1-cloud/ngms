@@ -7,13 +7,14 @@ import { SOLAR_TIERS, SOLAR_SUBURB_TO_LOCATION } from "@/lib/solar-pricing";
 import { whatsappLink } from "@/lib/site";
 import TrustBadges from "@/components/TrustBadges";
 import NgmsIcon from "@/components/NgmsIcon";
+import { GoogleReviews } from "@/components/home/HomeSections";
 
 export function generateStaticParams() {
   return SERVICES.map((s) => ({ slug: s.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params
+  const { slug } = await params;
   const s = getService(slug);
   if (!s) return {};
   return {
@@ -24,11 +25,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export default async function ServiceDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
+  const { slug } = await params;
   const s = getService(slug);
   if (!s) return notFound();
   const isSolar = s.slug === "solar-panel-cleaning";
-  // Solar has richer per-town pages — link straight to them instead of the thin duplicates.
+  const relatedServices = SERVICES.filter((item) => item.slug !== s.slug).slice(0, 5);
   const areaHref = (sub: string) =>
     isSolar && SOLAR_SUBURB_TO_LOCATION[sub]
       ? `/solar-panel-cleaning/${SOLAR_SUBURB_TO_LOCATION[sub]}`
@@ -45,98 +46,80 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
     : SUBURBS;
 
   return (
-    <section className="ngms-service-editorial">
-      <div className="ngms-service-hero bg-graphite border-b border-line py-14 px-4 text-center">
-        <div className="group flex w-fit mx-auto mb-5 rounded-2xl bg-jet border border-darkgrey p-3 hover:border-orange transition-colors">
-          <NgmsIcon name={s.slug} className="h-14 w-14 md:h-16 md:w-16" />
+    <main className="ngms-service-reference">
+      <section className="nsr-top" aria-labelledby="nsr-title">
+        <div className="nsr-intro">
+          <p className="nsr-kicker">NEXTGEN MAINTENANCE SOLUTIONS / 01</p>
+          <h1 id="nsr-title">{s.name.toUpperCase()}</h1>
+          <p className="nsr-description">{s.description}</p>
+          <Link className="nsr-round-link" href={`/quote?service=${encodeURIComponent(s.name)}`} aria-label={`Request a quote for ${s.name}`}>↙</Link>
         </div>
-        <p className="kicker ngms-service-eyebrow">NGMS / PROPERTY CARE / 2026</p>
-        <h1 className="text-3xl md:text-5xl">{s.name}</h1>
-        <p className="text-mist mt-2">{s.tagline}</p><div className="ngms-service-hero-bottom"><span>HELDERVBERG BASIN · WESTERN CAPE</span><Link href={`/quote?service=${encodeURIComponent(s.name)}`} className="ngms-service-hero-cta">START YOUR PROJECT <b>↗</b></Link></div>
-      </div>
+        <div className="nsr-service-list">
+          <div className="nsr-list-heading"><span>MY SERVICES</span><span>EXPLORE NGMS ↗</span></div>
+          {relatedServices.map((item, i) => (
+            <Link className="nsr-service-row" key={item.slug} href={`/services/${item.slug}`}>
+              <span className="nsr-row-arrow">↗</span>
+              <strong>{item.name.toUpperCase()}</strong>
+              <span className="nsr-row-index">0{i + 1}</span>
+            </Link>
+          ))}
+          <div className="nsr-feature-strip">
+            <span className="nsr-feature-badge">↗</span>
+            <div><b>{s.tagline}</b><small>LOCAL PROPERTY CARE / HELDERBERG BASIN</small></div>
+          </div>
+        </div>
+      </section>
 
       <TrustBadges />
 
-      <div className="wrap max-w-[720px] py-10">
-        <p className="text-mist leading-relaxed">{s.description}</p>
-
-        <h2 className="text-xl mt-8 mb-3">What&rsquo;s included</h2>
-        <ul className="space-y-2">
-          {s.whatsIncluded.map((p) => (
-            <li key={p} className="card !py-3 !px-4 text-sm text-mist">{p}</li>
-          ))}
-        </ul>
-        {isSolar ? (
-          <>
-            <h2 className="text-xl mt-8 mb-3">Pricing</h2>
-            <div className="overflow-x-auto rounded-card border border-line">
-              <table className="w-full text-sm">
-                <tbody>
-                  {SOLAR_TIERS.map((t) => (
-                    <tr key={t.size} className="border-t border-line first:border-t-0">
-                      <td className="px-4 py-3 text-mist">{t.size}</td>
-                      <td className="px-4 py-3 font-bold text-orange">{t.price}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="text-mist text-xs mt-3">
-              Prices exclude VAT. No callout fee in Strand, Gordon&rsquo;s Bay or Somerset West &mdash; R350 callout
-              outside the Helderberg (Overberg, Stellenbosch, Paarl, Worcester, Cape Town). Maintenance plan (every 4&ndash;6 months) gets 15% off with priority booking.
-            </p>
-            <div className="card mt-6 text-center">
-              <p className="font-semibold text-paper">No site visit needed for most homes</p>
-              <p className="text-mist text-sm mt-1">
-                WhatsApp us a photo of your roof and the number of panels &mdash; we&rsquo;ll send a fixed price, usually
-                the same day.
-              </p>
-              <a
-                href={whatsappLink("Hi NextGen, I'd like a solar panel cleaning quote. I have ___ panels. Photo attached.")}
-                className="btn-wa inline-block mt-4"
-              >
-                WhatsApp a photo for a quote
-              </a>
-            </div>
-          </>
-        ) : (
-          <p className="text-mist text-xs mt-3">
-            Prices exclude VAT. Most jobs are priced from WhatsApp photos, usually the same day; bigger jobs get a free
-            site visit and a written quote.
-          </p>
-        )}
-
-        {s.faqs.length > 0 && (
-          <div className="mt-8 space-y-4">
-            <h2 className="text-xl mb-3">Questions</h2>
-            {s.faqs.map((f) => (
-              <div key={f.question} className="border-t border-line pt-4">
-                <p className="font-semibold text-paper">{f.question}</p>
-                <p className="text-mist text-sm mt-1">{f.answer}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <p className="mt-8">
-          <Link href={`/quote?service=${encodeURIComponent(s.name)}`} className="btn-quote">Get a quote</Link>
-        </p>
-
-        <div className="mt-12 pt-8 border-t border-line">
-          <h2 className="text-lg mb-3">Areas we serve for {s.name.toLowerCase()}</h2>
-          <div className="flex flex-wrap gap-2">
-            {areaLinks.map((sub) => (
-              <Link
-                key={sub.slug}
-                href={areaHref(sub.slug)}
-                className="text-sm px-3 py-1.5 rounded-full border border-line text-mist hover:border-orange hover:text-orange transition-colors"
-              >
-                {sub.name}
-              </Link>
-            ))}
-          </div>
+      <section className="nsr-details" aria-labelledby="nsr-included">
+        <div className="nsr-details-heading">
+          <span className="nsr-kicker">THE WORK / 02</span>
+          <h2 id="nsr-included">BUILT AROUND<br />WHAT YOU NEED.</h2>
+          <p>{s.tagline} Clear scope, practical workmanship and a written quote before work begins.</p>
         </div>
-      </div>
-    </section>
+        <div className="nsr-inclusions">
+          <h3>WHAT’S INCLUDED</h3>
+          {s.whatsIncluded.map((item, i) => (
+            <div className="nsr-inclusion-row" key={item}><span>0{i + 1}</span><p>{item}</p><b>↗</b></div>
+          ))}
+          {isSolar ? (
+            <div className="nsr-pricing">
+              <h3>SOLAR CLEANING PRICING</h3>
+              {SOLAR_TIERS.map((tier) => <div className="nsr-price-row" key={tier.size}><span>{tier.size}</span><strong>{tier.price}</strong></div>)}
+              <p>Prices exclude VAT. No callout fee in Strand, Gordon’s Bay or Somerset West. Outside the Helderberg Basin, a R350 callout may apply. Maintenance plans (every 4–6 months) receive 15% off with priority booking.</p>
+              <a className="nsr-text-link" href={whatsappLink("Hi NextGen, I'd like a solar panel cleaning quote. I have ___ panels. Photo attached.")}>WHATSAPP A PHOTO FOR A QUOTE ↗</a>
+            </div>
+          ) : (
+            <p className="nsr-pricing-note">Prices exclude VAT. Most jobs can be assessed from WhatsApp photos; larger projects receive a site assessment and written quote.</p>
+          )}
+        </div>
+      </section>
+
+      {s.faqs.length > 0 && <section className="nsr-faq" aria-labelledby="nsr-faq-title">
+        <div><p className="nsr-kicker">GOOD TO KNOW / 03</p><h2 id="nsr-faq-title">QUESTIONS.<br />ANSWERED.</h2></div>
+        <div>{s.faqs.map((faq) => <details className="nsr-faq-item" key={faq.question}><summary>{faq.question}<span>＋</span></summary><p>{faq.answer}</p></details>)}</div>
+      </section>}
+
+      <section className="nsr-reviews">
+        <div className="nsr-reviews-heading"><span className="nsr-kicker">CUSTOMER FEEDBACK / 04</span><div><h2>GOOD WORK.<br />GOOD WORD.</h2><p>See real feedback from customers and share your own experience.</p></div></div>
+        <GoogleReviews />
+      </section>
+
+      <section className="nsr-areas">
+        <p>HELDERVERG BASIN <i>✳</i> STRAND <i>✳</i> GORDON’S BAY <i>✳</i> SOMERSET WEST</p>
+        <h2>LOCAL SERVICE.<br /><span>BUILT ON TRUST.</span></h2>
+        <p className="nsr-area-copy">Areas we serve for {s.name.toLowerCase()}</p>
+        <div className="nsr-area-links">{areaLinks.map((area) => <Link key={area.slug} href={areaHref(area.slug)}>{area.name} ↗</Link>)}</div>
+      </section>
+
+      <section className="nsr-contact">
+        <p className="nsr-kicker">HAVE A PROJECT IN MIND?</p>
+        <span className="nsr-contact-star" aria-hidden="true">✳</span>
+        <h2>ANYTHING IN MIND?<br />LET’S TALK.</h2>
+        <Link className="nsr-contact-cta" href={`/quote?service=${encodeURIComponent(s.name)}`}>TELL US WHAT YOU NEED <span>↗</span></Link>
+        <div className="nsr-contact-word" aria-hidden="true">CONTACT<span /></div>
+      </section>
+    </main>
   );
 }
