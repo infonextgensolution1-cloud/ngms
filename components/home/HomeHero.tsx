@@ -83,6 +83,26 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
         <div className="ngms-industrial-hero__crosshair ngms-industrial-hero__crosshair--two" />
       </div>
 
+      <div className="ngms-industrial-hero__architecture" aria-hidden="true">
+        <div className="ngms-architecture__floor ngms-architecture__floor--top">
+          <span className="ngms-architecture__window" />
+          <span className="ngms-architecture__desk" />
+          <span className="ngms-architecture__screen" />
+          <span className="ngms-architecture__label">SHARED SYSTEMS / 01</span>
+        </div>
+        <div className="ngms-architecture__floor ngms-architecture__floor--middle">
+          <span className="ngms-architecture__window" />
+          <span className="ngms-architecture__sofa" />
+          <span className="ngms-architecture__plant" />
+        </div>
+        <div className="ngms-architecture__floor ngms-architecture__floor--feature">
+          <span className="ngms-architecture__feature-glow" />
+          <span className="ngms-architecture__feature-label">ONE CALL.<br />ALL SOLUTIONS.</span>
+          <span className="ngms-architecture__feature-index">NGMS / 2026</span>
+        </div>
+        <div className="ngms-architecture__base"><span>BUILT FOR EVERYDAY PERFORMANCE</span><b>↗</b></div>
+      </div>
+
       <div className="ngms-industrial-hero__inner">
         <div className="ngms-industrial-hero__eyebrow">
           <span className="ngms-industrial-hero__eyebrow-rule" />
