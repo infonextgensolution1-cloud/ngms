@@ -129,7 +129,7 @@ function PriceTable({ table }: { table: Table }) {
 
 export default function PriceListPage() {
   return (
-    <main className="bg-[#F7F4EF] text-[#171717]">
+    <main className="ngms-northpoint-page ngms-northpoint-prices bg-[#F7F4EF] text-[#171717]">
       <section className="relative isolate mx-auto flex min-h-[500px] max-w-[1440px] flex-col overflow-hidden bg-[#171717] px-5 pb-7 pt-6 text-white sm:min-h-[570px] sm:px-10 sm:pt-8 lg:min-h-[620px] lg:px-16">
         <header className="flex items-center justify-between border-b border-white/20 pb-4 text-[10px] font-bold uppercase tracking-[0.16em] sm:text-xs">
           <Link href="/" aria-label="NextGen Maintenance Solutions home" className="text-base font-black tracking-[-0.08em] sm:text-lg">
