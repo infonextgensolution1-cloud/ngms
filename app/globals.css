@@ -3236,3 +3236,115 @@ body:has(.ngms-about-editorial) footer[data-site-marketing] { display:none !impo
  .ngms-about-footer { grid-template-columns:1fr 1fr; }
  .ngms-about-contact-word { font-size:18.5vw; }
 }
+
+
+/* NORTHPOINT EDITORIAL SYSTEM — shared by the requested public landing pages. */
+.ngms-northpoint-page {
+  --np-paper:#d0cfca; --np-ink:#11110f; --np-red:#f13c1b; --np-line:rgba(17,17,15,.32);
+  color:var(--np-ink); background:var(--np-paper); overflow:hidden;
+  font-family:Inter,Arial,sans-serif;
+}
+.ngms-northpoint-page * { box-sizing:border-box; }
+.ngms-northpoint-page h1,.ngms-northpoint-page h2,.ngms-northpoint-page h3 { text-transform:uppercase; letter-spacing:-.065em; font-weight:950; }
+.ngms-northpoint-page a { transition:color .18s ease,border-color .18s ease,background .18s ease,transform .18s ease; }
+.ngms-northpoint-page a:focus-visible { outline:2px solid var(--np-red); outline-offset:3px; }
+.ngms-northpoint-page section { border-radius:0 !important; }
+.ngms-northpoint-page .wrap { max-width:1320px; }
+.ngms-northpoint-page .kicker,.ngms-northpoint-page [class*="kicker"] { letter-spacing:.12em; }
+.ngms-northpoint-page .ngms-mp-hero,
+.ngms-northpoint-page > section:first-child:not(.nsr-top) {
+  position:relative; isolation:isolate; overflow:hidden;
+}
+.ngms-northpoint-page .ngms-mp-hero::before,
+.ngms-northpoint-page > section:first-child:not(.nsr-top)::before {
+  content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:linear-gradient(90deg,rgba(0,0,0,.72),rgba(0,0,0,.18)),
+    repeating-linear-gradient(155deg,transparent 0 65px,rgba(255,255,255,.06) 66px,transparent 68px 100px);
+}
+.ngms-northpoint-page .ngms-mp-hero h1,
+.ngms-northpoint-page > section:first-child:not(.nsr-top) h1 {
+  font-size:clamp(3.5rem,10vw,9.5rem); line-height:.78; letter-spacing:-.085em;
+}
+.ngms-northpoint-page .ngms-mp-hero a,
+.ngms-northpoint-page a[class*="bg-[#FF6A00]"],
+.ngms-northpoint-page a[class*="bg-[#ff5314]"],
+.ngms-northpoint-page a[class*="bg-[#FF6A00]"],
+.ngms-northpoint-page .ngms-mp-final-cta a {
+  border-radius:0 !important; background:var(--np-red); border-color:var(--np-red);
+}
+.ngms-northpoint-page a[class*="rounded-full"],
+.ngms-northpoint-page a[class*="rounded-card"],
+.ngms-northpoint-page [class*="rounded-panel"],
+.ngms-northpoint-page [class*="rounded-2xl"],
+.ngms-northpoint-page [class*="rounded-xl"] { border-radius:0 !important; }
+.ngms-northpoint-page [class*="border-white/15"],
+.ngms-northpoint-page [class*="border-[#C6C1B9]"],
+.ngms-northpoint-page [class*="border-concrete"] { border-color:var(--np-line) !important; }
+.ngms-northpoint-page .ngms-mp-package {
+  border-radius:0; border:1px solid var(--np-line); background:rgba(255,255,255,.13);
+}
+.ngms-northpoint-page .ngms-mp-package__price a { border-radius:0; }
+.ngms-northpoint-page .ngms-mp-package__number { color:var(--np-red); }
+.ngms-northpoint-page .ngms-mp-final-cta__red { background:var(--np-red); }
+.ngms-northpoint-page .ngms-mp-footerline { background:var(--np-ink); color:var(--np-paper); }
+.ngms-northpoint-page .ngms-mp-signup,
+.ngms-northpoint-page .ngms-mp-services { background:var(--np-paper); color:var(--np-ink); }
+.ngms-northpoint-page .ngms-mp-signup h2,
+.ngms-northpoint-page .ngms-mp-services h2,
+.ngms-northpoint-page .ngms-mp-section h2 { color:var(--np-ink); }
+
+/* Solar landing — black/cream split with blueprint-like engineering linework. */
+.ngms-northpoint-solar { background:var(--np-paper) !important; color:var(--np-ink) !important; }
+.ngms-northpoint-solar > section:first-child { background:#171816 !important; color:#f2f0e9 !important; text-align:left !important; padding:clamp(48px,8vw,110px) clamp(20px,7vw,100px) 42px !important; position:relative; isolation:isolate; }
+.ngms-northpoint-solar > section:first-child::before {
+ content:""; position:absolute; inset:0; z-index:-1; opacity:.26;
+ background:repeating-linear-gradient(155deg,transparent 0 42px,rgba(255,255,255,.16) 43px,transparent 45px 78px);
+}
+.ngms-northpoint-solar > section:first-child h1 { max-width:10ch; font-size:clamp(3.7rem,10.5vw,10rem) !important; line-height:.77 !important; letter-spacing:-.085em !important; }
+.ngms-northpoint-solar > section:first-child p { text-align:left; }
+.ngms-northpoint-solar > section:not(:first-child) { border-color:var(--np-line) !important; }
+.ngms-northpoint-solar > section:not(:first-child):nth-child(even) { background:var(--np-paper) !important; color:var(--np-ink) !important; }
+.ngms-northpoint-solar > section:not(:first-child):nth-child(odd) { background:#e0ded7 !important; color:var(--np-ink) !important; }
+.ngms-northpoint-solar .card,.ngms-northpoint-solar [class*="rounded-"] { border-radius:0 !important; }
+.ngms-northpoint-solar a[class*="btn-"] { border-radius:0 !important; }
+
+/* Portfolio: retain the live project gallery, but sharpen the architectural grid. */
+.ngms-northpoint-portfolio > section:first-child { padding:0 !important; }
+.ngms-northpoint-portfolio > section:first-child > div:first-child { border-radius:0 !important; }
+.ngms-northpoint-portfolio h1 { font-size:clamp(3.7rem,10vw,9rem) !important; line-height:.78 !important; letter-spacing:-.085em !important; }
+.ngms-northpoint-portfolio article,.ngms-northpoint-portfolio [class*="rounded-"] { border-radius:0 !important; }
+.ngms-northpoint-portfolio a[class*="bg-[#ff5314]"] { background:var(--np-red) !important; }
+
+/* Price list: typography-led tables with ruled dividers. */
+.ngms-northpoint-prices > section:first-child { max-width:none !important; border-radius:0 !important; }
+.ngms-northpoint-prices > section:first-child h1 { font-size:clamp(3.6rem,10vw,9rem) !important; line-height:.78 !important; letter-spacing:-.085em !important; }
+.ngms-northpoint-prices table { border-collapse:collapse; }
+.ngms-northpoint-prices table tr { border-color:var(--np-line) !important; }
+.ngms-northpoint-prices table td { border-radius:0 !important; }
+.ngms-northpoint-prices table td:last-child { color:var(--np-red) !important; }
+.ngms-northpoint-prices [class*="rounded-"] { border-radius:0 !important; }
+
+/* Contact: bold dark hero, cream information panels, giant contact typography. */
+.ngms-northpoint-contact > section:first-child { min-height:clamp(500px,65vw,760px) !important; }
+.ngms-northpoint-contact > section:first-child h1 { font-size:clamp(3.7rem,10vw,9.2rem) !important; line-height:.78 !important; letter-spacing:-.085em !important; }
+.ngms-northpoint-contact > section:not(:first-child) { border-radius:0 !important; }
+.ngms-northpoint-contact a { border-radius:0 !important; }
+.ngms-northpoint-contact a:hover { border-color:var(--np-red) !important; }
+.ngms-northpoint-contact [class*="bg-[#FF6A00]"] { background:var(--np-red) !important; border-color:var(--np-red) !important; }
+
+/* Body corporate page inherits the same brutalist grid and flat surfaces. */
+.ngms-northpoint-bodycorp { background:var(--np-paper); color:var(--np-ink); }
+.ngms-northpoint-bodycorp h1 { font-size:clamp(3.5rem,10vw,9rem); line-height:.78; letter-spacing:-.085em; }
+.ngms-northpoint-bodycorp [class*="rounded-"] { border-radius:0 !important; }
+.ngms-northpoint-bodycorp [class*="bg-jet"],.ngms-northpoint-bodycorp [class*="bg-graphite"] { border-radius:0 !important; }
+
+@media(max-width:700px) {
+ .ngms-northpoint-page h1 { font-size:clamp(3.1rem,14vw,5.8rem); }
+ .ngms-northpoint-solar > section:first-child { padding:58px 20px 34px !important; }
+ .ngms-northpoint-solar > section:first-child h1 { font-size:clamp(3.3rem,15vw,6.2rem) !important; }
+ .ngms-northpoint-prices > section:first-child h1 { font-size:clamp(3.3rem,14vw,6rem) !important; }
+ .ngms-northpoint-contact > section:first-child h1 { font-size:clamp(3.3rem,14vw,6rem) !important; }
+}
+@media(prefers-reduced-motion:reduce) {
+ .ngms-northpoint-page a { transition:none !important; }
+}
