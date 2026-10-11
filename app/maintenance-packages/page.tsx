@@ -50,7 +50,7 @@ function PackageSection({ id, eyebrow, title, description, packages, joinable = 
 
 export default function MaintenancePackagesPage() {
   return (
-    <main className="ngms-maintenance-brut">
+    <main className="ngms-maintenance-brut ngms-northpoint-page ngms-northpoint-maintenance">
       <div className="ngms-mp-topline">
         <Link href="/" className="ngms-mp-wordmark" aria-label="NextGen home">NEXT<span>GEN</span><b>.</b></Link>
         <span>PROPERTY MAINTENANCE / HELDERBERG BASIN</span>
