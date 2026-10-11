@@ -45,14 +45,14 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
     : SUBURBS;
 
   return (
-    <section>
-      <div className="bg-graphite border-b border-line py-14 px-4 text-center">
+    <section className="ngms-service-editorial">
+      <div className="ngms-service-hero bg-graphite border-b border-line py-14 px-4 text-center">
         <div className="group flex w-fit mx-auto mb-5 rounded-2xl bg-jet border border-darkgrey p-3 hover:border-orange transition-colors">
           <NgmsIcon name={s.slug} className="h-14 w-14 md:h-16 md:w-16" />
         </div>
-        <p className="kicker">Service</p>
+        <p className="kicker ngms-service-eyebrow">NGMS / PROPERTY CARE / 2026</p>
         <h1 className="text-3xl md:text-5xl">{s.name}</h1>
-        <p className="text-mist mt-2">{s.tagline}</p>
+        <p className="text-mist mt-2">{s.tagline}</p><div className="ngms-service-hero-bottom"><span>HELDERVBERG BASIN · WESTERN CAPE</span><Link href={`/quote?service=${encodeURIComponent(s.name)}`} className="ngms-service-hero-cta">START YOUR PROJECT <b>↗</b></Link></div>
       </div>
 
       <TrustBadges />
