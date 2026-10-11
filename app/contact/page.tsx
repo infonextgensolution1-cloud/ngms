@@ -56,7 +56,7 @@ function ContactCard({
 
 export default function ContactPage() {
   return (
-    <main className="bg-[#0A0B0D] text-white">
+    <main className="ngms-northpoint-page ngms-northpoint-contact bg-[#0A0B0D] text-white">
       {/* Cinematic industrial hero */}
       <section className="relative isolate flex min-h-[560px] items-end overflow-hidden sm:min-h-[650px] lg:min-h-[710px]">
         <div
