@@ -1,128 +1,157 @@
 import Link from 'next/link'
-import NgmsIcon from '@/components/NgmsIcon'
 import PlanSignupForm from '@/components/PlanSignupForm'
 import { COMMERCIAL_COMBOS, RECURRING_PACKAGES, SEASONAL_COMBOS, type Package } from '@/lib/packages'
 
-export const metadata = { alternates: { canonical: '/maintenance-packages' },
+export const metadata = {
+  alternates: { canonical: '/maintenance-packages' },
   title: 'Maintenance Packages | NextGen Solar Clean & Maintenance Solutions',
-  description:
-    "Recurring, seasonal and commercial property maintenance packages from NextGen Solar Clean & Maintenance Solutions — Strand, Gordon's Bay, Somerset West.",
+  description: "Recurring, seasonal and commercial property maintenance packages from NextGen Solar Clean & Maintenance Solutions — Strand, Gordon's Bay, Somerset West.",
 }
 
-function PackageGrid({ packages, joinable = false }: { packages: Package[]; joinable?: boolean }) {
+function PackageRow({ pkg, index, joinable = false }: { pkg: Package; index: number; joinable?: boolean }) {
   return (
-    <div className="max-w-5xl mx-auto px-4 grid sm:grid-cols-3 gap-6">
-      {packages.map((pkg, i) => (
-        <div
-          key={pkg.name}
-          className={`group bg-cardgrey rounded-card p-6 flex flex-col transition-colors ${
-            pkg.featured ? 'border-2 border-orange' : 'border border-darkgrey hover:border-orange'
-          }`}
-        >
-          <NgmsIcon name={pkg.icon} index={i} className="h-12 w-12 mb-4" />
-          {pkg.featured && (
-            <span className="btn-popular self-start mb-4 px-3 py-1.5 text-xs font-heading">
-              {pkg.badge || 'Most Popular'}
-            </span>
-          )}
-          <h2 className="font-heading text-xl font-bold text-paper">{pkg.name}</h2>
-          <p className="text-orange text-sm font-semibold mt-1">{pkg.frequency}</p>
-          <p className="font-heading text-3xl font-bold text-paper mt-4">{pkg.price}</p>
-          <p className="text-mist text-xs mb-6">{pkg.unit}, VAT excl.</p>
-          <ul className="space-y-2 text-mist text-sm flex-1">
-            {pkg.features.map((f) => (
-              <li key={f} className="flex gap-2">
-                <span className="text-whatsapp">&#10003;</span>
-                <span>{f}</span>
-              </li>
-            ))}
-          </ul>
-          <Link
-            href={joinable ? '#join' : '/quote'}
-            className="mt-6 block text-center bg-whatsapp hover:bg-whatsapp-dark text-white font-heading font-semibold px-6 py-3 rounded-btn"
-          >
-            Get started
-          </Link>
-        </div>
-      ))}
-    </div>
+    <article className={'ngms-mp-package ngms-mp-package--' + (index % 3) + (pkg.featured ? ' is-featured' : '')}>
+      <div className="ngms-mp-package__number">{String(index + 1).padStart(2, '0')}</div>
+      <div className="ngms-mp-package__summary">
+        <p className="ngms-mp-kicker">{pkg.frequency}</p>
+        <h3>{pkg.name}</h3>
+        <p className="ngms-mp-package__unit">{pkg.unit} · VAT excluded</p>
+        {pkg.featured ? <span className="ngms-mp-badge">{pkg.badge || 'Featured plan'}</span> : null}
+      </div>
+      <div className="ngms-mp-package__features">
+        <p className="ngms-mp-kicker">WHAT’S INCLUDED</p>
+        <ul>{pkg.features.map((feature) => <li key={feature}><span aria-hidden="true">↗</span>{feature}</li>)}</ul>
+      </div>
+      <div className="ngms-mp-package__price">
+        <span className="ngms-mp-kicker">FROM</span>
+        <strong>{pkg.price}</strong>
+        <Link href={joinable ? '#join' : '/quote?service=Property%20Maintenance'}>{joinable ? 'CHOOSE PLAN' : 'ENQUIRE ↗'}</Link>
+      </div>
+    </article>
+  )
+}
+
+function PackageSection({ id, eyebrow, title, description, packages, joinable = false }: {
+  id: string; eyebrow: string; title: string; description: string; packages: Package[]; joinable?: boolean
+}) {
+  return (
+    <section id={id} className="ngms-mp-section">
+      <div className="ngms-mp-section__heading">
+        <p className="ngms-mp-kicker">{eyebrow}</p>
+        <h2>{title}</h2>
+        <p>{description}</p>
+      </div>
+      <div className="ngms-mp-package-list">
+        {packages.map((pkg, index) => <PackageRow key={pkg.name} pkg={pkg} index={index} joinable={joinable} />)}
+      </div>
+    </section>
   )
 }
 
 export default function MaintenancePackagesPage() {
   return (
-    <main className="bg-jet">
-      <section className="bg-jet text-white py-14 px-4 text-center">
-        <p className="text-orange font-bold text-sm uppercase tracking-wide mb-2 font-heading">Recurring care</p>
-        <h1 className="font-heading text-4xl sm:text-6xl font-bold text-paper">Maintenance packages</h1>
-        <p className="text-mist text-lg max-w-xl mx-auto mt-4">
-          Skip the repeat call-outs. One recurring visit keeps your property in shape — at a better rate than
-          booking each service separately.
-        </p>
-      </section>
+    <main className="ngms-maintenance-brut">
+      <div className="ngms-mp-topline">
+        <Link href="/" className="ngms-mp-wordmark" aria-label="NextGen home">NEXT<span>GEN</span><b>.</b></Link>
+        <span>PROPERTY MAINTENANCE / HELDERBERG BASIN</span>
+        <Link className="ngms-mp-top-cta" href="#join">START A PLAN <span>↗</span></Link>
+      </div>
 
-      <section className="bg-graphite py-14 border-y border-darkgrey">
-        <PackageGrid packages={RECURRING_PACKAGES} joinable />
-        <p className="text-center text-mist text-sm max-w-2xl mx-auto mt-10 opacity-80">
-          Panel counts above 20 are quoted at the standard per-panel rate. All packages can be customised to your
-          property during a free site visit — exact scope and pricing confirmed before your first visit.
-        </p>
-      </section>
-
-      <section id="join" className="bg-jet py-14 px-4 scroll-mt-20">
-        <div className="text-center mb-8">
-          <p className="text-orange font-bold text-sm uppercase tracking-wide mb-2 font-heading">Join a plan</p>
-          <h2 className="font-heading text-3xl font-bold text-paper">Sign up &amp; never forget a service</h2>
-          <p className="text-mist text-base max-w-xl mx-auto mt-3">We&rsquo;ll confirm your first visit and email you when each one is due.</p>
+      <section className="ngms-mp-hero">
+        <div className="ngms-mp-hero__headline">
+          <p className="ngms-mp-kicker">ONE CALL. ALL SOLUTIONS. / 2026</p>
+          <h1>CARE FOR<br />YOUR PROPERTY.<br /><span>WITHOUT</span><br />THE RUNAROUND<span className="ngms-mp-period">.</span></h1>
+          <div className="ngms-mp-hero__bottom">
+            <p><i aria-hidden="true" /> RECURRING CARE. SEASONAL PROJECTS. ONE TRUSTED TEAM.</p>
+            <Link href="#packages">EXPLORE PACKAGES <span>↗</span></Link>
+          </div>
         </div>
-        <PlanSignupForm />
+        <div className="ngms-mp-hero__visual">
+          <div className="ngms-mp-hero__visual-top"><span>NGMS / FIELD NOTES</span><span>01—03</span></div>
+          <div className="ngms-mp-architecture" aria-hidden="true">
+            <div className="ngms-mp-architecture__block ngms-mp-architecture__block--one" />
+            <div className="ngms-mp-architecture__block ngms-mp-architecture__block--two" />
+            <div className="ngms-mp-architecture__block ngms-mp-architecture__block--three" />
+            <div className="ngms-mp-architecture__line" />
+            <div className="ngms-mp-architecture__target">↗</div>
+          </div>
+          <div className="ngms-mp-hero__visual-caption"><strong>MAINTAIN<br />WHAT MATTERS.</strong><span>STRAND · GORDON’S BAY<br />SOMERSET WEST</span></div>
+        </div>
+        <div className="ngms-mp-hero__side-note">MAINTENANCE SYSTEMS / 001</div>
       </section>
 
-      <section className="bg-jet py-14 px-4">
-        <div className="text-center mb-10">
-          <p className="text-orange font-bold text-sm uppercase tracking-wide mb-2 font-heading">Seasonal combos</p>
-          <h2 className="font-heading text-3xl sm:text-4xl font-bold text-paper">Built around the Cape weather</h2>
-          <p className="text-mist text-base max-w-xl mx-auto mt-3">
-            Winter rain and summer sun each bring their own to-do list. These combos bundle the right services for
-            the season so nothing gets missed.
-          </p>
+      <div className="ngms-mp-manifesto">
+        <span className="ngms-mp-manifesto__year">NGMS / 2026</span>
+        <p>WE DON’T WAIT FOR THINGS TO BREAK.<br /><strong>WE PLAN. WE MAINTAIN. WE DELIVER.</strong></p>
+        <a href="#packages" aria-label="Scroll to packages">↓</a>
+        <Link href="#join">AVAILABLE FOR NEW PLANS <span>●</span></Link>
+      </div>
+
+      <div id="packages" className="ngms-mp-selected">
+        <aside className="ngms-mp-selected__aside">
+          <p className="ngms-mp-kicker">01 / RECURRING CARE</p>
+          <h2>SELECTED<br />PACKAGES</h2>
+          <p>Scheduled property care, designed around your site, season and budget.</p>
+          <a href="#seasonal">SEE SEASONAL OPTIONS <span>↘</span></a>
+        </aside>
+        <div className="ngms-mp-selected__content">
+          <PackageSection id="recurring" eyebrow="01—03 / RECURRING PLANS" title="CARE THAT COMES BACK." description="Regular visits keep small maintenance tasks from turning into costly repairs. Choose your service rhythm." packages={RECURRING_PACKAGES} joinable />
+          <p className="ngms-mp-note">Panel counts above 20 are quoted at the standard per-panel rate. All plans can be tailored during a free site visit; scope and pricing are confirmed before your first visit.</p>
         </div>
-        <PackageGrid packages={SEASONAL_COMBOS} />
-        <p className="text-center text-mist text-sm max-w-2xl mx-auto mt-10 opacity-80">
-          Once-off project pricing — scope confirmed on-site. Ask about combining a seasonal combo with a
-          recurring plan for an extra discount.
-        </p>
+      </div>
+
+      <section className="ngms-mp-signup" id="join">
+        <div className="ngms-mp-signup__copy">
+          <p className="ngms-mp-kicker">02 / GET ON THE SCHEDULE</p>
+          <h2>BUILT AROUND<br /><span>YOUR PROPERTY.</span></h2>
+          <p>Choose a plan and we’ll confirm your first visit. We’ll also remind you when your next service is due.</p>
+          <div className="ngms-mp-signup__sticker" aria-hidden="true">✳</div>
+        </div>
+        <div className="ngms-mp-signup__form"><PlanSignupForm /></div>
       </section>
 
-      <section className="bg-graphite py-14 px-4 border-y border-darkgrey">
-        <div className="text-center mb-10">
-          <p className="text-orange font-bold text-sm uppercase tracking-wide mb-2 font-heading">
-            Commercial &amp; Body Corporate
-          </p>
-          <h2 className="font-heading text-3xl sm:text-4xl font-bold text-paper">Built for complexes &amp; business</h2>
-          <p className="text-mist text-base max-w-xl mx-auto mt-3">
-            Volume-priced packages for security complexes, body corporates and light commercial sites — one
-            contractor, one contract, one point of contact.
-          </p>
+      <PackageSection id="seasonal" eyebrow="03 / SEASONAL COMBOS" title="BUILT FOR THE CAPE." description="Winter rain and summer sun bring different maintenance priorities. These one-off combinations help you prepare for the season ahead." packages={SEASONAL_COMBOS} />
+      <p className="ngms-mp-note ngms-mp-note--wide">Once-off project pricing. Final scope is confirmed on-site. Ask about combining a seasonal combo with a recurring plan for an additional discount.</p>
+
+      <PackageSection id="commercial" eyebrow="04 / COMMERCIAL & BODY CORPORATE" title="ONE SITE. ONE POINT OF CONTACT." description="Volume-priced property care for security complexes, body corporates and light commercial sites." packages={COMMERCIAL_COMBOS} />
+      <p className="ngms-mp-note ngms-mp-note--wide">Pricing shown reflects a typical mid-size site. Larger complexes and multi-building sites are quoted after a free walk-through.</p>
+
+      <section className="ngms-mp-services">
+        <div className="ngms-mp-services__intro">
+          <p className="ngms-mp-kicker">05 / OUR CAPABILITIES</p>
+          <h2>MORE THAN<br />A CHECKLIST<span>.</span></h2>
+          <p>One local team for solar cleaning and the maintenance jobs that keep your property working as it should.</p>
         </div>
-        <PackageGrid packages={COMMERCIAL_COMBOS} />
-        <p className="text-center text-mist text-sm max-w-2xl mx-auto mt-10 opacity-80">
-          Pricing shown reflects a typical mid-size site. Larger complexes and multi-building sites are quoted
-          after a free walk-through.
-        </p>
+        <div className="ngms-mp-services__list">
+          {[
+            ['01', 'SOLAR PANEL CLEANING', 'Soft-wash cleaning, before-and-after photos and practical maintenance scheduling.'],
+            ['02', 'EXTERIOR & HIGH-PRESSURE CLEANING', 'Refresh driveways, entrances, walls and outdoor areas.'],
+            ['03', 'GUTTERS & WATERPROOFING', 'Keep water moving correctly and catch potential leak points early.'],
+            ['04', 'PAINTING & HANDYMAN WORK', 'Planned touch-ups and minor repairs to help protect your property.'],
+            ['05', 'BODY CORPORATE & COMMERCIAL', 'Coordinated maintenance for shared spaces and multi-building sites.'],
+          ].map(([number, title, description]) => (
+            <details className="ngms-mp-service" key={number}>
+              <summary><span>{number}</span><strong>{title}</strong><b aria-hidden="true">＋</b></summary>
+              <p>{description}</p>
+            </details>
+          ))}
+        </div>
       </section>
 
-      <section className="bg-jet text-white text-center py-14 px-4">
-        <h2 className="font-heading text-2xl font-bold mb-3 text-paper">Not sure which package fits?</h2>
-        <div className="flex gap-4 justify-center flex-wrap mt-4">
-          <a href="https://wa.me/27631387945" className="btn-wa-price">
-            WhatsApp us about price
-          </a>
-          <Link href="/price-list" className="border border-mist text-paper font-heading font-semibold px-6 py-3 rounded-btn hover:border-orange hover:text-orange">
-            View full price list
-          </Link>
+      <section className="ngms-mp-final-cta">
+        <div className="ngms-mp-final-cta__red"><p>LET’S KEEP IT<br />IN GOOD SHAPE.</p><Link href="#join" aria-label="Start a maintenance plan">↗</Link></div>
+        <div className="ngms-mp-final-cta__main">
+          <p className="ngms-mp-kicker">NEXTGEN MAINTENANCE SOLUTIONS / WESTERN CAPE</p>
+          <h2>YOUR PROPERTY.<br />OUR NEXT PROJECT<span>.</span></h2>
+          <div className="ngms-mp-final-cta__links">
+            <Link href="#join">START A PLAN ↗</Link>
+            <a href="https://wa.me/27631387945" target="_blank" rel="noopener noreferrer">WHATSAPP US ↗</a>
+            <Link href="/price-list">VIEW PRICE LIST ↗</Link>
+          </div>
         </div>
       </section>
+
+      <div className="ngms-mp-footerline"><span>ONE CALL. ALL SOLUTIONS.</span><span>STRAND / GORDON’S BAY / SOMERSET WEST</span><Link href="/contact">CONTACT NGMS ↗</Link></div>
     </main>
   )
 }
