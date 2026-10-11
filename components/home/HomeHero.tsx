@@ -116,15 +116,15 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
         </div>
 
         <div className="ngms-industrial-hero__copy">
-          <p className="ngms-industrial-hero__overline">Maintenance for a brighter tomorrow</p>
-          <h1 id="hero-title">ONE CALL.<span>ALL SOLUTIONS.</span></h1>
+          <p className="ngms-industrial-hero__overline">HELDERVBERG PROPERTY CARE / 2026</p>
+          <h1 id="hero-title">ABOVE THE<br />EVERYDAY.<span>BUILT TO LAST.</span></h1>
           <p className="ngms-industrial-hero__intro">
-            Solar panel cleaning and 11+ maintenance trades, coordinated by one local team for homes, complexes and light commercial properties.
+            Specialist solar panel cleaning and practical property maintenance, coordinated by one local team. Clear quotes. Careful work. One point of contact.
           </p>
-          <p className="ngms-industrial-hero__location">Strand · Gordon’s Bay · Somerset West · Overberg</p>
+          <p className="ngms-industrial-hero__location">STRAND · GORDON’S BAY · SOMERSET WEST</p>
 
           <div className="ngms-industrial-hero__actions">
-            <Link href="/quote" className="ngms-industrial-button ngms-industrial-button--orange">Get a quote <span aria-hidden="true">↗</span></Link>
+            <Link href="/quote" className="ngms-industrial-button ngms-industrial-button--orange">START YOUR PROJECT <span aria-hidden="true">↗</span></Link>
             <a href={whatsappLink("Hi NextGen, I'd like a quote please.")} target="_blank" rel="noopener noreferrer" className="ngms-industrial-button ngms-industrial-button--outline">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20l1.2-4.8A8.5 8.5 0 1 1 20.5 11.5Z"/><path d="M8.5 8.1c.3-.6.6-.6 1-.6h.4c.2 0 .4.1.5.4l.7 1.6c.1.2.1.4-.1.6l-.5.6c-.2.2-.2.4 0 .6.4.7 1.1 1.4 1.9 1.8.2.1.4.1.6-.1l.7-.8c.2-.2.4-.2.6-.1l1.6.8c.3.1.4.3.4.5 0 .4-.2 1.1-.7 1.5-.5.5-1.2.7-2 .5-1.1-.2-2.4-.9-3.6-2-1.1-1-2-2.3-2.2-3.4-.2-.8 0-1.5.7-2.1Z"/></svg>
               WhatsApp us
@@ -159,7 +159,7 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
         </div>
       </div>
 
-      <div className="ngms-industrial-hero__side-note" aria-hidden="true"><span>Cleaner properties</span><span>Stronger communities</span><i /></div>
+      <div className="ngms-industrial-hero__side-note" aria-hidden="true"><span>Property care</span><span>Built around you</span><i /></div>
     </section>
   )
 }
