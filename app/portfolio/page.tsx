@@ -36,7 +36,7 @@ export default async function PortfolioPage() {
   const projectCount = projects.length
 
   return (
-    <main id="main-content" className="bg-[#f5f3ef] text-[#171717]">
+    <main id="main-content" className="ngms-northpoint-page ngms-northpoint-portfolio bg-[#f5f3ef] text-[#171717]">
       <section className="px-4 pt-5 sm:px-6 lg:px-10 lg:pt-8">
         <div className="relative isolate min-h-[470px] overflow-hidden rounded-tl-[2px] rounded-tr-[2px] rounded-br-[3px] rounded-bl-[3px] bg-[#101010] text-white sm:min-h-[560px]">
           <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(ellipse_at_76%_42%,rgba(255,83,20,0.22),transparent_25%),linear-gradient(110deg,#101010_0%,#101010_44%,#282421_100%)]" />
