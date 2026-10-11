@@ -3236,3 +3236,101 @@ body:has(.ngms-about-editorial) footer[data-site-marketing] { display:none !impo
  .ngms-about-footer { grid-template-columns:1fr 1fr; }
  .ngms-about-contact-word { font-size:18.5vw; }
 }
+
+
+/* Service detail pages — architectural editorial system, isolated from other routes. */
+.ngms-service-editorial {
+  --ns-ink:#090b0c; --ns-paper:#f1efe8; --ns-orange:#f04b17; --ns-grey:#a8a69e;
+  background:var(--ns-paper); color:#151515; overflow:hidden;
+}
+.ngms-service-editorial .ngms-service-hero {
+  position:relative; isolation:isolate; overflow:hidden; text-align:left;
+  min-height:clamp(390px,52vw,610px); padding:clamp(36px,6vw,82px) clamp(20px,7vw,104px) 26px;
+  color:#f7f5ef; background:#080a0b; border-bottom:0;
+  display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
+}
+.ngms-service-editorial .ngms-service-hero::before {
+  content:""; position:absolute; inset:0; z-index:-2;
+  background:radial-gradient(ellipse at 78% 42%,rgba(92,94,91,.55),transparent 35%),
+    linear-gradient(130deg,#080a0b 0%,#15191a 48%,#30312e 100%);
+}
+.ngms-service-editorial .ngms-service-hero::after {
+  content:""; position:absolute; z-index:-1; inset:0; opacity:.45; pointer-events:none;
+  background:repeating-linear-gradient(155deg,transparent 0 47px,rgba(255,255,255,.1) 48px,transparent 50px 78px),
+    linear-gradient(90deg,rgba(0,0,0,.55),transparent 90%);
+  mask-image:linear-gradient(90deg,transparent 15%,black 100%);
+}
+.ngms-service-editorial .ngms-service-hero .group {
+  position:absolute; right:clamp(20px,8vw,120px); top:22%; margin:0;
+  border:1px solid rgba(255,255,255,.32); border-radius:0; padding:20px;
+  background:rgba(5,7,8,.22); transform:rotate(4deg);
+}
+.ngms-service-editorial .ngms-service-hero .group svg { color:#f04b17; }
+.ngms-service-editorial .ngms-service-eyebrow {
+  order:-1; margin:0 0 25px; color:#f04b17; font-size:10px;
+  font-weight:800; letter-spacing:.18em; text-transform:uppercase;
+}
+.ngms-service-editorial .ngms-service-hero h1 {
+  position:relative; max-width:10ch; margin:0; color:#f6f4ed;
+  font-family:var(--font-heading,inherit); font-size:clamp(3.8rem,10vw,9.5rem);
+  font-weight:900; line-height:.78; letter-spacing:-.075em; text-transform:uppercase;
+  text-wrap:balance;
+}
+.ngms-service-editorial .ngms-service-hero > p.text-mist {
+  max-width:490px; margin:25px 0 0; color:#d2d0c9; font-size:clamp(14px,1.5vw,18px);
+  line-height:1.45; position:relative;
+}
+.ngms-service-editorial .ngms-service-hero-bottom {
+  display:flex; align-items:center; flex-wrap:wrap; gap:20px; justify-content:space-between;
+  width:100%; margin-top:clamp(38px,6vw,68px); padding-top:16px;
+  border-top:1px solid rgba(255,255,255,.25); position:relative;
+}
+.ngms-service-editorial .ngms-service-hero-bottom > span {
+  color:#c3c1b9; font-size:9px; font-weight:800; letter-spacing:.13em;
+}
+.ngms-service-editorial .ngms-service-hero-cta {
+  display:inline-flex; align-items:center; justify-content:space-between; gap:24px;
+  padding:14px 17px; min-width:205px; background:#f04b17; color:#fff;
+  font-size:10px; font-weight:900; letter-spacing:.08em; text-transform:uppercase;
+  border:1px solid #f04b17; transition:background .2s,color .2s,transform .2s;
+}
+.ngms-service-editorial .ngms-service-hero-cta b { font-size:19px; font-weight:500; }
+.ngms-service-editorial .ngms-service-hero-cta:hover { background:#fff; border-color:#fff; color:#111; transform:translateY(-2px); }
+.ngms-service-editorial > .wrap { max-width:1120px; padding:clamp(34px,6vw,78px) clamp(18px,5vw,60px); }
+.ngms-service-editorial > .wrap > p:first-child { max-width:740px; font-size:clamp(17px,2vw,22px); line-height:1.55; color:#353633; }
+.ngms-service-editorial > .wrap h2 {
+  color:#101111; font-size:clamp(1.8rem,4vw,3.6rem); font-weight:900;
+  line-height:.9; letter-spacing:-.065em; text-transform:uppercase;
+}
+.ngms-service-editorial > .wrap ul { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 18px; }
+.ngms-service-editorial > .wrap ul li.card {
+  border-radius:0; border:0; border-top:1px solid #aaa9a1; background:transparent;
+  color:#272826; padding:17px 26px 17px 0 !important; position:relative;
+}
+.ngms-service-editorial > .wrap ul li.card::after { content:"↗"; position:absolute; right:4px; top:16px; color:#f04b17; font-size:16px; }
+.ngms-service-editorial > .wrap .card { border-radius:0; }
+.ngms-service-editorial > .wrap .overflow-x-auto { border-radius:0; border-color:#a6a49c; }
+.ngms-service-editorial > .wrap table tr { border-color:#aaa9a1; }
+.ngms-service-editorial > .wrap table td { color:#333 !important; }
+.ngms-service-editorial > .wrap table td:nth-child(2) { color:#e64b1b !important; }
+.ngms-service-editorial > .wrap .btn-quote,.ngms-service-editorial > .wrap .btn-wa { border-radius:0; }
+.ngms-service-editorial > .wrap > div.mt-8.space-y-4 > div { border-color:#aaa9a1; padding-top:18px; }
+.ngms-service-editorial > .wrap > div.mt-8.space-y-4 p.font-semibold { color:#111; font-size:15px; }
+.ngms-service-editorial > .wrap > div.mt-8.space-y-4 p.text-mist { color:#50514e; line-height:1.55; }
+.ngms-service-editorial > .wrap > div.mt-12 { border-color:#aaa9a1; }
+.ngms-service-editorial > .wrap > div.mt-12 h2 { font-size:clamp(1.5rem,3vw,2.5rem); }
+.ngms-service-editorial > .wrap > div.mt-12 a { border-radius:0; border-color:#a5a39b; color:#222; }
+.ngms-service-editorial > .wrap > div.mt-12 a:hover { border-color:#f04b17; color:#f04b17; }
+@media(max-width:700px) {
+ .ngms-service-editorial .ngms-service-hero { min-height:470px; padding:34px 20px 22px; }
+ .ngms-service-editorial .ngms-service-hero .group { top:auto; bottom:100px; right:22px; padding:12px; opacity:.7; }
+ .ngms-service-editorial .ngms-service-hero .group svg { width:38px; height:38px; }
+ .ngms-service-editorial .ngms-service-eyebrow { margin-bottom:24px; max-width:65%; line-height:1.5; }
+ .ngms-service-editorial .ngms-service-hero h1 { max-width:8ch; font-size:clamp(3.4rem,15vw,6.2rem); }
+ .ngms-service-editorial .ngms-service-hero > p.text-mist { max-width:90%; font-size:14px; }
+ .ngms-service-editorial .ngms-service-hero-bottom { align-items:flex-start; flex-direction:column; gap:15px; margin-top:32px; }
+ .ngms-service-editorial > .wrap ul { grid-template-columns:1fr; }
+}
+@media(prefers-reduced-motion:reduce) {
+ .ngms-service-editorial .ngms-service-hero-cta { transition:none; }
+}
