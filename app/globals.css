@@ -3101,3 +3101,26 @@ input:disabled, select:disabled, textarea:disabled { opacity: .6; cursor: not-al
   .ngms-mp-package__price strong { font-size:1rem; }
   .ngms-mp-hero__headline h1 { font-size:13vw; }
 }
+
+
+/* Let this page use its own reference-matched frame instead of the global chrome. */
+body:has(.ngms-maintenance-brut) > header { display:none !important; }
+body:has(.ngms-maintenance-brut) footer[data-site-marketing] { display:none !important; }
+.ngms-mp-signup__form .field {
+  color:var(--mp-ink) !important;
+  background:var(--mp-paper) !important;
+  border:1px solid #777 !important;
+  border-radius:0 !important;
+}
+.ngms-mp-signup__form label { color:#333 !important; }
+.ngms-mp-signup__form label a { color:#111 !important; }
+.ngms-mp-signup__form .text-paper,
+.ngms-mp-signup__form .text-mist { color:#111 !important; }
+.ngms-mp-signup__form .btn-quote {
+  color:#080808 !important;
+  background:var(--mp-yellow) !important;
+  border:1px solid #080808 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+}
+.ngms-mp-signup__form .btn-quote:hover { color:#fff !important; background:#080808 !important; }
