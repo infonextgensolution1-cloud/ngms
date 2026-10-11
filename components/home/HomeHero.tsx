@@ -101,6 +101,11 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
           <span className="ngms-architecture__feature-index">NGMS / 2026</span>
         </div>
         <div className="ngms-architecture__base"><span>BUILT FOR EVERYDAY PERFORMANCE</span><b>↗</b></div>
+        <div className="ngms-architecture__editorial-card">
+          <span className="ngms-editorial-card__index">NGMS / FIELD NOTES 001</span>
+          <strong>PROPERTY<br />CARE.<br /><em>REDEFINED.</em></strong>
+          <span className="ngms-editorial-card__foot">STRAND · SOMERSET WEST · GORDON’S BAY</span>
+        </div>
       </div>
 
       <div className="ngms-industrial-hero__inner">
