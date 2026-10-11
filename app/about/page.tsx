@@ -109,7 +109,7 @@ export default function AboutPage() {
         </div>
         <div className="ngms-about-footer-portrait">
           <img src="/jacques-gordon.webp" alt="" width={720} height={900} loading="lazy" />
-          <span>HELDERVBERG BASIN<br />WESTERN CAPE / SOUTH AFRICA</span>
+          <span>HELDERBERG BASIN<br />WESTERN CAPE / SOUTH AFRICA</span>
         </div>
         <div className="ngms-about-footer-links">
           <p>START A CONVERSATION</p>
