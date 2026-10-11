@@ -44,7 +44,7 @@ export default async function ServicesPage() {
   const images = { ...FALLBACK_IMAGES, ...dbImages };
 
   return (
-    <main className="ngms-services-page">
+    <main className="ngms-services-page ngms-services-reference">
       <section className="ngms-services-hero relative isolate overflow-hidden bg-jet text-paper">
         <div className="absolute inset-0 -z-20">
           <Image
