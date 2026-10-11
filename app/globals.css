@@ -1833,3 +1833,73 @@ input:disabled, select:disabled, textarea:disabled { opacity: .6; cursor: not-al
   .ngms-home-refresh .ngms-industrial-hero__carousel { width:100%; }
   .ngms-home-refresh .ngms-industrial-hero__side-note { display:none; }
 }
+
+
+/* FINAL APPROVED NGMS PALETTE — taken from the supplied swatch reference.
+   Retains the industrial-business composition; replaces the temporary red-orange palette. */
+.ngms-home-refresh {
+  --ref-black:#060808;
+  --ref-white:#FFFFFF;
+  --ref-grey:#7B7673;
+  --ref-orange:#DD6211;
+  --ref-fire:#B92717;
+  --ref-paper:#F4F3F1;
+  --ref-concrete:#D8D6D4;
+  background:#060808 !important;
+}
+.ngms-home-refresh .ngms-industrial-hero {
+  background:#F4F3F1;
+  color:#060808;
+  border-color:#7B7673;
+}
+.ngms-home-refresh .ngms-industrial-hero::before {
+  background:linear-gradient(90deg,#F4F3F1 0%,#F4F3F1 36%,rgba(244,243,241,.94) 46%,rgba(244,243,241,.35) 67%,rgba(6,8,8,.04) 100%);
+}
+.ngms-home-refresh .ngms-industrial-hero__media { background:#7B7673;border-color:#060808; }
+.ngms-home-refresh .ngms-industrial-hero__image { filter:grayscale(.78) contrast(1.16) brightness(.92) !important; }
+.ngms-home-refresh .ngms-industrial-hero__wash {
+  background:linear-gradient(130deg,transparent 47%,rgba(221,98,17,.25) 47.2%,transparent 48%),
+             linear-gradient(0deg,rgba(6,8,8,.36),transparent 45%);
+}
+.ngms-home-refresh .ngms-industrial-hero__eyebrow,
+.ngms-home-refresh .ngms-industrial-hero__overline,
+.ngms-home-refresh .ngms-industrial-hero__location { color:#55514E; }
+.ngms-home-refresh .ngms-industrial-hero__eyebrow-rule { background:#7B7673; }
+.ngms-home-refresh .ngms-industrial-hero__index,
+.ngms-home-refresh .ngms-industrial-hero #hero-title span,
+.ngms-home-refresh .ngms-industrial-hero__proof-icon { color:#B92717; }
+.ngms-home-refresh .ngms-industrial-hero__intro,
+.ngms-home-refresh .ngms-industrial-hero #hero-title,
+.ngms-home-refresh .ngms-industrial-hero__phone { color:#060808; }
+.ngms-home-refresh .ngms-industrial-button--orange,
+.ngms-home-refresh :is(.btn-quote,.btn-power,.btn-popular) {
+  background:#DD6211 !important;border-color:#DD6211 !important;color:#FFFFFF !important;
+}
+.ngms-home-refresh .ngms-industrial-button--orange:hover,
+.ngms-home-refresh :is(.btn-quote,.btn-power,.btn-popular):hover {
+  background:#B92717 !important;border-color:#B92717 !important;
+}
+.ngms-home-refresh .ngms-industrial-button--outline { background:#FFFFFF;color:#060808;border-color:#060808; }
+.ngms-home-refresh .ngms-industrial-button--outline:hover { background:#060808;color:#FFFFFF; }
+.ngms-home-refresh .ngms-industrial-hero__proof,
+.ngms-home-refresh .ngms-industrial-hero__carousel { border-color:#7B7673; }
+.ngms-home-refresh .ngms-industrial-hero__proof li { border-color:#D0CDCA;color:#060808; }
+.ngms-home-refresh .ngms-industrial-hero__proof-icon,
+.ngms-home-refresh .ngms-industrial-hero__control { border-color:#7B7673; }
+.ngms-home-refresh .ngms-industrial-hero__control:hover { color:#B92717;border-color:#DD6211; }
+.ngms-home-refresh .ngms-industrial-hero__side-note i::after { background:#DD6211; }
+.ngms-home-refresh > section:not(.ngms-industrial-hero) {
+  border-color:#7B7673 !important;
+}
+.ngms-home-refresh > section:not(.ngms-industrial-hero) :is(.bg-white,.bg-paper,.bg-fog,.bg-concrete,.bg-slate-50,.bg-slate-100) {
+  background:#F4F3F1 !important;color:#060808 !important;border-color:#7B7673 !important;
+}
+.ngms-home-refresh > section:not(.ngms-industrial-hero) :is(.text-orange,.text-power,.text-brand,.kicker) { color:#DD6211 !important; }
+.ngms-home-refresh > section:not(.ngms-industrial-hero) :is(.border-concrete,.border-fog,.border-paper,.border-slate-200,.border-slate-300) { border-color:#7B7673 !important; }
+.ngms-home-refresh > section:not(.ngms-industrial-hero) :is(input,textarea,select) { border-color:#7B7673 !important; }
+.ngms-home-refresh :focus-visible { outline-color:#DD6211; }
+@media (max-width:767px) {
+  .ngms-home-refresh .ngms-industrial-hero::before {
+    background:linear-gradient(180deg,rgba(244,243,241,.98) 0%,rgba(244,243,241,.95) 45%,rgba(244,243,241,.3) 100%);
+  }
+}
