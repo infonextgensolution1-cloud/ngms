@@ -54,20 +54,26 @@ export function buildQuotePdf(input: {
     ensure(16); txt(bold ? 'F2' : 'F1', bold ? 10.5 : 9.5, 390, y, label); txt(bold ? 'F2' : 'F1', bold ? 10.5 : 9.5, 515, y, value); y -= bold ? 18 : 14
   }
 
-  op(rectOp(40, 780, 515, 3, '8B1BF5'))
-  txt('F2', 22, 40, 750, 'NEXTGEN')
-  txt('F2', 9, 40, 734, 'ONE CALL. ALL SOLUTIONS.')
-  txt('F1', 8.5, 380, 750, s.business_name || 'NextGen Maintenance Solutions')
-  if (s.address) txt('F1', 8, 380, 737, s.address)
-  if (s.phone) txt('F1', 8, 380, 725, s.phone)
-  if (s.email) txt('F1', 8, 380, 713, s.email)
-  op(lineOp(40, 700, 555, 700, '5B5B5B', 0.5))
-  txt('F2', 20, 40, 675, 'QUOTE'); txt('F1', 9, 40, 659, q.quote_number)
-  txt('F1', 9, 410, 675, 'Date: ' + new Date(q.created_at).toLocaleDateString('en-ZA'))
-  txt('F1', 9, 410, 661, 'Valid until: ' + (q.valid_until || '—'))
-  txt('F2', 8, 410, 647, (input.expired ? 'EXPIRED' : q.status).toUpperCase())
+  // Premium NGMS print identity: charcoal header, Solar Orange accent, high-contrast type.
+  op(rectOp(40, 704, 515, 80, '111111'))
+  op(rectOp(40, 780, 515, 4, 'F57C1B'))
+  op(rectOp(52, 731, 4, 29, 'F57C1B'))
+  op('1 1 1 rg')
+  txt('F2', 22, 64, 750, 'NEXTGEN')
+  txt('F2', 8.5, 64, 734, 'ONE CALL. ALL SOLUTIONS.')
+  txt('F2', 8.5, 355, 750, s.business_name || 'NextGen Maintenance Solutions')
+  if (s.address) txt('F1', 8, 355, 737, s.address)
+  if (s.phone) txt('F1', 8, 355, 725, s.phone)
+  if (s.email) txt('F1', 8, 355, 713, s.email)
+  op('0 0 0 rg')
+  op(lineOp(40, 696, 555, 696, 'F57C1B', 1.2))
+  txt('F2', 20, 40, 671, 'QUOTATION')
+  txt('F1', 9, 40, 655, q.quote_number)
+  txt('F1', 9, 410, 671, 'Date: ' + new Date(q.created_at).toLocaleDateString('en-ZA'))
+  txt('F1', 9, 410, 657, 'Valid until: ' + (q.valid_until || '—'))
+  txt('F2', 8, 410, 643, (input.expired ? 'EXPIRED' : q.status).toUpperCase())
 
-  op(rectOp(40, 580, 515, 48, 'F7F5FA'))
+  op(rectOp(40, 580, 515, 48, 'F5F5F4'))
   txt('F2', 8, 52, 612, 'QUOTED TO'); txt('F2', 11, 52, 596, c?.name || '—')
   if (c?.phone) txt('F1', 8.5, 52, 583, c.phone)
   if (c?.email) txt('F1', 8.5, 200, 583, c.email)
@@ -88,7 +94,7 @@ export function buildQuotePdf(input: {
   ensure(110); y -= 8; row('Subtotal', money(m.subtotal))
   if (q.vat_included) row('VAT', money(m.vat))
   else { txt('F1', 7.5, 390, y, 'Prices exclude VAT — not VAT registered.'); y -= 14 }
-  op(lineOp(390, y + 4, 555, y + 4, '0A0A0A', 1.2)); row('TOTAL', money(m.total), true)
+  op(lineOp(390, y + 4, 555, y + 4, 'F57C1B', 1.6)); row('TOTAL', money(m.total), true)
   row('Deposit (' + m.deposit_percent + '%)', money(m.deposit)); row('Balance on completion', money(m.balance))
 
   if (q.notes) { ensure(40); y -= 8; txt('F2', 8, 40, y, 'NOTES'); y -= 13; for (const l of wrap(q.notes, 105)) { ensure(12); txt('F1', 8.5, 40, y, l); y -= 11 } }
@@ -96,7 +102,21 @@ export function buildQuotePdf(input: {
   for (const t of input.terms) for (const l of wrap('• ' + t, 105)) { ensure(12); txt('F1', 7.5, 48, y, l); y -= 10 }
   ensure(55); y -= 8; txt('F2', 8, 40, y, 'BANKING DETAILS'); y -= 13
   for (const l of wrap(s.bank_details || 'Banking details to follow — please contact us before paying a deposit.', 105)) { ensure(12); txt(s.bank_details ? 'F1' : 'F2', 8, 40, y, l); y -= 11 }
-  for (let i = 0; i < pages.length; i++) pages[i].push(textOp('F1', 7.5, 40, 28, (s.business_name || 'NextGen') + ' · Quote ' + q.quote_number + ' · Page ' + (i + 1) + ' of ' + pages.length))
+
+  // Customer acceptance block for a clear written approval trail.
+  ensure(82); y -= 7
+  op(lineOp(40, y + 3, 555, y + 3, 'D6D3D1', 0.6))
+  txt('F2', 8, 40, y - 12, 'CLIENT ACCEPTANCE')
+  txt('F1', 7.5, 40, y - 25, 'I accept the scope, price and terms set out in this quotation.')
+  const sigY = y - 52
+  op(lineOp(40, sigY, 205, sigY, '777777', 0.6))
+  op(lineOp(225, sigY, 390, sigY, '777777', 0.6))
+  op(lineOp(410, sigY, 555, sigY, '777777', 0.6))
+  txt('F1', 7, 40, sigY - 11, 'Client name / signature')
+  txt('F1', 7, 225, sigY - 11, 'Signature')
+  txt('F1', 7, 410, sigY - 11, 'Date')
+
+  for (let i = 0; i < pages.length; i++) pages[i].push(textOp('F1', 7.5, 40, 28, (s.business_name || 'NextGen') + ' | Quote ' + q.quote_number + ' | Page ' + (i + 1) + ' of ' + pages.length))
   return makePdf(pages)
 }
 
