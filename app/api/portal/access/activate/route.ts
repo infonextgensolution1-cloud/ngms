@@ -47,11 +47,12 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'This one-time access has already been used. Ask NGMS to issue a new link.' }, { status: 403 })
       }
       if (!access.one_time_session_id) {
-        const { data: claimed, error } = await db.from('client_portal_access')
+        const claimResult = await db.from('client_portal_access')
           .update({ one_time_session_id: sessionId, updated_at: new Date().toISOString() })
           .eq('client_id', client.id).is('one_time_session_id', null).is('revoked_at', null)
           .select('one_time_session_id').maybeSingle()
-        if (error) return NextResponse.json({ error: 'Could not activate one-time access.' }, { status: 500 })
+        if (claimResult.error) return NextResponse.json({ error: 'Could not activate one-time access.' }, { status: 500 })
+        const claimed = claimResult.data as { one_time_session_id: string | null } | null
         if (!claimed || claimed.one_time_session_id !== sessionId) {
           const { data: latest } = await db.from('client_portal_access').select('one_time_session_id,revoked_at').eq('client_id', client.id).maybeSingle()
           if (latest?.one_time_session_id !== sessionId || latest.revoked_at) {
