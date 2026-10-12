@@ -12,7 +12,7 @@ async function staffDb(request: Request) {
   const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '').trim()
   if (!token) return { error: NextResponse.json({ error: 'Sign in to the admin dashboard first.' }, { status: 401 }) }
   let db
-  try { db = supabaseAdmin() } catch { return { error: NextResponse.json({ error: 'Portal access service is not configured.' }, { status: 500 }) }
+  try { db = supabaseAdmin() } catch { return { error: NextResponse.json({ error: 'Portal access service is not configured.' }, { status: 500 }) } }
   const { data: auth, error } = await db.auth.getUser(token)
   if (error || !auth.user) return { error: NextResponse.json({ error: 'Your session has expired. Sign in again.' }, { status: 401 }) }
   if (jwtAal(token) !== 'aal2') return { error: NextResponse.json({ error: MFA_REQUIRED_MESSAGE }, { status: 403 }) }
