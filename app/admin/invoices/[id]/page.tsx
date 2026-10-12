@@ -21,11 +21,11 @@ function paymentEntries(notes: string | null): PaymentEntry[] {
   const lines = (notes ?? '').split('\n')
   return lines.flatMap((line, index) => {
     if (!/^Payment\s+/i.test(line)) return []
-    const match = line.match(/^Payment\s+R?\s*([\d,]+(?:\.\d{1,2})?)/i)
+    const match = line.match(/^Payment\s+R?\s*([\d, ]+(?:\.\d{1,2})?)/i)
     if (!match) return []
     const amount = Number(match[1].replace(/[ ,]/g, ''))
     if (!Number.isFinite(amount) || amount <= 0) return []
-    return [{ line, amount, index, reversed: lines.some((entry) => entry.startsWith(`PAYMENT REVERSAL [entry ${index + 1}]:`)) }]
+    return [{ line, amount, index, reversed: lines.some((entry) => entry.startsWith(\`PAYMENT REVERSAL [entry \${index + 1}]:\`)) }]
   })
 }
 
@@ -166,7 +166,7 @@ function InvoiceView() {
       const { data: latest, error: readError } = await supabase.from('invoices').select('paid_amount,status,notes').eq('id', invoice.id).single()
       if (readError || !latest) throw new Error(readError?.message ?? 'Could not reload the latest invoice payment state.')
       const latestNotes = String(latest.notes ?? '')
-      const currentLines = latestNotes.split('\\n')
+      const currentLines = latestNotes.split('\n')
       const marker = `PAYMENT REVERSAL [entry ${entry.index + 1}]:`
       if (currentLines.some((line: string) => line.startsWith(marker))) throw new Error('This payment has already been reversed. Refresh the invoice to see the latest history.')
       if (!currentLines.includes(entry.line)) throw new Error('This payment entry has changed. Refresh the invoice before reversing it.')
@@ -174,7 +174,7 @@ function InvoiceView() {
       const nextPaid = Math.max(0, Math.round((Number(latest.paid_amount ?? 0) - entry.amount) * 100) / 100)
       const nextStatus = nextPaid <= 0.004 ? 'sent' : nextPaid >= money.total - 0.004 ? 'paid' : 'partial'
       const audit = `${marker} ${rand(entry.amount)} reversed on ${new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Johannesburg' })}. Reason: ${reason.trim()}. Original: ${entry.line}`
-      const { error: updateError } = await supabase.from('invoices').update({ paid_amount: nextPaid, status: nextStatus, notes: [latestNotes, audit].filter(Boolean).join('\\n') }).eq('id', invoice.id)
+      const { error: updateError } = await supabase.from('invoices').update({ paid_amount: nextPaid, status: nextStatus, notes: [latestNotes, audit].filter(Boolean).join('\n') }).eq('id', invoice.id)
       if (updateError) throw new Error(updateError.message)
       setMsg(`Payment reversed. Paid amount and outstanding balance recalculated; invoice is now ${nextStatus}.`)
       await load()
