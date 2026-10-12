@@ -63,7 +63,7 @@ export async function POST(request: Request) {
   if (!draft) return NextResponse.json({ error: 'Subcontractor draft not found.' }, { status: 404 })
   const { error } = await auth.db.from('job_subcontractor_assignments').upsert({
     job_id: jobId, subcontractor_draft_id: draftId, assigned_by: auth.userId, updated_at: new Date().toISOString(),
-  }, { onConflict: 'job_id,subcontractor_draft_id' })
+  }, { onConflict: 'job_id' })
   if (error) {
     console.error('job subcontractor assignment save failed', error.message)
     return NextResponse.json({ error: 'Could not save assignment. Confirm the assignment migration is applied.' }, { status: 503 })
