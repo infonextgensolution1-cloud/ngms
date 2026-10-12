@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { handlersB } from '@/lib/ngms-ops/handlers-b'
 import { handlersC } from '@/lib/ngms-ops/handlers-c'
 import { PHOTO_TYPES } from '@/lib/ngms-ops/core'
+import { signedJobPhotoUrl } from '@/lib/job-photo-url'
 
 type FieldJob = {
   id: string; title: string | null; description: string | null; status: string
