@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const token = request.headers.get('authorization')?.replace(/^Bearer\\s+/i, '').trim()
+  const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '').trim()
   if (!token) return NextResponse.json({ error: 'Sign in to the customer portal first.' }, { status: 401 })
 
   let admin
