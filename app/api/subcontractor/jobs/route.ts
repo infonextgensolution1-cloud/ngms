@@ -8,7 +8,7 @@ async function authorize(request: Request) {
   const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '').trim()
   if (!token) return { error: NextResponse.json({ error: 'Sign in to the subcontractor portal first.' }, { status: 401 }) }
   let db
-  try { db = supabaseAdmin() } catch { return { error: NextResponse.json({ error: 'Portal service is not configured.' }, { status: 500 }) }
+  try { db = supabaseAdmin() } catch { return { error: NextResponse.json({ error: 'Portal service is not configured.' }, { status: 500 }) } }
   const { data: auth, error } = await db.auth.getUser(token)
   const email = auth?.user?.email?.trim().toLowerCase()
   if (error || !auth.user?.email_confirmed_at || !email) return { error: NextResponse.json({ error: 'Use a verified sign-in link to continue.' }, { status: 401 }) }
