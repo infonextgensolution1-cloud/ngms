@@ -13,7 +13,7 @@ type Supplier = { id: string; name: string; contact_person: string | null; phone
 type JobRow = { id: string; title: string | null; client_name: string | null }
 type Purchase = {
   id: string; supplier_id: string | null; job_id: string | null; purchase_date: string; description: string; category: string
-  amount: number; receipt_url: string | null; payment_status: string; logged_to_job: boolean; supplier_name: string | null; job_title: string | null
+  amount: number; receipt_url: string | null; receipt_urls?: string[] | null; paid_by?: string | null; payment_status: string; logged_to_job: boolean; supplier_name: string | null; job_title: string | null
 }
 
 const input = 'w-full bg-jet border border-darkgrey text-paper rounded-btn px-3 py-2.5 text-sm focus:outline-none focus:border-blue'
@@ -74,7 +74,8 @@ function NewPurchaseForm({ suppliers, jobs, onSaved }: { suppliers: Supplier[]; 
   const [category, setCategory] = useState<(typeof PURCHASE_CATEGORIES)[number]>('Materials')
   const [amount, setAmount] = useState('')
   const [purchaseDate, setPurchaseDate] = useState('')
-  const [file, setFile] = useState<File | null>(null)
+  const [files, setFiles] = useState<File[]>([])
+  const [paidBy, setPaidBy] = useState<'company' | 'subcontractor'>('company')
   const [logToJob, setLogToJob] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -87,13 +88,15 @@ function NewPurchaseForm({ suppliers, jobs, onSaved }: { suppliers: Supplier[]; 
     setSaving(true)
     setError('')
     try {
-      let receiptUrl: string | undefined
-      if (file) {
-        const ext = file.name.split('.').pop()
+      if (files.length > 10) throw new Error('Upload a maximum of 10 receipts or photos per purchase.')
+      const receiptUrls: string[] = []
+      for (const file of files) {
+        if (file.size > 10 * 1024 * 1024) throw new Error(`${file.name} is over the 10 MB limit.`)
+        const ext = file.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') || 'bin'
         const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-        const { error: upErr } = await supabase.storage.from('purchase-receipts').upload(path, file, { cacheControl: '3600', upsert: false })
+        const { error: upErr } = await supabase.storage.from('purchase-receipts').upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type || undefined })
         if (upErr) throw upErr
-        receiptUrl = path
+        receiptUrls.push(path)
       }
       const res = await handlersC.ngms_save_supplier_purchase(supabase, {
         supplier_id: supplierId || undefined,
@@ -102,13 +105,16 @@ function NewPurchaseForm({ suppliers, jobs, onSaved }: { suppliers: Supplier[]; 
         category,
         amount: Number(amount),
         purchase_date: purchaseDate || undefined,
-        receipt_url: receiptUrl,
+        receipt_url: receiptUrls[0],
+        receipt_urls: receiptUrls,
+        paid_by: paidBy,
         log_to_job: logToJob && !!jobId,
       })
       if (res.isError) throw new Error(res.content[0]?.text)
       setDescription('')
       setAmount('')
-      setFile(null)
+      setFiles([])
+      setPaidBy('company')
       setOpen(false)
       onSaved()
     } catch (e) {
@@ -154,9 +160,16 @@ function NewPurchaseForm({ suppliers, jobs, onSaved }: { suppliers: Supplier[]; 
         </select>
         <input className={input} type="number" placeholder="Amount (R)" value={amount} onChange={(e) => setAmount(e.target.value)} />
         <input className={input} type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} />
-        <label className="inline-flex items-center gap-1.5 text-xs border border-darkgrey rounded-btn px-3 py-2.5 cursor-pointer hover:border-blue text-mist">
-          <Upload className="w-3.5 h-3.5" /> {file ? file.name : 'Upload receipt'}
-          <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+        <label className="text-xs text-mist">Paid by
+          <select className={`${input} mt-1`} value={paidBy} onChange={(e) => setPaidBy(e.target.value as 'company' | 'subcontractor')}>
+            <option value="company">NGMS / company paid</option>
+            <option value="subcontractor">Subcontractor paid</option>
+          </select>
+        </label>
+        <label className="sm:col-span-2 flex flex-col gap-2 text-xs border border-darkgrey rounded-btn px-3 py-3 cursor-pointer hover:border-blue text-mist">
+          <span className="inline-flex items-center gap-2"><Upload className="w-4 h-4" /> Upload multiple receipts / slips / material photos</span>
+          <span>{files.length ? `${files.length} file(s) selected: ${files.map((f) => f.name).join(', ')}` : 'Choose multiple images or PDFs from your phone or computer. Up to 10 files, 10 MB each.'}</span>
+          <input type="file" multiple accept="image/*,.pdf" className="w-full text-xs" onChange={(e) => setFiles(Array.from(e.target.files ?? []))} />
         </label>
       </div>
       {jobId && (
@@ -287,15 +300,15 @@ function SuppliersAndPurchases() {
                       <p className="text-xs text-mist truncate">
                         {p.purchase_date} · {p.category} · {p.supplier_name ?? 'ad-hoc'}
                         {p.job_title ? ` → ${p.job_title}` : ''}
-                        {p.logged_to_job ? ' · logged to job' : ''}
+                        {p.logged_to_job ? ' · logged to job' : ''} · paid by {p.paid_by === 'subcontractor' ? 'subcontractor' : 'company'}
                       </p>
                     </div>
                     <div className="text-right shrink-0 flex items-center gap-2">
-                      {p.receipt_url && (
-                        <button onClick={() => viewReceipt(p.receipt_url!)} className="text-blue hover:text-blue-dark">
+                      {(p.receipt_urls?.length ? p.receipt_urls : p.receipt_url ? [p.receipt_url] : []).map((path, index) => (
+                        <button key={`${p.id}-receipt-${index}`} title={`View receipt ${index + 1}`} onClick={() => viewReceipt(path)} className="text-blue hover:text-blue-dark">
                           <FileText className="w-4 h-4" />
                         </button>
-                      )}
+                      ))}
                       <div>
                         <p className="text-paper text-sm">{rand(p.amount)}</p>
                         {p.payment_status === 'paid' ? (
