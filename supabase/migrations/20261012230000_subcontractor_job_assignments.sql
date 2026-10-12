@@ -6,7 +6,7 @@ create table if not exists public.job_subcontractor_assignments (
   assigned_by uuid not null references auth.users(id) on delete restrict,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  unique (job_id, subcontractor_draft_id)
+  unique (job_id)
 );
 
 alter table public.job_subcontractor_assignments enable row level security;
