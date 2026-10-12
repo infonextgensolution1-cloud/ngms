@@ -23,7 +23,7 @@ function paymentEntries(notes: string | null): PaymentEntry[] {
     if (!/^Payment\s+/i.test(line)) return []
     const match = line.match(/^Payment\s+R?\s*([\d,]+(?:\.\d{1,2})?)/i)
     if (!match) return []
-    const amount = Number(match[1].replace(/,/g, ''))
+    const amount = Number(match[1].replace(/[ ,]/g, ''))
     if (!Number.isFinite(amount) || amount <= 0) return []
     return [{ line, amount, index, reversed: lines.some((entry) => entry.startsWith(`PAYMENT REVERSAL [entry ${index + 1}]:`)) }]
   })
