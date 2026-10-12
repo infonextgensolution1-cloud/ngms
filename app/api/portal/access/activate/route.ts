@@ -14,7 +14,7 @@ function sessionIdFromJwt(token: string): string | null {
 }
 
 export async function POST(request: Request) {
-  const token = request.headers.get('authorization')?.replace(/^Bearer\\s+/i, '').trim()
+  const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '').trim()
   if (!token) return NextResponse.json({ error: 'Sign in to the customer portal first.' }, { status: 401 })
   let db
   try { db = supabaseAdmin() } catch { return NextResponse.json({ error: 'Portal service is not configured.' }, { status: 500 }) }
