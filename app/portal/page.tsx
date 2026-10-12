@@ -81,8 +81,23 @@ function PortalHome() {
   }
 
   async function load() {
-    setLoading(true); setError(''); const user = (await supabase.auth.getUser()).data.user
-    if (!user?.email) { setLoading(false); return }
+    setLoading(true); setError('')
+    const session = (await supabase.auth.getSession()).data.session
+    const user = (await supabase.auth.getUser()).data.user
+    if (!user?.email || !session?.access_token) { setLoading(false); return }
+    try {
+      const accessResponse = await fetch('/api/portal/access/activate', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + session.access_token },
+        cache: 'no-store',
+      })
+      const accessJson = await accessResponse.json().catch(() => ({})) as { error?: string }
+      if (!accessResponse.ok) throw new Error(accessJson.error || 'Portal access is inactive.')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Portal access is inactive.')
+      setLoading(false)
+      return
+    }
     const [c, q, qi, i, ii, j] = await Promise.all([
       supabase.from('clients').select('id,name,email,phone,address,suburb').limit(1).maybeSingle(),
       supabase.from('quotes').select('id,quote_number,status,total_amount,valid_until,created_at').order('created_at', { ascending: false }),
@@ -94,7 +109,20 @@ function PortalHome() {
     const firstError = [c.error, q.error, qi.error, i.error, ii.error, j.error].find(Boolean)
     if (firstError) { setError(firstError!.message); setLoading(false); return }
     const foundClient = c.data as Client | null; setClient(foundClient); setQuotes((q.data ?? []) as Quote[]); setQuoteItems((qi.data ?? []) as QuoteItem[]); setInvoices((i.data ?? []) as Invoice[]); setInvoiceItems((ii.data ?? []) as InvoiceItem[]); setJobs((j.data ?? []) as Job[])
-    if (foundClient && (j.data ?? []).length) { const p = await supabase.from('job_photos').select('id,job_id,photo_url,type,caption,sort_order').in('job_id', (j.data ?? []).map(x => x.id)).order('sort_order'); if (p.error) setError(p.error.message); else setPhotos((p.data ?? []) as Photo[]) } else setPhotos([])
+    if (foundClient && (j.data ?? []).length) {
+      try {
+        const photoResponse = await fetch('/api/portal/job-photos', {
+          headers: { Authorization: 'Bearer ' + session.access_token },
+          cache: 'no-store',
+        })
+        const photoJson = await photoResponse.json().catch(() => ({})) as { photos?: Photo[]; error?: string }
+        if (!photoResponse.ok) throw new Error(photoJson.error || 'Could not load job photos.')
+        setPhotos((photoJson.photos ?? []) as Photo[])
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Could not load job photos.')
+        setPhotos([])
+      }
+    } else setPhotos([])
     // Links to the public quote page for quotes awaiting an answer. Accepting there creates the job and deposit invoice.
     try {
       const accessToken = (await supabase.auth.getSession()).data.session?.access_token
