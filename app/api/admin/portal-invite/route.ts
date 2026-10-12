@@ -46,7 +46,22 @@ export async function POST(request: Request) {
   const email = (client.email ?? '').trim().toLowerCase()
   if (!isEmail(email)) return NextResponse.json({ error: 'Add a valid email address to this client first.' }, { status: 400 })
 
-  const redirectTo = `${SITE.url}/portal`
+  const { data: access, error: accessError } = await db.from('client_portal_access')
+    .select('access_mode,expires_at,revoked_at').eq('client_id', clientId).maybeSingle()
+  if (accessError) return NextResponse.json({ error: 'Could not verify portal access settings.' }, { status: 500 })
+  if (!access || access.revoked_at) return NextResponse.json({ error: 'Configure active portal access before sending an invite.' }, { status: 403 })
+  if (access.access_mode === 'temporary' && (!access.expires_at || new Date(access.expires_at).getTime() <= Date.now())) {
+    return NextResponse.json({ error: 'This customer portal access has expired. Update the expiry before inviting.' }, { status: 403 })
+  }
+  // Reissuing a one-time invite invalidates the previous session and allows the new link to claim access.
+  if (access.access_mode === 'one_time') {
+    const { error: resetError } = await db.from('client_portal_access')
+      .update({ one_time_session_id: null, updated_at: new Date().toISOString() })
+      .eq('client_id', clientId).is('revoked_at', null)
+    if (resetError) return NextResponse.json({ error: 'Could not reset one-time access for a fresh invite.' }, { status: 500 })
+  }
+
+  const redirectTo = \`\${SITE.url}/portal\`
 
   // First invite creates the account ("invite"). If it already exists, send a fresh sign-in link instead.
   let firstInvite = true
