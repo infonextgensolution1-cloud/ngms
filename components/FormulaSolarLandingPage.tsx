@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { site, waLink } from '@/lib/site'
+import { getGalleryPhotos, getSlotPhotos } from '@/lib/queries'
 
 const services = [
   { number: '01', title: 'RESIDENTIAL SOLAR CLEANING', description: 'Careful panel cleaning for homes across the Helderberg Basin.' },
@@ -40,8 +41,10 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
   return <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.19em] text-neutral-600 sm:text-xs">{children}</p>
 }
 
-export default function FormulaSolarLandingPage() {
+export default async function FormulaSolarLandingPage() {
   const whatsapp = waLink("Hi NextGen, I'd like a solar panel cleaning quote.\n\nSuburb: \nNumber of panels: \n\n(via Helderberg solar page)")
+  const [slotPhotos, galleryPhotos] = await Promise.all([getSlotPhotos(['hero_solar']), getGalleryPhotos(24)])
+  const solarPhoto = slotPhotos.hero_solar ?? galleryPhotos.find((photo) => photo.service_slug === 'solar-panel-cleaning') ?? galleryPhotos[0]
   return (
     <main id="main-content" className="overflow-hidden bg-[#c5c5c5] text-black">
       <section className="relative mx-auto grid max-w-[1440px] gap-8 border-b border-black/15 px-5 py-9 sm:px-10 sm:py-14 lg:min-h-[550px] lg:grid-cols-[.8fr_1.2fr] lg:gap-12 lg:px-14">
@@ -55,11 +58,19 @@ export default function FormulaSolarLandingPage() {
           </div>
           <div className="mt-auto hidden pt-12 text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-600 lg:block">ONE CALL. ALL SOLUTIONS. / 2026</div>
         </div>
-        <div className="relative flex min-h-[270px] items-center justify-center overflow-hidden border border-black/10 bg-[#b9b9b9] sm:min-h-[390px] lg:min-h-[450px]">
-          <div className="absolute left-5 top-5 flex w-[calc(100%-2.5rem)] justify-between font-mono text-[10px] uppercase tracking-widest text-neutral-700"><span>FIELD NOTES / 001</span><span>NGMS</span></div>
-          <div aria-hidden="true" className="select-none text-[12rem] font-black leading-none tracking-[-0.12em] text-[#f0442d] sm:text-[19rem] lg:text-[24rem]">01</div>
-          <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4 border-t border-black/25 pt-4">
-            <div><p className="text-xs font-bold uppercase tracking-wide">SOLAR PANEL CLEANING</p><p className="mt-1 text-[10px] uppercase tracking-widest text-neutral-700">Strand · Gordon’s Bay · Somerset West</p></div>
+        <div className="group relative flex min-h-[270px] items-center justify-center overflow-hidden border border-black/10 bg-[#b9b9b9] sm:min-h-[390px] lg:min-h-[450px]">
+          {solarPhoto?.image_url ? (
+            <>
+              <img src={solarPhoto.image_url} alt={solarPhoto.caption || 'Solar panel cleaning in the Helderberg Basin'} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" />
+              <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/5 to-black/70" />
+            </>
+          ) : (
+            <div aria-hidden="true" className="absolute inset-0 bg-[#b9b9b9]" />
+          )}
+          <div className="absolute left-5 right-5 top-5 flex justify-between font-mono text-[10px] uppercase tracking-widest text-white drop-shadow"><span>FIELD NOTES / 001</span><span>NGMS</span></div>
+          {!solarPhoto?.image_url && <div aria-hidden="true" className="select-none text-[12rem] font-black leading-none tracking-[-0.12em] text-[#f0442d] sm:text-[19rem] lg:text-[24rem]">01</div>}
+          <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4 border-t border-white/50 pt-4 text-white">
+            <div><p className="text-xs font-bold uppercase tracking-wide drop-shadow">SOLAR PANEL CLEANING</p><p className="mt-1 text-[10px] uppercase tracking-widest text-white/90 drop-shadow">Strand · Gordon’s Bay · Somerset West</p></div>
             <Link href="/maintenance-packages" aria-label="Explore maintenance packages" className="group"><ArrowCircle/></Link>
           </div>
         </div>
