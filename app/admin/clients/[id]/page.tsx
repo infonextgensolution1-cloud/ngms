@@ -33,7 +33,7 @@ function ClientView() {
   const [inviteMsg, setInviteMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [portalAccessMode, setPortalAccessMode] = useState<'one_time' | 'temporary' | 'permanent'>('permanent')
   const [portalExpiry, setPortalExpiry] = useState('')
-  const [portalRevoked, setPortalRevoked] = useState(false)
+  const [portalRevoked, setPortalRevoked] = useState(true)
   const [portalAccessReady, setPortalAccessReady] = useState(false)
   const [portalAccessBusy, setPortalAccessBusy] = useState(false)
   const [portalAccessMsg, setPortalAccessMsg] = useState<{ ok: boolean; text: string } | null>(null)
@@ -63,7 +63,7 @@ function ClientView() {
         if (accessRes.ok) {
           const access = accessJson.access
           setPortalAccessMode(access?.access_mode ?? 'permanent')
-          setPortalExpiry(access?.expires_at ? new Date(access.expires_at).toISOString().slice(0, 16) : '')
+          if (access?.expires_at) { const expiry = new Date(access.expires_at); expiry.setMinutes(expiry.getMinutes() - expiry.getTimezoneOffset()); setPortalExpiry(expiry.toISOString().slice(0, 16)) } else setPortalExpiry('')
           setPortalRevoked(!access || !!access.revoked_at)
           setPortalAccessReady(true)
           setPortalAccessMsg(access ? null : { ok: false, text: 'Access is not configured yet. Save a mode before sending an invite.' })
