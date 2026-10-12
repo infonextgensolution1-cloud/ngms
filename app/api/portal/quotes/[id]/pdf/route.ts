@@ -41,6 +41,20 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   if (!client || (client.email ?? '').trim().toLowerCase() !== email) {
     return NextResponse.json({ error: 'You do not have access to this quotation.' }, { status: 403 })
   }
+  let sessionId: string | null = null
+  try {
+    const payload = token.split('.')[1]
+    const claims = payload ? JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as { session_id?: unknown } : {}
+    sessionId = typeof claims.session_id === 'string' ? claims.session_id : null
+  } catch { sessionId = null }
+  const { data: access, error: accessError } = await admin.from('client_portal_access')
+    .select('access_mode,expires_at,revoked_at,one_time_session_id').eq('client_id', client.id).maybeSingle()
+  if (accessError) return NextResponse.json({ error: 'Could not verify portal access.' }, { status: 500 })
+  if (!access || access.revoked_at ||
+    (access.access_mode === 'temporary' && (!access.expires_at || new Date(access.expires_at).getTime() <= Date.now())) ||
+    (access.access_mode === 'one_time' && (!sessionId || access.one_time_session_id !== sessionId))) {
+    return NextResponse.json({ error: 'Portal access is inactive or expired.' }, { status: 403 })
+  }
   if (!quote.pdf_path) return NextResponse.json({ error: 'No saved PDF is available for this quotation yet. Please contact NGMS.' }, { status: 404 })
 
   const { data: pdf, error: fileError } = await admin.storage.from('quotes').download(quote.pdf_path)
