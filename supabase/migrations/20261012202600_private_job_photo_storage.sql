@@ -1,5 +1,4 @@
 -- Finalise private job-photo storage after the new app serves signed URLs.
-begin;
 update storage.buckets set public = false where id = 'job-photos';
 drop policy if exists "public read job-photos" on storage.objects;
 drop policy if exists staff_read_job_photos on storage.objects;
