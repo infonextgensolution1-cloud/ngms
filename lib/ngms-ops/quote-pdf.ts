@@ -1,4 +1,6 @@
 import type { Client, Item, Quote, Settings } from '@/lib/ngms-ops/core'
+import { inflateSync } from 'node:zlib'
+import { LOGO_DATA_URI } from '@/lib/logo'
 
 type Money = { subtotal: number; vat: number; total: number; deposit: number; deposit_percent: number; balance: number }
 
@@ -57,10 +59,10 @@ export function buildQuotePdf(input: {
   // Premium NGMS print identity: charcoal header, Solar Orange accent, high-contrast type.
   op(rectOp(40, 704, 515, 80, '111111'))
   op(rectOp(40, 780, 515, 4, 'F57C1B'))
-  op(rectOp(52, 731, 4, 29, 'F57C1B'))
+  op('q 50 0 0 43 54 721 cm /Im1 Do Q')
   op('1 1 1 rg')
-  txt('F2', 22, 64, 750, 'NEXTGEN')
-  txt('F2', 8.5, 64, 734, 'ONE CALL. ALL SOLUTIONS.')
+  txt('F2', 22, 116, 750, 'NEXTGEN')
+  txt('F2', 8.5, 116, 734, 'ONE CALL. ALL SOLUTIONS.')
   txt('F2', 8.5, 355, 750, s.business_name || 'NextGen Maintenance Solutions')
   if (s.address) txt('F1', 8, 355, 737, s.address)
   if (s.phone) txt('F1', 8, 355, 725, s.phone)
@@ -117,10 +119,56 @@ export function buildQuotePdf(input: {
   txt('F1', 7, 410, sigY - 11, 'Date')
 
   for (let i = 0; i < pages.length; i++) pages[i].push(textOp('F1', 7.5, 40, 28, (s.business_name || 'NextGen') + ' | Quote ' + q.quote_number + ' | Page ' + (i + 1) + ' of ' + pages.length))
-  return makePdf(pages)
+  return makePdf(pages, decodeLogoPng(LOGO_DATA_URI))
 }
 
-function makePdf(pageOps: string[][]): Uint8Array {
+function decodeLogoPng(dataUri: string): { width: number; height: number; rgbHex: string; alphaHex: string } {
+  const encoded = dataUri.slice(dataUri.indexOf(',') + 1)
+  const png = Buffer.from(encoded, 'base64')
+  const readU32 = (i: number) => png.readUInt32BE(i)
+  if (png.toString('hex', 0, 8) !== '89504e470d0a1a0a') throw new Error('NGMS logo is not a valid PNG.')
+  let width = 0, height = 0, bitDepth = 0, colourType = 0
+  const idat: Buffer[] = []
+  for (let i = 8; i + 12 <= png.length;) {
+    const size = readU32(i), type = png.toString('ascii', i + 4, i + 8)
+    const data = png.subarray(i + 8, i + 8 + size)
+    if (type === 'IHDR') { width = data.readUInt32BE(0); height = data.readUInt32BE(4); bitDepth = data[8]; colourType = data[9] }
+    if (type === 'IDAT') idat.push(data)
+    i += 12 + size
+    if (type === 'IEND') break
+  }
+  if (!width || !height || bitDepth !== 8 || (colourType !== 6 && colourType !== 2)) throw new Error('NGMS logo PNG format is not supported by the PDF renderer.')
+  const channels = colourType === 6 ? 4 : 3, stride = width * channels
+  const raw = inflateSync(Buffer.concat(idat))
+  const pixels = Buffer.alloc(height * stride)
+  let source = 0
+  for (let y = 0; y < height; y++) {
+    const filter = raw[source++]
+    for (let x = 0; x < stride; x++) {
+      const value = raw[source++]
+      const left = x >= channels ? pixels[y * stride + x - channels] : 0
+      const up = y > 0 ? pixels[(y - 1) * stride + x] : 0
+      const upperLeft = y > 0 && x >= channels ? pixels[(y - 1) * stride + x - channels] : 0
+      let predictor = 0
+      if (filter === 1) predictor = left
+      else if (filter === 2) predictor = up
+      else if (filter === 3) predictor = Math.floor((left + up) / 2)
+      else if (filter === 4) {
+        const p = left + up - upperLeft, pa = Math.abs(p - left), pb = Math.abs(p - up), pc = Math.abs(p - upperLeft)
+        predictor = pa <= pb && pa <= pc ? left : pb <= pc ? up : upperLeft
+      } else if (filter !== 0) throw new Error('Unsupported PNG filter in NGMS logo.')
+      pixels[y * stride + x] = (value + predictor) & 255
+    }
+  }
+  const rgb = Buffer.alloc(width * height * 3), alpha = Buffer.alloc(width * height)
+  for (let i = 0, p = 0; i < width * height; i++, p += channels) {
+    rgb[i * 3] = pixels[p]; rgb[i * 3 + 1] = pixels[p + 1]; rgb[i * 3 + 2] = pixels[p + 2]
+    alpha[i] = channels === 4 ? pixels[p + 3] : 255
+  }
+  return { width, height, rgbHex: rgb.toString('hex').toUpperCase() + '>', alphaHex: alpha.toString('hex').toUpperCase() + '>' }
+}
+
+function makePdf(pageOps: string[][], logo: { width: number; height: number; rgbHex: string; alphaHex: string }): Uint8Array {
   // Build the PDF from ASCII-only strings and calculate every PDF offset/length
   // from encoded bytes. This matters because PDF xref offsets and stream
   // lengths are byte counts, not JavaScript character counts.
@@ -133,6 +181,10 @@ function makePdf(pageOps: string[][]): Uint8Array {
 
   const font1 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>')
   const font2 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>')
+  const alphaData = logo.alphaHex
+  const alphaId = add('<< /Type /XObject /Subtype /Image /Width ' + logo.width + ' /Height ' + logo.height + ' /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /ASCIIHexDecode /Length ' + alphaData.length + ' >>\\nstream\\n' + alphaData + '\\nendstream')
+  const rgbData = logo.rgbHex
+  const imageId = add('<< /Type /XObject /Subtype /Image /Width ' + logo.width + ' /Height ' + logo.height + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /ASCIIHexDecode /Length ' + rgbData.length + ' /SMask ' + alphaId + ' 0 R >>\\nstream\\n' + rgbData + '\\nendstream')
   const pagesObj = add('')
   const pageIds: number[] = []
 
@@ -146,7 +198,7 @@ function makePdf(pageOps: string[][]): Uint8Array {
       '<< /Type /Page /Parent ' + pagesObj +
       ' 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ' +
       font1 + ' 0 R /F2 ' + font2 +
-      ' 0 R >> >> /Contents ' + contentId + ' 0 R >>'
+      ' 0 R >> >> /XObject << /Im1 ' + imageId + ' 0 R >> /Contents ' + contentId + ' 0 R >>'
   }
 
   objects[pagesObj - 1] =
