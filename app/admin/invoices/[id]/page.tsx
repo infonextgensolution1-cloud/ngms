@@ -170,6 +170,7 @@ function InvoiceView() {
       const marker = `PAYMENT REVERSAL [entry ${entry.index + 1}]:`
       if (currentLines.some((line: string) => line.startsWith(marker))) throw new Error('This payment has already been reversed. Refresh the invoice to see the latest history.')
       if (!currentLines.includes(entry.line)) throw new Error('This payment entry has changed. Refresh the invoice before reversing it.')
+      if (Number(latest.paid_amount ?? 0) + 0.004 < entry.amount) throw new Error('The current paid amount is lower than this payment. Refresh and reconcile the invoice before reversing it.')
       const nextPaid = Math.max(0, Math.round((Number(latest.paid_amount ?? 0) - entry.amount) * 100) / 100)
       const nextStatus = nextPaid <= 0.004 ? 'sent' : nextPaid >= money.total - 0.004 ? 'paid' : 'partial'
       const audit = `${marker} ${rand(entry.amount)} reversed on ${new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Johannesburg' })}. Reason: ${reason.trim()}. Original: ${entry.line}`
