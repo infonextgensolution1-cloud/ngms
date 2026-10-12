@@ -129,16 +129,20 @@ function decodeLogoPng(dataUri: string): { width: number; height: number; rgbHex
   if (png.toString('hex', 0, 8) !== '89504e470d0a1a0a') throw new Error('NGMS logo is not a valid PNG.')
   let width = 0, height = 0, bitDepth = 0, colourType = 0
   const idat: Buffer[] = []
+  let palette = Buffer.alloc(0), transparency = Buffer.alloc(0)
   for (let i = 8; i + 12 <= png.length;) {
     const size = readU32(i), type = png.toString('ascii', i + 4, i + 8)
     const data = png.subarray(i + 8, i + 8 + size)
     if (type === 'IHDR') { width = data.readUInt32BE(0); height = data.readUInt32BE(4); bitDepth = data[8]; colourType = data[9] }
     if (type === 'IDAT') idat.push(data)
+    if (type === 'PLTE') palette = Buffer.from(data)
+    if (type === 'tRNS') transparency = Buffer.from(data)
     i += 12 + size
     if (type === 'IEND') break
   }
-  if (!width || !height || bitDepth !== 8 || (colourType !== 6 && colourType !== 2)) throw new Error('NGMS logo PNG format is not supported by the PDF renderer.')
-  const channels = colourType === 6 ? 4 : 3, stride = width * channels
+  if (!width || !height || bitDepth !== 8 || (colourType !== 6 && colourType !== 2 && colourType !== 3)) throw new Error('NGMS logo PNG format is not supported by the PDF renderer.')
+  if (colourType === 3 && palette.length < 3) throw new Error('NGMS logo palette is missing.')
+  const channels = colourType === 6 ? 4 : colourType === 2 ? 3 : 1, stride = width * channels
   const raw = inflateSync(Buffer.concat(idat))
   const pixels = Buffer.alloc(height * stride)
   let source = 0
@@ -162,8 +166,15 @@ function decodeLogoPng(dataUri: string): { width: number; height: number; rgbHex
   }
   const rgb = Buffer.alloc(width * height * 3), alpha = Buffer.alloc(width * height)
   for (let i = 0, p = 0; i < width * height; i++, p += channels) {
-    rgb[i * 3] = pixels[p]; rgb[i * 3 + 1] = pixels[p + 1]; rgb[i * 3 + 2] = pixels[p + 2]
-    alpha[i] = channels === 4 ? pixels[p + 3] : 255
+    if (colourType === 3) {
+      const index = pixels[p], paletteOffset = index * 3
+      if (paletteOffset + 2 >= palette.length) throw new Error('NGMS logo palette index is invalid.')
+      rgb[i * 3] = palette[paletteOffset]; rgb[i * 3 + 1] = palette[paletteOffset + 1]; rgb[i * 3 + 2] = palette[paletteOffset + 2]
+      alpha[i] = index < transparency.length ? transparency[index] : 255
+    } else {
+      rgb[i * 3] = pixels[p]; rgb[i * 3 + 1] = pixels[p + 1]; rgb[i * 3 + 2] = pixels[p + 2]
+      alpha[i] = channels === 4 ? pixels[p + 3] : 255
+    }
   }
   return { width, height, rgbHex: rgb.toString('hex').toUpperCase() + '>', alphaHex: alpha.toString('hex').toUpperCase() + '>' }
 }
