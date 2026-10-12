@@ -110,5 +110,3 @@ create policy customer_read_own on public.job_photos for select to authenticated
     where j.id = job_photos.job_id
       and private.client_portal_access_allowed(c.id)
   ));
-
-commit;
