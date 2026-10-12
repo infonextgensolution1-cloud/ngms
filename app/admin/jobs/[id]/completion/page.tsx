@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { handlersB } from '@/lib/ngms-ops/handlers-b'
 import { handlersC } from '@/lib/ngms-ops/handlers-c'
 import { LOGO_DATA_URI } from '@/lib/logo'
+import { signedJobPhotoUrl } from '@/lib/job-photo-url'
 
 type Job = { id:string; client_id:string|null; title:string|null; description:string|null; status:string; scheduled_date:string|null; completed_date:string|null; quote_id:string|null }
 type Client = { name:string; phone:string|null; email:string|null; address:string|null; suburb:string|null }
@@ -43,7 +44,10 @@ function CompletionView(){
       ])
       if(jr.isError) throw new Error(jr.content[0]?.text??'Could not load job')
       const sc=jr.structuredContent as {job:Job;client:Client|null}
-      setJob(sc.job); setClient(sc.client); setPhotos((pr.structuredContent?.photos as Photo[])??[])
+      setJob(sc.job); setClient(sc.client)
+      const photoRows = (pr.structuredContent?.photos as Photo[]) ?? []
+      const signedPhotos = await Promise.all(photoRows.map(async (photo) => ({ ...photo, photo_url: await signedJobPhotoUrl(photo.photo_url) })))
+      setPhotos(signedPhotos.filter((photo) => !!photo.photo_url) as Photo[])
       setSettings((sr.data as Settings|null) ?? {google_review_url:null,facebook_review_url:null})
       if(sc.job.quote_id){
         const {data:invoices}=await supabase.from('invoices').select('id,invoice_number,total_amount,paid_amount,status,notes').eq('quote_id',sc.job.quote_id).neq('status','void').order('created_at',{ascending:false})
