@@ -9,7 +9,7 @@ type AccessMode = 'one_time' | 'temporary' | 'permanent'
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 async function staffDb(request: Request) {
-  const token = request.headers.get('authorization')?.replace(/^Bearer\\s+/i, '').trim()
+  const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '').trim()
   if (!token) return { error: NextResponse.json({ error: 'Sign in to the admin dashboard first.' }, { status: 401 }) }
   let db
   try { db = supabaseAdmin() } catch { return { error: NextResponse.json({ error: 'Portal access service is not configured.' }, { status: 500 }) }
