@@ -182,9 +182,9 @@ function makePdf(pageOps: string[][], logo: { width: number; height: number; rgb
   const font1 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>')
   const font2 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>')
   const alphaData = logo.alphaHex
-  const alphaId = add('<< /Type /XObject /Subtype /Image /Width ' + logo.width + ' /Height ' + logo.height + ' /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /ASCIIHexDecode /Length ' + alphaData.length + ' >>\\nstream\\n' + alphaData + '\\nendstream')
+  const alphaId = add('<< /Type /XObject /Subtype /Image /Width ' + logo.width + ' /Height ' + logo.height + ' /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /ASCIIHexDecode /Length ' + alphaData.length + ' >>\nstream\n' + alphaData + '\\nendstream')
   const rgbData = logo.rgbHex
-  const imageId = add('<< /Type /XObject /Subtype /Image /Width ' + logo.width + ' /Height ' + logo.height + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /ASCIIHexDecode /Length ' + rgbData.length + ' /SMask ' + alphaId + ' 0 R >>\\nstream\\n' + rgbData + '\\nendstream')
+  const imageId = add('<< /Type /XObject /Subtype /Image /Width ' + logo.width + ' /Height ' + logo.height + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /ASCIIHexDecode /Length ' + rgbData.length + ' /SMask ' + alphaId + ' 0 R >>\nstream\n' + rgbData + '\\nendstream')
   const pagesObj = add('')
   const pageIds: number[] = []
 
@@ -198,7 +198,7 @@ function makePdf(pageOps: string[][], logo: { width: number; height: number; rgb
       '<< /Type /Page /Parent ' + pagesObj +
       ' 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ' +
       font1 + ' 0 R /F2 ' + font2 +
-      ' 0 R >> >> /XObject << /Im1 ' + imageId + ' 0 R >> /Contents ' + contentId + ' 0 R >>'
+      ' 0 R >> /XObject << /Im1 ' + imageId + ' 0 R >> >> /Contents ' + contentId + ' 0 R >>'
   }
 
   objects[pagesObj - 1] =
