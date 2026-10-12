@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     if (resetError) return NextResponse.json({ error: 'Could not reset one-time access for a fresh invite.' }, { status: 500 })
   }
 
-  const redirectTo = \`\${SITE.url}/portal\`
+  const redirectTo = SITE.url + '/portal'
 
   // First invite creates the account ("invite"). If it already exists, send a fresh sign-in link instead.
   let firstInvite = true
