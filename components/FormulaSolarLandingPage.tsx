@@ -37,8 +37,8 @@ function WhatsAppMark() {
   return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.65 14.94L2 22l5.2-1.36A10 10 0 1 0 12 2Zm5.77 14.36c-.24.68-1.4 1.25-1.94 1.3-.5.04-1.13.08-1.82-.11-.42-.12-.96-.31-1.65-.61-2.9-1.26-4.78-4.2-4.93-4.4-.14-.2-1.18-1.57-1.18-3 0-1.42.74-2.12 1-2.41.26-.29.7-.42 1.12-.42.14 0 .26 0 .37.01.33.01.49.03.7.54l.86 2.1c.09.2.11.37.02.58-.1.21-.14.34-.3.52-.14.16-.3.36-.43.48-.14.14-.28.29-.12.56.16.28.72 1.19 1.55 1.93 1.07.95 1.97 1.25 2.25 1.39.28.14.44.12.6-.07.16-.2.7-.81.89-1.09.19-.28.38-.23.64-.14.26.09 1.67.79 1.96.93.28.14.47.21.54.33.07.12.07.68-.17 1.36Z"/></svg>
 }
 
-function Eyebrow({ children }: { children: React.ReactNode }) {
-  return <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.19em] text-black/65 sm:text-xs">{children}</p>
+function Eyebrow({ children, dark = false }: { children: React.ReactNode; dark?: boolean }) {
+  return <p className={`mb-4 text-[10px] font-bold uppercase tracking-[0.19em] sm:text-xs ${dark ? 'text-white/70' : 'text-black/65'}`}>{children}</p>
 }
 
 export default async function FormulaSolarLandingPage() {
@@ -129,8 +129,8 @@ export default async function FormulaSolarLandingPage() {
       <footer className="bg-black px-5 pb-8 pt-8 text-white sm:px-10 sm:pt-12 lg:px-14">
         <div className="mx-auto grid max-w-[1440px] gap-8 md:grid-cols-[1fr_1fr_1fr]">
           <div><Link href="/" className="text-2xl font-black tracking-[-0.08em]">NEXTGEN<span className="text-[#ff0505]">.</span></Link><p className="mt-4 max-w-xs text-xs leading-relaxed text-white/70">One call. All solutions. Solar panel cleaning and property maintenance across the Helderberg Basin.</p><div className="mt-5 flex gap-3 text-xs font-bold uppercase"><a href="https://www.facebook.com/p/Nextgen-Solar-Maintenance-Solutions-61590183304623/" target="_blank" rel="noreferrer" className="border border-white/30 px-3 py-2 hover:border-[#ff0505]">Facebook ↗</a><a href={whatsapp} target="_blank" rel="noreferrer" className="border border-white/30 px-3 py-2 hover:border-[#ff0505]">WhatsApp ↗</a></div></div>
-          <div><Eyebrow>CONTACT</Eyebrow><a href={`tel:${site.phone}`} className="block text-xl font-semibold hover:text-[#ff0505]">063 138 7945</a><p className="mt-2 text-xs text-white/70">Mon–Sat / 07:00–17:00</p><p className="mt-4 text-xs text-white/70">Strand · Gordon’s Bay · Somerset West</p></div>
-          <div><Eyebrow>QUICK LINKS</Eyebrow><div className="grid grid-cols-2 gap-3 text-xs uppercase text-white/75"><Link href="/maintenance-packages" className="hover:text-[#ff0505]">Maintenance plans ↗</Link><Link href="/price-list" className="hover:text-[#ff0505]">Price list ↗</Link><Link href="/portfolio" className="hover:text-[#ff0505]">Projects ↗</Link><Link href="/contact" className="hover:text-[#ff0505]">Contact ↗</Link></div></div>
+          <div><Eyebrow dark>CONTACT</Eyebrow><a href={`tel:${site.phone}`} className="block text-xl font-semibold hover:text-[#ff0505]">063 138 7945</a><p className="mt-2 text-xs text-white/70">Mon–Sat / 07:00–17:00</p><p className="mt-4 text-xs text-white/70">Strand · Gordon’s Bay · Somerset West</p></div>
+          <div><Eyebrow dark>QUICK LINKS</Eyebrow><div className="grid grid-cols-2 gap-3 text-xs uppercase text-white/75"><Link href="/maintenance-packages" className="hover:text-[#ff0505]">Maintenance plans ↗</Link><Link href="/price-list" className="hover:text-[#ff0505]">Price list ↗</Link><Link href="/portfolio" className="hover:text-[#ff0505]">Projects ↗</Link><Link href="/contact" className="hover:text-[#ff0505]">Contact ↗</Link></div></div>
         </div>
         <div className="mx-auto mt-9 flex max-w-[1440px] flex-wrap justify-between gap-3 border-t border-white/15 pt-4 text-[10px] uppercase tracking-widest text-white/40"><span>© 2026 NextGen Maintenance Solutions</span><span>ONE CALL. ALL SOLUTIONS.</span></div>
       </footer>
