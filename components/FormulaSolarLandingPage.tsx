@@ -98,7 +98,7 @@ export default async function FormulaSolarLandingPage() {
         </div>
       </section>
 
-      <section className="mx-auto mb-2 grid max-w-[1440px] gap-8 border-b-[6px] border-black bg-[#5e5e5e] px-5 py-10 sm:mb-3 sm:px-10 sm:py-14 lg:grid-cols-[.7fr_1.3fr] lg:px-14">
+      <section className="mx-auto mb-2 grid max-w-[1440px] gap-8 border-b-[6px] border-black bg-[#979797] px-5 py-10 sm:mb-3 sm:px-10 sm:py-14 lg:grid-cols-[.7fr_1.3fr] lg:px-14">
         <div><Eyebrow>03 / PRICE GUIDE</Eyebrow><h2 className="text-4xl font-semibold leading-[0.94] tracking-[-0.06em] sm:text-6xl">CLEAR<br/>PRICING.</h2><p className="mt-4 max-w-xs text-sm leading-relaxed text-black/75">Starting prices for residential arrays. We confirm your exact scope and price before booking.</p><Link href="/price-list" className="mt-6 inline-flex items-center gap-3 border-b border-black pb-2 text-xs font-bold uppercase">Full price list <span>↗</span></Link></div>
         <div className="border-t border-black/25">
           {tiers.map((tier) => <div key={tier.size} className="grid grid-cols-[1fr_auto] items-center gap-4 border-b border-black/25 py-4 sm:py-5"><div><p className="font-mono text-[10px] font-bold tracking-widest">{tier.size}</p><p className="mt-1 text-xs text-black/75">{tier.note}</p></div><p className="text-lg font-semibold tracking-tight sm:text-2xl">{tier.price}</p></div>)}
