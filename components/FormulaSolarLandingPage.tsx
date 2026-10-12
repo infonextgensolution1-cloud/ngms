@@ -38,7 +38,7 @@ function WhatsAppMark() {
 }
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
-  return <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.19em] text-neutral-600 sm:text-xs">{children}</p>
+  return <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.19em] text-black/65 sm:text-xs">{children}</p>
 }
 
 export default async function FormulaSolarLandingPage() {
@@ -46,19 +46,19 @@ export default async function FormulaSolarLandingPage() {
   const [slotPhotos, galleryPhotos] = await Promise.all([getSlotPhotos(['hero_solar']), getGalleryPhotos(24)])
   const solarPhoto = slotPhotos.hero_solar ?? galleryPhotos.find((photo) => photo.service_slug === 'solar-panel-cleaning') ?? galleryPhotos[0]
   return (
-    <main id="main-content" className="overflow-hidden bg-[#c5c5c5] text-black">
-      <section className="relative mx-auto grid max-w-[1440px] gap-8 border-b border-black/15 px-5 py-9 sm:px-10 sm:py-14 lg:min-h-[550px] lg:grid-cols-[.8fr_1.2fr] lg:gap-12 lg:px-14">
+    <main id="main-content" className="overflow-hidden bg-black p-2 text-black sm:p-3">
+      <section className="relative mx-auto mb-2 grid max-w-[1440px] gap-8 overflow-hidden rounded-[24px] border-b-[6px] border-black bg-[#f5f3ef] px-5 py-9 sm:mb-3 sm:px-10 sm:py-14 lg:min-h-[550px] lg:grid-cols-[.8fr_1.2fr] lg:gap-12 lg:px-14">
         <div className="flex flex-col items-start">
-          <Eyebrow>NEXTGEN / SOLAR CARE / HELDERBERG BASIN</Eyebrow>
-          <h1 className="max-w-2xl text-5xl font-semibold leading-[0.91] tracking-[-0.065em] sm:text-7xl lg:text-[6.5rem]">CLEAN<br/>PANELS.<br/><span className="text-[#f0442d]">CLEAR</span><br/>MIND.</h1>
-          <p className="mt-6 max-w-sm text-sm leading-relaxed text-neutral-700 sm:text-base">Solar panel cleaning and planned property care for homes, complexes and businesses across Strand, Gordon’s Bay and Somerset West.</p>
+          <Eyebrow>FORMULA 01 / NGMS SOLAR DIVISION / HELDERBERG</Eyebrow>
+          <h1 className="max-w-2xl font-mono text-5xl font-bold uppercase leading-[0.91] tracking-[-0.075em] sm:text-7xl lg:text-[6.5rem]">CLEAN<br/>PANELS.<br/><span className="text-[#ff0505]">CLEAR</span><br/>MIND.</h1>
+          <p className="mt-6 max-w-sm text-sm leading-relaxed text-black/75 sm:text-base">Solar panel cleaning and planned property care for homes, complexes and businesses across Strand, Gordon’s Bay and Somerset West.</p>
           <div className="mt-7 flex flex-wrap gap-3">
-            <Link href="/quote?service=solar-panel-cleaning" className="inline-flex min-h-12 items-center gap-3 bg-black px-5 py-3 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-[#f0442d] hover:text-black">Get a quote <span>↗</span></Link>
+            <Link href="/quote?service=solar-panel-cleaning" className="inline-flex min-h-12 items-center gap-3 bg-black px-5 py-3 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-[#ff0505] hover:text-black">Get a quote <span>↗</span></Link>
             <a href={whatsapp} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center gap-2 border border-black px-4 py-3 text-xs font-bold uppercase tracking-wide transition hover:bg-white"><WhatsAppMark/> WhatsApp</a>
           </div>
-          <div className="mt-auto hidden pt-12 text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-600 lg:block">ONE CALL. ALL SOLUTIONS. / 2026</div>
+          <div className="mt-auto hidden pt-12 text-[10px] font-bold uppercase tracking-[0.16em] text-black/65 lg:block">ONE CALL. ALL SOLUTIONS. / 2026</div>
         </div>
-        <div className="group relative flex min-h-[270px] items-center justify-center overflow-hidden border border-black/10 bg-[#b9b9b9] sm:min-h-[390px] lg:min-h-[450px]">
+        <div className="group relative flex min-h-[270px] items-center justify-center overflow-hidden border border-black/10 bg-[#5e5e5e] sm:min-h-[390px] lg:min-h-[450px]">
           {solarPhoto?.image_url ? (
             <>
               <img src={solarPhoto.image_url} alt={solarPhoto.caption || 'Solar panel cleaning in the Helderberg Basin'} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" />
@@ -68,7 +68,7 @@ export default async function FormulaSolarLandingPage() {
             <div aria-hidden="true" className="absolute inset-0 bg-[#b9b9b9]" />
           )}
           <div className="absolute left-5 right-5 top-5 flex justify-between font-mono text-[10px] uppercase tracking-widest text-white drop-shadow"><span>FIELD NOTES / 001</span><span>NGMS</span></div>
-          {!solarPhoto?.image_url && <div aria-hidden="true" className="select-none text-[12rem] font-black leading-none tracking-[-0.12em] text-[#f0442d] sm:text-[19rem] lg:text-[24rem]">01</div>}
+          <div aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 select-none font-mono text-[10rem] font-black leading-none tracking-[-0.12em] text-[#ff0505]/85 drop-shadow-[0_2px_12px_rgba(0,0,0,0.25)] sm:text-[16rem] lg:text-[20rem]">{solarPhoto?.image_url ? "01" : "NG"}</div>
           <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4 border-t border-white/50 pt-4 text-white">
             <div><p className="text-xs font-bold uppercase tracking-wide drop-shadow">SOLAR PANEL CLEANING</p><p className="mt-1 text-[10px] uppercase tracking-widest text-white/90 drop-shadow">Strand · Gordon’s Bay · Somerset West</p></div>
             <Link href="/maintenance-packages" aria-label="Explore maintenance packages" className="group"><ArrowCircle/></Link>
@@ -76,61 +76,61 @@ export default async function FormulaSolarLandingPage() {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-[1440px] gap-8 border-b border-black/15 px-5 py-10 sm:px-10 sm:py-14 lg:grid-cols-[.65fr_1.35fr] lg:px-14">
+      <section className="mx-auto mb-2 grid max-w-[1440px] gap-8 border-b-[6px] border-black bg-[#979797] px-5 py-10 sm:mb-3 sm:px-10 sm:py-14 lg:grid-cols-[.65fr_1.35fr] lg:px-14">
         <div>
           <Eyebrow>01 / WHAT WE DO</Eyebrow>
           <h2 className="text-3xl font-semibold leading-[0.98] tracking-[-0.055em] sm:text-5xl">MY SERVICES.<br/>YOUR PROPERTY.</h2>
-          <p className="mt-4 max-w-xs text-sm leading-relaxed text-neutral-700">A focused service with clear communication, practical planning and no unnecessary fuss.</p>
+          <p className="mt-4 max-w-xs text-sm leading-relaxed text-black/75">A focused service with clear communication, practical planning and no unnecessary fuss.</p>
           <div className="mt-8 hidden lg:block"><span className="inline-grid h-20 w-20 rotate-[-45deg] place-items-center rounded-full border border-black text-4xl">↘</span></div>
         </div>
         <div className="border-t border-black/20">
-          {services.map((service) => <Link href={service.number === '02' ? '/maintenance-packages' : '/quote?service=solar-panel-cleaning'} key={service.number} className="group grid grid-cols-[2rem_1fr_auto] items-center gap-3 border-b border-black/20 py-5 transition hover:bg-white/20 sm:grid-cols-[3rem_1fr_auto] sm:gap-5 sm:py-6"><span className="font-mono text-[10px] text-neutral-600">{service.number}</span><div><h3 className="text-sm font-bold uppercase tracking-tight sm:text-lg">{service.title}</h3><p className="mt-1 max-w-xl text-xs leading-relaxed text-neutral-700 sm:text-sm">{service.description}</p></div><ArrowCircle/></Link>)}
+          {services.map((service) => <Link href={service.number === '02' ? '/maintenance-packages' : '/quote?service=solar-panel-cleaning'} key={service.number} className="group grid grid-cols-[2rem_1fr_auto] items-center gap-3 border-b border-black/20 py-5 transition hover:bg-white/20 sm:grid-cols-[3rem_1fr_auto] sm:gap-5 sm:py-6"><span className="font-mono text-[10px] text-black/65">{service.number}</span><div><h3 className="text-sm font-bold uppercase tracking-tight sm:text-lg">{service.title}</h3><p className="mt-1 max-w-xl text-xs leading-relaxed text-black/75 sm:text-sm">{service.description}</p></div><ArrowCircle/></Link>)}
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1440px] border-b border-black/15 px-5 py-10 sm:px-10 sm:py-14 lg:px-14">
+      <section className="mx-auto mb-2 max-w-[1440px] border-b-[6px] border-black bg-[#f5f3ef] px-5 py-10 sm:mb-3 sm:px-10 sm:py-14 lg:px-14">
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
           <div><Eyebrow>02 / THE NEXTGEN STANDARD</Eyebrow><h2 className="max-w-2xl text-4xl font-semibold leading-[0.94] tracking-[-0.06em] sm:text-6xl">GOOD WORK.<br/>NO GUESSWORK.</h2></div>
-          <p className="max-w-sm text-sm leading-relaxed text-neutral-700">A professional experience means knowing what’s included, what it costs and what happens next.</p>
+          <p className="max-w-sm text-sm leading-relaxed text-black/75">A professional experience means knowing what’s included, what it costs and what happens next.</p>
         </div>
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {standards.map((item) => <article key={item.number} className="group min-h-40 border border-black/25 p-4 transition hover:-translate-y-1 hover:bg-[#f0442d] sm:p-5"><div className="flex items-center justify-between"><span className="font-mono text-[10px]">{item.number} / 04</span><span className="text-xl">↗</span></div><h3 className="mt-8 text-sm font-bold uppercase">{item.title}</h3><p className="mt-2 text-xs leading-relaxed text-neutral-700 group-hover:text-black">{item.body}</p></article>)}
+          {standards.map((item) => <article key={item.number} className="group min-h-40 border border-black/25 p-4 transition hover:-translate-y-1 hover:bg-[#ff0505] sm:p-5"><div className="flex items-center justify-between"><span className="font-mono text-[10px]">{item.number} / 04</span><span className="text-xl">↗</span></div><h3 className="mt-8 text-sm font-bold uppercase">{item.title}</h3><p className="mt-2 text-xs leading-relaxed text-black/75 group-hover:text-black">{item.body}</p></article>)}
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-[1440px] gap-8 border-b border-black/15 px-5 py-10 sm:px-10 sm:py-14 lg:grid-cols-[.7fr_1.3fr] lg:px-14">
-        <div><Eyebrow>03 / PRICE GUIDE</Eyebrow><h2 className="text-4xl font-semibold leading-[0.94] tracking-[-0.06em] sm:text-6xl">CLEAR<br/>PRICING.</h2><p className="mt-4 max-w-xs text-sm leading-relaxed text-neutral-700">Starting prices for residential arrays. We confirm your exact scope and price before booking.</p><Link href="/price-list" className="mt-6 inline-flex items-center gap-3 border-b border-black pb-2 text-xs font-bold uppercase">Full price list <span>↗</span></Link></div>
+      <section className="mx-auto mb-2 grid max-w-[1440px] gap-8 border-b-[6px] border-black bg-[#5e5e5e] px-5 py-10 sm:mb-3 sm:px-10 sm:py-14 lg:grid-cols-[.7fr_1.3fr] lg:px-14">
+        <div><Eyebrow>03 / PRICE GUIDE</Eyebrow><h2 className="text-4xl font-semibold leading-[0.94] tracking-[-0.06em] sm:text-6xl">CLEAR<br/>PRICING.</h2><p className="mt-4 max-w-xs text-sm leading-relaxed text-black/75">Starting prices for residential arrays. We confirm your exact scope and price before booking.</p><Link href="/price-list" className="mt-6 inline-flex items-center gap-3 border-b border-black pb-2 text-xs font-bold uppercase">Full price list <span>↗</span></Link></div>
         <div className="border-t border-black/25">
-          {tiers.map((tier) => <div key={tier.size} className="grid grid-cols-[1fr_auto] items-center gap-4 border-b border-black/25 py-4 sm:py-5"><div><p className="font-mono text-[10px] font-bold tracking-widest">{tier.size}</p><p className="mt-1 text-xs text-neutral-700">{tier.note}</p></div><p className="text-lg font-semibold tracking-tight sm:text-2xl">{tier.price}</p></div>)}
-          <p className="mt-3 text-[10px] leading-relaxed text-neutral-600">Prices exclude VAT where applicable. Access, site layout and final panel count can affect the quote.</p>
+          {tiers.map((tier) => <div key={tier.size} className="grid grid-cols-[1fr_auto] items-center gap-4 border-b border-black/25 py-4 sm:py-5"><div><p className="font-mono text-[10px] font-bold tracking-widest">{tier.size}</p><p className="mt-1 text-xs text-black/75">{tier.note}</p></div><p className="text-lg font-semibold tracking-tight sm:text-2xl">{tier.price}</p></div>)}
+          <p className="mt-3 text-[10px] leading-relaxed text-black/65">Prices exclude VAT where applicable. Access, site layout and final panel count can affect the quote.</p>
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1440px] border-b border-black/15 px-5 py-10 sm:px-10 sm:py-14 lg:px-14">
+      <section className="mx-auto mb-2 max-w-[1440px] border-b-[6px] border-black bg-[#979797] px-5 py-10 sm:mb-3 sm:px-10 sm:py-14 lg:px-14">
         <div className="grid gap-8 lg:grid-cols-[.7fr_1.3fr]">
-          <div><Eyebrow>04 / MAINTENANCE PLANS</Eyebrow><h2 className="text-4xl font-semibold leading-[0.94] tracking-[-0.06em] sm:text-6xl">CARE THAT<br/>COMES BACK.</h2><p className="mt-4 max-w-sm text-sm leading-relaxed text-neutral-700">Keep solar cleaning and property maintenance on a sensible schedule, with a single local point of contact.</p><Link href="/maintenance-packages" className="mt-6 inline-flex items-center gap-3 bg-[#f0442d] px-5 py-3 text-xs font-bold uppercase transition hover:bg-black hover:text-white">Explore maintenance plans <span>↗</span></Link></div>
+          <div><Eyebrow>04 / MAINTENANCE PLANS</Eyebrow><h2 className="text-4xl font-semibold leading-[0.94] tracking-[-0.06em] sm:text-6xl">CARE THAT<br/>COMES BACK.</h2><p className="mt-4 max-w-sm text-sm leading-relaxed text-black/75">Keep solar cleaning and property maintenance on a sensible schedule, with a single local point of contact.</p><Link href="/maintenance-packages" className="mt-6 inline-flex items-center gap-3 bg-[#ff0505] px-5 py-3 text-xs font-bold uppercase transition hover:bg-black hover:text-white">Explore maintenance plans <span>↗</span></Link></div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Link href="/maintenance-packages#recurring" className="group border border-black/25 p-5 transition hover:bg-white/30"><p className="font-mono text-[10px]">01 / REPEAT VISITS</p><h3 className="mt-8 text-lg font-bold uppercase">Recurring care</h3><p className="mt-2 text-xs leading-relaxed text-neutral-700">Planned cleaning and maintenance to suit your property.</p><span className="mt-6 inline-block text-xl transition group-hover:translate-x-1">↗</span></Link>
-            <Link href="/maintenance-packages#commercial" className="group border border-black/25 p-5 transition hover:bg-white/30"><p className="font-mono text-[10px]">02 / MANAGED SITES</p><h3 className="mt-8 text-lg font-bold uppercase">Complexes & business</h3><p className="mt-2 text-xs leading-relaxed text-neutral-700">Coordinated service for body corporates and light commercial properties.</p><span className="mt-6 inline-block text-xl transition group-hover:translate-x-1">↗</span></Link>
+            <Link href="/maintenance-packages#recurring" className="group border border-black/25 p-5 transition hover:bg-white/30"><p className="font-mono text-[10px]">01 / REPEAT VISITS</p><h3 className="mt-8 text-lg font-bold uppercase">Recurring care</h3><p className="mt-2 text-xs leading-relaxed text-black/75">Planned cleaning and maintenance to suit your property.</p><span className="mt-6 inline-block text-xl transition group-hover:translate-x-1">↗</span></Link>
+            <Link href="/maintenance-packages#commercial" className="group border border-black/25 p-5 transition hover:bg-white/30"><p className="font-mono text-[10px]">02 / MANAGED SITES</p><h3 className="mt-8 text-lg font-bold uppercase">Complexes & business</h3><p className="mt-2 text-xs leading-relaxed text-black/75">Coordinated service for body corporates and light commercial properties.</p><span className="mt-6 inline-block text-xl transition group-hover:translate-x-1">↗</span></Link>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-[1440px] gap-8 border-b border-black/15 px-5 py-10 sm:px-10 sm:py-14 lg:grid-cols-[.7fr_1.3fr] lg:px-14">
-        <div><Eyebrow>05 / BEFORE YOU BOOK</Eyebrow><h2 className="text-4xl font-semibold leading-[0.94] tracking-[-0.06em] sm:text-5xl">GOOD TO<br/>KNOW.</h2><p className="mt-4 text-sm text-neutral-700">Quick answers to common questions.</p></div>
-        <div className="border-t border-black/20">{faqs.map((faq) => <details key={faq.q} className="group border-b border-black/20 py-4"><summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-bold uppercase sm:text-base"><span>{faq.q}</span><span className="text-xl group-open:rotate-45">+</span></summary><p className="mt-3 max-w-2xl text-sm leading-relaxed text-neutral-700">{faq.a}</p></details>)}</div>
+      <section className="mx-auto mb-2 grid max-w-[1440px] gap-8 border-b-[6px] border-black bg-[#f5f3ef] px-5 py-10 sm:mb-3 sm:px-10 sm:py-14 lg:grid-cols-[.7fr_1.3fr] lg:px-14">
+        <div><Eyebrow>05 / BEFORE YOU BOOK</Eyebrow><h2 className="text-4xl font-semibold leading-[0.94] tracking-[-0.06em] sm:text-5xl">GOOD TO<br/>KNOW.</h2><p className="mt-4 text-sm text-black/75">Quick answers to common questions.</p></div>
+        <div className="border-t border-black/20">{faqs.map((faq) => <details key={faq.q} className="group border-b border-black/20 py-4"><summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-bold uppercase sm:text-base"><span>{faq.q}</span><span className="text-xl group-open:rotate-45">+</span></summary><p className="mt-3 max-w-2xl text-sm leading-relaxed text-black/75">{faq.a}</p></details>)}</div>
       </section>
 
-      <section className="relative mx-auto max-w-[1440px] overflow-hidden px-5 pb-10 pt-12 sm:px-10 sm:pb-14 sm:pt-16 lg:px-14">
-        <div className="relative z-10 text-center"><Eyebrow>HAVE A PROJECT IN MIND?</Eyebrow><h2 className="text-4xl font-semibold leading-[0.92] tracking-[-0.07em] sm:text-7xl lg:text-[8rem]">LET’S TALK<span className="text-[#f0442d]">.</span></h2><p className="mx-auto mt-5 max-w-md text-sm leading-relaxed text-neutral-700 sm:text-base">Tell us about your panels or property. We’ll help you work out the right next step.</p><div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row"><Link href="/quote?service=solar-panel-cleaning" className="inline-flex min-h-12 items-center justify-center gap-3 bg-black px-6 py-3 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-[#f0442d] hover:text-black">Request a quote <span>↗</span></Link><a href={whatsapp} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center gap-2 border border-black px-5 py-3 text-xs font-bold uppercase transition hover:bg-white/40"><WhatsAppMark/> Message NextGen</a></div></div>
+      <section className="relative mx-auto mb-2 max-w-[1440px] overflow-hidden rounded-[24px] bg-[#f5f3ef] px-5 pb-10 pt-12 sm:mb-3 sm:px-10 sm:pb-14 sm:pt-16 lg:px-14">
+        <div className="relative z-10 text-center"><Eyebrow>HAVE A PROJECT IN MIND?</Eyebrow><h2 className="text-4xl font-semibold leading-[0.92] tracking-[-0.07em] sm:text-7xl lg:text-[8rem]">LET’S TALK<span className="text-[#ff0505]">.</span></h2><p className="mx-auto mt-5 max-w-md text-sm leading-relaxed text-black/75 sm:text-base">Tell us about your panels or property. We’ll help you work out the right next step.</p><div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row"><Link href="/quote?service=solar-panel-cleaning" className="inline-flex min-h-12 items-center justify-center gap-3 bg-black px-6 py-3 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-[#ff0505] hover:text-black">Request a quote <span>↗</span></Link><a href={whatsapp} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center gap-2 border border-black px-5 py-3 text-xs font-bold uppercase transition hover:bg-white/40"><WhatsAppMark/> Message NextGen</a></div></div>
         <div aria-hidden="true" className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 select-none text-[12rem] font-black leading-none tracking-[-0.1em] text-black/[0.035] sm:text-[20rem]">NGMS</div>
       </section>
 
       <footer className="bg-black px-5 pb-8 pt-8 text-white sm:px-10 sm:pt-12 lg:px-14">
         <div className="mx-auto grid max-w-[1440px] gap-8 md:grid-cols-[1fr_1fr_1fr]">
-          <div><Link href="/" className="text-2xl font-black tracking-[-0.08em]">NEXTGEN<span className="text-[#f0442d]">.</span></Link><p className="mt-4 max-w-xs text-xs leading-relaxed text-white/60">One call. All solutions. Solar panel cleaning and property maintenance across the Helderberg Basin.</p><div className="mt-5 flex gap-3 text-xs font-bold uppercase"><a href="https://www.facebook.com/p/Nextgen-Solar-Maintenance-Solutions-61590183304623/" target="_blank" rel="noreferrer" className="border border-white/30 px-3 py-2 hover:border-[#f0442d]">Facebook ↗</a><a href={whatsapp} target="_blank" rel="noreferrer" className="border border-white/30 px-3 py-2 hover:border-[#f0442d]">WhatsApp ↗</a></div></div>
-          <div><Eyebrow>CONTACT</Eyebrow><a href={`tel:${site.phone}`} className="block text-xl font-semibold hover:text-[#f0442d]">063 138 7945</a><p className="mt-2 text-xs text-white/60">Mon–Sat / 07:00–17:00</p><p className="mt-4 text-xs text-white/60">Strand · Gordon’s Bay · Somerset West</p></div>
-          <div><Eyebrow>QUICK LINKS</Eyebrow><div className="grid grid-cols-2 gap-3 text-xs uppercase text-white/75"><Link href="/maintenance-packages" className="hover:text-[#f0442d]">Maintenance plans ↗</Link><Link href="/price-list" className="hover:text-[#f0442d]">Price list ↗</Link><Link href="/portfolio" className="hover:text-[#f0442d]">Projects ↗</Link><Link href="/contact" className="hover:text-[#f0442d]">Contact ↗</Link></div></div>
+          <div><Link href="/" className="text-2xl font-black tracking-[-0.08em]">NEXTGEN<span className="text-[#ff0505]">.</span></Link><p className="mt-4 max-w-xs text-xs leading-relaxed text-white/70">One call. All solutions. Solar panel cleaning and property maintenance across the Helderberg Basin.</p><div className="mt-5 flex gap-3 text-xs font-bold uppercase"><a href="https://www.facebook.com/p/Nextgen-Solar-Maintenance-Solutions-61590183304623/" target="_blank" rel="noreferrer" className="border border-white/30 px-3 py-2 hover:border-[#ff0505]">Facebook ↗</a><a href={whatsapp} target="_blank" rel="noreferrer" className="border border-white/30 px-3 py-2 hover:border-[#ff0505]">WhatsApp ↗</a></div></div>
+          <div><Eyebrow>CONTACT</Eyebrow><a href={`tel:${site.phone}`} className="block text-xl font-semibold hover:text-[#ff0505]">063 138 7945</a><p className="mt-2 text-xs text-white/70">Mon–Sat / 07:00–17:00</p><p className="mt-4 text-xs text-white/70">Strand · Gordon’s Bay · Somerset West</p></div>
+          <div><Eyebrow>QUICK LINKS</Eyebrow><div className="grid grid-cols-2 gap-3 text-xs uppercase text-white/75"><Link href="/maintenance-packages" className="hover:text-[#ff0505]">Maintenance plans ↗</Link><Link href="/price-list" className="hover:text-[#ff0505]">Price list ↗</Link><Link href="/portfolio" className="hover:text-[#ff0505]">Projects ↗</Link><Link href="/contact" className="hover:text-[#ff0505]">Contact ↗</Link></div></div>
         </div>
         <div className="mx-auto mt-9 flex max-w-[1440px] flex-wrap justify-between gap-3 border-t border-white/15 pt-4 text-[10px] uppercase tracking-widest text-white/40"><span>© 2026 NextGen Maintenance Solutions</span><span>ONE CALL. ALL SOLUTIONS.</span></div>
       </footer>
