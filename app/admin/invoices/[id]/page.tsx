@@ -18,10 +18,10 @@ import { PLACEHOLDER_ACC } from '@/lib/quote-terms'
 type PaymentEntry = { line: string; amount: number; index: number; reversed: boolean }
 
 function paymentEntries(notes: string | null): PaymentEntry[] {
-  const lines = (notes ?? '').split('\\n')
+  const lines = (notes ?? '').split('\n')
   return lines.flatMap((line, index) => {
-    if (!/^Payment\\s+/i.test(line)) return []
-    const match = line.match(/^Payment\\s+R?\\s*([\\d,]+(?:\\.\\d{1,2})?)/i)
+    if (!/^Payment\s+/i.test(line)) return []
+    const match = line.match(/^Payment\s+R?\s*([\d,]+(?:\.\d{1,2})?)/i)
     if (!match) return []
     const amount = Number(match[1].replace(/,/g, ''))
     if (!Number.isFinite(amount) || amount <= 0) return []
