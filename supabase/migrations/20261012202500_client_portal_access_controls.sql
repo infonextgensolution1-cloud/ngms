@@ -1,7 +1,5 @@
 -- Client portal access modes and private job-photo storage.
 -- Existing client portal accounts are preserved as permanent until an admin changes them.
-begin;
-
 create table if not exists public.client_portal_access (
   client_id uuid primary key references public.clients(id) on delete cascade,
   access_mode text not null check (access_mode in ('one_time', 'temporary', 'permanent')),
