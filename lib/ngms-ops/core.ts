@@ -65,7 +65,7 @@ export type Worker = {
 export type Supplier = { id: string; name: string; contact_person: string | null; phone: string | null; email: string | null; address: string | null; categories: string | null; notes: string | null; created_at: string }
 export type SupplierPurchase = {
   id: string; supplier_id: string | null; job_id: string | null; purchase_date: string; description: string; category: string
-  amount: number; receipt_url: string | null; payment_status: string; logged_to_job: boolean; job_cost_id: string | null; notes: string | null; created_at: string
+  amount: number; receipt_url: string | null; receipt_urls?: string[] | null; paid_by?: string | null; payment_status: string; logged_to_job: boolean; job_cost_id: string | null; notes: string | null; created_at: string
 }
 export type Payslip = {
   id: string; worker_id: string; period: string; period_start: string; period_end: string | null; days_worked: number; absent_days: number
