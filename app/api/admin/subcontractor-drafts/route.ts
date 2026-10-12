@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   const contactName = typeof body.contact_name === 'string' ? body.contact_name.trim() : ''
   const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
   const notes = typeof body.notes === 'string' ? body.notes.trim().slice(0, 2000) : ''
-  if (!companyName || !contactName || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+  if (!companyName || !contactName || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: 'Company, contact and a valid email are required.' }, { status: 400 })
   }
   // Draft-only endpoint: never creates an auth user, login link, portal role, or email.
