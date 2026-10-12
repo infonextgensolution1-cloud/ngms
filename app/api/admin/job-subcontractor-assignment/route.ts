@@ -27,15 +27,16 @@ export async function GET(request: Request) {
   const jobId = searchParams.get('jobId') ?? ''
   if (!/^[0-9a-f-]{36}$/i.test(jobId)) return NextResponse.json({ error: 'A valid job is required.' }, { status: 400 })
 
-  const [{ data: drafts, error: draftError }, { data: assignment, error: assignmentError }] = await Promise.all([
+  const [{ data: drafts, error: draftError }, { data: assignment, error: assignmentError }, { data: reports, error: reportError }] = await Promise.all([
     auth.db.from('subcontractor_invitation_drafts').select('id,company_name,contact_name,email,status').order('company_name').limit(100),
     auth.db.from('job_subcontractor_assignments').select('id,subcontractor_draft_id,subcontractor_invitation_drafts(id,company_name,contact_name,email,status)').eq('job_id', jobId),
+    auth.db.from('subcontractor_job_reports').select('id,subcontractor_draft_id,report_type,work_summary,safety_notes,issues_found,materials_used,next_steps,submitted_by_email,submitted_at,status,subcontractor_invitation_drafts(company_name,contact_name)').eq('job_id', jobId).order('submitted_at', { ascending: false }),
   ])
-  if (draftError || assignmentError) {
-    console.error('job subcontractor assignment load failed', draftError?.message, assignmentError?.message)
+  if (draftError || assignmentError || reportError) {
+    console.error('job subcontractor assignment load failed', draftError?.message, assignmentError?.message, reportError?.message)
     return NextResponse.json({ error: 'Assignment storage is not ready. Apply the subcontractor job assignment migration first.' }, { status: 503 })
   }
-  return NextResponse.json({ subcontractors: drafts ?? [], assignments: assignment ?? [] })
+  return NextResponse.json({ subcontractors: drafts ?? [], assignments: assignment ?? [], reports: reports ?? [] })
 }
 
 export async function POST(request: Request) {
