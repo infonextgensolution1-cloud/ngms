@@ -51,7 +51,7 @@ export const WORKER_COLS =
   'id,name,category,id_number,phone,email,emergency_contact_name,emergency_contact_phone,start_date,status,notes,bank_name,account_holder,account_number,branch_code,account_type,payment_reference,daily_rate,created_at,updated_at'
 export const SUPPLIER_COLS = 'id,name,contact_person,phone,email,address,categories,notes,created_at'
 export const PURCHASE_COLS =
-  'id,supplier_id,job_id,purchase_date,description,category,amount,receipt_url,payment_status,logged_to_job,job_cost_id,notes,created_at'
+  'id,supplier_id,job_id,purchase_date,description,category,amount,receipt_url,receipt_urls,paid_by,payment_status,logged_to_job,job_cost_id,notes,created_at'
 export const PAYSLIP_COLS =
   'id,worker_id,period,period_start,period_end,days_worked,absent_days,daily_rate,travel_allowance,overtime_hours,overtime_rate,bonus,uif_applied,paye_deduction,advance_deduction,tool_deduction,other_deduction,deduction_notes,gross_pay,total_deductions,net_pay,created_at'
 
