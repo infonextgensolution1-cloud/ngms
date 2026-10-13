@@ -77,7 +77,8 @@ export default function QuoteForm({
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [contactEmail, setContactEmail] = useState("");
-  const [area, setArea] = useState(matchArea(initialArea) ?? AREA_OPTIONS[0]);
+  const [area, setArea] = useState(matchArea(initialArea) ?? "");
+  const [propertyType, setPropertyType] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoMeta, setPhotoMeta] = useState<{ width: number; height: number; size: number } | null>(null);
   const [prefDate, setPrefDate] = useState("");
@@ -153,6 +154,7 @@ export default function QuoteForm({
     }
 
     const message = [
+      propertyType && `Property type: ${propertyType}`,
       size && `Size/details: ${size}`,
       prefDate && `Preferred date: ${prefDate}`,
       pref && `Preferred contact: ${pref}`,
@@ -179,6 +181,7 @@ export default function QuoteForm({
         email,
         suburb,
         service: serviceName,
+        propertyType: propertyType || undefined,
         sizeDetails: size,
         preferredContact: pref,
         preferredDate: prefDate || undefined,
@@ -266,7 +269,8 @@ export default function QuoteForm({
         <input type="email" name="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} autoComplete="email" maxLength={254} placeholder="you@example.com" className="field" />
       </Field>
       <Field step={2} label="Area">
-        <select name="area" value={area} onChange={(e) => setArea(e.target.value)} className="field">
+        <select required={step === 2} name="area" value={area} onChange={(e) => setArea(e.target.value)} className="field">
+          <option value="" disabled>Choose your area</option>
           {AREA_OPTIONS.map((a) => (
             <option key={a}>{a}</option>
           ))}
@@ -319,6 +323,15 @@ export default function QuoteForm({
         {photoErr && <span role="alert" className="block text-orange text-xs mt-1.5">{photoErr}</span>}
         {photoUploadState === "failed" && photo && <div className="flex flex-wrap gap-2 mt-2"><button type="button" className="btn-outline" onClick={() => { setPhotoErr(""); setPhotoUploadState("idle"); setStatus("idle"); setStep(5); }}>Retry upload on submit</button><button type="button" className="btn-outline" onClick={() => { setPhoto(null); setPhotoUrl(null); setPhotoUploadState("idle"); setPhotoErr(""); }}>Remove photo and continue</button></div>}
       </Field>
+      <Field step={2} label="Property type (optional)">
+        <select name="propertyType" value={propertyType} onChange={(e) => setPropertyType(e.target.value)} className="field">
+          <option value="">Select property type (optional)</option>
+          <option>House / residential</option>
+          <option>Body corporate / complex</option>
+          <option>Commercial property</option>
+          <option>Other</option>
+        </select>
+      </Field>
       <Field step={2} label="Preferred date (optional)">
         <input type="date" min={today} value={prefDate} onChange={(e) => setPrefDate(e.target.value)} className="field" />
         {dateWarning && <span className="block text-orange text-xs mt-1.5" role="alert">Weather heads-up: {dateWarning}</span>}
@@ -364,7 +377,8 @@ export default function QuoteForm({
           <div><dt className="text-mist text-xs">Phone / WhatsApp</dt><dd className="text-paper">{contactPhone || "Not provided"}</dd></div>
           <div><dt className="text-mist text-xs">Email</dt><dd className="text-paper">{contactEmail || "Not provided"}</dd></div>
           <div><dt className="text-mist text-xs">Service</dt><dd className="text-paper">{serviceName || "Not selected"}</dd></div>
-          <div><dt className="text-mist text-xs">Property area</dt><dd className="text-paper">{area}</dd></div>
+          <div><dt className="text-mist text-xs">Property area</dt><dd className="text-paper">{area || "Not selected"}</dd></div>
+          <div><dt className="text-mist text-xs">Property type</dt><dd className="text-paper">{propertyType || "Not provided"}</dd></div>
           <div><dt className="text-mist text-xs">Size / details</dt><dd className="text-paper">{sizeText || "Not provided"}</dd></div>
           <div><dt className="text-mist text-xs">Photo</dt><dd className="text-paper">{photo ? (photoUrl ? "Uploaded and attached" : "Selected; upload pending") : "No photo attached"}</dd></div>
           <div><dt className="text-mist text-xs">Preferred date</dt><dd className="text-paper">{prefDate || "Flexible"}</dd></div>
