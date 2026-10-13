@@ -1,4 +1,5 @@
 import Link from "next/link";
+import "./service-editorial.css";
 import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import { SERVICES, getService } from "@/lib/services";
