@@ -256,7 +256,6 @@ export default function QuoteForm({
           placeholder={SITE.phoneDisplay}
           aria-invalid={phoneErr ? true : undefined}
           aria-describedby={phoneErr ? "phone-err" : undefined}
-          onChange={() => phoneErr && setPhoneErr("")}
           className="field"
         />
         {phoneErr && (
