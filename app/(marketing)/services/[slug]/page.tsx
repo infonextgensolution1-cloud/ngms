@@ -45,8 +45,8 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
     : SUBURBS;
 
   return (
-    <section>
-      <div className="bg-graphite border-b border-line py-14 px-4 text-center">
+    <section className="ngms-service-detail-reference">
+      <div className="ngms-service-detail-hero bg-graphite border-b border-line py-14 px-4 text-center">
         <div className="group flex w-fit mx-auto mb-5 rounded-2xl bg-jet border border-darkgrey p-3 hover:border-orange transition-colors">
           <NgmsIcon name={s.slug} className="h-14 w-14 md:h-16 md:w-16" />
         </div>
@@ -57,7 +57,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
 
       <TrustBadges />
 
-      <div className="wrap max-w-[720px] py-10">
+      <div className="ngms-service-detail-content wrap max-w-[720px] py-10">
         <p className="text-mist leading-relaxed">{s.description}</p>
 
         <h2 className="text-xl mt-8 mb-3">What&rsquo;s included</h2>
