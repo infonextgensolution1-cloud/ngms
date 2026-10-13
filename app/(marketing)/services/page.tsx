@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/services" },
   title: "Services",
   description:
-    "12 trade services, one team — solar panel cleaning, painting, waterproofing, paving, plumbing, electrical and more across Strand, Gordon's Bay and Somerset West.",
+    "12 trade services plus coordinated subcontractor support — including solar panel cleaning, painting, waterproofing, paving, plumbing, electrical and gutter maintenance across Strand, Gordon's Bay and Somerset West.",
 };
 
 const PRICING: Record<string, string> = {
@@ -25,6 +25,7 @@ const PRICING: Record<string, string> = {
   electrical: "From R950",
   "pool-fibre-lining": "From R450/m²",
   "high-pressure-cleaning": "From R25/m²",
+  "gutters": "Quote after assessment",
   "rubble-removal": "From R1 800/load",
   "steelwork-welding": "From R650/hour",
   handyman: "From R380/hour",
@@ -72,7 +73,7 @@ export default async function ServicesPage() {
             </span>
           </h1>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
-            Solar panel cleaning and 11 more maintenance trades, coordinated by one local team
+            Solar panel cleaning and 11 other maintenance trades, coordinated by one local team
             serving Strand, Gordon&apos;s Bay and Somerset West.
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-3">
