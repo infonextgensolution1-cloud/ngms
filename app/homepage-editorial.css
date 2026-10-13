@@ -1,0 +1,118 @@
+/* NGMS homepage editorial refinement — scoped to the homepage only.
+   Palette: pure white, clean grey, noisy grey, brick black, muted red, hearty red. */
+.ngms-home-refresh {
+  --ngms-editorial-white: #FFFFFF;
+  --ngms-editorial-grey: #979797;
+  --ngms-editorial-mid: #5E5E5E;
+  --ngms-editorial-black: #000000;
+  --ngms-editorial-muted-red: #AC3333;
+  --ngms-editorial-red: #FF0505;
+  color: var(--ngms-editorial-white);
+  background: var(--ngms-editorial-black);
+}
+.ngms-home-refresh :is(.ngms-industrial-hero, .ngms-industrial-hero *) {
+  --ngms-home-accent: var(--ngms-editorial-red);
+}
+.ngms-home-refresh .ngms-industrial-hero {
+  background: var(--ngms-editorial-black);
+  color: var(--ngms-editorial-white);
+  isolation: isolate;
+}
+.ngms-home-refresh .ngms-industrial-hero__wash {
+  background: linear-gradient(90deg, rgba(0,0,0,.94) 0%, rgba(0,0,0,.72) 48%, rgba(0,0,0,.18) 100%);
+}
+.ngms-home-refresh .ngms-industrial-hero__eyebrow-rule,
+.ngms-home-refresh .ngms-industrial-hero__index,
+.ngms-home-refresh .ngms-industrial-hero__overline,
+.ngms-home-refresh .ngms-industrial-hero__location,
+.ngms-home-refresh .ngms-editorial-card__foot {
+  color: var(--ngms-editorial-grey);
+}
+.ngms-home-refresh .ngms-industrial-hero h1 span,
+.ngms-home-refresh .ngms-editorial-card__foot,
+.ngms-home-refresh .ngms-architecture__feature-index {
+  color: var(--ngms-editorial-red);
+}
+.ngms-home-refresh .ngms-industrial-button--orange {
+  color: var(--ngms-editorial-white);
+  background: var(--ngms-editorial-red);
+  border-color: var(--ngms-editorial-red);
+  border-radius: 2px;
+}
+.ngms-home-refresh .ngms-industrial-button--orange:hover {
+  background: var(--ngms-editorial-muted-red);
+  border-color: var(--ngms-editorial-muted-red);
+}
+.ngms-home-refresh .ngms-industrial-button--outline {
+  color: var(--ngms-editorial-white);
+  border-color: rgba(255,255,255,.6);
+  border-radius: 2px;
+}
+.ngms-home-refresh .ngms-industrial-button--outline:hover {
+  color: var(--ngms-editorial-black);
+  background: var(--ngms-editorial-white);
+}
+.ngms-home-refresh .ngms-industrial-hero__architecture {
+  --ngms-editorial-architecture-accent: var(--ngms-editorial-red);
+}
+.ngms-home-refresh .ngms-industrial-hero__architecture :is(.ngms-architecture__feature-glow, .ngms-architecture__floor--feature) {
+  border-color: rgba(255,5,5,.55);
+}
+.ngms-home-refresh .ngms-industrial-hero__architecture .ngms-architecture__feature-label em,
+.ngms-home-refresh .ngms-industrial-hero__architecture .ngms-architecture__base b {
+  color: var(--ngms-editorial-red);
+}
+.ngms-home-refresh .ngms-services-editorial {
+  color: var(--ngms-editorial-black);
+  background: var(--ngms-editorial-grey);
+}
+.ngms-home-refresh .ngms-services-editorial .kicker,
+.ngms-home-refresh .ngms-services-editorial .text-orange,
+.ngms-home-refresh .ngms-services-editorial a:focus-visible {
+  color: var(--ngms-editorial-muted-red);
+}
+.ngms-home-refresh .ngms-services-editorial .ngms-service-tile {
+  border-color: var(--ngms-editorial-mid);
+  border-radius: 2px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.16);
+}
+.ngms-home-refresh .ngms-services-editorial .ngms-service-tile .bg-orange,
+.ngms-home-refresh .ngms-services-editorial .ngms-service-tile [class*="bg-orange"] {
+  color: var(--ngms-editorial-white);
+  background: var(--ngms-editorial-red);
+}
+.ngms-home-refresh .ngms-services-editorial .ngms-service-tile .text-orange {
+  color: #FF5050;
+}
+.ngms-home-refresh .ngms-services-editorial .rounded-panel {
+  border-radius: 2px;
+}
+.ngms-home-refresh :is(.ngms-services-editorial, section.band-light) :is(h2, h3) {
+  letter-spacing: -.045em;
+}
+.ngms-home-refresh :is(a, button, summary) {
+  -webkit-tap-highlight-color: rgba(255,5,5,.16);
+}
+.ngms-home-refresh :is(a, button, summary):focus-visible {
+  outline: 2px solid var(--ngms-editorial-red);
+  outline-offset: 3px;
+}
+@media (max-width: 640px) {
+  .ngms-home-refresh .ngms-industrial-hero__wash {
+    background: linear-gradient(180deg, rgba(0,0,0,.38) 0%, rgba(0,0,0,.84) 42%, #000 100%);
+  }
+  .ngms-home-refresh .ngms-services-editorial {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .ngms-home-refresh .ngms-services-editorial .ngms-service-tile {
+    min-width: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ngms-home-refresh .ngms-services-editorial .ngms-service-tile,
+  .ngms-home-refresh .ngms-industrial-button--orange,
+  .ngms-home-refresh .ngms-industrial-button--outline {
+    transition: none !important;
+  }
+}
