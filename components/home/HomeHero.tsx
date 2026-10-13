@@ -116,8 +116,8 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
         </div>
 
         <div className="ngms-industrial-hero__copy">
-          <p className="ngms-industrial-hero__overline">Maintenance for a brighter tomorrow</p>
-          <h1 id="hero-title">ONE CALL.<span>ALL SOLUTIONS.</span></h1>
+          <p className="ngms-industrial-hero__overline">Property maintenance / Helderberg Basin</p>
+          <h1 id="hero-title">PROPERTY CARE.<span>WITHOUT THE RUNAROUND.</span></h1>
           <p className="ngms-industrial-hero__intro">
             Solar panel cleaning and 11+ maintenance trades, coordinated by one local team for homes, complexes and light commercial properties.
           </p>
