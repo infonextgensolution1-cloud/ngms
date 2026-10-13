@@ -1,0 +1,197 @@
+/* Editorial industrial refinements for the maintenance, corporate and project routes.
+   Scoped to these public marketing pages; admin, quotes, invoices and portals are untouched. */
+:root {
+  --ngms-editorial-white: #FFFFFF;
+  --ngms-editorial-grey: #979797;
+  --ngms-editorial-mid: #5E5E5E;
+  --ngms-editorial-black: #000000;
+  --ngms-editorial-muted-red: #AC3333;
+  --ngms-editorial-red: #FF0505;
+}
+
+/* Maintenance plans: preserve the existing package/signup experience and retune its skin. */
+.ngms-maintenance-brut {
+  --mp-paper: #F1F1EF !important;
+  --mp-white: #FFFFFF !important;
+  --mp-ink: #000000 !important;
+  --mp-muted: #5E5E5E !important;
+  --mp-line: #979797 !important;
+  --mp-red: #FF0505 !important;
+  --mp-accent: #AC3333 !important;
+  background: #F1F1EF;
+  color: #000;
+}
+.ngms-maintenance-brut .ngms-mp-topline,
+.ngms-maintenance-brut .ngms-mp-manifesto,
+.ngms-maintenance-brut .ngms-mp-selected,
+.ngms-maintenance-brut .ngms-mp-section,
+.ngms-maintenance-brut .ngms-mp-services {
+  border-color: #979797;
+}
+.ngms-maintenance-brut .ngms-mp-kicker,
+.ngms-maintenance-brut .ngms-mp-period,
+.ngms-maintenance-brut .ngms-mp-package__price strong,
+.ngms-maintenance-brut .ngms-mp-package__features li span {
+  color: #AC3333;
+}
+.ngms-maintenance-brut .ngms-mp-package,
+.ngms-maintenance-brut .ngms-mp-package__summary,
+.ngms-maintenance-brut .ngms-mp-package__features,
+.ngms-maintenance-brut .ngms-mp-package__price {
+  border-color: #979797;
+  border-radius: 2px;
+}
+.ngms-maintenance-brut .ngms-mp-package.is-featured {
+  border-color: #FF0505;
+  box-shadow: inset 3px 0 0 #FF0505;
+}
+.ngms-maintenance-brut :is(.ngms-mp-top-cta, .ngms-mp-package__price a, .ngms-mp-final-cta__red) {
+  border-radius: 2px;
+}
+.ngms-maintenance-brut .ngms-mp-top-cta,
+.ngms-maintenance-brut .ngms-mp-package__price a {
+  background: #FF0505;
+  border-color: #FF0505;
+  color: #fff;
+}
+.ngms-maintenance-brut .ngms-mp-top-cta:hover,
+.ngms-maintenance-brut .ngms-mp-package__price a:hover {
+  background: #AC3333;
+  border-color: #AC3333;
+}
+.ngms-maintenance-brut .ngms-mp-hero__visual,
+.ngms-maintenance-brut .ngms-mp-final-cta__red {
+  background-color: #000;
+}
+.ngms-maintenance-brut .ngms-mp-signup {
+  border-color: #979797;
+}
+.ngms-maintenance-brut .ngms-mp-service summary {
+  border-color: #979797;
+}
+.ngms-maintenance-brut .ngms-mp-service summary b,
+.ngms-maintenance-brut .ngms-mp-final-cta__red a {
+  color: #FF0505;
+}
+.ngms-maintenance-brut :is(a, button, summary):focus-visible {
+  outline: 2px solid #FF0505;
+  outline-offset: 3px;
+}
+
+/* Body corporate landing: editorial grid, strong contrast, thin rules and red signal accents. */
+[data-editorial-page="body-corporate-maintenance"] {
+  background: #000;
+  color: #fff;
+}
+[data-editorial-page="body-corporate-maintenance"] > section {
+  border-radius: 0 !important;
+}
+[data-editorial-page="body-corporate-maintenance"] > section:first-child {
+  background: #F1F1EF;
+  color: #000;
+  border-color: #979797;
+}
+[data-editorial-page="body-corporate-maintenance"] > section:first-child :is(h1, h2) {
+  color: #000;
+  letter-spacing: -.055em;
+}
+[data-editorial-page="body-corporate-maintenance"] > section:first-child p:not(.text-orange) {
+  color: #5E5E5E;
+}
+[data-editorial-page="body-corporate-maintenance"] .text-orange,
+[data-editorial-page="body-corporate-maintenance"] .text-blue,
+[data-editorial-page="body-corporate-maintenance"] .kicker {
+  color: #AC3333 !important;
+}
+[data-editorial-page="body-corporate-maintenance"] .btn-wa,
+[data-editorial-page="body-corporate-maintenance"] .btn-quote,
+[data-editorial-page="body-corporate-maintenance"] .btn-outline {
+  border-radius: 2px;
+}
+[data-editorial-page="body-corporate-maintenance"] .btn-quote {
+  background: #FF0505 !important;
+  border-color: #FF0505 !important;
+  color: #fff !important;
+}
+[data-editorial-page="body-corporate-maintenance"] .btn-quote:hover {
+  background: #AC3333 !important;
+  border-color: #AC3333 !important;
+}
+[data-editorial-page="body-corporate-maintenance"] .rounded-card,
+[data-editorial-page="body-corporate-maintenance"] .rounded-btn {
+  border-radius: 2px !important;
+}
+[data-editorial-page="body-corporate-maintenance"] .border-darkgrey {
+  border-color: #5E5E5E;
+}
+[data-editorial-page="body-corporate-maintenance"] :is(a, button):focus-visible {
+  outline: 2px solid #FF0505;
+  outline-offset: 3px;
+}
+
+/* Projects: keep live Supabase images and before/after content; refine presentation only. */
+.ngms-project-editorial {
+  background: #F1F1EF !important;
+  color: #000 !important;
+}
+.ngms-project-editorial :is(h1, h2, h3) {
+  letter-spacing: -.055em;
+}
+.ngms-project-editorial .bg-\[\#ff5314\],
+.ngms-project-editorial [class*="bg-[#ff5314]"] {
+  background-color: #FF0505 !important;
+}
+.ngms-project-editorial [class*="text-[#ff6a32]"],
+.ngms-project-editorial [class*="text-[#ff7847]"],
+.ngms-project-editorial [class*="text-[#ff8b60]"],
+.ngms-project-editorial [class*="text-[#d94a13]"] {
+  color: #AC3333 !important;
+}
+.ngms-project-editorial [class*="rounded-tl-"],
+.ngms-project-editorial [class*="rounded-tr-"],
+.ngms-project-editorial [class*="rounded-br-"],
+.ngms-project-editorial [class*="rounded-bl-"] {
+  border-radius: 2px !important;
+}
+.ngms-project-editorial .border-\[\#dedad2\],
+.ngms-project-editorial [class*="border-[#dedad2]"],
+.ngms-project-editorial [class*="border-[#d7d2ca]"] {
+  border-color: #979797 !important;
+}
+.ngms-project-editorial a:focus-visible {
+  outline: 2px solid #FF0505;
+  outline-offset: 3px;
+}
+.ngms-project-editorial article {
+  border-radius: 2px;
+}
+.ngms-project-editorial article img {
+  transition: transform .45s ease, filter .45s ease;
+}
+.ngms-project-editorial article:hover img {
+  filter: contrast(1.04);
+}
+@media (max-width: 640px) {
+  .ngms-maintenance-brut .ngms-mp-hero__headline h1 {
+    overflow-wrap: anywhere;
+  }
+  .ngms-maintenance-brut .ngms-mp-package {
+    min-width: 0;
+  }
+  [data-editorial-page="body-corporate-maintenance"] > section {
+    padding-inline: 1rem;
+  }
+  .ngms-project-editorial section {
+    min-width: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ngms-maintenance-brut *,
+  [data-editorial-page="body-corporate-maintenance"] *,
+  .ngms-project-editorial * {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
