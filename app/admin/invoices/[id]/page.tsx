@@ -20,8 +20,11 @@ type PaymentEntry = { line: string; amount: number; index: number; reversed: boo
 function paymentEntries(notes: string | null): PaymentEntry[] {
   const lines = (notes ?? '').split('\n')
   return lines.flatMap((line, index) => {
-    if (!/^Payment\s+/i.test(line)) return []
-    const match = line.match(/^Payment\s+R?\s*([\d, ]+(?:\.\d{1,2})?)/i)
+    // Notes may be timestamp-prefixed, e.g. "[13 Oct 2026, 01:30] Payment R4 050.00 ...".
+    // Keep the original line for audit/reversal matching; strip the timestamp only for parsing.
+    const paymentLine = line.replace(/^\[[^\]]+\]\s*/, '')
+    if (!/^Payment\s+/i.test(paymentLine)) return []
+    const match = paymentLine.match(/^Payment\s+R?\s*([\d, ]+(?:\.\d{1,2})?)/i)
     if (!match) return []
     const amount = Number(match[1].replace(/[ ,]/g, ''))
     if (!Number.isFinite(amount) || amount <= 0) return []
