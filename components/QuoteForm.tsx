@@ -74,6 +74,7 @@ export default function QuoteForm({
   const [photoUploadState, setPhotoUploadState] = useState<"idle" | "uploading" | "uploaded" | "failed">("idle");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [preferredContact, setPreferredContact] = useState("WhatsApp");
+  const [area, setArea] = useState(matchArea(initialArea) ?? AREA_OPTIONS[0]);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoMeta, setPhotoMeta] = useState<{ width: number; height: number; size: number } | null>(null);
   const [prefDate, setPrefDate] = useState("");
@@ -143,6 +144,7 @@ export default function QuoteForm({
         setPhotoUploadState("failed");
         setPhotoErr("We couldn’t upload this photo. Retry the upload, or remove the photo and submit without it.");
         setStatus("idle");
+        setStep(3);
         return;
       }
     }
@@ -259,7 +261,7 @@ export default function QuoteForm({
         <input type="email" name="email" autoComplete="email" maxLength={254} placeholder="you@example.com" className="field" />
       </Field>
       <Field step={2} label="Area">
-        <select name="area" defaultValue={matchArea(initialArea)} className="field">
+        <select name="area" value={area} onChange={(e) => setArea(e.target.value)} className="field">
           {AREA_OPTIONS.map((a) => (
             <option key={a}>{a}</option>
           ))}
@@ -308,7 +310,7 @@ export default function QuoteForm({
         {photoUploadState === "uploading" && <div className="mt-2" role="status" aria-live="polite"><span className="block text-xs text-paper mb-1">Preparing and uploading photo…</span><div className="h-1.5 rounded-full bg-darkgrey overflow-hidden"><div className="h-full w-2/3 bg-orange animate-pulse rounded-full" /></div></div>}
         {photoUploadState === "uploaded" && <span className="block text-xs text-paper mt-1.5" role="status">Photo uploaded securely and ready to attach.</span>}
         {photoErr && <span role="alert" className="block text-orange text-xs mt-1.5">{photoErr}</span>}
-        {photoUploadState === "failed" && photo && <div className="flex flex-wrap gap-2 mt-2"><button type="button" className="btn-outline" onClick={() => { setPhotoErr(""); setPhotoUploadState("idle"); setStatus("idle"); }}>Retry upload</button><button type="button" className="btn-outline" onClick={() => { setPhoto(null); setPhotoUrl(null); setPhotoUploadState("idle"); setPhotoErr(""); }}>Remove photo and continue</button></div>}
+        {photoUploadState === "failed" && photo && <div className="flex flex-wrap gap-2 mt-2"><button type="button" className="btn-outline" onClick={() => { setPhotoErr(""); setPhotoUploadState("idle"); setStatus("idle"); setStep(5); }}>Retry upload on submit</button><button type="button" className="btn-outline" onClick={() => { setPhoto(null); setPhotoUrl(null); setPhotoUploadState("idle"); setPhotoErr(""); }}>Remove photo and continue</button></div>}
       </Field>
       <Field step={2} label="Preferred date (optional)">
         <input type="date" min={today} value={prefDate} onChange={(e) => setPrefDate(e.target.value)} className="field" />
@@ -337,7 +339,7 @@ export default function QuoteForm({
         </select>
       </Field>
       <Field step={3} label="Notes">
-        <textarea name="notes" maxLength={2000} placeholder="What needs doing? Access, timing, anything we should know." className="field min-h-[110px]" />
+        <textarea name="notes" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={2000} placeholder="What needs doing? Access, timing, anything we should know." className="field min-h-[110px]" />
       </Field>
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
       <label data-quote-step={4} className="flex items-start gap-2 text-xs text-mist">
@@ -352,6 +354,7 @@ export default function QuoteForm({
         <p className="text-xs text-mist mt-1 mb-3">Check your details before sending. Go back to make changes.</p>
         <dl className="grid gap-2 text-sm">
           <div><dt className="text-mist text-xs">Service</dt><dd className="text-paper">{serviceName || "Not selected"}</dd></div>
+          <div><dt className="text-mist text-xs">Property area</dt><dd className="text-paper">{area}</dd></div>
           <div><dt className="text-mist text-xs">Size / details</dt><dd className="text-paper">{sizeText || "Not provided"}</dd></div>
           <div><dt className="text-mist text-xs">Photo</dt><dd className="text-paper">{photo ? (photoUrl ? "Uploaded and attached" : "Selected; upload pending") : "No photo attached"}</dd></div>
           <div><dt className="text-mist text-xs">Preferred date</dt><dd className="text-paper">{prefDate || "Flexible"}</dd></div>
