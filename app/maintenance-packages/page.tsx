@@ -53,21 +53,38 @@ export default function MaintenancePackagesPage() {
     <main className="ngms-maintenance-brut">
       <div className="ngms-mp-topline">
         <Link href="/" className="ngms-mp-wordmark" aria-label="NextGen home">NEXT<span>GEN</span><b>.</b></Link>
-        <span>PROPERTY MAINTENANCE / HELDERBERG BASIN</span>
+        <nav className="ngms-mp-nav" aria-label="Maintenance page navigation">
+          <Link href="/">HOME</Link>
+          <Link href="/services">SERVICES</Link>
+          <Link href="#packages" aria-current="page">MAINTENANCE PLANS</Link>
+          <Link href="/portfolio">PROJECTS</Link>
+          <Link href="/contact">CONTACT</Link>
+        </nav>
         <Link className="ngms-mp-top-cta" href="#join">START A PLAN <span>↗</span></Link>
       </div>
 
       <section className="ngms-mp-hero">
         <div className="ngms-mp-hero__headline">
-          <p className="ngms-mp-kicker">ONE CALL. ALL SOLUTIONS. / 2026</p>
-          <h1>CARE FOR<br />YOUR PROPERTY.<br /><span>WITHOUT</span><br />THE RUNAROUND<span className="ngms-mp-period">.</span></h1>
+          <p className="ngms-mp-kicker">NEXTGEN MAINTENANCE SOLUTIONS / HELDERBERG BASIN</p>
+          <h1>PROPERTY<br />CARE<span className="ngms-mp-period">.</span></h1>
+          <p className="ngms-mp-hero-index" aria-hidden="true">01</p>
           <div className="ngms-mp-hero__bottom">
-            <p><i aria-hidden="true" /> RECURRING CARE. SEASONAL PROJECTS. ONE TRUSTED TEAM.</p>
-            <Link href="#packages">EXPLORE PACKAGES <span>↗</span></Link>
+            <p><i aria-hidden="true" /> PREVENTIVE MAINTENANCE / RECURRING CARE / ONE TRUSTED TEAM</p>
+            <Link href="#packages">VIEW MAINTENANCE PLANS <span>↗</span></Link>
+          </div>
+        </div>
+        <div className="ngms-mp-hero__field-panel">
+          <div className="ngms-mp-field-copy">
+            <p className="ngms-mp-kicker">NGMS / FIELD OPERATIONS</p>
+            <h2>ONE TEAM.<br />EVERY TRADE.</h2>
+            <p>PLANNED VISITS. CLEAR SCOPE. LOCAL EXPERTISE.</p>
+          </div>
+          <div className="ngms-mp-field-stats">
+            <span><b>01</b> SCHEDULED CARE</span><span><b>12+</b> MAINTENANCE SERVICES</span><span><b>03</b> LOCAL SERVICE AREAS</span>
           </div>
         </div>
         <div className="ngms-mp-hero__visual">
-          <div className="ngms-mp-hero__visual-top"><span>NGMS / FIELD NOTES</span><span>01—03</span></div>
+          <div className="ngms-mp-hero__visual-top"><span>OUR PLANS / 01—03</span><span>STRAND · SOMERSET WEST</span></div>
           <div className="ngms-mp-architecture" aria-hidden="true">
             <div className="ngms-mp-architecture__block ngms-mp-architecture__block--one" />
             <div className="ngms-mp-architecture__block ngms-mp-architecture__block--two" />
@@ -75,7 +92,7 @@ export default function MaintenancePackagesPage() {
             <div className="ngms-mp-architecture__line" />
             <div className="ngms-mp-architecture__target">↗</div>
           </div>
-          <div className="ngms-mp-hero__visual-caption"><strong>MAINTAIN<br />WHAT MATTERS.</strong><span>STRAND · GORDON’S BAY<br />SOMERSET WEST</span></div>
+          <div className="ngms-mp-hero__visual-caption"><strong>MAINTAIN<br />WHAT MATTERS.</strong><span>01 INSPECT<br />02 MAINTAIN<br />03 PROTECT</span></div>
         </div>
         <div className="ngms-mp-hero__side-note">MAINTENANCE SYSTEMS / 001</div>
       </section>
