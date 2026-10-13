@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import { SERVICES, getService } from "@/lib/services";
 import { SUBURBS } from "@/lib/suburbs";
@@ -27,6 +27,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
   const { slug } = await params
   const s = getService(slug);
   if (!s) return notFound();
+  if (s.slug !== slug) permanentRedirect(`/services/${s.slug}`);
   const isSolar = s.slug === "solar-panel-cleaning";
   // Solar has richer per-town pages — link straight to them instead of the thin duplicates.
   const areaHref = (sub: string) =>
@@ -45,8 +46,8 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
     : SUBURBS;
 
   return (
-    <section>
-      <div className="bg-graphite border-b border-line py-14 px-4 text-center">
+    <section className="ngms-service-page">
+      <div className="ngms-service-hero bg-graphite border-b border-line py-14 px-4 text-center">
         <div className="group flex w-fit mx-auto mb-5 rounded-2xl bg-jet border border-darkgrey p-3 hover:border-orange transition-colors">
           <NgmsIcon name={s.slug} className="h-14 w-14 md:h-16 md:w-16" />
         </div>
@@ -57,7 +58,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
 
       <TrustBadges />
 
-      <div className="wrap max-w-[720px] py-10">
+      <div className="ngms-service-content wrap max-w-[900px] py-10">
         <p className="text-mist leading-relaxed">{s.description}</p>
 
         <h2 className="text-xl mt-8 mb-3">What&rsquo;s included</h2>
