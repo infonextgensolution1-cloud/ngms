@@ -65,21 +65,22 @@ export default function MaintenancePackagesPage() {
 
       <section className="ngms-mp-hero">
         <div className="ngms-mp-hero__headline">
-          <p className="ngms-mp-kicker">HELDERBERG BASIN / NGMS—2026 / PROPERTY CARE SYSTEMS</p>
-          <h1>MAINTENANCE<br />PLANS<span className="ngms-mp-period">.</span></h1>
+          <p className="ngms-mp-kicker">NEXTGEN MAINTENANCE SOLUTIONS / HELDERBERG BASIN</p>
+          <h1>PROPERTY<br />CARE<span className="ngms-mp-period">.</span></h1>
+          <p className="ngms-mp-hero-index" aria-hidden="true">01</p>
           <div className="ngms-mp-hero__bottom">
-            <p><i aria-hidden="true" /> PREVENT PROBLEMS. PROTECT YOUR PROPERTY. SAVE MONEY.</p>
-            <Link href="#packages">EXPLORE OUR PLANS <span>↗</span></Link>
+            <p><i aria-hidden="true" /> PREVENTIVE MAINTENANCE / RECURRING CARE / ONE TRUSTED TEAM</p>
+            <Link href="#packages">VIEW MAINTENANCE PLANS <span>↗</span></Link>
           </div>
         </div>
         <div className="ngms-mp-hero__field-panel">
           <div className="ngms-mp-field-copy">
             <p className="ngms-mp-kicker">NGMS / FIELD OPERATIONS</p>
-            <h2>PROACTIVE<br />PROPERTY CARE</h2>
-            <p>CLEAN. MAINTAIN. INSPECT. REPAIR. PROTECT.</p>
+            <h2>ONE TEAM.<br />EVERY TRADE.</h2>
+            <p>PLANNED VISITS. CLEAR SCOPE. LOCAL EXPERTISE.</p>
           </div>
           <div className="ngms-mp-field-stats">
-            <span><b>↓</b> LOWER COSTS</span><span><b>◇</b> LONGER LIFESPAN</span><span><b>↗</b> PROPERTY VALUE</span>
+            <span><b>01</b> SCHEDULED CARE</span><span><b>12+</b> MAINTENANCE SERVICES</span><span><b>03</b> LOCAL SERVICE AREAS</span>
           </div>
         </div>
         <div className="ngms-mp-hero__visual">
