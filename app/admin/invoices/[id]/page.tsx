@@ -351,6 +351,33 @@ function InvoiceView() {
             )}
           </div>
 
+          <section id="payment-history" className="bg-cardgrey border-2 border-orange rounded-card p-4 mb-4 scroll-mt-6">
+            <h2 className="font-heading font-bold text-paper mb-2 text-base">PAYMENT HISTORY &amp; CORRECTIONS</h2>
+            <p className="text-xs text-mist mb-3">Reverse an incorrectly recorded payment here. A reason is required and the correction is appended to the invoice audit notes.</p>
+            {paymentEntries(invoice.notes).length === 0 ? (
+              <p className="text-sm text-mist">No payment entries found in this invoice&apos;s notes.</p>
+            ) : (
+              <div className="space-y-2">
+                {paymentEntries(invoice.notes).map((entry) => (
+                  <div key={entry.index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border border-darkgrey rounded-btn p-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-paper">{rand(entry.amount)}</p>
+                      <p className="text-xs text-mist break-words">{entry.line}</p>
+                      {entry.reversed && <p className="text-xs text-orange mt-1">Reversal recorded in audit history</p>}
+                    </div>
+                    {entry.reversed ? (
+                      <span className="text-xs text-mist border border-darkgrey px-2 py-1 rounded shrink-0">Reversed</span>
+                    ) : (
+                      <button onClick={() => reversePayment(entry)} disabled={!!busy || entry.amount > (money?.paid ?? 0) + 0.004} className="inline-flex items-center justify-center gap-1.5 border border-orange text-orange hover:bg-orange/10 text-xs font-semibold px-3 py-2 rounded-btn disabled:opacity-40 shrink-0">
+                        {busy === `reverse-${entry.index}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Ban className="w-3.5 h-3.5" />} Reverse payment
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
           {money.balance > 0.004 && invoice.status !== 'void' && (
             <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-4">
               <h2 className="font-heading font-bold text-paper mb-3 flex items-center gap-2">
@@ -409,32 +436,7 @@ function InvoiceView() {
 
           {msg && <p className="text-xs text-mist mb-4">{msg}</p>}
 
-          <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-4">
-            <h2 className="font-heading font-bold text-paper mb-2">Payment history &amp; corrections</h2>
-            <p className="text-xs text-mist mb-3">Reverse an incorrectly recorded payment here. A reason is required and the correction is appended to the invoice audit notes.</p>
-            {paymentEntries(invoice.notes).length === 0 ? (
-              <p className="text-sm text-mist">No payment entries found in this invoice&apos;s notes.</p>
-            ) : (
-              <div className="space-y-2">
-                {paymentEntries(invoice.notes).map((entry) => (
-                  <div key={entry.index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border border-darkgrey rounded-btn p-3">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-paper">{rand(entry.amount)}</p>
-                      <p className="text-xs text-mist break-words">{entry.line}</p>
-                      {entry.reversed && <p className="text-xs text-orange mt-1">Reversal recorded in audit history</p>}
-                    </div>
-                    {entry.reversed ? (
-                      <span className="text-xs text-mist border border-darkgrey px-2 py-1 rounded shrink-0">Reversed</span>
-                    ) : (
-                      <button onClick={() => reversePayment(entry)} disabled={!!busy || entry.amount > (money?.paid ?? 0) + 0.004} className="inline-flex items-center justify-center gap-1.5 border border-orange text-orange hover:bg-orange/10 text-xs font-semibold px-3 py-2 rounded-btn disabled:opacity-40 shrink-0">
-                        {busy === `reverse-${entry.index}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Ban className="w-3.5 h-3.5" />} Reverse payment
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
+
 
           <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-6">
             <h2 className="font-heading font-bold text-paper mb-2">Notes</h2>
