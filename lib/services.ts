@@ -250,6 +250,40 @@ export const services: Service[] = [
       'High-pressure cleaning for driveways, paving, walls and outdoor surfaces in Strand, Gordon’s Bay and Somerset West. Fast, effective results that make surfaces look new again.',
   },
   {
+    slug: 'gutters',
+    name: 'Gutter Cleaning & Maintenance',
+    tagline: 'Keep rainwater flowing where it should',
+    description:
+      'Leaves, roof grit and coastal debris can block gutters and downpipes, causing overflow and damp around the property. NGMS provides gutter cleaning and maintenance across the Helderberg Basin, with the scope confirmed after considering roof access, property layout and the condition of the guttering.',
+    whatsIncluded: [
+      'Removal of accessible leaves and accumulated debris',
+      'Visual checks of accessible gutter sections and downpipes',
+      'Identification of visible blockages, leaks or damaged sections',
+      'Residential and suitable light-commercial maintenance',
+      'Site-specific recommendations for follow-up repairs where needed',
+    ],
+    faqs: [
+      {
+        question: 'How often should gutters be cleaned?',
+        answer:
+          'It depends on nearby trees, roof debris and seasonal conditions. Properties with overhanging trees or recurring blockages may need more frequent checks.',
+      },
+      {
+        question: 'Can you repair damaged gutters as well?',
+        answer:
+          'Tell us what you have noticed when requesting a quote. We will assess the visible condition and confirm which repairs are within the agreed service scope.',
+      },
+      {
+        question: 'Do you work on multi-unit properties?',
+        answer:
+          'Yes, suitable body-corporate and light-commercial maintenance can be assessed and scheduled according to access and site requirements.',
+      },
+    ],
+    metaTitle: 'Gutter Cleaning & Maintenance Helderberg | NextGen',
+    metaDescription:
+      'Gutter cleaning and maintenance for homes and suitable properties in Strand, Gordon’s Bay and Somerset West. Request a site-specific quote from NGMS.',
+  },
+  {
     slug: 'rubble-removal',
     name: 'Rubble Removal',
     tagline: 'Site and garden clearance',
@@ -367,8 +401,16 @@ export const services: Service[] = [
   },
 ]
 
+const SERVICE_SLUG_ALIASES: Record<string, string> = {
+  'steelwork': 'steelwork-welding',
+  'steelwork-welding': 'steelwork-welding',
+  'gutter-cleaning': 'gutters',
+  'gutter-cleaning-maintenance': 'gutters',
+}
+
 export function getService(slug: string) {
-  return services.find((s) => s.slug === slug)
+  const canonicalSlug = SERVICE_SLUG_ALIASES[slug] ?? slug
+  return services.find((s) => s.slug === canonicalSlug)
 }
 
 // Alias so both naming conventions work across the codebase
