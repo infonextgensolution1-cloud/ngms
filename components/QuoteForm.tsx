@@ -74,6 +74,9 @@ export default function QuoteForm({
   const [photoUploadState, setPhotoUploadState] = useState<"idle" | "uploading" | "uploaded" | "failed">("idle");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [preferredContact, setPreferredContact] = useState("WhatsApp");
+  const [contactName, setContactName] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
   const [area, setArea] = useState(matchArea(initialArea) ?? AREA_OPTIONS[0]);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoMeta, setPhotoMeta] = useState<{ width: number; height: number; size: number } | null>(null);
@@ -234,13 +237,15 @@ export default function QuoteForm({
         Solar panel cleaning from R550 (up to 10 panels) · 10% off your first booking on all other services
       </p>
       <Field step={4} label="Full name">
-        <input required={step === 4} name="name" autoComplete="name" maxLength={120} placeholder="Your name" className="field" />
+        <input required={step === 4} name="name" value={contactName} onChange={(e) => setContactName(e.target.value)} autoComplete="name" maxLength={120} placeholder="Your name" className="field" />
       </Field>
       <Field step={4} label="Phone / WhatsApp">
         <input
           required={step === 4}
           type="tel"
           name="phone"
+          value={contactPhone}
+          onChange={(e) => { setContactPhone(e.target.value); if (phoneErr) setPhoneErr(""); }}
           inputMode="tel"
           autoComplete="tel"
           pattern={PHONE_PATTERN}
@@ -258,7 +263,7 @@ export default function QuoteForm({
         )}
       </Field>
       <Field step={4} label="Email (optional)">
-        <input type="email" name="email" autoComplete="email" maxLength={254} placeholder="you@example.com" className="field" />
+        <input type="email" name="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} autoComplete="email" maxLength={254} placeholder="you@example.com" className="field" />
       </Field>
       <Field step={2} label="Area">
         <select name="area" value={area} onChange={(e) => setArea(e.target.value)} className="field">
@@ -296,6 +301,8 @@ export default function QuoteForm({
           onChange={(e) => {
             const f = e.target.files?.[0] ?? null;
             if (photoPreview) URL.revokeObjectURL(photoPreview);
+            setPhotoUrl(null);
+            setPhotoUploadState("idle");
             if (f && f.size > 15 * 1024 * 1024) {
               setPhotoErr("That photo is over 15MB. Please pick a smaller one.");
               setPhoto(null);
@@ -353,6 +360,9 @@ export default function QuoteForm({
         <h3 className="font-semibold text-paper">Review your request</h3>
         <p className="text-xs text-mist mt-1 mb-3">Check your details before sending. Go back to make changes.</p>
         <dl className="grid gap-2 text-sm">
+          <div><dt className="text-mist text-xs">Contact name</dt><dd className="text-paper">{contactName || "Not provided"}</dd></div>
+          <div><dt className="text-mist text-xs">Phone / WhatsApp</dt><dd className="text-paper">{contactPhone || "Not provided"}</dd></div>
+          <div><dt className="text-mist text-xs">Email</dt><dd className="text-paper">{contactEmail || "Not provided"}</dd></div>
           <div><dt className="text-mist text-xs">Service</dt><dd className="text-paper">{serviceName || "Not selected"}</dd></div>
           <div><dt className="text-mist text-xs">Property area</dt><dd className="text-paper">{area}</dd></div>
           <div><dt className="text-mist text-xs">Size / details</dt><dd className="text-paper">{sizeText || "Not provided"}</dd></div>
