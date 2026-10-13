@@ -68,6 +68,10 @@ function InvoiceView() {
   const [payAmount, setPayAmount] = useState('')
   const [payMethod, setPayMethod] = useState<(typeof PAY_METHODS)[number]>('eft')
   const [payRef, setPayRef] = useState('')
+  const [legacyPayAmount, setLegacyPayAmount] = useState('')
+  const [legacyPayDate, setLegacyPayDate] = useState('')
+  const [legacyPayMethod, setLegacyPayMethod] = useState<(typeof PAY_METHODS)[number]>('eft')
+  const [legacyPayRef, setLegacyPayRef] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -145,6 +149,42 @@ function InvoiceView() {
       if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not record the payment')
       setMsg(`Payment of ${rand(amount)} recorded.`)
       setPayRef('')
+      await load()
+    } catch (e) {
+      setMsg((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function addHistoricalPaymentEntry() {
+    if (!invoice || !money) return
+    const amount = Number(legacyPayAmount.replace(/\s/g, '').replace(',', '.'))
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setMsg('Enter a valid historical payment amount.')
+      return
+    }
+    const entries = paymentEntries(invoice.notes)
+    const loggedUnreversed = entries.filter((entry) => !entry.reversed).reduce((sum, entry) => sum + entry.amount, 0)
+    const unallocatedPaid = Math.max(0, Math.round((money.paid - loggedUnreversed) * 100) / 100)
+    if (amount > unallocatedPaid + 0.004) {
+      setMsg(`This invoice has only ${rand(unallocatedPaid)} of paid value without a matching payment entry. Check the amount and existing history.`)
+      return
+    }
+    const paidOn = legacyPayDate || new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Johannesburg' })
+    const ref = legacyPayRef.trim()
+    const logLine = `Payment ${rand(amount)} received ${paidOn} via ${legacyPayMethod.toUpperCase()}${ref ? ` (ref ${ref})` : ''} [historical payment entry reconciled by admin]`
+    if (!window.confirm(`Add ${rand(amount)} as a historical payment entry for ${invoice.invoice_number}? This records the payment history only; it does not change the invoice paid amount or balance. Only continue if this amount matches your proof of payment.`)) return
+    setBusy('legacy-payment')
+    setMsg('')
+    try {
+      const { error: updateError } = await supabase.from('invoices').update({ notes: [invoice.notes, logLine].filter(Boolean).join('\\n') }).eq('id', invoice.id)
+      if (updateError) throw new Error(updateError.message)
+      setLegacyPayAmount('')
+      setLegacyPayDate('')
+      setLegacyPayMethod('eft')
+      setLegacyPayRef('')
+      setMsg('Historical payment entry added. No invoice totals were changed. You can now reverse this entry if it was incorrectly recorded.')
       await load()
     } catch (e) {
       setMsg((e as Error).message)
@@ -249,6 +289,9 @@ function InvoiceView() {
   const canVoid = invoice.status !== 'void' && invoice.status !== 'paid' && money.paid <= 0.004
   const bank = bankPlaceholder ? null : business.bank_details
   const owing = invoice.status !== 'void' && money.balance > 0.004
+  const paymentHistory = paymentEntries(invoice.notes)
+  const loggedUnreversedPayments = paymentHistory.filter((entry) => !entry.reversed).reduce((sum, entry) => sum + entry.amount, 0)
+  const unallocatedPaidAmount = Math.max(0, Math.round((money.paid - loggedUnreversedPayments) * 100) / 100)
   const waInvoice = owing
     ? waTo(
         client?.phone,
@@ -354,11 +397,12 @@ function InvoiceView() {
           <section id="payment-history" className="bg-cardgrey border-2 border-orange rounded-card p-4 mb-4 scroll-mt-6">
             <h2 className="font-heading font-bold text-paper mb-2 text-base">PAYMENT HISTORY &amp; CORRECTIONS</h2>
             <p className="text-xs text-mist mb-3">Reverse an incorrectly recorded payment here. A reason is required and the correction is appended to the invoice audit notes.</p>
-            {paymentEntries(invoice.notes).length === 0 ? (
-              <p className="text-sm text-mist">No payment entries found in this invoice&apos;s notes.</p>
-            ) : (
-              <div className="space-y-2">
-                {paymentEntries(invoice.notes).map((entry) => (
+            {paymentHistory.length === 0 && (
+              <p className="text-sm text-mist mb-3">No individual payment entries were found in this invoice&apos;s notes. The current recorded paid amount is {rand(money.paid)}. To enable a safe reversal, add the missing historical payment entry below using the exact amount shown on the proof of payment. This records history only and does not change invoice totals.</p>
+            )}
+            {paymentHistory.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {paymentHistory.map((entry) => (
                   <div key={entry.index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border border-darkgrey rounded-btn p-3">
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-paper">{rand(entry.amount)}</p>
@@ -374,6 +418,31 @@ function InvoiceView() {
                     )}
                   </div>
                 ))}
+              </div>
+            )}
+            {unallocatedPaidAmount > 0.004 && (
+              <div className="mt-3 border border-darkgrey rounded-btn p-3">
+                <h3 className="text-sm font-semibold text-paper mb-1">Add missing historical payment entry</h3>
+                <p className="text-xs text-mist mb-3">Unmatched paid amount: {rand(unallocatedPaidAmount)}. Add each original payment separately and only from verified records. This will not change the invoice balance.</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="text-xs text-mist">Payment amount (R)
+                    <input className={\`${input} mt-1\`} inputMode="decimal" value={legacyPayAmount} onChange={(e) => setLegacyPayAmount(e.target.value)} placeholder="e.g. 1250.00" />
+                  </label>
+                  <label className="text-xs text-mist">Payment date
+                    <input className={\`${input} mt-1\`} type="date" value={legacyPayDate} onChange={(e) => setLegacyPayDate(e.target.value)} />
+                  </label>
+                  <label className="text-xs text-mist">Method
+                    <select className={\`${input} mt-1\`} value={legacyPayMethod} onChange={(e) => setLegacyPayMethod(e.target.value as (typeof PAY_METHODS)[number])}>
+                      {PAY_METHODS.map((method) => <option key={method} value={method}>{method.toUpperCase()}</option>)}
+                    </select>
+                  </label>
+                  <label className="text-xs text-mist">Proof/reference
+                    <input className={\`${input} mt-1\`} value={legacyPayRef} onChange={(e) => setLegacyPayRef(e.target.value)} placeholder="Bank reference / receipt" />
+                  </label>
+                </div>
+                <button onClick={addHistoricalPaymentEntry} disabled={!!busy || !legacyPayAmount.trim()} className="mt-3 inline-flex items-center gap-2 border border-orange text-orange hover:bg-orange/10 text-sm font-semibold px-3.5 py-2.5 rounded-btn disabled:opacity-50">
+                  {busy === 'legacy-payment' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Add historical entry
+                </button>
               </div>
             )}
           </section>
