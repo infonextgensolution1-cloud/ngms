@@ -14,6 +14,7 @@ import VisitorPresence from '@/components/VisitorPresence'
 import ClickTracking from '@/components/ClickTracking'
 import PWARegister from '@/components/PWARegister'
 import './globals.css'
+import './homepage-editorial.css'
 
 // Solar Forge type system: Inter for body/UI, Poppins for display headings.
 // Exposed as CSS variables that tailwind.config.ts maps to font-body / font-heading.
