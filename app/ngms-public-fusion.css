@@ -234,3 +234,90 @@ footer[data-site-marketing] .btn-wa {
     animation-iteration-count: 1 !important;
   }
 }
+
+
+/* Services-page visual target based on the approved reference composition. */
+.ngms-services-reference { background:#111111; color:#f7f4ef; }
+.ngms-services-reference .ngms-services-hero { min-height:540px; background:#111111; }
+.ngms-services-reference .ngms-services-hero > .mx-auto {
+  min-height:540px; display:grid; grid-template-columns:minmax(260px,.9fr) minmax(0,1.1fr);
+  align-content:center; align-items:center; gap:clamp(24px,4vw,64px); max-width:1440px;
+  padding-top:72px; padding-bottom:72px;
+}
+.ngms-services-reference .ngms-services-hero > .mx-auto > :is(p,h1,div) { grid-column:1; }
+.ngms-services-reference .ngms-services-hero > .mx-auto > p:first-child { align-self:end; margin-bottom:0; }
+.ngms-services-reference .ngms-services-hero h1 { font-size:clamp(4rem,7.2vw,7rem); line-height:.83; letter-spacing:-.065em; max-width:8ch; }
+.ngms-services-reference .ngms-services-hero h1 span:nth-child(2) { color:var(--ngms-fusion-orange); }
+.ngms-services-reference .ngms-services-hero > .mx-auto > p:nth-of-type(2) { max-width:31rem; font-size:clamp(1rem,1.35vw,1.2rem); }
+.ngms-services-reference .ngms-services-hero > .mx-auto > div:last-child { grid-column:1; max-width:31rem; margin-top:1.5rem; }
+.ngms-services-reference .ngms-services-hero > .absolute.inset-0.-z-20 { left:30%; opacity:.8; }
+.ngms-services-reference .ngms-services-hero > .absolute.inset-0.-z-10.bg-gradient-to-r {
+  background:linear-gradient(90deg,#111 0%,rgba(17,17,17,.95) 23%,rgba(17,17,17,.5) 62%,rgba(17,17,17,.15) 100%);
+}
+.ngms-services-reference .ngms-services-hero > .absolute.inset-0.-z-10.bg-gradient-to-t { background:linear-gradient(0deg,rgba(17,17,17,.85),transparent 45%); }
+.ngms-services-reference .ngms-services-hero .btn-quote { background:var(--ngms-fusion-orange)!important; border-color:var(--ngms-fusion-orange)!important; color:#111!important; }
+.ngms-services-reference .ngms-services-hero .btn-outline { border-radius:2px; border-width:1px; }
+.ngms-services-reference .ngms-services-intro,.ngms-services-reference .ngms-services-range { background:var(--ngms-fusion-paper); color:#111; }
+.ngms-services-reference .ngms-services-intro h2 { font-size:clamp(3rem,5.8vw,5.5rem); line-height:.88; }
+.ngms-services-reference .ngms-services-featured-grid { align-items:stretch; }
+.ngms-services-reference .ngms-services-featured { min-height:420px; border:1px solid #444; }
+.ngms-services-reference .ngms-service-feature-row { background:#fff; border-color:#d0ccc5; border-radius:2px; min-height:112px; }
+.ngms-services-reference .ngms-service-feature-row h3 { font-size:clamp(1.1rem,1.6vw,1.5rem); }
+.ngms-services-reference .ngms-service-feature-row > span:last-child { display:grid; place-items:center; width:38px; height:38px; border:1px solid #999; border-radius:50%; }
+.ngms-services-reference .ngms-service-tile { background:#fff; border-color:#d0ccc5; border-radius:2px; box-shadow:none; transition:border-color .2s ease,transform .2s ease; }
+.ngms-services-reference .ngms-service-tile:hover { border-color:var(--ngms-fusion-orange); transform:translateY(-3px); }
+.ngms-services-reference > section:last-child { background:#111; color:#fff; }
+.ngms-services-reference :is(a,button):focus-visible { outline:2px solid var(--ngms-fusion-orange); outline-offset:3px; }
+@media(max-width:900px) {
+ .ngms-services-reference .ngms-services-hero > .mx-auto { display:flex; min-height:680px; align-items:flex-start; justify-content:flex-end; gap:1rem; }
+ .ngms-services-reference .ngms-services-hero > .absolute.inset-0.-z-20 { left:0; }
+ .ngms-services-reference .ngms-services-hero > .absolute.inset-0.-z-10.bg-gradient-to-r { background:linear-gradient(180deg,rgba(17,17,17,.22) 0%,rgba(17,17,17,.75) 34%,#111 76%); }
+}
+@media(max-width:640px) {
+ .ngms-services-reference .ngms-services-hero > .mx-auto { min-height:650px; padding:260px 20px 32px; }
+ .ngms-services-reference .ngms-services-hero h1 { font-size:clamp(3.5rem,15vw,5.25rem); }
+ .ngms-services-reference .ngms-services-hero > .mx-auto > div:last-child { width:100%; grid-template-columns:repeat(3,minmax(0,1fr)); margin-top:1rem; }
+ .ngms-services-reference .ngms-services-hero > .mx-auto > div:last-child > div { padding:.75rem .5rem; }
+ .ngms-services-reference .ngms-services-hero > .mx-auto > div:last-child p:last-child { font-size:9px; line-height:1.35; }
+}
+
+
+/* Individual service pages: adapt existing content to the approved editorial reference.
+   Scope is public service-detail routes only; forms, data logic and admin are unchanged. */
+.ngms-service-detail-reference { background: var(--ngms-fusion-paper); color: var(--ngms-fusion-ink); }
+.ngms-service-detail-reference .ngms-service-detail-hero {
+  background: var(--ngms-fusion-paper); color: var(--ngms-fusion-ink); text-align: left;
+  border-bottom: 1px solid var(--ngms-fusion-line); padding: clamp(3rem,7vw,7rem) clamp(1.25rem,5vw,5rem);
+}
+.ngms-service-detail-reference .ngms-service-detail-hero > div:first-child {
+  margin-left: 0; border-radius: 0; background: transparent; border: 0; padding: 0;
+}
+.ngms-service-detail-reference .ngms-service-detail-hero .kicker { color: var(--ngms-fusion-muted); letter-spacing: .16em; font-size: .72rem; }
+.ngms-service-detail-reference .ngms-service-detail-hero h1 {
+  max-width: 14ch; font-size: clamp(2.7rem,7.5vw,7.5rem); line-height: .88;
+  letter-spacing: -.055em; color: var(--ngms-fusion-ink); margin-top: .5rem;
+}
+.ngms-service-detail-reference .ngms-service-detail-hero p:not(.kicker) { color: #55514c; max-width: 38rem; font-size: clamp(1rem,1.6vw,1.25rem); margin-top: 1.25rem; }
+.ngms-service-detail-reference > :not(.ngms-service-detail-hero) { color: var(--ngms-fusion-ink); }
+.ngms-service-detail-reference .ngms-service-detail-content { max-width: 1100px; width: calc(100% - 2.5rem); padding-top: clamp(2rem,5vw,5rem); padding-bottom: clamp(3rem,6vw,6rem); }
+.ngms-service-detail-reference .ngms-service-detail-content h2 { font-size: clamp(1.35rem,2.5vw,2.1rem); letter-spacing: -.03em; margin-top: 2.5rem; }
+.ngms-service-detail-reference .ngms-service-detail-content p { line-height: 1.75; }
+.ngms-service-detail-reference .ngms-service-detail-content .card,
+.ngms-service-detail-reference .ngms-service-detail-content li.card { border-radius: 0; background: transparent; border: 1px solid var(--ngms-fusion-line); color: #34312e; box-shadow: none; }
+.ngms-service-detail-reference .ngms-service-detail-content a.btn-quote,
+.ngms-service-detail-reference .ngms-service-detail-content .btn-quote { display: inline-flex; align-items: center; gap: .5rem; background: var(--ngms-fusion-orange); color: #111; border: 2px solid var(--ngms-fusion-orange); border-radius: 2px; padding: .85rem 1.1rem; font-weight: 800; text-transform: uppercase; }
+.ngms-service-detail-reference .ngms-service-detail-content .text-paper,
+.ngms-service-detail-reference .ngms-service-detail-content .text-mist { color: #55514c; }
+.ngms-service-detail-reference .ngms-service-detail-content .border-line { border-color: var(--ngms-fusion-line); }
+.ngms-service-detail-reference .ngms-service-detail-content .text-orange { color: #c94f00; }
+.ngms-service-detail-reference .ngms-service-detail-content a:hover { color: #c94f00; }
+@media (min-width: 900px) {
+  .ngms-service-detail-reference .ngms-service-detail-content { display: flow-root; }
+}
+@media (max-width: 640px) {
+  .ngms-service-detail-reference .ngms-service-detail-hero { padding: 3rem 1.25rem; }
+  .ngms-service-detail-reference .ngms-service-detail-content { width: calc(100% - 2rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ngms-service-detail-reference *, .ngms-service-detail-reference *::before, .ngms-service-detail-reference *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
