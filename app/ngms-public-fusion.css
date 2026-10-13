@@ -234,3 +234,49 @@ footer[data-site-marketing] .btn-wa {
     animation-iteration-count: 1 !important;
   }
 }
+
+
+/* Services-page visual target based on the approved reference composition. */
+.ngms-services-reference { background:#111111; color:#f7f4ef; }
+.ngms-services-reference .ngms-services-hero { min-height:540px; background:#111111; }
+.ngms-services-reference .ngms-services-hero > .mx-auto {
+  min-height:540px; display:grid; grid-template-columns:minmax(260px,.9fr) minmax(0,1.1fr);
+  align-content:center; align-items:center; gap:clamp(24px,4vw,64px); max-width:1440px;
+  padding-top:72px; padding-bottom:72px;
+}
+.ngms-services-reference .ngms-services-hero > .mx-auto > :is(p,h1,div) { grid-column:1; }
+.ngms-services-reference .ngms-services-hero > .mx-auto > p:first-child { align-self:end; margin-bottom:0; }
+.ngms-services-reference .ngms-services-hero h1 { font-size:clamp(4rem,7.2vw,7rem); line-height:.83; letter-spacing:-.065em; max-width:8ch; }
+.ngms-services-reference .ngms-services-hero h1 span:nth-child(2) { color:var(--ngms-fusion-orange); }
+.ngms-services-reference .ngms-services-hero > .mx-auto > p:nth-of-type(2) { max-width:31rem; font-size:clamp(1rem,1.35vw,1.2rem); }
+.ngms-services-reference .ngms-services-hero > .mx-auto > div:last-child { grid-column:1; max-width:31rem; margin-top:1.5rem; }
+.ngms-services-reference .ngms-services-hero > .absolute.inset-0.-z-20 { left:30%; opacity:.8; }
+.ngms-services-reference .ngms-services-hero > .absolute.inset-0.-z-10.bg-gradient-to-r {
+  background:linear-gradient(90deg,#111 0%,rgba(17,17,17,.95) 23%,rgba(17,17,17,.5) 62%,rgba(17,17,17,.15) 100%);
+}
+.ngms-services-reference .ngms-services-hero > .absolute.inset-0.-z-10.bg-gradient-to-t { background:linear-gradient(0deg,rgba(17,17,17,.85),transparent 45%); }
+.ngms-services-reference .ngms-services-hero .btn-quote { background:var(--ngms-fusion-orange)!important; border-color:var(--ngms-fusion-orange)!important; color:#111!important; }
+.ngms-services-reference .ngms-services-hero .btn-outline { border-radius:2px; border-width:1px; }
+.ngms-services-reference .ngms-services-intro,.ngms-services-reference .ngms-services-range { background:var(--ngms-fusion-paper); color:#111; }
+.ngms-services-reference .ngms-services-intro h2 { font-size:clamp(3rem,5.8vw,5.5rem); line-height:.88; }
+.ngms-services-reference .ngms-services-featured-grid { align-items:stretch; }
+.ngms-services-reference .ngms-services-featured { min-height:420px; border:1px solid #444; }
+.ngms-services-reference .ngms-service-feature-row { background:#fff; border-color:#d0ccc5; border-radius:2px; min-height:112px; }
+.ngms-services-reference .ngms-service-feature-row h3 { font-size:clamp(1.1rem,1.6vw,1.5rem); }
+.ngms-services-reference .ngms-service-feature-row > span:last-child { display:grid; place-items:center; width:38px; height:38px; border:1px solid #999; border-radius:50%; }
+.ngms-services-reference .ngms-service-tile { background:#fff; border-color:#d0ccc5; border-radius:2px; box-shadow:none; transition:border-color .2s ease,transform .2s ease; }
+.ngms-services-reference .ngms-service-tile:hover { border-color:var(--ngms-fusion-orange); transform:translateY(-3px); }
+.ngms-services-reference > section:last-child { background:#111; color:#fff; }
+.ngms-services-reference :is(a,button):focus-visible { outline:2px solid var(--ngms-fusion-orange); outline-offset:3px; }
+@media(max-width:900px) {
+ .ngms-services-reference .ngms-services-hero > .mx-auto { display:flex; min-height:680px; align-items:flex-start; justify-content:flex-end; gap:1rem; }
+ .ngms-services-reference .ngms-services-hero > .absolute.inset-0.-z-20 { left:0; }
+ .ngms-services-reference .ngms-services-hero > .absolute.inset-0.-z-10.bg-gradient-to-r { background:linear-gradient(180deg,rgba(17,17,17,.22) 0%,rgba(17,17,17,.75) 34%,#111 76%); }
+}
+@media(max-width:640px) {
+ .ngms-services-reference .ngms-services-hero > .mx-auto { min-height:650px; padding:260px 20px 32px; }
+ .ngms-services-reference .ngms-services-hero h1 { font-size:clamp(3.5rem,15vw,5.25rem); }
+ .ngms-services-reference .ngms-services-hero > .mx-auto > div:last-child { width:100%; grid-template-columns:repeat(3,minmax(0,1fr)); margin-top:1rem; }
+ .ngms-services-reference .ngms-services-hero > .mx-auto > div:last-child > div { padding:.75rem .5rem; }
+ .ngms-services-reference .ngms-services-hero > .mx-auto > div:last-child p:last-child { font-size:9px; line-height:1.35; }
+}
