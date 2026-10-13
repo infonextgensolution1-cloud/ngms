@@ -1,0 +1,143 @@
+/* NGMS service editorial system — scoped to service detail routes. */
+.ngms-service-page {
+  --ngms-orange: #dd6211;
+  --ngms-ink: #060808;
+  --ngms-paper: #f7f6f3;
+  --ngms-concrete: #d6d4d0;
+  background: var(--ngms-ink);
+  color: var(--ngms-paper);
+}
+.ngms-service-page .ngms-service-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: clamp(250px, 32vw, 390px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom-color: #3b3b39;
+  background:
+    linear-gradient(120deg, rgba(6,8,8,.98) 0%, rgba(6,8,8,.91) 55%, rgba(6,8,8,.72) 100%),
+    repeating-linear-gradient(90deg, transparent 0 79px, rgba(255,255,255,.055) 80px),
+    #060808;
+}
+.ngms-service-page .ngms-service-hero::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: clamp(150px, 23vw, 310px);
+  aspect-ratio: 1;
+  right: max(2vw, calc((100vw - 1320px) / 2));
+  top: 50%;
+  transform: translateY(-50%);
+  border: 1px solid rgba(221,98,17,.65);
+  box-shadow: 18px 18px 0 -17px rgba(221,98,17,.9), 36px 36px 0 -35px rgba(255,255,255,.35);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.ngms-service-page .ngms-service-hero .kicker {
+  color: var(--ngms-orange);
+  font-size: .72rem;
+  letter-spacing: .2em;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.ngms-service-page .ngms-service-hero h1 {
+  max-width: 1000px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+  font-family: var(--font-heading, "Big Shoulders Display", Impact, sans-serif);
+  font-size: clamp(2.4rem, 6.6vw, 6.4rem);
+  font-weight: 800;
+  line-height: .94;
+  letter-spacing: -.025em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.ngms-service-page .ngms-service-hero > p:last-child {
+  max-width: 44rem;
+  padding-inline: 1rem;
+  font-size: clamp(.95rem, 1.4vw, 1.15rem);
+  line-height: 1.55;
+}
+.ngms-service-page .ngms-service-content {
+  width: min(100% - 2rem, 900px);
+  padding-block: clamp(2.5rem, 6vw, 5.5rem);
+}
+.ngms-service-page .ngms-service-content > p:first-child {
+  color: #e1dfdb;
+  font-size: clamp(1rem, 1.4vw, 1.15rem);
+  line-height: 1.85;
+}
+.ngms-service-page .ngms-service-content h2 {
+  font-family: var(--font-heading, "Big Shoulders Display", Impact, sans-serif);
+  font-weight: 800;
+  letter-spacing: .015em;
+  text-transform: uppercase;
+}
+.ngms-service-page .ngms-service-content .card {
+  border-radius: 2px;
+  border-color: #444441;
+  background: #141615;
+}
+.ngms-service-page .ngms-service-content a.btn-quote,
+.ngms-service-page .ngms-service-content a.btn-wa {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .55rem;
+  border-radius: 2px;
+  font-weight: 800;
+  letter-spacing: .025em;
+  text-transform: uppercase;
+}
+.ngms-service-page .ngms-service-content a.btn-quote {
+  background: var(--ngms-orange);
+  color: #fff;
+  border: 2px solid var(--ngms-orange);
+}
+.ngms-service-page .ngms-service-content a.btn-quote:hover {
+  background: #b94e0b;
+  border-color: #b94e0b;
+  transform: translateY(-2px);
+}
+.ngms-service-page .ngms-service-content .rounded-full {
+  border-radius: 2px;
+}
+.ngms-service-page .ngms-service-content a:focus-visible {
+  outline: 3px solid #ffb27b;
+  outline-offset: 3px;
+}
+@media (max-width: 640px) {
+  .ngms-service-page .ngms-service-hero {
+    min-height: 260px;
+    padding-block: 2.5rem;
+  }
+  .ngms-service-page .ngms-service-hero::after {
+    width: 140px;
+    right: -54px;
+    opacity: .45;
+  }
+  .ngms-service-page .ngms-service-hero h1 {
+    max-width: 100%;
+    font-size: clamp(2.15rem, 12vw, 3.6rem);
+  }
+  .ngms-service-page .ngms-service-content {
+    width: min(100% - 2rem, 900px);
+  }
+  .ngms-service-page .ngms-service-content .flex.flex-wrap {
+    gap: .5rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ngms-service-page *,
+  .ngms-service-page *::before,
+  .ngms-service-page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
