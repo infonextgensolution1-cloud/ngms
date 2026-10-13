@@ -71,6 +71,9 @@ export default function QuoteForm({
   const [sizeText, setSizeText] = useState(initialSize ?? "");
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoErr, setPhotoErr] = useState("");
+  const [photoUploadState, setPhotoUploadState] = useState<"idle" | "uploading" | "uploaded" | "failed">("idle");
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [preferredContact, setPreferredContact] = useState("WhatsApp");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoMeta, setPhotoMeta] = useState<{ width: number; height: number; size: number } | null>(null);
   const [prefDate, setPrefDate] = useState("");
@@ -120,18 +123,27 @@ export default function QuoteForm({
     const pref = String(data.get("pref") || "");
     const notes = String(data.get("notes") || "");
 
-    // Photo upload is best-effort: the lead is never blocked by it.
-    let photoUrl: string | null = null;
-    if (photo) {
+    // Do not silently drop a selected photo. Preserve the form if upload fails,
+    // allowing the customer to retry or remove the optional attachment.
+    let uploadedPhotoUrl = photoUrl;
+    if (photo && !uploadedPhotoUrl) {
+      setPhotoUploadState("uploading");
       try {
         const blob = await compressImage(photo);
         const fd = new FormData();
         fd.append("photo", new File([blob], "photo.jpg", { type: "image/jpeg" }));
         const r = await fetch("/api/quote-photo", { method: "POST", body: fd });
         const j = await r.json().catch(() => ({}));
-        if (j?.url) photoUrl = j.url;
+        if (!r.ok || !j?.url) throw new Error(j?.error || "Upload failed");
+        uploadedPhotoUrl = j.url;
+        setPhotoUrl(j.url);
+        setPhotoUploadState("uploaded");
+        setPhotoErr("");
       } catch {
-        /* continue without the photo */
+        setPhotoUploadState("failed");
+        setPhotoErr("We couldn’t upload this photo. Retry the upload, or remove the photo and submit without it.");
+        setStatus("idle");
+        return;
       }
     }
 
@@ -154,7 +166,7 @@ export default function QuoteForm({
         service: serviceName,
         service_slug: service?.slug ?? null,
         message,
-        photo_url: photoUrl,
+        photo_url: uploadedPhotoUrl,
       },
       {
         name,
@@ -166,7 +178,7 @@ export default function QuoteForm({
         preferredContact: pref,
         preferredDate: prefDate || undefined,
         estimate: estimate ?? undefined,
-        photoUrl: photoUrl ?? undefined,
+        photoUrl: uploadedPhotoUrl ?? undefined,
         consent: true,
         message: notes,
       }
@@ -210,21 +222,21 @@ export default function QuoteForm({
   return (
     <form data-quote-step={step} className="grid grid-cols-1 gap-3.5 w-full max-w-[520px] mx-auto" onSubmit={onSubmit}>
       <div className="rounded-panel border border-darkgrey bg-cardgrey/60 p-3" aria-label="Quote progress">
-        <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.16em] text-mist"><span>Step {step} of 4</span><span className="text-paper">{["Job","Property","Photos","Contact"][step - 1]}</span></div>
-        <ol className="mt-2 grid grid-cols-4 gap-1" aria-label="Quote steps">
-          {["Job","Property","Photos","Contact"].map((label, i) => <li key={label} aria-current={step === i + 1 ? "step" : undefined} className={`h-1.5 rounded-full ${i < step ? "bg-blue" : "bg-darkgrey"}`}><span className="sr-only">{label}</span></li>)}
+        <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.16em] text-mist"><span>Step {step} of 5</span><span className="text-paper">{["Job","Property","Photos","Contact","Review"][step - 1]}</span></div>
+        <ol className="mt-2 grid grid-cols-5 gap-1" aria-label="Quote steps">
+          {["Job","Property","Photos","Contact","Review"].map((label, i) => <li key={label} aria-current={step === i + 1 ? "step" : undefined} className={`h-1.5 rounded-full ${i < step ? "bg-orange" : "bg-darkgrey"}`}><span className="sr-only">{label}</span></li>)}
         </ol>
-        <p className="text-xs text-mist mt-2">Takes about 2 minutes. You can send photos on the next step.</p>
+        <p className="text-xs text-mist mt-2">Your details stay in the form as you move between steps. Photo upload is optional.</p>
       </div>
       <p className="rounded-panel border border-blue/30 bg-blue/10 text-paper text-center text-xs sm:text-sm py-2.5 px-3">
         Solar panel cleaning from R550 (up to 10 panels) · 10% off your first booking on all other services
       </p>
       <Field step={4} label="Full name">
-        <input required name="name" autoComplete="name" maxLength={120} placeholder="Your name" className="field" />
+        <input required={step === 4} name="name" autoComplete="name" maxLength={120} placeholder="Your name" className="field" />
       </Field>
       <Field step={4} label="Phone / WhatsApp">
         <input
-          required
+          required={step === 4}
           type="tel"
           name="phone"
           inputMode="tel"
@@ -292,12 +304,11 @@ export default function QuoteForm({
             }
           }}
         />
-        {photo && !photoErr && (
-          <span className="block text-xs text-blue mt-1.5" role="status">
-            Photo attached: {photo.name}
-          </span>
-        )}
+        {photo && !photoErr && <span className="block text-xs text-mist mt-1.5" role="status">Photo selected: {photo.name} · {(photo.size / (1024 * 1024)).toFixed(1)} MB</span>}
+        {photoUploadState === "uploading" && <div className="mt-2" role="status" aria-live="polite"><span className="block text-xs text-paper mb-1">Preparing and uploading photo…</span><div className="h-1.5 rounded-full bg-darkgrey overflow-hidden"><div className="h-full w-2/3 bg-orange animate-pulse rounded-full" /></div></div>}
+        {photoUploadState === "uploaded" && <span className="block text-xs text-paper mt-1.5" role="status">Photo uploaded securely and ready to attach.</span>}
         {photoErr && <span role="alert" className="block text-orange text-xs mt-1.5">{photoErr}</span>}
+        {photoUploadState === "failed" && photo && <div className="flex flex-wrap gap-2 mt-2"><button type="button" className="btn-outline" onClick={() => { setPhotoErr(""); setPhotoUploadState("idle"); setStatus("idle"); }}>Retry upload</button><button type="button" className="btn-outline" onClick={() => { setPhoto(null); setPhotoUrl(null); setPhotoUploadState("idle"); setPhotoErr(""); }}>Remove photo and continue</button></div>}
       </Field>
       <Field step={2} label="Preferred date (optional)">
         <input type="date" min={today} value={prefDate} onChange={(e) => setPrefDate(e.target.value)} className="field" />
@@ -319,7 +330,7 @@ export default function QuoteForm({
         )}
       </Field>
       <Field step={4} label="Preferred contact">
-        <select name="pref" className="field">
+        <select name="pref" value={preferredContact} onChange={(e) => setPreferredContact(e.target.value)} className="field">
           <option>WhatsApp</option>
           <option>Phone call</option>
           <option>Email</option>
@@ -329,21 +340,41 @@ export default function QuoteForm({
         <textarea name="notes" maxLength={2000} placeholder="What needs doing? Access, timing, anything we should know." className="field min-h-[110px]" />
       </Field>
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
-      <label className="flex items-start gap-2 text-xs text-mist">
-        <input required type="checkbox" name="consent" className="mt-0.5" />
+      <label data-quote-step={4} className="flex items-start gap-2 text-xs text-mist">
+        <input required={step === 4} type="checkbox" name="consent" className="mt-0.5" />
         <span>
           I agree that NextGen may store my details and contact me about this quote and related service reminders, as
           set out in our <a href="/privacy" className="underline">privacy policy</a> (POPIA).
         </span>
       </label>
-      <button data-quote-submit className="btn btn-quote" type="submit" disabled={status === "sending"}>
-        {status === "sending" ? "Sending..." : "Send quote request"}
-      </button>
-      {step < 4 && <div className="flex gap-2 pt-1" data-quote-navigation>
-        {step > 1 && <button type="button" className="btn-outline flex-1" onClick={() => setStep((s) => s - 1)}>Back</button>}
-        <button type="button" className="btn-quote flex-1" onClick={() => setStep((s) => s + 1)}>Continue</button>
+      {step === 5 && <div data-quote-step={5} className="rounded-panel border border-darkgrey bg-cardgrey/60 p-4">
+        <h3 className="font-semibold text-paper">Review your request</h3>
+        <p className="text-xs text-mist mt-1 mb-3">Check your details before sending. Go back to make changes.</p>
+        <dl className="grid gap-2 text-sm">
+          <div><dt className="text-mist text-xs">Service</dt><dd className="text-paper">{serviceName || "Not selected"}</dd></div>
+          <div><dt className="text-mist text-xs">Size / details</dt><dd className="text-paper">{sizeText || "Not provided"}</dd></div>
+          <div><dt className="text-mist text-xs">Photo</dt><dd className="text-paper">{photo ? (photoUrl ? "Uploaded and attached" : "Selected; upload pending") : "No photo attached"}</dd></div>
+          <div><dt className="text-mist text-xs">Preferred date</dt><dd className="text-paper">{prefDate || "Flexible"}</dd></div>
+          <div><dt className="text-mist text-xs">Preferred contact</dt><dd className="text-paper">{preferredContact}</dd></div>
+          <div><dt className="text-mist text-xs">Notes</dt><dd className="text-paper whitespace-pre-wrap">{notes || "No additional notes"}</dd></div>
+        </dl>
+        <p className="text-xs text-mist mt-3">Your details are handled according to our <a href="/privacy" className="underline">privacy policy</a>. We’ll confirm whether your request was received.</p>
       </div>}
-      {step === 4 && step > 1 && <button type="button" className="btn-outline w-full" onClick={() => setStep((s) => s - 1)}>Back</button>}
+      {step === 5 && <button data-quote-submit className="btn btn-quote" type="submit" disabled={status === "sending" || photoUploadState === "uploading"}>
+        {status === "sending" ? "Sending..." : "Confirm and send request"}
+      </button>}
+      {step < 5 && <div className="flex gap-2 pt-1" data-quote-navigation>
+        {step > 1 && <button type="button" className="btn-outline flex-1" onClick={() => setStep((s) => s - 1)}>Back</button>}
+        <button type="button" className="btn-quote flex-1" onClick={(e) => {
+          const form = e.currentTarget.form;
+          if (!form) return;
+          const fields = Array.from(form.querySelectorAll(`[data-quote-step="${step}"] input, [data-quote-step="${step}"] select, [data-quote-step="${step}"] textarea`));
+          const invalid = fields.find((field) => field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement ? !field.checkValidity() : false);
+          if (invalid instanceof HTMLInputElement || invalid instanceof HTMLSelectElement || invalid instanceof HTMLTextAreaElement) { invalid.reportValidity(); invalid.focus(); return; }
+          setStep((s) => Math.min(5, s + 1));
+        }}>Continue</button>
+      </div>}
+      {step === 5 && <button type="button" className="btn-outline w-full" onClick={() => setStep(4)}>Back to contact details</button>}
       {status === "error" && (
         <div role="alert" className="rounded-panel border border-orange/50 bg-orange/10 p-4 text-sm text-center">
           <p className="text-paper font-semibold">We couldn&rsquo;t send that from here.</p>
