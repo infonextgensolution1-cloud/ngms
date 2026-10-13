@@ -15,6 +15,20 @@ import type { Invoice, Client, Item } from '@/lib/ngms-ops/core'
 import { LOGO_DATA_URI } from '@/lib/logo'
 import { PLACEHOLDER_ACC } from '@/lib/quote-terms'
 
+type PaymentEntry = { line: string; amount: number; index: number; reversed: boolean }
+
+function paymentEntries(notes: string | null): PaymentEntry[] {
+  const lines = (notes ?? '').split('\n')
+  return lines.flatMap((line, index) => {
+    if (!/^Payment\s+/i.test(line)) return []
+    const match = line.match(/^Payment\s+R?\s*([\d, ]+(?:\.\d{1,2})?)/i)
+    if (!match) return []
+    const amount = Number(match[1].replace(/[ ,]/g, ''))
+    if (!Number.isFinite(amount) || amount <= 0) return []
+    return [{ line, amount, index, reversed: lines.some((entry) => entry.startsWith(`PAYMENT REVERSAL [entry ${index + 1}]:`)) }]
+  })
+}
+
 type Money = { subtotal: number; vat: number; total: number; paid: number; balance: number; overdue: boolean; days_overdue: number }
 type Business = { name: string | null; phone: string | null; whatsapp: string | null; email: string | null; address: string | null; vat_number: string | null; bank_details: string | null; logo_url: string | null }
 
@@ -131,6 +145,38 @@ function InvoiceView() {
       if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not record the payment')
       setMsg(`Payment of ${rand(amount)} recorded.`)
       setPayRef('')
+      await load()
+    } catch (e) {
+      setMsg((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function reversePayment(entry: PaymentEntry) {
+    if (!invoice || !money || entry.reversed) return
+    const reason = window.prompt(`Why are you reversing this payment on ${invoice.invoice_number}?\\n\\n${entry.line}`, 'Payment incorrectly recorded')
+    if (reason === null) return
+    if (!reason.trim()) { setMsg('A reason is required to reverse a payment.'); return }
+    if (!window.confirm(`Reverse ${rand(entry.amount)} from ${invoice.invoice_number}? The outstanding balance will increase.`)) return
+    setBusy(`reverse-${entry.index}`)
+    setMsg('')
+    try {
+      // Read the latest row before applying the correction to avoid relying only on the page's cached amount.
+      const { data: latest, error: readError } = await supabase.from('invoices').select('paid_amount,status,notes').eq('id', invoice.id).single()
+      if (readError || !latest) throw new Error(readError?.message ?? 'Could not reload the latest invoice payment state.')
+      const latestNotes = String(latest.notes ?? '')
+      const currentLines = latestNotes.split('\n')
+      const marker = `PAYMENT REVERSAL [entry ${entry.index + 1}]:`
+      if (currentLines.some((line: string) => line.startsWith(marker))) throw new Error('This payment has already been reversed. Refresh the invoice to see the latest history.')
+      if (!currentLines.includes(entry.line)) throw new Error('This payment entry has changed. Refresh the invoice before reversing it.')
+      if (Number(latest.paid_amount ?? 0) + 0.004 < entry.amount) throw new Error('The current paid amount is lower than this payment. Refresh and reconcile the invoice before reversing it.')
+      const nextPaid = Math.max(0, Math.round((Number(latest.paid_amount ?? 0) - entry.amount) * 100) / 100)
+      const nextStatus = nextPaid <= 0.004 ? 'sent' : nextPaid >= money.total - 0.004 ? 'paid' : 'partial'
+      const audit = `${marker} ${rand(entry.amount)} reversed on ${new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Johannesburg' })}. Reason: ${reason.trim()}. Original: ${entry.line}`
+      const { error: updateError } = await supabase.from('invoices').update({ paid_amount: nextPaid, status: nextStatus, notes: [latestNotes, audit].filter(Boolean).join('\n') }).eq('id', invoice.id)
+      if (updateError) throw new Error(updateError.message)
+      setMsg(`Payment reversed. Paid amount and outstanding balance recalculated; invoice is now ${nextStatus}.`)
       await load()
     } catch (e) {
       setMsg((e as Error).message)
@@ -305,6 +351,33 @@ function InvoiceView() {
             )}
           </div>
 
+          <section id="payment-history" className="bg-cardgrey border-2 border-orange rounded-card p-4 mb-4 scroll-mt-6">
+            <h2 className="font-heading font-bold text-paper mb-2 text-base">PAYMENT HISTORY &amp; CORRECTIONS</h2>
+            <p className="text-xs text-mist mb-3">Reverse an incorrectly recorded payment here. A reason is required and the correction is appended to the invoice audit notes.</p>
+            {paymentEntries(invoice.notes).length === 0 ? (
+              <p className="text-sm text-mist">No payment entries found in this invoice&apos;s notes.</p>
+            ) : (
+              <div className="space-y-2">
+                {paymentEntries(invoice.notes).map((entry) => (
+                  <div key={entry.index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border border-darkgrey rounded-btn p-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-paper">{rand(entry.amount)}</p>
+                      <p className="text-xs text-mist break-words">{entry.line}</p>
+                      {entry.reversed && <p className="text-xs text-orange mt-1">Reversal recorded in audit history</p>}
+                    </div>
+                    {entry.reversed ? (
+                      <span className="text-xs text-mist border border-darkgrey px-2 py-1 rounded shrink-0">Reversed</span>
+                    ) : (
+                      <button onClick={() => reversePayment(entry)} disabled={!!busy || entry.amount > (money?.paid ?? 0) + 0.004} className="inline-flex items-center justify-center gap-1.5 border border-orange text-orange hover:bg-orange/10 text-xs font-semibold px-3 py-2 rounded-btn disabled:opacity-40 shrink-0">
+                        {busy === `reverse-${entry.index}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Ban className="w-3.5 h-3.5" />} Reverse payment
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
           {money.balance > 0.004 && invoice.status !== 'void' && (
             <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-4">
               <h2 className="font-heading font-bold text-paper mb-3 flex items-center gap-2">
@@ -362,6 +435,8 @@ function InvoiceView() {
           )}
 
           {msg && <p className="text-xs text-mist mb-4">{msg}</p>}
+
+
 
           <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-6">
             <h2 className="font-heading font-bold text-paper mb-2">Notes</h2>
