@@ -1,0 +1,236 @@
+/* NGMS Public Fusion System — preview-only redesign layer.
+   Public marketing UI only. Admin, portal, quote/PDF workflows and data logic remain untouched. */
+:root {
+  --ngms-fusion-orange: #FF6A00;
+  --ngms-fusion-orange-hover: #D94F00;
+  --ngms-fusion-ink: #111111;
+  --ngms-fusion-charcoal: #1B1B1B;
+  --ngms-fusion-graphite: #292929;
+  --ngms-fusion-concrete: #D7D3CD;
+  --ngms-fusion-paper: #F7F4EF;
+  --ngms-fusion-white: #FFFFFF;
+  --ngms-fusion-muted: #77736D;
+  --ngms-fusion-line: #D0CCC5;
+}
+
+/* Shared shell: keep navigation legible, restrained and consistent on all public routes. */
+body > header:has(nav[aria-label="Main"]) {
+  background: rgba(17,17,17,.96);
+  border-color: #383838;
+  box-shadow: 0 8px 26px rgba(0,0,0,.14);
+}
+body > header:has(nav[aria-label="Main"]) nav[aria-label="Main"] a[aria-current="page"] {
+  color: var(--ngms-fusion-orange);
+  background: rgba(255,106,0,.08);
+}
+body > header:has(nav[aria-label="Main"]) nav[aria-label="Main"] a:hover,
+body > header:has(nav[aria-label="Main"]) nav[aria-label="Mobile"] a:hover {
+  color: var(--ngms-fusion-orange);
+}
+body > header:has(nav[aria-label="Main"]) .btn-quote,
+footer[data-site-marketing] .btn-quote,
+[data-site-marketing].fixed .btn-quote {
+  background: var(--ngms-fusion-orange) !important;
+  border-color: var(--ngms-fusion-orange) !important;
+  color: #111111 !important;
+  box-shadow: 0 4px 12px rgba(255,106,0,.16);
+}
+body > header:has(nav[aria-label="Main"]) .btn-quote:hover,
+footer[data-site-marketing] .btn-quote:hover,
+[data-site-marketing].fixed .btn-quote:hover {
+  background: var(--ngms-fusion-orange-hover) !important;
+  border-color: var(--ngms-fusion-orange-hover) !important;
+  color: #FFFFFF !important;
+}
+footer[data-site-marketing] {
+  border-color: #383838;
+  background: #111111;
+}
+footer[data-site-marketing] .text-blue,
+footer[data-site-marketing] a:hover {
+  color: var(--ngms-fusion-orange) !important;
+}
+footer[data-site-marketing] .btn-wa {
+  border-color: var(--ngms-fusion-orange);
+}
+[data-site-marketing].fixed {
+  background: rgba(17,17,17,.97);
+  border-color: #383838;
+}
+[data-site-marketing].fixed .btn-wa {
+  border-color: var(--ngms-fusion-orange) !important;
+}
+[data-site-marketing] .text-\[\#B7FF00\],
+[data-site-marketing] .text-whatsapp {
+  color: #25D366 !important;
+  filter: none !important;
+}
+
+/* Shared marketing pages: crisp editorial hierarchy without changing routes or components. */
+.ngms-public-page {
+  --public-accent: var(--ngms-fusion-orange);
+  color: var(--ngms-fusion-white);
+}
+.ngms-public-page :is(h1,h2,h3) {
+  text-wrap: balance;
+  letter-spacing: -.035em;
+}
+.ngms-public-page :is(a,button,summary):focus-visible {
+  outline: 2px solid var(--ngms-fusion-orange);
+  outline-offset: 3px;
+}
+.ngms-public-page .kicker,
+.ngms-public-page .tag,
+.ngms-public-page .text-blue,
+.ngms-public-page .text-orange {
+  color: var(--ngms-fusion-orange) !important;
+}
+.ngms-public-page .btn-quote,
+.ngms-public-page .btn-glow,
+.ngms-public-page .btn-quote-popup,
+.ngms-public-page .btn-quote-hero {
+  background: var(--ngms-fusion-orange) !important;
+  border-color: var(--ngms-fusion-orange) !important;
+  color: var(--ngms-fusion-ink) !important;
+}
+.ngms-public-page :is(.btn-quote,.btn-glow,.btn-quote-popup,.btn-quote-hero):hover {
+  background: var(--ngms-fusion-orange-hover) !important;
+  border-color: var(--ngms-fusion-orange-hover) !important;
+  color: #FFFFFF !important;
+}
+.ngms-public-page :is(.card,.panel) {
+  border-radius: 4px;
+  border-color: #414141;
+}
+.ngms-public-page img {
+  max-width: 100%;
+}
+.ngms-public-page :is(input,select,textarea) {
+  max-width: 100%;
+}
+
+/* Homepage: industrial engineering composition, warm paper, charcoal and true Solar Orange.
+   Retain admin-managed hero imagery, carousel controls, and every existing CTA. */
+.ngms-home-refresh {
+  --ngms-lime: var(--ngms-fusion-orange) !important;
+  --industrial-orange: var(--ngms-fusion-orange) !important;
+}
+.ngms-home-refresh .ngms-industrial-hero #hero-title span,
+.ngms-home-refresh .ngms-industrial-hero__index,
+.ngms-home-refresh .ngms-industrial-hero__side-note i::after,
+.ngms-home-refresh .ngms-industrial-hero__proof-icon,
+.ngms-home-refresh .ngms-industrial-hero__control:hover {
+  color: var(--ngms-fusion-orange) !important;
+}
+.ngms-home-refresh .ngms-industrial-hero__side-note i::after {
+  background: var(--ngms-fusion-orange) !important;
+}
+.ngms-home-refresh .ngms-industrial-button--orange,
+.ngms-home-refresh :is(.btn-quote,.btn-glow,.btn-power,.btn-popular) {
+  background: var(--ngms-fusion-orange) !important;
+  border-color: var(--ngms-fusion-orange) !important;
+  color: var(--ngms-fusion-ink) !important;
+}
+.ngms-home-refresh .ngms-industrial-button--orange:hover,
+.ngms-home-refresh :is(.btn-quote,.btn-glow,.btn-power):hover {
+  background: var(--ngms-fusion-orange-hover) !important;
+  border-color: var(--ngms-fusion-orange-hover) !important;
+  color: #FFFFFF !important;
+}
+.ngms-home-refresh .ngms-industrial-hero__wash {
+  background: linear-gradient(125deg, transparent 40%, rgba(255,106,0,.12) 40.2%, transparent 40.6%),
+              linear-gradient(90deg, rgba(255,255,255,.08), transparent 65%) !important;
+}
+.ngms-home-refresh :is(a,button,summary):focus-visible {
+  outline-color: var(--ngms-fusion-orange) !important;
+}
+.ngms-home-refresh .ngms-services-editorial .ngms-service-tile:hover {
+  border-color: var(--ngms-fusion-orange);
+  box-shadow: 0 12px 26px rgba(17,17,17,.12);
+}
+
+/* Maintenance packages: keep the approved angular plan layout; replace red/lime drift with NGMS orange. */
+.ngms-maintenance-brut {
+  --mp-paper: var(--ngms-fusion-paper) !important;
+  --mp-white: #FFFFFF !important;
+  --mp-ink: #111111 !important;
+  --mp-muted: #555555 !important;
+  --mp-line: #D0CCC5 !important;
+  --mp-red: var(--ngms-fusion-orange) !important;
+  --mp-accent: var(--ngms-fusion-orange-hover) !important;
+  background: var(--ngms-fusion-paper) !important;
+  color: #111111 !important;
+}
+.ngms-maintenance-brut :is(.ngms-mp-kicker,.ngms-mp-period,.ngms-mp-package__price strong,.ngms-mp-package__features li span,.ngms-mp-service summary b) {
+  color: var(--ngms-fusion-orange-hover) !important;
+}
+.ngms-maintenance-brut .ngms-mp-package.is-featured {
+  border-color: var(--ngms-fusion-orange) !important;
+  box-shadow: inset 3px 0 0 var(--ngms-fusion-orange) !important;
+}
+.ngms-maintenance-brut :is(.ngms-mp-top-cta,.ngms-mp-package__price a) {
+  background: var(--ngms-fusion-orange) !important;
+  border-color: var(--ngms-fusion-orange) !important;
+  color: #111111 !important;
+}
+.ngms-maintenance-brut :is(.ngms-mp-top-cta,.ngms-mp-package__price a):hover {
+  background: var(--ngms-fusion-orange-hover) !important;
+  border-color: var(--ngms-fusion-orange-hover) !important;
+  color: #FFFFFF !important;
+}
+.ngms-maintenance-brut :is(a,button,summary):focus-visible {
+  outline-color: var(--ngms-fusion-orange) !important;
+}
+
+/* Body corporate and project pages: consistent orange accents, warm neutrals and square geometry. */
+[data-editorial-page="body-corporate-maintenance"] :is(.text-orange,.text-blue,.kicker) {
+  color: var(--ngms-fusion-orange-hover) !important;
+}
+[data-editorial-page="body-corporate-maintenance"] .btn-quote {
+  background: var(--ngms-fusion-orange) !important;
+  border-color: var(--ngms-fusion-orange) !important;
+  color: #111111 !important;
+}
+[data-editorial-page="body-corporate-maintenance"] .btn-quote:hover {
+  background: var(--ngms-fusion-orange-hover) !important;
+  border-color: var(--ngms-fusion-orange-hover) !important;
+  color: #FFFFFF !important;
+}
+[data-editorial-page="body-corporate-maintenance"] :is(a,button):focus-visible,
+.ngms-project-editorial a:focus-visible {
+  outline-color: var(--ngms-fusion-orange) !important;
+}
+.ngms-project-editorial [class*="bg-[#ff5314]"] {
+  background-color: var(--ngms-fusion-orange) !important;
+}
+.ngms-project-editorial [class*="text-[#ff6a32]"],
+.ngms-project-editorial [class*="text-[#ff7847]"],
+.ngms-project-editorial [class*="text-[#ff8b60]"],
+.ngms-project-editorial [class*="text-[#d94a13]"] {
+  color: var(--ngms-fusion-orange-hover) !important;
+}
+
+/* Small-screen polish: prevent layout bleed and respect reduced-motion preferences. */
+@media (max-width: 767px) {
+  .ngms-public-page {
+    min-width: 0;
+  }
+  .ngms-public-page :is(main,section,article,aside,form) {
+    min-width: 0;
+  }
+  .ngms-public-page :is(.card,.panel) {
+    padding-inline: clamp(.85rem, 4vw, 1.25rem);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ngms-public-page *,
+  .ngms-home-refresh *,
+  .ngms-maintenance-brut *,
+  [data-editorial-page="body-corporate-maintenance"] *,
+  .ngms-project-editorial * {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
