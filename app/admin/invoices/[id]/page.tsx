@@ -525,7 +525,8 @@ function InvoiceView() {
             {!creditNotesAvailable && <p className="text-xs text-orange border border-orange/40 rounded-btn p-3 mb-3">Credit-note database migration is not available in this environment. Existing invoice operations remain unaffected.</p>}
             {!CREDIT_NOTE_UI_ENABLED && <p className="text-xs text-mist border border-darkgrey rounded-btn p-3 mb-3">Read-only preview mode. Credit-note writes remain disabled until an isolated preview database is configured and NEXT_PUBLIC_NGMS_CREDIT_NOTES_ENABLED is explicitly enabled there.</p>}
             {['paid','partial'].includes(invoice.status) && <p className="text-xs text-orange border border-orange/40 rounded-btn p-3 mb-3">Manual Admin accounting review is required for this {invoice.status} invoice.</p>}
-            {CREDIT_NOTE_UI_ENABLED && creditNotesAvailable && (<>\n            <div className="grid gap-3 sm:grid-cols-2">
+            {CREDIT_NOTE_UI_ENABLED && creditNotesAvailable && (<>
+            <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-xs text-mist sm:col-span-2">Reason<textarea className={`${input} mt-1 min-h-[60px]`} value={creditReason} onChange={e=>setCreditReason(e.target.value)} placeholder="Reason for credit" /></label>
               <label className="text-xs text-mist sm:col-span-2">Credit line description<input className={`${input} mt-1`} value={creditDescription} onChange={e=>setCreditDescription(e.target.value)} /></label>
               <label className="text-xs text-mist">Subtotal excluding VAT (R)<input className={`${input} mt-1`} inputMode="decimal" value={creditSubtotal} onChange={e=>setCreditSubtotal(e.target.value)} placeholder="0.00" /></label>
@@ -533,7 +534,8 @@ function InvoiceView() {
             </div>
             <p className="text-xs text-mist mt-2">Confirm the original invoice VAT treatment before creating a draft.</p>
             <button onClick={createCreditNoteDraft} disabled={!!creditBusy || !creditReason.trim() || !creditSubtotal} className="mt-3 inline-flex items-center gap-2 bg-blue-fill text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50">{creditBusy==='create' ? 'Creating…' : 'Create credit-note draft'}</button>
-            </>)}\n            <div className="border-t border-darkgrey mt-4 pt-4 space-y-3">
+            </>)}
+            <div className="border-t border-darkgrey mt-4 pt-4 space-y-3">
               <h3 className="font-heading font-semibold text-paper text-sm">Linked credit-note history</h3>
               {creditNotes.length===0 ? <p className="text-xs text-mist">No credit notes recorded.</p> : creditNotes.map(note=><div key={note.id} className="border border-darkgrey rounded-btn p-3">
                 <div className="flex flex-wrap justify-between gap-2"><div><p className="font-semibold text-paper text-sm">{note.credit_note_number}</p><p className="text-xs text-mist mt-1">{note.reason}</p><p className="text-xs text-mist mt-1">{sastDate(note.created_at)} · {note.review_status.replaceAll('_',' ')}</p></div><div className="text-right"><p className="font-semibold text-paper">{rand(Number(note.total_amount))}</p><p className="text-[10px] uppercase text-mist">{note.status}</p></div></div>
