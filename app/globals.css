@@ -4024,3 +4024,98 @@ input:focus,select:focus,textarea:focus { border-color: var(--ngms-race-orange) 
   color: #963A0C !important;
   -webkit-text-fill-color: #963A0C !important;
 }
+
+
+/* NGMS Fusion Editorial System — preview-only, four public pages.
+   Palette: Bastille, International Orange, Nebula, Deep Red, Porcelain, Toasted Almond.
+   Scoped to these route roots to avoid changing admin, portal, quotes or other marketing pages. */
+:root {
+  --ngms-fusion-bastille: #281E2A;
+  --ngms-fusion-orange: #FF5712;
+  --ngms-fusion-nebula: #D8E2E0;
+  --ngms-fusion-red: #6B1C23;
+  --ngms-fusion-porcelain: #9ECAD0;
+  --ngms-fusion-almond: #D8C3A4;
+}
+.ngms-maintenance-brut {
+  --ngms-mp-ink: var(--ngms-fusion-bastille);
+  --ngms-mp-orange: var(--ngms-fusion-orange);
+  background: var(--ngms-fusion-bastille) !important;
+  color: #F7F4F0;
+}
+.ngms-maintenance-brut .ngms-mp-topline,
+.ngms-maintenance-brut .ngms-mp-hero,
+.ngms-maintenance-brut .ngms-mp-manifesto,
+.ngms-maintenance-brut .ngms-mp-section { border-color: rgba(216,226,224,.22) !important; }
+.ngms-maintenance-brut .ngms-mp-hero__headline,
+.ngms-maintenance-brut .ngms-mp-section__heading { font-family: var(--font-heading, Impact, sans-serif); text-transform: uppercase; letter-spacing: -.045em; }
+.ngms-maintenance-brut .ngms-mp-hero__headline em,
+.ngms-maintenance-brut .ngms-mp-kicker,
+.ngms-maintenance-brut .ngms-mp-package__number,
+.ngms-maintenance-brut .ngms-mp-hero-index { color: var(--ngms-fusion-orange) !important; }
+.ngms-maintenance-brut .ngms-mp-package {
+  border: 1px solid rgba(216,226,224,.3) !important; border-radius: 3px !important;
+  background: #332735 !important; box-shadow: none !important; transition: transform .22s ease, border-color .22s ease;
+}
+.ngms-maintenance-brut .ngms-mp-package:hover { transform: translateY(-3px); border-color: var(--ngms-fusion-orange) !important; }
+.ngms-maintenance-brut .ngms-mp-package.is-featured { border-top: 4px solid var(--ngms-fusion-orange) !important; }
+.ngms-maintenance-brut .ngms-mp-package__price { color: var(--ngms-fusion-nebula) !important; }
+.ngms-maintenance-brut .ngms-mp-top-cta,
+.ngms-maintenance-brut a.btn-quote,
+.ngms-maintenance-brut button[type="submit"] { background: var(--ngms-fusion-orange) !important; color: var(--ngms-fusion-bastille) !important; border-radius: 2px !important; }
+.ngms-maintenance-brut .ngms-mp-architecture__block--one { background: var(--ngms-fusion-orange) !important; }
+.ngms-maintenance-brut .ngms-mp-architecture__block--two { background: var(--ngms-fusion-porcelain) !important; }
+.ngms-maintenance-brut .ngms-mp-architecture__block--three { background: var(--ngms-fusion-almond) !important; }
+
+.ngms-solar-fusion { background: var(--ngms-fusion-bastille) !important; color: #F7F4F0 !important; }
+.ngms-solar-fusion > section { border-radius: 2px !important; }
+.ngms-solar-fusion > section:first-of-type { background: #F7F4F0 !important; color: var(--ngms-fusion-bastille) !important; }
+.ngms-solar-fusion > section:first-of-type h1 { font-family: var(--font-heading, Impact, sans-serif) !important; letter-spacing: -.065em !important; }
+.ngms-solar-fusion > section:first-of-type h1 span { color: var(--ngms-fusion-orange) !important; }
+.ngms-solar-fusion a[class*="bg-black"] { background: var(--ngms-fusion-orange) !important; color: var(--ngms-fusion-bastille) !important; border-color: var(--ngms-fusion-orange) !important; border-radius: 2px !important; }
+.ngms-solar-fusion a[class*="border-black"] { border-radius: 2px !important; }
+.ngms-solar-fusion > section:nth-of-type(2) { background: var(--ngms-fusion-nebula) !important; color: var(--ngms-fusion-bastille) !important; }
+.ngms-solar-fusion > section:nth-of-type(2) .text-\[\#ff0505\] { color: var(--ngms-fusion-orange) !important; }
+.ngms-solar-fusion > section:nth-of-type(3) { background: var(--ngms-fusion-bastille) !important; color: #F7F4F0 !important; }
+.ngms-solar-fusion > section:nth-of-type(4) { background: var(--ngms-fusion-almond) !important; color: var(--ngms-fusion-bastille) !important; }
+
+.ngms-services-page { --ngms-service-ink: var(--ngms-fusion-bastille); --ngms-service-accent: var(--ngms-fusion-orange); }
+.ngms-services-page .ngms-services-hero { background-color: var(--ngms-fusion-bastille) !important; }
+.ngms-services-page .ngms-services-hero .text-orange,
+.ngms-services-page .ngms-services-hero [class*="text-orange"] { color: var(--ngms-fusion-orange) !important; }
+.ngms-services-page .ngms-services-intro,
+.ngms-services-page .ngms-services-range { background: var(--ngms-fusion-nebula) !important; }
+.ngms-services-page .ngms-services-intro h2,
+.ngms-services-page .ngms-services-range h2 { color: var(--ngms-fusion-bastille) !important; }
+.ngms-services-page a.btn-quote,
+.ngms-services-page .btn-quote { background: var(--ngms-fusion-orange) !important; color: var(--ngms-fusion-bastille) !important; border-radius: 2px !important; }
+.ngms-services-page article,
+.ngms-services-page [class*="service-card"] { border-radius: 3px !important; }
+.ngms-services-page a:focus-visible,
+.ngms-maintenance-brut a:focus-visible,
+.ngms-solar-fusion a:focus-visible,
+[data-editorial-page="body-corporate-maintenance"] a:focus-visible { outline: 3px solid var(--ngms-fusion-orange) !important; outline-offset: 3px; }
+
+[data-editorial-page="body-corporate-maintenance"] { --ngms-segment-orange: var(--ngms-fusion-orange); background: var(--ngms-fusion-bastille) !important; }
+[data-editorial-page="body-corporate-maintenance"] section { border-color: rgba(216,226,224,.22) !important; }
+[data-editorial-page="body-corporate-maintenance"] section:first-child { background: var(--ngms-fusion-bastille) !important; }
+[data-editorial-page="body-corporate-maintenance"] section:first-child h1 { font-family: var(--font-heading, Impact, sans-serif); text-transform: uppercase; letter-spacing: -.045em; }
+[data-editorial-page="body-corporate-maintenance"] section:first-child .text-orange { color: var(--ngms-fusion-orange) !important; }
+[data-editorial-page="body-corporate-maintenance"] section:first-child .bg-cardgrey { background: #332735 !important; }
+[data-editorial-page="body-corporate-maintenance"] section:nth-child(2) { background: var(--ngms-fusion-nebula) !important; color: var(--ngms-fusion-bastille) !important; }
+[data-editorial-page="body-corporate-maintenance"] section:nth-child(2) .text-mist { color: #514652 !important; }
+[data-editorial-page="body-corporate-maintenance"] section:nth-child(2) .bg-cardgrey { background: #F7F4F0 !important; border-color: #B4C4C1 !important; }
+[data-editorial-page="body-corporate-maintenance"] section:nth-child(3) { background: var(--ngms-fusion-bastille) !important; }
+[data-editorial-page="body-corporate-maintenance"] .btn-wa { background: var(--ngms-fusion-orange) !important; color: var(--ngms-fusion-bastille) !important; border-radius: 2px !important; }
+[data-editorial-page="body-corporate-maintenance"] .rounded-card,
+[data-editorial-page="body-corporate-maintenance"] .rounded-btn { border-radius: 3px !important; }
+
+@media (max-width: 640px) {
+  .ngms-maintenance-brut .ngms-mp-nav { gap: 10px; flex-wrap: wrap; }
+  .ngms-maintenance-brut .ngms-mp-hero__headline { font-size: clamp(2.5rem, 12vw, 4.6rem); }
+  .ngms-solar-fusion > section { margin-bottom: 8px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ngms-maintenance-brut .ngms-mp-package { transition: none; }
+  .ngms-maintenance-brut .ngms-mp-package:hover { transform: none; }
+}
