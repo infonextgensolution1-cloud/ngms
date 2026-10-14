@@ -148,17 +148,30 @@ begin
   end if;
   if v_invoice.status = 'void' then raise exception 'A void invoice cannot be credited.'; end if;
 
-  -- Paid and partially-paid invoices require an explicit manual decision outside
-  -- this generic flow. Do not modify paid_amount, status, or payment notes here.
+  -- Paid and partially-paid source invoices require an explicit Admin decision.
+  -- A non-admin cannot approve them through the generic staff workflow.
   if v_invoice.status in ('paid', 'partial') then
+    if p_decision = 'approve' and private.is_ngms_prompt_admin() then
+      update public.credit_notes
+        set review_status = 'approved',
+            reviewed_by = auth.uid(), reviewed_at = now(), review_note = btrim(p_review_note)
+        where id = p_credit_note_id;
+      return jsonb_build_object(
+        'ok', true,
+        'review_status', 'approved',
+        'manual_review_completed', true,
+        'message', 'Admin review recorded. Issuance remains a separate action; invoice balance and payment history are unchanged.'
+      );
+    end if;
+
     update public.credit_notes
-      set review_status = 'manual_review_required',
+      set review_status = case when p_decision = 'reject' then 'rejected' else 'manual_review_required' end,
           reviewed_by = auth.uid(), reviewed_at = now(), review_note = btrim(p_review_note)
       where id = p_credit_note_id;
     return jsonb_build_object(
       'ok', false,
       'manual_review_required', true,
-      'message', 'Paid and partially-paid invoices require manual accounting review. No invoice balance or payment history was changed.'
+      'message', 'Paid and partially-paid invoices require explicit Admin accounting review. No invoice balance or payment history was changed.'
     );
   end if;
 
