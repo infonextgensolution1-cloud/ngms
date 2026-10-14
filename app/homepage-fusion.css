@@ -194,3 +194,90 @@
   .ngms-home-refresh *::before,
   .ngms-home-refresh *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+
+/* Final homepage cascade layer.
+   This file is imported after the shared/global design sheets from app/layout.tsx.
+   It intentionally wins over older homepage-editorial rules that were keeping the
+   previous light hero active and hiding the architectural composition. */
+.ngms-home-refresh .ngms-industrial-hero {
+  background: #101010;
+  color: #fff;
+  border-color: #393939;
+}
+.ngms-home-refresh .ngms-industrial-hero::before {
+  content: none !important;
+  display: none !important;
+}
+.ngms-home-refresh .ngms-industrial-hero__architecture {
+  display: block !important;
+}
+.ngms-home-refresh .ngms-industrial-hero #hero-title {
+  max-width: 850px;
+  color: #fff;
+  font-size: clamp(3.4rem, 8.8vw, 8rem);
+  line-height: .83;
+  letter-spacing: -.055em;
+}
+.ngms-home-refresh .ngms-industrial-hero #hero-title span {
+  color: var(--fusion-orange);
+}
+.ngms-home-refresh .ngms-industrial-hero__overline,
+.ngms-home-refresh .ngms-industrial-hero__location,
+.ngms-home-refresh .ngms-industrial-hero__eyebrow {
+  color: #e1ded9;
+}
+.ngms-home-refresh .ngms-industrial-hero__copy {
+  padding-top: clamp(54px, 8vw, 118px);
+}
+.ngms-home-refresh .ngms-industrial-hero__media {
+  inset: 0 0 0 34%;
+  opacity: .9;
+}
+.ngms-home-refresh .ngms-industrial-hero__wash {
+  mix-blend-mode: normal;
+  background:
+    linear-gradient(90deg,#101010 0%,rgba(16,16,16,.97) 10%,rgba(16,16,16,.75) 36%,rgba(16,16,16,.15) 70%,rgba(16,16,16,.08) 100%),
+    linear-gradient(0deg,rgba(10,10,10,.82),transparent 40%);
+}
+.ngms-home-refresh .ngms-services-editorial {
+  margin-top: 0;
+  background: var(--fusion-paper);
+  color: var(--fusion-ink);
+  border: 0;
+}
+.ngms-home-refresh .ngms-services-editorial .kicker,
+.ngms-home-refresh .ngms-services-editorial .text-orange,
+.ngms-home-refresh .kicker {
+  color: var(--fusion-orange-deep) !important;
+  -webkit-text-fill-color: var(--fusion-orange-deep) !important;
+}
+@media (max-width: 767px) {
+  .ngms-home-refresh .ngms-industrial-hero {
+    min-height: 720px;
+    border-left: 0;
+    border-right: 0;
+  }
+  .ngms-home-refresh .ngms-industrial-hero::before {
+    content: none !important;
+    display: none !important;
+  }
+  .ngms-home-refresh .ngms-industrial-hero__architecture {
+    display: none !important;
+  }
+  .ngms-home-refresh .ngms-industrial-hero__media {
+    inset: 0;
+    opacity: .68;
+  }
+  .ngms-home-refresh .ngms-industrial-hero__wash {
+    background:
+      linear-gradient(90deg,rgba(16,16,16,.94),rgba(16,16,16,.46)),
+      linear-gradient(0deg,#101010 0%,rgba(16,16,16,.25) 65%);
+  }
+  .ngms-home-refresh .ngms-industrial-hero__copy {
+    padding-top: 70px;
+  }
+  .ngms-home-refresh .ngms-industrial-hero #hero-title {
+    font-size: clamp(3rem, 13vw, 5.2rem);
+  }
+}
