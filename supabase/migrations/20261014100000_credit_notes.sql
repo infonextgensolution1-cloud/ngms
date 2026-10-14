@@ -240,7 +240,13 @@ begin
   end if;
   if v_invoice.status = 'void' then raise exception 'A void invoice cannot be credited.'; end if;
   if v_invoice.status in ('paid', 'partial')
-     and not (v_note.review_status = 'approved' and v_note.reviewed_by is not null) then
+     and not (
+       v_note.review_status = 'approved'
+       and exists (
+         select 1 from public.prompt_users pu
+         where pu.user_id = v_note.reviewed_by and pu.active = true and pu.role = 'Admin'
+       )
+     ) then
     raise exception 'Paid and partially-paid invoices require recorded Admin accounting review before a credit note can be issued.';
   end if;
 
