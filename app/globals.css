@@ -4011,3 +4011,16 @@ input:focus,select:focus,textarea:focus { border-color: var(--ngms-race-orange) 
 @media(max-width:767px){.ngms-home-refresh{padding-inline:0;padding-bottom:12px}.ngms-home-refresh .ngms-industrial-hero{min-height:780px;border-left:0;border-right:0}.ngms-home-refresh .ngms-industrial-hero__wash{background:linear-gradient(180deg,rgba(35,38,44,.18),rgba(35,38,44,.72) 30%,rgba(35,38,44,.98) 57%,#23262C)!important}.ngms-home-refresh .ngms-industrial-hero__image{object-position:64% top}.ngms-home-refresh .ngms-industrial-hero__inner{padding:18px 20px}.ngms-home-refresh .ngms-industrial-hero__copy{padding-top:clamp(210px,56vw,300px)}.ngms-home-refresh .ngms-industrial-hero #hero-title{font-size:clamp(3rem,13vw,5rem)}.ngms-home-refresh .ngms-services-editorial{margin-top:10px;padding-inline:1rem}.ngms-home-refresh .ngms-services-editorial h2{font-size:clamp(2.5rem,11vw,4rem)!important}.ngms-home-refresh>section[aria-labelledby="work-title"]{margin-top:10px}}
 @media(max-width:380px){.ngms-home-refresh .ngms-industrial-hero{min-height:800px}.ngms-home-refresh .ngms-industrial-hero__copy{padding-top:220px}.ngms-home-refresh .ngms-industrial-hero #hero-title{font-size:clamp(2.75rem,12.5vw,3.3rem)}}
 @media(prefers-reduced-motion:reduce){.ngms-home-refresh *,.ngms-home-refresh *:before,.ngms-home-refresh *:after{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
+
+
+/* ---------- WCAG AA correction: orange text on light homepage surfaces ----------
+   Darken text accents on zinc/paper backgrounds. Higher-specificity rules keep
+   orange text on dark photo tiles and the charcoal hero unchanged. */
+.ngms-home-refresh .ngms-services-editorial .kicker,
+.ngms-home-refresh .ngms-services-editorial .text-orange,
+.ngms-home-refresh .ngms-services-editorial [aria-label="Service categories"] .text-graphite,
+.ngms-home-refresh > section[aria-labelledby="work-title"] .kicker,
+.ngms-home-refresh > section[aria-labelledby="work-title"] .text-orange {
+  color: #963A0C !important;
+  -webkit-text-fill-color: #963A0C !important;
+}
