@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import './homepage-fusion.css'
 import { services } from '@/lib/services'
 import SeasonalBanner from '@/components/SeasonalBanner'
 import DiscountPopup from '@/components/DiscountPopup'
