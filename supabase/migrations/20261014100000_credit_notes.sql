@@ -150,7 +150,7 @@ begin
   if auth.uid() is null or not private.is_ngms_prompt_user() then
     raise exception 'Staff only.' using errcode = '42501';
   end if;
-  if p_decision not in ('approve', 'reject') then
+  if p_decision is null or p_decision not in ('approve', 'reject') then
     raise exception 'Decision must be approve or reject.';
   end if;
   if length(btrim(coalesce(p_review_note, ''))) < 8 then
@@ -167,6 +167,7 @@ begin
     raise exception 'Credit note client must match the source invoice client.';
   end if;
   if v_invoice.status = 'void' then raise exception 'A void invoice cannot be credited.'; end if;
+  if v_invoice.status = 'draft' then raise exception 'A draft invoice cannot be credited; correct or delete the draft instead.'; end if;
 
   -- Paid and partially-paid source invoices require an explicit Admin decision.
   -- A non-admin cannot approve them through the generic staff workflow.
