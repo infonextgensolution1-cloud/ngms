@@ -4012,12 +4012,12 @@ input:focus,select:focus,textarea:focus { border-color: var(--ngms-race-orange) 
 @media(max-width:380px){.ngms-home-refresh .ngms-industrial-hero{min-height:800px}.ngms-home-refresh .ngms-industrial-hero__copy{padding-top:220px}.ngms-home-refresh .ngms-industrial-hero #hero-title{font-size:clamp(2.75rem,12.5vw,3.3rem)}}
 @media(prefers-reduced-motion:reduce){.ngms-home-refresh *,.ngms-home-refresh *:before,.ngms-home-refresh *:after{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
 
+
 /* ---------- WCAG AA correction: orange text on light homepage surfaces ----------
-   Darken only text accents on zinc/paper backgrounds. Dark photo tiles and the
-   orange-on-charcoal hero keep their existing approved orange. */
-.ngms-home-refresh .ngms-services-editorial > :is(.kicker),
-.ngms-home-refresh .ngms-services-editorial > div .kicker,
-.ngms-home-refresh .ngms-services-editorial .text-orange:not(.ngms-service-tile *),
+   Darken text accents on zinc/paper backgrounds. Higher-specificity rules keep
+   orange text on dark photo tiles and the charcoal hero unchanged. */
+.ngms-home-refresh .ngms-services-editorial .kicker,
+.ngms-home-refresh .ngms-services-editorial .text-orange,
 .ngms-home-refresh .ngms-services-editorial [aria-label="Service categories"] .text-graphite,
 .ngms-home-refresh > section[aria-labelledby="work-title"] .kicker,
 .ngms-home-refresh > section[aria-labelledby="work-title"] .text-orange {
