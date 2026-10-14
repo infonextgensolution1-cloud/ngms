@@ -4351,3 +4351,214 @@ input:focus,select:focus,textarea:focus { border-color: var(--ngms-race-orange) 
   .ngms-maintenance-v2 .ngms-mp2-button,.ngms-maintenance-v2 .ngms-mp2-card { transition:none; }
   .ngms-maintenance-v2 .ngms-mp2-button:hover,.ngms-maintenance-v2 .ngms-mp2-card:hover { transform:none; }
 }
+
+
+/* NGMS homepage — clean editorial refresh (preview branch only)
+   Inspired by the supplied editorial reference and orange/black/grey palette.
+   Scoped to the homepage so quote forms, admin and other routes are unaffected. */
+.ngms-home-refresh {
+  --home-orange: #FF5A00;
+  --home-black: #0D0D0D;
+  --home-charcoal: #1A1A1A;
+  --home-light: #F2F2F2;
+  --home-mid: #696969;
+  background: var(--home-black) !important;
+  color: var(--home-light);
+}
+.ngms-home-refresh :is(a,button) { -webkit-tap-highlight-color: transparent; }
+.ngms-home-refresh :is(a,button):focus-visible {
+  outline: 3px solid var(--home-orange) !important;
+  outline-offset: 3px;
+}
+.ngms-home-refresh .kicker,
+.ngms-home-refresh .text-blue,
+.ngms-home-refresh [class*="text-blue"] {
+  color: var(--home-orange) !important;
+  -webkit-text-fill-color: var(--home-orange) !important;
+}
+.ngms-home-refresh h1,
+.ngms-home-refresh h2 {
+  letter-spacing: -.045em;
+  line-height: .98;
+}
+.ngms-home-refresh h2 { max-width: 18ch; }
+.ngms-home-refresh .ngms-industrial-hero {
+  min-height: min(790px, calc(100svh - 72px));
+  background: var(--home-black);
+  isolation: isolate;
+}
+.ngms-home-refresh .ngms-industrial-hero__wash {
+  background: linear-gradient(90deg, rgba(13,13,13,.98) 0%, rgba(13,13,13,.9) 38%, rgba(13,13,13,.35) 72%, rgba(13,13,13,.2) 100%);
+}
+.ngms-home-refresh .ngms-industrial-hero__grid {
+  opacity: .16;
+  background-size: 72px 72px;
+}
+.ngms-home-refresh .ngms-industrial-hero__inner {
+  width: min(100% - 48px, 1280px);
+  padding-top: clamp(64px, 9vw, 132px);
+  padding-bottom: 28px;
+}
+.ngms-home-refresh .ngms-industrial-hero__copy { max-width: 740px; }
+.ngms-home-refresh .ngms-industrial-hero__copy h1 {
+  max-width: 12ch;
+  font-size: clamp(3.2rem, 8.4vw, 7.7rem);
+  line-height: .86;
+  letter-spacing: -.065em;
+}
+.ngms-home-refresh .ngms-industrial-hero__copy h1 span {
+  display: block;
+  color: var(--home-orange);
+}
+.ngms-home-refresh .ngms-industrial-hero__intro {
+  max-width: 49ch;
+  color: #E0E0E0;
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  line-height: 1.65;
+}
+.ngms-home-refresh .ngms-industrial-hero__location { color: #D0D0D0; }
+.ngms-home-refresh .ngms-industrial-button {
+  min-height: 48px;
+  border-radius: 2px;
+  padding: 14px 18px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.ngms-home-refresh .ngms-industrial-button--orange {
+  color: var(--home-black);
+  background: var(--home-orange);
+  border-color: var(--home-orange);
+}
+.ngms-home-refresh .ngms-industrial-button--outline {
+  color: var(--home-light);
+  border-color: rgba(242,242,242,.7);
+  background: rgba(13,13,13,.45);
+}
+.ngms-home-refresh .ngms-industrial-button:hover { transform: translateY(-2px); }
+.ngms-home-refresh .ngms-industrial-hero__proof li { color: #F2F2F2; }
+.ngms-home-refresh .ngms-industrial-hero__proof-icon { color: var(--home-orange); }
+.ngms-home-refresh .ngms-industrial-hero__side-note { color: #F2F2F2; }
+.ngms-home-refresh .ngms-industrial-hero__side-note i { background: var(--home-orange); }
+
+/* Clean editorial sections: consistent gutters, sharp geometry, readable type. */
+.ngms-home-refresh > section:not(.ngms-industrial-hero) {
+  scroll-margin-top: 84px;
+}
+.ngms-home-refresh .ngms-services-editorial,
+.ngms-home-refresh > section[aria-labelledby="solar-title"],
+.ngms-home-refresh > section[aria-labelledby="areas-faq-title"],
+.ngms-home-refresh > section[aria-labelledby="google-reviews-title"] {
+  background: var(--home-light) !important;
+  color: var(--home-black) !important;
+}
+.ngms-home-refresh .ngms-services-editorial :is(h2,h3),
+.ngms-home-refresh > section[aria-labelledby="solar-title"] :is(h2,h3),
+.ngms-home-refresh > section[aria-labelledby="google-reviews-title"] :is(h2,h3) {
+  color: var(--home-black) !important;
+}
+.ngms-home-refresh .ngms-services-editorial .text-mist,
+.ngms-home-refresh > section[aria-labelledby="solar-title"] .text-mist,
+.ngms-home-refresh > section[aria-labelledby="google-reviews-title"] .text-mist {
+  color: #555 !important;
+}
+.ngms-home-refresh .ngms-service-tile {
+  border-radius: 2px !important;
+  border-color: #C9C9C9 !important;
+  box-shadow: none !important;
+}
+.ngms-home-refresh .ngms-service-tile:hover {
+  border-color: var(--home-orange) !important;
+  box-shadow: 0 12px 28px rgba(13,13,13,.12) !important;
+}
+.ngms-home-refresh .ngms-service-tile .text-orange,
+.ngms-home-refresh .ngms-services-editorial .kicker,
+.ngms-home-refresh > section[aria-labelledby="solar-title"] .kicker,
+.ngms-home-refresh > section[aria-labelledby="google-reviews-title"] .kicker {
+  color: #B83F00 !important;
+  -webkit-text-fill-color: #B83F00 !important;
+}
+.ngms-home-refresh .ngms-services-editorial .btn-outline,
+.ngms-home-refresh > section[aria-labelledby="solar-title"] .btn-quote,
+.ngms-home-refresh > section[aria-labelledby="solar-title"] .btn {
+  border-radius: 2px !important;
+}
+.ngms-home-refresh > section[aria-labelledby="work-title"],
+.ngms-home-refresh > section[aria-labelledby="why-title"],
+.ngms-home-refresh > section[aria-labelledby="how-title"] {
+  background: var(--home-charcoal) !important;
+  color: var(--home-light) !important;
+}
+.ngms-home-refresh > section[aria-labelledby="work-title"] h2,
+.ngms-home-refresh > section[aria-labelledby="why-title"] h2,
+.ngms-home-refresh > section[aria-labelledby="how-title"] h2 {
+  color: var(--home-light) !important;
+}
+.ngms-home-refresh .rounded-panel,
+.ngms-home-refresh .rounded-card,
+.ngms-home-refresh .rounded-btn {
+  border-radius: 3px !important;
+}
+.ngms-home-refresh .btn,
+.ngms-home-refresh .btn-quote,
+.ngms-home-refresh .btn-outline,
+.ngms-home-refresh .btn-touch {
+  border-radius: 2px !important;
+}
+.ngms-home-refresh .btn-quote {
+  background: var(--home-orange) !important;
+  border-color: var(--home-orange) !important;
+  color: var(--home-black) !important;
+}
+.ngms-home-refresh .btn-quote:hover { background: #FF762E !important; }
+.ngms-home-refresh .btn-wa,
+.ngms-home-refresh .btn-wa-price {
+  border-color: var(--home-orange) !important;
+}
+.ngms-home-refresh > section:last-child {
+  background: var(--home-orange) !important;
+  color: var(--home-black) !important;
+}
+.ngms-home-refresh > section:last-child :is(h2,h3,p,a) { color: var(--home-black); }
+.ngms-home-refresh > section:last-child a {
+  border-color: var(--home-black);
+}
+.ngms-home-refresh img { max-width: 100%; }
+@media (max-width: 767px) {
+  .ngms-home-refresh .ngms-industrial-hero { min-height: auto; }
+  .ngms-home-refresh .ngms-industrial-hero__inner {
+    width: min(100% - 32px, 1280px);
+    padding-top: 52px;
+  }
+  .ngms-home-refresh .ngms-industrial-hero__copy h1 {
+    font-size: clamp(3rem, 15vw, 5.8rem);
+    line-height: .9;
+  }
+  .ngms-home-refresh .ngms-industrial-hero__wash {
+    background: linear-gradient(90deg, rgba(13,13,13,.94), rgba(13,13,13,.74));
+  }
+  .ngms-home-refresh .ngms-industrial-hero__actions { gap: 10px; }
+  .ngms-home-refresh .ngms-industrial-hero__actions > a { max-width: 100%; }
+  .ngms-home-refresh .ngms-industrial-hero__bottom {
+    display: grid;
+    gap: 20px;
+  }
+  .ngms-home-refresh .ngms-industrial-hero__proof {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 12px;
+  }
+  .ngms-home-refresh .ngms-industrial-hero__side-note,
+  .ngms-home-refresh .ngms-architecture__editorial-card { display: none; }
+  .ngms-home-refresh .ngms-services-editorial,
+  .ngms-home-refresh > section[aria-labelledby="solar-title"] { padding-top: 56px; padding-bottom: 56px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ngms-home-refresh *,
+  .ngms-home-refresh *::before,
+  .ngms-home-refresh *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
