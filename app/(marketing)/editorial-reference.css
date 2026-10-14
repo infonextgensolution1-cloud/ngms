@@ -1,0 +1,205 @@
+/* NGMS editorial fusion — isolated to the Services and Solar landing pages. */
+.ngms-services-reference,
+.ngms-solar-fusion {
+  --ngms-accent: #ff5a00;
+  --ngms-ink: #0d0d0d;
+  --ngms-charcoal: #1a1a1a;
+  --ngms-iron: #d9dcdf;
+  --ngms-paper: #f5f4f1;
+  --ngms-muted: #6e7073;
+}
+.ngms-services-reference h1,
+.ngms-services-reference h2,
+.ngms-services-reference h3,
+.ngms-solar-fusion h1,
+.ngms-solar-fusion h2,
+.ngms-solar-fusion h3 {
+  text-wrap: balance;
+}
+.ngms-services-reference a,
+.ngms-solar-fusion a {
+  border-radius: 0 !important;
+}
+.ngms-services-reference .ngms-services-hero {
+  background: var(--ngms-ink);
+}
+.ngms-services-reference .ngms-services-hero > div:last-child {
+  min-height: 600px;
+  padding-top: 7rem;
+  padding-bottom: 4rem;
+}
+.ngms-services-reference .ngms-services-hero h1 {
+  max-width: 1100px;
+  font-family: var(--font-heading, Impact, sans-serif);
+  font-size: clamp(3.7rem, 10.5vw, 9.5rem);
+  line-height: .82;
+  letter-spacing: -.065em;
+}
+.ngms-services-reference .ngms-services-hero h1 span:nth-child(2) {
+  color: var(--ngms-accent);
+}
+.ngms-services-reference .ngms-services-hero h1 span:nth-child(3) {
+  -webkit-text-stroke-color: rgba(255,255,255,.55);
+}
+.ngms-services-reference .ngms-services-hero p,
+.ngms-services-reference .ngms-services-intro p {
+  max-width: 38rem;
+}
+.ngms-services-reference .ngms-services-intro {
+  position: relative;
+  border-bottom: 5px solid var(--ngms-ink);
+  background: var(--ngms-paper);
+}
+.ngms-services-reference .ngms-services-intro h2 {
+  font-size: clamp(3rem, 6.4vw, 6.8rem);
+}
+.ngms-services-reference .ngms-services-range {
+  background: var(--ngms-paper);
+}
+.ngms-services-reference .ngms-services-range h2,
+.ngms-services-reference .ngms-services-range h3 {
+  letter-spacing: -.045em;
+}
+.ngms-services-reference .ngms-services-featured-grid {
+  gap: 0;
+  border: 1px solid #c9cacc;
+  background: white;
+}
+.ngms-services-reference .ngms-services-featured {
+  min-height: 450px;
+  border-right: 1px solid #c9cacc;
+}
+.ngms-services-reference .ngms-service-feature-row {
+  border-width: 0 0 1px;
+  background: #f5f4f1;
+}
+.ngms-services-reference .ngms-service-feature-row:hover {
+  background: #fff0e8;
+  border-color: var(--ngms-accent);
+}
+.ngms-services-reference .ngms-service-cards {
+  gap: 0;
+  border-top: 1px solid #c9cacc;
+  border-left: 1px solid #c9cacc;
+}
+.ngms-services-reference .ngms-service-tile {
+  border: 0;
+  border-right: 1px solid #c9cacc;
+  border-bottom: 1px solid #c9cacc;
+  background: #fff;
+  transition: background .2s ease;
+}
+.ngms-services-reference .ngms-service-tile:hover {
+  background: #fff8f4;
+}
+.ngms-services-reference .ngms-service-tile img {
+  filter: saturate(.82);
+  transition: filter .3s ease, transform .5s ease;
+}
+.ngms-services-reference .ngms-service-tile:hover img {
+  filter: saturate(1);
+}
+.ngms-services-reference .ngms-services-page [class*="text-orange"],
+.ngms-services-reference [class*="text-ember"] {
+  color: var(--ngms-accent) !important;
+}
+.ngms-services-reference .btn-quote,
+.ngms-services-reference a[class*="bg-orange"] {
+  background: var(--ngms-accent) !important;
+  color: var(--ngms-ink) !important;
+}
+.ngms-services-reference section:last-of-type {
+  border-top: 5px solid var(--ngms-accent);
+}
+.ngms-solar-fusion {
+  background: var(--ngms-ink) !important;
+  padding: clamp(6px, 1.5vw, 18px) !important;
+}
+.ngms-solar-fusion > section {
+  max-width: 1440px;
+  border-radius: 0 !important;
+  border-bottom-width: 4px !important;
+}
+.ngms-solar-fusion > section:first-of-type {
+  position: relative;
+  grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr);
+  background: var(--ngms-paper) !important;
+  border-top: 1px solid #c9cacc;
+}
+.ngms-solar-fusion h1 {
+  font-family: var(--font-heading, Impact, sans-serif) !important;
+  font-size: clamp(3.7rem, 8.4vw, 8.8rem) !important;
+  font-weight: 800 !important;
+  letter-spacing: -.075em !important;
+  line-height: .79 !important;
+}
+.ngms-solar-fusion h1 span,
+.ngms-solar-fusion [class*="text-[#ff0505]"] {
+  color: var(--ngms-accent) !important;
+}
+.ngms-solar-fusion [class*="bg-[#ff0505]"],
+.ngms-solar-fusion [class*="hover:bg-[#ff0505]"]:hover {
+  background-color: var(--ngms-accent) !important;
+}
+.ngms-solar-fusion [class*="border-[#ff0505]"] {
+  border-color: var(--ngms-accent) !important;
+}
+.ngms-solar-fusion > section:nth-of-type(2),
+.ngms-solar-fusion > section:nth-of-type(4) {
+  background: var(--ngms-iron) !important;
+}
+.ngms-solar-fusion > section:nth-of-type(3) {
+  background: var(--ngms-paper) !important;
+}
+.ngms-solar-fusion > section:nth-of-type(2) h2,
+.ngms-solar-fusion > section:nth-of-type(3) h2,
+.ngms-solar-fusion > section:nth-of-type(4) h2 {
+  font-family: var(--font-heading, Impact, sans-serif);
+  font-weight: 800;
+  letter-spacing: -.065em;
+}
+.ngms-solar-fusion > section:nth-of-type(3) article {
+  border-radius: 0 !important;
+  border-color: #b8babe !important;
+}
+.ngms-solar-fusion > section:nth-of-type(3) article:hover {
+  background: #ffe8dc !important;
+}
+.ngms-solar-fusion a:focus-visible,
+.ngms-services-reference a:focus-visible {
+  outline: 3px solid var(--ngms-accent);
+  outline-offset: 4px;
+}
+@media (max-width: 767px) {
+  .ngms-services-reference .ngms-services-hero > div:last-child {
+    min-height: 570px;
+    padding-top: 6rem;
+    padding-bottom: 2rem;
+  }
+  .ngms-services-reference .ngms-services-hero h1 {
+    font-size: clamp(3.4rem, 16vw, 6rem);
+  }
+  .ngms-services-reference .ngms-services-featured {
+    min-height: 360px;
+    border-right: 0;
+    border-bottom: 1px solid #c9cacc;
+  }
+  .ngms-solar-fusion > section:first-of-type {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ngms-solar-fusion h1 {
+    font-size: clamp(3.8rem, 16vw, 6.5rem) !important;
+  }
+  .ngms-solar-fusion > section {
+    padding: 2rem 1.25rem !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ngms-services-reference *,
+  .ngms-solar-fusion * {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
