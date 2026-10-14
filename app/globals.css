@@ -4285,3 +4285,69 @@ input:focus,select:focus,textarea:focus { border-color: var(--ngms-race-orange) 
   .ngms-mp2-button,.ngms-mp2-card,.ngms-mp2-header nav a { transition: none; }
   .ngms-mp2-button:hover,.ngms-mp2-card:hover { transform: none; }
 }
+
+
+/* Touko Banix-inspired NGMS palette, applied to the three requested preview routes.
+   Orange #FF5A00; deep black #0D0D0D; dark gray #1A1A1A; light gray #F2F2F2. */
+.ngms-maintenance-v2 {
+  --mp-ink:#0D0D0D; --mp-orange:#FF5A00; --mp-nebula:#F2F2F2;
+  --mp-red:#1A1A1A; --mp-porcelain:#BDBDBD; --mp-almond:#D8D8D8;
+  background:#0D0D0D!important; color:#F2F2F2!important;
+}
+.ngms-maintenance-v2 .ngms-mp2-header,.ngms-maintenance-v2 .ngms-mp2-footer { border-color:rgba(242,242,242,.18); }
+.ngms-maintenance-v2 .ngms-mp2-header nav a,.ngms-maintenance-v2 .ngms-mp2-lead,
+.ngms-maintenance-v2 .ngms-mp2-hero__meta,.ngms-maintenance-v2 .ngms-mp2-intro>p,
+.ngms-maintenance-v2 .ngms-mp2-section__head>p:last-child,.ngms-maintenance-v2 .ngms-mp2-commercial__head>p:not(.ngms-mp2-eyebrow),
+.ngms-maintenance-v2 .ngms-mp2-services__head>p:not(.ngms-mp2-eyebrow),.ngms-maintenance-v2 .ngms-mp2-note,
+.ngms-maintenance-v2 .ngms-mp2-note--wide,.ngms-maintenance-v2 .ngms-mp2-footer { color:#F2F2F2; }
+.ngms-maintenance-v2 .ngms-mp2-hero__visual,.ngms-maintenance-v2 .ngms-mp2-intro,
+.ngms-maintenance-v2 .ngms-mp2-signup { background:#F2F2F2; color:#0D0D0D; }
+.ngms-maintenance-v2 .ngms-mp2-visual__art { background:#DADADA; }
+.ngms-maintenance-v2 .ngms-mp2-block--a { background:#0D0D0D; }
+.ngms-maintenance-v2 .ngms-mp2-block--b,.ngms-maintenance-v2 .ngms-mp2-dot,
+.ngms-maintenance-v2 .ngms-mp2-badge,.ngms-maintenance-v2 .ngms-mp2-button { background:#FF5A00; border-color:#FF5A00; color:#0D0D0D; }
+.ngms-maintenance-v2 .ngms-mp2-block--c { background:#1A1A1A; border-color:#F2F2F2; }
+.ngms-maintenance-v2 .ngms-mp2-proof,.ngms-maintenance-v2 .ngms-mp2-final { background:#FF5A00; color:#0D0D0D; }
+.ngms-maintenance-v2 .ngms-mp2-card,.ngms-maintenance-v2 .ngms-mp2-card--featured,
+.ngms-maintenance-v2 .ngms-mp2-commercial { background:#1A1A1A; }
+.ngms-maintenance-v2 .ngms-mp2-card { border-color:rgba(242,242,242,.2); }
+.ngms-maintenance-v2 .ngms-mp2-card:hover { border-color:#FF5A00; }
+.ngms-maintenance-v2 .ngms-mp2-number,.ngms-maintenance-v2 .ngms-mp2-card .ngms-mp2-eyebrow,
+.ngms-maintenance-v2 .ngms-mp2-included { color:#BDBDBD; }
+.ngms-maintenance-v2 .ngms-mp2-price { color:#FF5A00; }
+.ngms-maintenance-v2 .ngms-mp2-card__link:hover { color:#FF5A00; }
+.ngms-maintenance-v2 .ngms-mp2-signup__form { background:#0D0D0D; }
+.ngms-maintenance-v2 .ngms-mp2-signup__form .field { background:#1A1A1A; border-color:#777; color:#F2F2F2; }
+.ngms-maintenance-v2 .ngms-mp2-signup__form .field::placeholder { color:#D0D0D0; }
+.ngms-maintenance-v2 .ngms-mp2-signup__form .btn-quote { background:#FF5A00; color:#0D0D0D; }
+
+.ngms-solar-fusion { background:#0D0D0D!important; color:#F2F2F2!important; }
+.ngms-solar-fusion>section:first-of-type { background:#F2F2F2!important; color:#0D0D0D!important; }
+.ngms-solar-fusion>section:first-of-type h1 span { color:#FF5A00!important; }
+.ngms-solar-fusion a[class*="bg-black"] { background:#FF5A00!important; color:#0D0D0D!important; border-color:#FF5A00!important; }
+.ngms-solar-fusion>section:nth-of-type(2) { background:#F2F2F2!important; color:#0D0D0D!important; }
+.ngms-solar-fusion>section:nth-of-type(2) .text-\[\#ff0505\] { color:#FF5A00!important; }
+.ngms-solar-fusion>section:nth-of-type(3) { background:#1A1A1A!important; color:#F2F2F2!important; }
+.ngms-solar-fusion>section:nth-of-type(4) { background:#F2F2F2!important; color:#0D0D0D!important; }
+.ngms-solar-fusion a:focus-visible { outline:3px solid #FF5A00!important; outline-offset:3px; }
+
+[data-editorial-page="body-corporate-maintenance"] { background:#0D0D0D!important; color:#F2F2F2!important; }
+[data-editorial-page="body-corporate-maintenance"] section { border-color:rgba(242,242,242,.2)!important; }
+[data-editorial-page="body-corporate-maintenance"] section:first-child { background:#0D0D0D!important; color:#F2F2F2!important; }
+[data-editorial-page="body-corporate-maintenance"] section:first-child h1 { font-family:var(--font-heading,Impact,sans-serif); text-transform:uppercase; letter-spacing:-.045em; }
+[data-editorial-page="body-corporate-maintenance"] section:first-child .text-orange,
+[data-editorial-page="body-corporate-maintenance"] section:first-child [class*="text-orange"] { color:#FF5A00!important; }
+[data-editorial-page="body-corporate-maintenance"] section:first-child .bg-cardgrey { background:#1A1A1A!important; }
+[data-editorial-page="body-corporate-maintenance"] section:nth-child(2) { background:#F2F2F2!important; color:#0D0D0D!important; }
+[data-editorial-page="body-corporate-maintenance"] section:nth-child(2) .text-mist { color:#424242!important; }
+[data-editorial-page="body-corporate-maintenance"] section:nth-child(2) .bg-cardgrey { background:#fff!important; border-color:#D0D0D0!important; }
+[data-editorial-page="body-corporate-maintenance"] section:nth-child(3) { background:#1A1A1A!important; color:#F2F2F2!important; }
+[data-editorial-page="body-corporate-maintenance"] .btn-wa { background:#FF5A00!important; color:#0D0D0D!important; border-radius:2px!important; }
+[data-editorial-page="body-corporate-maintenance"] .rounded-card,
+[data-editorial-page="body-corporate-maintenance"] .rounded-btn { border-radius:3px!important; }
+[data-editorial-page="body-corporate-maintenance"] a:focus-visible { outline:3px solid #FF5A00!important; outline-offset:3px; }
+
+@media(prefers-reduced-motion:reduce) {
+  .ngms-maintenance-v2 .ngms-mp2-button,.ngms-maintenance-v2 .ngms-mp2-card { transition:none; }
+  .ngms-maintenance-v2 .ngms-mp2-button:hover,.ngms-maintenance-v2 .ngms-mp2-card:hover { transform:none; }
+}
