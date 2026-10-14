@@ -47,7 +47,7 @@ create index if not exists credit_notes_client_id_idx on public.credit_notes(cli
 create index if not exists credit_note_items_note_id_idx on public.credit_note_items(credit_note_id);
 -- Serialize line edits against issuance by locking the parent credit-note row.
 create or replace function public.ngms_guard_credit_note_item_edit()
-returns trigger language plpgsql security definer set search_path = pg_catalog, public as $
+returns trigger language plpgsql security definer set search_path = pg_catalog, public as $$
 declare v_note_id uuid; v_status text;
 begin
   if tg_op = 'UPDATE' and new.credit_note_id is distinct from old.credit_note_id then
@@ -59,7 +59,7 @@ begin
   if v_status <> 'draft' then raise exception 'Only draft credit-note lines can be changed.'; end if;
   if tg_op = 'DELETE' then return old; end if;
   return new;
-end; $;
+end; $$;
 revoke all on function public.ngms_guard_credit_note_item_edit() from public, anon, authenticated;
 drop trigger if exists credit_note_items_guard_draft on public.credit_note_items;
 create trigger credit_note_items_guard_draft before insert or update or delete on public.credit_note_items
