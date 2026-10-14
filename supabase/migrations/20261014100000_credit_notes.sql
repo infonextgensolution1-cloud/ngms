@@ -4,6 +4,7 @@
 begin;
 
 create sequence if not exists public.credit_note_number_seq;
+grant usage, select on sequence public.credit_note_number_seq to authenticated;
 
 create table if not exists public.credit_notes (
   id uuid primary key default gen_random_uuid(),
