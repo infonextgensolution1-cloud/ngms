@@ -3836,3 +3836,71 @@ body:has(.ngms-about-editorial) footer[data-site-marketing] { display:none !impo
     scroll-behavior: auto;
   }
 }
+
+
+/* ---------- Mobile contrast correction: warm-paper homepage services ---------- */
+/* This section is intentionally light. Override the older cinematic homepage
+   rules that made its heading, paragraph and category labels nearly invisible. */
+.ngms-home-refresh .ngms-services-editorial {
+  background: var(--ngms-fusion-paper, #F7F4EF) !important;
+  color: #262626 !important;
+}
+.ngms-home-refresh .ngms-services-editorial h2 {
+  color: #B94700 !important;
+  -webkit-text-fill-color: #B94700 !important;
+}
+.ngms-home-refresh .ngms-services-editorial .kicker {
+  color: #B94700 !important;
+  -webkit-text-fill-color: #B94700 !important;
+}
+.ngms-home-refresh .ngms-services-editorial .text-mist,
+.ngms-home-refresh .ngms-services-editorial p:not(.kicker) {
+  color: #343434 !important;
+  -webkit-text-fill-color: #343434 !important;
+}
+.ngms-home-refresh .ngms-services-editorial [aria-label="Service categories"] {
+  color: #262626 !important;
+}
+.ngms-home-refresh .ngms-services-editorial [aria-label="Service categories"] .text-graphite {
+  color: #B94700 !important;
+  -webkit-text-fill-color: #B94700 !important;
+}
+.ngms-home-refresh .ngms-services-editorial [aria-label="Service categories"] .text-slate {
+  color: #414141 !important;
+  -webkit-text-fill-color: #414141 !important;
+}
+/* Keep photo-backed service tiles dark, with their intended white text. */
+.ngms-home-refresh .ngms-services-editorial .ngms-service-tile,
+.ngms-home-refresh .ngms-services-editorial .ngms-service-tile :is(span, p, h3) {
+  color: #FFFFFF;
+}
+.ngms-home-refresh .ngms-services-editorial .ngms-service-tile .text-orange {
+  color: #FF6A00 !important;
+}
+/* Discount card sits on charcoal: orange accents, high-contrast supporting copy. */
+#discount-popup-title {
+  color: #FF6A00 !important;
+  -webkit-text-fill-color: #FF6A00 !important;
+}
+[aria-labelledby="discount-popup-title"] > p:first-of-type {
+  color: #FF6A00 !important;
+  -webkit-text-fill-color: #FF6A00 !important;
+}
+[aria-labelledby="discount-popup-title"] > p:nth-of-type(2) {
+  color: #F7F4EF !important;
+  -webkit-text-fill-color: #F7F4EF !important;
+}
+[aria-labelledby="discount-popup-title"] strong {
+  color: #FF6A00 !important;
+  -webkit-text-fill-color: #FF6A00 !important;
+}
+@media (max-width: 640px) {
+  .ngms-home-refresh .ngms-services-editorial h2 {
+    font-size: clamp(2rem, 8.2vw, 2.75rem);
+    line-height: 1.02;
+  }
+  .ngms-home-refresh .ngms-services-editorial .text-mist,
+  .ngms-home-refresh .ngms-services-editorial p:not(.kicker) {
+    line-height: 1.65;
+  }
+}
