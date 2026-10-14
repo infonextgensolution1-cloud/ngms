@@ -1,17 +1,17 @@
 /* NGMS homepage editorial refinement — scoped to the homepage only.
-   Palette: pure white, clean grey, noisy grey, brick black, muted red, hearty red. */
+   Palette: pure white, clean grey, noisy grey, brick black, restrained orange and dark orange. */
 .ngms-home-refresh {
   --ngms-editorial-white: #FFFFFF;
   --ngms-editorial-grey: #979797;
   --ngms-editorial-mid: #5E5E5E;
   --ngms-editorial-black: #000000;
-  --ngms-editorial-muted-red: #AC3333;
-  --ngms-editorial-red: #FF0505;
+  --ngms-editorial-muted-orange: #D94F00;
+  --ngms-editorial-orange: #FF6A00;
   color: var(--ngms-editorial-white);
   background: var(--ngms-editorial-black);
 }
 .ngms-home-refresh :is(.ngms-industrial-hero, .ngms-industrial-hero *) {
-  --ngms-home-accent: var(--ngms-editorial-red);
+  --ngms-home-accent: var(--ngms-editorial-orange);
 }
 .ngms-home-refresh .ngms-industrial-hero {
   background: var(--ngms-editorial-black);
@@ -31,17 +31,17 @@
 .ngms-home-refresh .ngms-industrial-hero h1 span,
 .ngms-home-refresh .ngms-editorial-card__foot,
 .ngms-home-refresh .ngms-architecture__feature-index {
-  color: var(--ngms-editorial-red);
+  color: var(--ngms-editorial-orange);
 }
 .ngms-home-refresh .ngms-industrial-button--orange {
   color: var(--ngms-editorial-white);
-  background: var(--ngms-editorial-red);
-  border-color: var(--ngms-editorial-red);
+  background: var(--ngms-editorial-orange);
+  border-color: var(--ngms-editorial-orange);
   border-radius: 2px;
 }
 .ngms-home-refresh .ngms-industrial-button--orange:hover {
-  background: var(--ngms-editorial-muted-red);
-  border-color: var(--ngms-editorial-muted-red);
+  background: var(--ngms-editorial-muted-orange);
+  border-color: var(--ngms-editorial-muted-orange);
 }
 .ngms-home-refresh .ngms-industrial-button--outline {
   color: var(--ngms-editorial-white);
@@ -53,14 +53,14 @@
   background: var(--ngms-editorial-white);
 }
 .ngms-home-refresh .ngms-industrial-hero__architecture {
-  --ngms-editorial-architecture-accent: var(--ngms-editorial-red);
+  --ngms-editorial-architecture-accent: var(--ngms-editorial-orange);
 }
 .ngms-home-refresh .ngms-industrial-hero__architecture :is(.ngms-architecture__feature-glow, .ngms-architecture__floor--feature) {
-  border-color: rgba(255,5,5,.55);
+  border-color: rgba(255,106,0,.55);
 }
 .ngms-home-refresh .ngms-industrial-hero__architecture .ngms-architecture__feature-label em,
 .ngms-home-refresh .ngms-industrial-hero__architecture .ngms-architecture__base b {
-  color: var(--ngms-editorial-red);
+  color: var(--ngms-editorial-orange);
 }
 .ngms-home-refresh .ngms-services-editorial {
   color: var(--ngms-editorial-black);
@@ -69,7 +69,7 @@
 .ngms-home-refresh .ngms-services-editorial .kicker,
 .ngms-home-refresh .ngms-services-editorial .text-orange,
 .ngms-home-refresh .ngms-services-editorial a:focus-visible {
-  color: var(--ngms-editorial-muted-red);
+  color: var(--ngms-editorial-muted-orange);
 }
 .ngms-home-refresh .ngms-services-editorial .ngms-service-tile {
   border-color: var(--ngms-editorial-mid);
@@ -79,10 +79,10 @@
 .ngms-home-refresh .ngms-services-editorial .ngms-service-tile .bg-orange,
 .ngms-home-refresh .ngms-services-editorial .ngms-service-tile [class*="bg-orange"] {
   color: var(--ngms-editorial-white);
-  background: var(--ngms-editorial-red);
+  background: var(--ngms-editorial-orange);
 }
 .ngms-home-refresh .ngms-services-editorial .ngms-service-tile .text-orange {
-  color: #FF5050;
+  color: #FF6A00;
 }
 .ngms-home-refresh .ngms-services-editorial .rounded-panel {
   border-radius: 2px;
@@ -91,10 +91,10 @@
   letter-spacing: -.045em;
 }
 .ngms-home-refresh :is(a, button, summary) {
-  -webkit-tap-highlight-color: rgba(255,5,5,.16);
+  -webkit-tap-highlight-color: rgba(255,106,0,.16);
 }
 .ngms-home-refresh :is(a, button, summary):focus-visible {
-  outline: 2px solid var(--ngms-editorial-red);
+  outline: 2px solid var(--ngms-editorial-orange);
   outline-offset: 3px;
 }
 @media (max-width: 640px) {
@@ -126,39 +126,39 @@
   --mp-ink: #000000 !important;
   --mp-muted: #5E5E5E !important;
   --mp-line: #979797 !important;
-  --mp-red: #FF0505 !important;
-  --mp-accent: #AC3333 !important;
+  --mp-orange: #FF6A00 !important;
+  --mp-accent: #D94F00 !important;
   background: #F1F1EF;
   color: #000;
 }
 .ngms-maintenance-brut :is(.ngms-mp-topline,.ngms-mp-manifesto,.ngms-mp-selected,.ngms-mp-section,.ngms-mp-services,.ngms-mp-signup,.ngms-mp-service summary) { border-color:#979797; }
-.ngms-maintenance-brut :is(.ngms-mp-kicker,.ngms-mp-period,.ngms-mp-package__price strong,.ngms-mp-package__features li span,.ngms-mp-service summary b) { color:#AC3333; }
+.ngms-maintenance-brut :is(.ngms-mp-kicker,.ngms-mp-period,.ngms-mp-package__price strong,.ngms-mp-package__features li span,.ngms-mp-service summary b) { color:#D94F00; }
 .ngms-maintenance-brut .ngms-mp-package { border-color:#979797; border-radius:2px; }
-.ngms-maintenance-brut .ngms-mp-package.is-featured { border-color:#FF0505; box-shadow:inset 3px 0 0 #FF0505; }
-.ngms-maintenance-brut :is(.ngms-mp-top-cta,.ngms-mp-package__price a) { background:#FF0505; border-color:#FF0505; color:#fff; border-radius:2px; }
-.ngms-maintenance-brut :is(.ngms-mp-top-cta,.ngms-mp-package__price a):hover { background:#AC3333; border-color:#AC3333; }
+.ngms-maintenance-brut .ngms-mp-package.is-featured { border-color:#FF6A00; box-shadow:inset 3px 0 0 #FF6A00; }
+.ngms-maintenance-brut :is(.ngms-mp-top-cta,.ngms-mp-package__price a) { background:#FF6A00; border-color:#FF6A00; color:#fff; border-radius:2px; }
+.ngms-maintenance-brut :is(.ngms-mp-top-cta,.ngms-mp-package__price a):hover { background:#D94F00; border-color:#D94F00; }
 .ngms-maintenance-brut :is(.ngms-mp-hero__visual,.ngms-mp-final-cta__red) { background:#000; }
-.ngms-maintenance-brut :is(a,button,summary):focus-visible { outline:2px solid #FF0505; outline-offset:3px; }
+.ngms-maintenance-brut :is(a,button,summary):focus-visible { outline:2px solid #FF6A00; outline-offset:3px; }
 
 [data-editorial-page="body-corporate-maintenance"] { background:#000; color:#fff; }
 [data-editorial-page="body-corporate-maintenance"] > section { border-radius:0 !important; }
 [data-editorial-page="body-corporate-maintenance"] > section:first-child { background:#F1F1EF; color:#000; border-color:#979797; }
 [data-editorial-page="body-corporate-maintenance"] > section:first-child :is(h1,h2) { color:#000; letter-spacing:-.055em; }
 [data-editorial-page="body-corporate-maintenance"] > section:first-child p:not(.text-orange) { color:#5E5E5E; }
-[data-editorial-page="body-corporate-maintenance"] :is(.text-orange,.text-blue,.kicker) { color:#AC3333 !important; }
+[data-editorial-page="body-corporate-maintenance"] :is(.text-orange,.text-blue,.kicker) { color:#D94F00 !important; }
 [data-editorial-page="body-corporate-maintenance"] :is(.btn-wa,.btn-quote,.btn-outline,.rounded-card,.rounded-btn) { border-radius:2px !important; }
-[data-editorial-page="body-corporate-maintenance"] .btn-quote { background:#FF0505 !important; border-color:#FF0505 !important; color:#fff !important; }
-[data-editorial-page="body-corporate-maintenance"] .btn-quote:hover { background:#AC3333 !important; border-color:#AC3333 !important; }
+[data-editorial-page="body-corporate-maintenance"] .btn-quote { background:#FF6A00 !important; border-color:#FF6A00 !important; color:#fff !important; }
+[data-editorial-page="body-corporate-maintenance"] .btn-quote:hover { background:#D94F00 !important; border-color:#D94F00 !important; }
 [data-editorial-page="body-corporate-maintenance"] .border-darkgrey { border-color:#5E5E5E; }
-[data-editorial-page="body-corporate-maintenance"] :is(a,button):focus-visible { outline:2px solid #FF0505; outline-offset:3px; }
+[data-editorial-page="body-corporate-maintenance"] :is(a,button):focus-visible { outline:2px solid #FF6A00; outline-offset:3px; }
 
 .ngms-project-editorial { background:#F1F1EF !important; color:#000 !important; }
 .ngms-project-editorial :is(h1,h2,h3) { letter-spacing:-.055em; }
-.ngms-project-editorial [class*="bg-[#ff5314]"] { background-color:#FF0505 !important; }
+.ngms-project-editorial [class*="bg-[#ff5314]"] { background-color:#FF6A00 !important; }
 .ngms-project-editorial [class*="text-[#ff6a32]"],
 .ngms-project-editorial [class*="text-[#ff7847]"],
 .ngms-project-editorial [class*="text-[#ff8b60]"],
-.ngms-project-editorial [class*="text-[#d94a13]"] { color:#AC3333 !important; }
+.ngms-project-editorial [class*="text-[#d94a13]"] { color:#D94F00 !important; }
 .ngms-project-editorial [class*="rounded-tl-"],
 .ngms-project-editorial [class*="rounded-tr-"],
 .ngms-project-editorial [class*="rounded-br-"],
@@ -168,7 +168,7 @@
 .ngms-project-editorial article { border-radius:2px; }
 .ngms-project-editorial article img { transition:transform .45s ease,filter .45s ease; }
 .ngms-project-editorial article:hover img { filter:contrast(1.04); }
-.ngms-project-editorial a:focus-visible { outline:2px solid #FF0505; outline-offset:3px; }
+.ngms-project-editorial a:focus-visible { outline:2px solid #FF6A00; outline-offset:3px; }
 
 @media (max-width:640px) {
   .ngms-maintenance-brut .ngms-mp-package { min-width:0; }
@@ -184,15 +184,15 @@
 
 /* STEIN LAB editorial reference — homepage-only visual pass.
    Keep the black outer frame, paper-white content surfaces, industrial grids,
-   and signal-red accents. Existing CMS content, routes and interactions remain intact. */
+   and signal-orange accents. Existing CMS content, routes and interactions remain intact. */
 .ngms-home-refresh {
   --ngms-editorial-white: #FFFFFF;
   --ngms-editorial-grey: #979797;
   --ngms-editorial-mid: #5E5E5E;
   --ngms-editorial-black: #000000;
-  --ngms-editorial-muted-red: #AC3333;
-  --ngms-editorial-red: #FF0505;
-  --ngms-lime: #FF0505;
+  --ngms-editorial-muted-orange: #D94F00;
+  --ngms-editorial-orange: #FF6A00;
+  --ngms-lime: #FF6A00;
   background: #000 !important;
   color: #000;
   padding: 0 clamp(0px, 2.4vw, 34px) 26px;
@@ -202,7 +202,7 @@
   --industrial-white: #FFFFFF;
   --industrial-ink: #000000;
   --industrial-grey: #979797;
-  --industrial-orange: #FF0505;
+  --industrial-orange: #FF6A00;
   min-height: clamp(620px, 68vw, 760px);
   margin-top: 0;
   background: #F1F1EF;
@@ -221,7 +221,7 @@
 }
 .ngms-home-refresh .ngms-industrial-hero__wash {
   background:
-    linear-gradient(125deg, transparent 40%, rgba(255,5,5,.14) 40.2%, transparent 40.6%),
+    linear-gradient(125deg, transparent 40%, rgba(255,106,0,.14) 40.2%, transparent 40.6%),
     linear-gradient(90deg, rgba(255,255,255,.08), transparent 65%);
   mix-blend-mode: multiply;
 }
@@ -239,24 +239,24 @@
   letter-spacing: -.075em;
   line-height: .84;
 }
-.ngms-home-refresh .ngms-industrial-hero #hero-title span { color: #AC3333; }
+.ngms-home-refresh .ngms-industrial-hero #hero-title span { color: #D94F00; }
 .ngms-home-refresh .ngms-industrial-hero__overline,
 .ngms-home-refresh .ngms-industrial-hero__location,
 .ngms-home-refresh .ngms-industrial-hero__eyebrow { color: #5E5E5E; }
-.ngms-home-refresh .ngms-industrial-hero__index { color: #AC3333; }
+.ngms-home-refresh .ngms-industrial-hero__index { color: #D94F00; }
 .ngms-home-refresh .ngms-industrial-button {
   border-radius: 2px;
   min-height: 48px;
   font-weight: 800;
 }
 .ngms-home-refresh .ngms-industrial-button--orange {
-  background: #FF0505;
-  border-color: #FF0505;
+  background: #FF6A00;
+  border-color: #FF6A00;
   color: #fff;
 }
 .ngms-home-refresh .ngms-industrial-button--orange:hover {
-  background: #AC3333;
-  border-color: #AC3333;
+  background: #D94F00;
+  border-color: #D94F00;
 }
 .ngms-home-refresh .ngms-industrial-button--outline {
   color: #000;
@@ -274,10 +274,10 @@
 .ngms-home-refresh .ngms-industrial-hero__caption span { color: #5E5E5E; }
 .ngms-home-refresh .ngms-industrial-hero__caption strong { color: #000; }
 .ngms-home-refresh .ngms-industrial-hero__control { border-radius: 2px; border-color: #979797; }
-.ngms-home-refresh .ngms-industrial-hero__control:hover { border-color: #FF0505; color: #AC3333; }
+.ngms-home-refresh .ngms-industrial-hero__control:hover { border-color: #FF6A00; color: #D94F00; }
 .ngms-home-refresh .ngms-industrial-hero__side-note { color: #5E5E5E; }
 .ngms-home-refresh .ngms-industrial-hero__side-note i { background: #979797; }
-.ngms-home-refresh .ngms-industrial-hero__side-note i::after { background: #FF0505; }
+.ngms-home-refresh .ngms-industrial-hero__side-note i::after { background: #FF6A00; }
 
 /* Editorial panels: warm paper, black type, hairline rules and restrained red. */
 .ngms-home-refresh .ngms-services-editorial {
@@ -299,25 +299,25 @@
 }
 .ngms-home-refresh .ngms-services-editorial .ngms-service-tile :is(h2,h3) { color: #000; }
 .ngms-home-refresh .ngms-services-editorial .kicker,
-.ngms-home-refresh .kicker { color: #AC3333 !important; }
-.ngms-home-refresh .ngms-services-editorial :is(.text-orange,[class*="text-orange"]) { color: #AC3333 !important; }
-.ngms-home-refresh .ngms-services-editorial :is(.bg-orange,[class*="bg-orange"]) { background: #FF0505 !important; }
+.ngms-home-refresh .kicker { color: #D94F00 !important; }
+.ngms-home-refresh .ngms-services-editorial :is(.text-orange,[class*="text-orange"]) { color: #D94F00 !important; }
+.ngms-home-refresh .ngms-services-editorial :is(.bg-orange,[class*="bg-orange"]) { background: #FF6A00 !important; }
 .ngms-home-refresh > section:not(.ngms-industrial-hero) .rounded-panel,
 .ngms-home-refresh > section:not(.ngms-industrial-hero) .rounded-card,
 .ngms-home-refresh .ngms-service-tile { border-radius: 2px !important; }
 .ngms-home-refresh > section:not(.ngms-industrial-hero) .btn-quote,
 .ngms-home-refresh > section:not(.ngms-industrial-hero) .btn-glow {
-  background: #FF0505 !important;
+  background: #FF6A00 !important;
   color: #fff !important;
-  border-color: #FF0505 !important;
+  border-color: #FF6A00 !important;
 }
 .ngms-home-refresh > section:not(.ngms-industrial-hero) .btn-quote:hover,
 .ngms-home-refresh > section:not(.ngms-industrial-hero) .btn-glow:hover {
-  background: #AC3333 !important;
-  border-color: #AC3333 !important;
+  background: #D94F00 !important;
+  border-color: #D94F00 !important;
 }
 .ngms-home-refresh :is(a,button,summary):focus-visible {
-  outline: 2px solid #FF0505;
+  outline: 2px solid #FF6A00;
   outline-offset: 3px;
 }
 @media (min-width: 1024px) {
