@@ -3904,3 +3904,308 @@ body:has(.ngms-about-editorial) footer[data-site-marketing] { display:none !impo
     line-height: 1.65;
   }
 }
+
+
+/* ==========================================================================
+   NGMS HOME — GRAPHITE / SAFETY ORANGE EDITORIAL REDESIGN
+   Reference direction: oversized case-study typography, modular image grids,
+   sharp industrial rules, graphite surfaces and restrained neon-green signals.
+   Scope: homepage only. Existing content, CMS media, routes and interactions stay.
+   ========================================================================== */
+.ngms-home-refresh {
+  --ngms-home-graphite-900: #23262C;
+  --ngms-home-graphite-700: #3A3F47;
+  --ngms-home-cloud-zinc: #D1D5DB;
+  --ngms-home-safety-orange: #FE7733;
+  --ngms-home-neon-sprout: #B1FA63;
+  --ngms-home-paper-white: #FFFFFF;
+  background: #090A0C !important;
+  color: var(--ngms-home-paper-white) !important;
+  padding: 0 clamp(0px, 2vw, 28px) 24px;
+}
+.ngms-home-refresh .ngms-industrial-hero {
+  min-height: clamp(620px, 70vw, 850px);
+  background: var(--ngms-home-graphite-900) !important;
+  color: var(--ngms-home-paper-white) !important;
+  border: 1px solid var(--ngms-home-graphite-700);
+  border-radius: 2px;
+}
+.ngms-home-refresh .ngms-industrial-hero__media {
+  background: var(--ngms-home-graphite-700);
+}
+.ngms-home-refresh .ngms-industrial-hero__image {
+  filter: grayscale(.12) contrast(1.04) brightness(.78) !important;
+  -webkit-filter: grayscale(.12) contrast(1.04) brightness(.78) !important;
+  opacity: 1 !important;
+  object-position: 62% center;
+}
+.ngms-home-refresh .ngms-industrial-hero__wash {
+  background:
+    linear-gradient(90deg, rgba(35,38,44,.98) 0%, rgba(35,38,44,.88) 38%, rgba(35,38,44,.34) 72%, rgba(35,38,44,.12) 100%),
+    linear-gradient(0deg, rgba(35,38,44,.85), transparent 48%) !important;
+  mix-blend-mode: normal;
+}
+.ngms-home-refresh .ngms-industrial-hero__grid {
+  opacity: .16;
+  background-image: linear-gradient(rgba(209,213,219,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(209,213,219,.22) 1px,transparent 1px);
+  background-size: 72px 72px;
+}
+.ngms-home-refresh .ngms-industrial-hero__architecture { display: none; }
+.ngms-home-refresh .ngms-industrial-hero__inner {
+  max-width: 1480px;
+  padding: clamp(26px,4.5vw,68px) clamp(22px,5vw,76px) 24px;
+}
+.ngms-home-refresh .ngms-industrial-hero__eyebrow,
+.ngms-home-refresh .ngms-industrial-hero__overline,
+.ngms-home-refresh .ngms-industrial-hero__location {
+  color: var(--ngms-home-cloud-zinc) !important;
+}
+.ngms-home-refresh .ngms-industrial-hero__eyebrow-rule {
+  background: var(--ngms-home-safety-orange) !important;
+}
+.ngms-home-refresh .ngms-industrial-hero__index,
+.ngms-home-refresh .ngms-industrial-hero__overline,
+.ngms-home-refresh .ngms-industrial-hero__proof-icon,
+.ngms-home-refresh .ngms-industrial-hero__side-note i::after {
+  color: var(--ngms-home-safety-orange) !important;
+}
+.ngms-home-refresh .ngms-industrial-hero #hero-title {
+  max-width: 11ch;
+  color: var(--ngms-home-paper-white) !important;
+  font-size: clamp(3.4rem, 8.4vw, 8.5rem);
+  font-weight: 800;
+  line-height: .84;
+  letter-spacing: -.075em;
+  text-wrap: balance;
+}
+.ngms-home-refresh .ngms-industrial-hero #hero-title span {
+  color: var(--ngms-home-cloud-zinc) !important;
+  -webkit-text-stroke: 0;
+}
+.ngms-home-refresh .ngms-industrial-hero__intro {
+  max-width: 540px;
+  color: #F0F1F3 !important;
+  font-size: clamp(1rem,1.45vw,1.2rem);
+  line-height: 1.65;
+}
+.ngms-home-refresh .ngms-industrial-button {
+  min-height: 48px;
+  border-radius: 2px !important;
+  font-size: 11px;
+  letter-spacing: .06em;
+}
+.ngms-home-refresh .ngms-industrial-button--orange {
+  background: var(--ngms-home-safety-orange) !important;
+  border-color: var(--ngms-home-safety-orange) !important;
+  color: #17191D !important;
+}
+.ngms-home-refresh .ngms-industrial-button--orange:hover {
+  background: #FF925C !important;
+  border-color: #FF925C !important;
+  color: #17191D !important;
+}
+.ngms-home-refresh .ngms-industrial-button--outline {
+  background: rgba(35,38,44,.28) !important;
+  color: #FFFFFF !important;
+  border-color: #D1D5DB !important;
+}
+.ngms-home-refresh .ngms-industrial-button--outline:hover {
+  background: #D1D5DB !important;
+  color: #23262C !important;
+}
+.ngms-home-refresh .ngms-industrial-hero__phone {
+  color: #FFFFFF !important;
+}
+.ngms-home-refresh .ngms-industrial-hero__proof {
+  border-color: rgba(209,213,219,.32) !important;
+}
+.ngms-home-refresh .ngms-industrial-hero__proof li {
+  color: #FFFFFF !important;
+}
+.ngms-home-refresh .ngms-industrial-hero__proof-icon {
+  border-color: rgba(254,119,51,.65) !important;
+}
+.ngms-home-refresh .ngms-industrial-hero__carousel {
+  border-color: rgba(209,213,219,.5) !important;
+  background: rgba(35,38,44,.76);
+}
+.ngms-home-refresh .ngms-industrial-hero__caption span {
+  color: var(--ngms-home-safety-orange) !important;
+}
+.ngms-home-refresh .ngms-industrial-hero__caption strong {
+  color: #FFFFFF !important;
+}
+.ngms-home-refresh .ngms-industrial-hero__control {
+  border-color: #777E88 !important;
+  color: #FFFFFF !important;
+  border-radius: 2px !important;
+}
+.ngms-home-refresh .ngms-industrial-hero__control:hover {
+  border-color: var(--ngms-home-safety-orange) !important;
+  color: var(--ngms-home-safety-orange) !important;
+}
+.ngms-home-refresh .ngms-industrial-hero__side-note {
+  color: var(--ngms-home-cloud-zinc) !important;
+}
+.ngms-home-refresh .ngms-industrial-hero__side-note i::after {
+  background: var(--ngms-home-safety-orange) !important;
+}
+
+/* Services overview: zinc-grey editorial spread with black type and orange labels. */
+.ngms-home-refresh .ngms-services-editorial {
+  margin-top: 14px;
+  background: var(--ngms-home-cloud-zinc) !important;
+  color: var(--ngms-home-graphite-900) !important;
+  border: 1px solid #AEB4BD;
+  border-radius: 2px !important;
+}
+.ngms-home-refresh .ngms-services-editorial h2 {
+  color: var(--ngms-home-graphite-900) !important;
+  -webkit-text-fill-color: var(--ngms-home-graphite-900) !important;
+  font-size: clamp(2.8rem, 5.8vw, 6rem) !important;
+  line-height: .88 !important;
+  letter-spacing: -.065em !important;
+}
+.ngms-home-refresh .ngms-services-editorial .kicker,
+.ngms-home-refresh .ngms-services-editorial .text-orange,
+.ngms-home-refresh .ngms-services-editorial a:focus-visible {
+  color: #B94A18 !important;
+  -webkit-text-fill-color: #B94A18 !important;
+}
+.ngms-home-refresh .ngms-services-editorial .text-mist,
+.ngms-home-refresh .ngms-services-editorial p:not(.kicker) {
+  color: #30343B !important;
+  -webkit-text-fill-color: #30343B !important;
+}
+.ngms-home-refresh .ngms-services-editorial .btn-outline {
+  color: #23262C !important;
+  border-color: #3A3F47 !important;
+  background: transparent !important;
+}
+.ngms-home-refresh .ngms-services-editorial .btn-outline:hover {
+  color: #FFFFFF !important;
+  background: #23262C !important;
+  border-color: #23262C !important;
+}
+.ngms-home-refresh .ngms-services-editorial [aria-label="Service categories"] > div {
+  background: #F7F8FA !important;
+  border-color: #AEB4BD !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+}
+.ngms-home-refresh .ngms-services-editorial [aria-label="Service categories"] .text-graphite {
+  color: #B94A18 !important;
+  -webkit-text-fill-color: #B94A18 !important;
+}
+.ngms-home-refresh .ngms-services-editorial [aria-label="Service categories"] .text-slate {
+  color: #3A3F47 !important;
+  -webkit-text-fill-color: #3A3F47 !important;
+}
+.ngms-home-refresh .ngms-services-editorial .ngms-service-tile {
+  background: #23262C !important;
+  border: 1px solid #3A3F47 !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+}
+.ngms-home-refresh .ngms-services-editorial .ngms-service-tile :is(span,h3,p) {
+  color: #FFFFFF;
+  -webkit-text-fill-color: currentColor;
+}
+.ngms-home-refresh .ngms-services-editorial .ngms-service-tile .text-orange {
+  color: var(--ngms-home-safety-orange) !important;
+  -webkit-text-fill-color: var(--ngms-home-safety-orange) !important;
+}
+.ngms-home-refresh .ngms-services-editorial .ngms-service-tile .bg-orange,
+.ngms-home-refresh .ngms-services-editorial .ngms-service-tile [class*="bg-orange"] {
+  background: var(--ngms-home-safety-orange) !important;
+  color: #23262C !important;
+}
+.ngms-home-refresh .ngms-services-editorial .ngms-service-tile:hover {
+  border-color: var(--ngms-home-safety-orange) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(35,38,44,.16) !important;
+}
+
+/* Case-study / recent-work band: white editorial canvas, clean modular imagery. */
+.ngms-home-refresh > section[aria-labelledby="work-title"] {
+  margin-top: 14px;
+  background: #FFFFFF !important;
+  color: #23262C !important;
+  border: 1px solid #D1D5DB;
+  border-radius: 2px !important;
+}
+.ngms-home-refresh > section[aria-labelledby="work-title"] :is(h1,h2,h3) {
+  color: #23262C !important;
+}
+.ngms-home-refresh > section[aria-labelledby="work-title"] .kicker,
+.ngms-home-refresh > section[aria-labelledby="work-title"] .text-orange {
+  color: #B94A18 !important;
+}
+.ngms-home-refresh > section[aria-labelledby="work-title"] .text-mist,
+.ngms-home-refresh > section[aria-labelledby="work-title"] p {
+  color: #3A3F47;
+}
+.ngms-home-refresh > section[aria-labelledby="work-title"] .btn-outline {
+  color: #23262C !important;
+  border-color: #3A3F47 !important;
+}
+.ngms-home-refresh > section[aria-labelledby="work-title"] article,
+.ngms-home-refresh > section[aria-labelledby="work-title"] figure {
+  border-radius: 2px !important;
+}
+
+/* Later sections retain contrast while adopting the same industrial geometry. */
+.ngms-home-refresh > section:not(.ngms-industrial-hero) :is(.rounded-panel,.rounded-card,.rounded-btn) {
+  border-radius: 2px !important;
+}
+.ngms-home-refresh > section:not(.ngms-industrial-hero) :is(a,button,summary):focus-visible {
+  outline: 3px solid var(--ngms-home-safety-orange) !important;
+  outline-offset: 3px;
+}
+.ngms-home-refresh > section:not(.ngms-industrial-hero) .btn-quote,
+.ngms-home-refresh > section:not(.ngms-industrial-hero) .btn-glow,
+.ngms-home-refresh [data-site-marketing].btn-quote {
+  background: var(--ngms-home-safety-orange) !important;
+  border-color: var(--ngms-home-safety-orange) !important;
+  color: #23262C !important;
+}
+.ngms-home-refresh .ngms-industrial-hero__proof li:first-child .ngms-industrial-hero__proof-icon {
+  color: var(--ngms-home-neon-sprout) !important;
+  border-color: rgba(177,250,99,.6) !important;
+}
+.ngms-home-refresh .ngms-industrial-hero__proof li:first-child .ngms-industrial-hero__proof-icon::selection {
+  background: var(--ngms-home-neon-sprout);
+}
+@media (max-width: 767px) {
+  .ngms-home-refresh { padding-inline: 0; padding-bottom: 12px; }
+  .ngms-home-refresh .ngms-industrial-hero {
+    min-height: 780px;
+    border-left: 0;
+    border-right: 0;
+  }
+  .ngms-home-refresh .ngms-industrial-hero__wash {
+    background: linear-gradient(180deg,rgba(35,38,44,.18) 0%,rgba(35,38,44,.72) 30%,rgba(35,38,44,.98) 57%,#23262C 100%) !important;
+  }
+  .ngms-home-refresh .ngms-industrial-hero__image {
+    object-position: 64% top;
+    filter: grayscale(.08) contrast(1.04) brightness(.8) !important;
+  }
+  .ngms-home-refresh .ngms-industrial-hero__inner { padding: 18px 20px 18px; }
+  .ngms-home-refresh .ngms-industrial-hero__copy { padding-top: clamp(210px, 56vw, 300px); }
+  .ngms-home-refresh .ngms-industrial-hero #hero-title { font-size: clamp(3rem, 13vw, 5rem); }
+  .ngms-home-refresh .ngms-services-editorial { margin-top: 10px; padding-inline: 1rem; }
+  .ngms-home-refresh .ngms-services-editorial h2 { font-size: clamp(2.5rem, 11vw, 4rem) !important; }
+  .ngms-home-refresh > section[aria-labelledby="work-title"] { margin-top: 10px; }
+}
+@media (max-width: 380px) {
+  .ngms-home-refresh .ngms-industrial-hero { min-height: 800px; }
+  .ngms-home-refresh .ngms-industrial-hero__copy { padding-top: 220px; }
+  .ngms-home-refresh .ngms-industrial-hero #hero-title { font-size: clamp(2.75rem, 12.5vw, 3.3rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ngms-home-refresh *, .ngms-home-refresh *::before, .ngms-home-refresh *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
