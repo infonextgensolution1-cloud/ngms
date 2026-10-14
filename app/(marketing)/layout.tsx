@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import SeasonalBanner from "@/components/SeasonalBanner";
 import { SITE } from "@/lib/site";
-import "./editorial-reference.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -21,7 +20,11 @@ export const metadata: Metadata = {
 };
 
 // This layout only wraps routes inside app/(marketing)/ — services, prices, packages.
-// The root layout already renders the real site header, footer and floating WhatsApp button.
+// The ROOT layout (app/layout.tsx) already renders the real site header, footer and
+// floating WhatsApp button for every route, including these. This layout previously
+// ALSO rendered its own Header/Footer/WhatsAppFab, which stacked a second, unstyled
+// header and footer on top of the real ones on every page in this group. Do not add
+// them back here — anything global belongs in the root layout only.
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="ngms-public-page" data-ngms-public-page>
