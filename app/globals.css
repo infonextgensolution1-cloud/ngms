@@ -4791,3 +4791,89 @@ input:focus,select:focus,textarea:focus { border-color: var(--ngms-race-orange) 
 @media(prefers-reduced-motion:reduce) {
   .ngms-home-new *, .ngms-home-new *::before, .ngms-home-new *::after { animation-duration:.01ms!important; animation-iteration-count:1!important; scroll-behavior:auto!important; transition-duration:.01ms!important; }
 }
+
+
+/* ---------- Site-wide readability baseline (2026-10) ----------
+   Keep Inter for body/UI and Poppins for headings. Improve legibility across
+   public pages without changing component layout, routes, or data workflows. */
+:root {
+  --ngms-text-body: #F4F4F4;
+  --ngms-text-muted-dark: #C2C5CA;
+  --ngms-text-muted-light: #57534E;
+  --ngms-text-accent-light: #A83A00;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  font-size: 100%;
+}
+
+body {
+  font-family: var(--font-body), Inter, system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* A predictable, readable hierarchy on all main content routes. */
+body main {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+body main :is(p, li, dd, dt, blockquote) {
+  line-height: 1.65;
+}
+body main :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-heading), Poppins, system-ui, sans-serif;
+  line-height: 1.12;
+  text-wrap: balance;
+  overflow-wrap: normal;
+}
+body main h1 { line-height: 1.04; }
+body main h2 { line-height: 1.1; }
+body main h3,
+body main h4 { line-height: 1.2; }
+
+/* Small labels remain compact, but not tiny on mobile or desktop. */
+body main :is(.text-xs, .text-\[10px\], .text-\[11px\]) {
+  font-size: max(0.75rem, 12px) !important;
+  line-height: 1.45;
+}
+body main .text-sm {
+  line-height: 1.55;
+}
+body main :is(label, legend, button, [role="button"], input, select, textarea) {
+  line-height: 1.45;
+}
+body main :is(input, select, textarea) {
+  font-size: max(1rem, 16px);
+}
+body main :is(a, button, summary) {
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 0.08em;
+}
+
+/* Correct common muted-text contrast on dark surfaces; light surfaces retain
+   dark ink. These are utility overrides, so scope them to dark panels only. */
+body main :is(.bg-jet, .bg-graphite, .bg-cardgrey, .bg-\[\#0A0A0A\], .bg-\[\#0D0D0D\], .bg-\[\#111111\], .bg-\[\#111214\], .bg-\[\#151719\], .bg-\[\#191919\], .bg-\[\#23262C\]) :is(.text-mist, .text-gray-400, .text-gray-500, .text-slate-400, .text-neutral-400) {
+  color: var(--ngms-text-muted-dark) !important;
+}
+
+/* Orange text on pale backgrounds must use the darker accessible brand shade. */
+body main :is(.bg-paper, .bg-fog, .bg-white, .band-light, .ngms-services-editorial) :is(.text-orange, .text-blue, .kicker, .tag, a.text-orange, a.text-blue) {
+  color: var(--ngms-text-accent-light) !important;
+  -webkit-text-fill-color: var(--ngms-text-accent-light) !important;
+}
+
+/* Mobile readability: avoid ultra-tight display type and keep comfortable copy. */
+@media (max-width: 640px) {
+  body main { font-size: 1rem; }
+  body main :is(p, li, dd, dt, blockquote) { line-height: 1.7; }
+  body main :is(h1, h2, h3) { letter-spacing: -0.02em; }
+  body main :is(.text-xs, .text-\[10px\], .text-\[11px\]) {
+    font-size: 0.75rem !important;
+  }
+}
