@@ -5,7 +5,7 @@
   --ngms-editorial-grey: #979797;
   --ngms-editorial-mid: #5E5E5E;
   --ngms-editorial-black: #000000;
-  --ngms-editorial-muted-orange: #D94F00;
+  --ngms-editorial-muted-orange: #B83E00;
   --ngms-editorial-orange: #FF6A00;
   color: var(--ngms-editorial-white);
   background: var(--ngms-editorial-black);
@@ -35,13 +35,13 @@
 }
 .ngms-home-refresh .ngms-industrial-button--orange {
   color: var(--ngms-editorial-white);
-  background: var(--ngms-editorial-orange);
-  border-color: var(--ngms-editorial-orange);
+  background: #B83E00;
+  border-color: #B83E00;
   border-radius: 2px;
 }
 .ngms-home-refresh .ngms-industrial-button--orange:hover {
-  background: var(--ngms-editorial-muted-orange);
-  border-color: var(--ngms-editorial-muted-orange);
+  background: #A83400;
+  border-color: #A83400;
 }
 .ngms-home-refresh .ngms-industrial-button--outline {
   color: var(--ngms-editorial-white);
@@ -69,7 +69,7 @@
 .ngms-home-refresh .ngms-services-editorial .kicker,
 .ngms-home-refresh .ngms-services-editorial .text-orange,
 .ngms-home-refresh .ngms-services-editorial a:focus-visible {
-  color: var(--ngms-editorial-muted-orange);
+  color: #3D1700;
 }
 .ngms-home-refresh .ngms-services-editorial .ngms-service-tile {
   border-color: var(--ngms-editorial-mid);
@@ -79,10 +79,10 @@
 .ngms-home-refresh .ngms-services-editorial .ngms-service-tile .bg-orange,
 .ngms-home-refresh .ngms-services-editorial .ngms-service-tile [class*="bg-orange"] {
   color: var(--ngms-editorial-white);
-  background: var(--ngms-editorial-orange);
+  background: #B83E00;
 }
 .ngms-home-refresh .ngms-services-editorial .ngms-service-tile .text-orange {
-  color: #FF6A00;
+  color: #3D1700;
 }
 .ngms-home-refresh .ngms-services-editorial .rounded-panel {
   border-radius: 2px;
