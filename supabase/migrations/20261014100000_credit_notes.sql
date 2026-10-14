@@ -44,6 +44,25 @@ create table if not exists public.credit_note_items (
 create index if not exists credit_notes_invoice_id_idx on public.credit_notes(invoice_id);
 create index if not exists credit_notes_client_id_idx on public.credit_notes(client_id);
 create index if not exists credit_note_items_note_id_idx on public.credit_note_items(credit_note_id);
+-- Serialize line edits against issuance by locking the parent credit-note row.
+create or replace function public.ngms_guard_credit_note_item_edit()
+returns trigger language plpgsql security definer set search_path = pg_catalog, public as $
+declare v_note_id uuid; v_status text;
+begin
+  if tg_op = 'UPDATE' and new.credit_note_id is distinct from old.credit_note_id then
+    raise exception 'A credit-note line cannot be moved to another credit note.';
+  end if;
+  if tg_op = 'DELETE' then v_note_id := old.credit_note_id; else v_note_id := new.credit_note_id; end if;
+  select status into v_status from public.credit_notes where id = v_note_id for update;
+  if not found then raise exception 'Credit note not found.'; end if;
+  if v_status <> 'draft' then raise exception 'Only draft credit-note lines can be changed.'; end if;
+  if tg_op = 'DELETE' then return old; end if;
+  return new;
+end; $;
+revoke all on function public.ngms_guard_credit_note_item_edit() from public, anon, authenticated;
+drop trigger if exists credit_note_items_guard_draft on public.credit_note_items;
+create trigger credit_note_items_guard_draft before insert or update or delete on public.credit_note_items
+for each row execute function public.ngms_guard_credit_note_item_edit();
 
 alter table public.credit_notes enable row level security;
 alter table public.credit_note_items enable row level security;
@@ -228,6 +247,9 @@ begin
     from public.credit_note_items where credit_note_id = p_credit_note_id;
   if v_items_subtotal <= 0 or v_items_subtotal <> v_note.subtotal then
     raise exception 'Credit-note lines must be present and their subtotal must match the header.';
+  end if;  if (select coalesce(sum(round(line_subtotal * vat_rate / 100, 2)), 0)
+      from public.credit_note_items where credit_note_id = p_credit_note_id) <> v_note.vat_amount then
+    raise exception 'Credit-note VAT must match the VAT rates on its lines.';
   end if;
   if v_note.total_amount > coalesce(v_invoice.total_amount, 0) then
     raise exception 'Credit note exceeds the original invoice total.';
