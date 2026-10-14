@@ -685,3 +685,173 @@ body:has(main.ngms-home-refresh) header:has(nav[aria-label="Main"]) a {
   .ngms-home-refresh .ngms-industrial-button,
   .ngms-home-refresh .ngms-service-tile { transition: none !important; }
 }
+
+
+/* =========================================================
+   NGMS INDIVIDUAL SERVICE PAGES — EDITORIAL STRUCTURE PREVIEW
+   Scoped to service detail routes only; content and logic unchanged.
+   ========================================================= */
+.ngms-service-detail-reference {
+  --ngms-sd-ink: #171716;
+  --ngms-sd-paper: #f3f0e9;
+  --ngms-sd-white: #fffdf8;
+  --ngms-sd-orange: #ff5712;
+  --ngms-sd-line: #d5d0c7;
+  background: var(--ngms-sd-paper);
+  color: var(--ngms-sd-ink);
+  overflow: clip;
+}
+.ngms-service-detail-reference .ngms-sd-hero {
+  min-height: min(790px, calc(100svh - 70px));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  isolation: isolate;
+  background: #171716;
+  color: #fffdf8;
+}
+.ngms-service-detail-reference .ngms-sd-hero__image { position:absolute; inset:0; z-index:-2; }
+.ngms-service-detail-reference .ngms-sd-hero__image img { object-fit:cover; object-position:center; filter:grayscale(.18) contrast(1.08); }
+.ngms-service-detail-reference .ngms-sd-hero__veil {
+  position:absolute; inset:0; z-index:-1;
+  background:linear-gradient(90deg,rgba(15,15,14,.94) 0%,rgba(15,15,14,.78) 48%,rgba(15,15,14,.18) 100%),linear-gradient(0deg,rgba(15,15,14,.75),transparent 35%);
+}
+.ngms-service-detail-reference .ngms-sd-hero__inner {
+  width:min(1440px,100%); margin:0 auto; padding:clamp(42px,7vw,100px) clamp(22px,6vw,88px);
+  display:grid; grid-template-columns:minmax(0,1.25fr) minmax(180px,.75fr); align-items:center; gap:clamp(24px,5vw,80px);
+}
+.ngms-service-detail-reference .ngms-sd-hero__copy { max-width:790px; }
+.ngms-service-detail-reference .ngms-sd-back { display:inline-flex; margin-bottom:clamp(30px,4vw,58px); color:#fffdf8; text-decoration:none; border-bottom:1px solid rgba(255,255,255,.45); padding-bottom:8px; }
+.ngms-service-detail-reference .ngms-sd-eyebrow,
+.ngms-service-detail-reference .ngms-sd-section-label,
+.ngms-service-detail-reference .ngms-sd-proof,
+.ngms-service-detail-reference .ngms-sd-visual-label {
+  font-size:11px; line-height:1.4; letter-spacing:.14em; text-transform:uppercase; font-weight:800;
+}
+.ngms-service-detail-reference .ngms-sd-eyebrow { display:flex; align-items:center; gap:10px; }
+.ngms-service-detail-reference .ngms-sd-eyebrow > span:first-child { width:8px; height:8px; background:var(--ngms-sd-orange); display:inline-block; flex:none; }
+.ngms-service-detail-reference .ngms-sd-hero h1 {
+  max-width:900px; margin:18px 0 20px; font-size:clamp(3.25rem,8.6vw,8.7rem);
+  line-height:.84; letter-spacing:-.065em; font-weight:900; text-transform:uppercase; text-wrap:balance;
+}
+.ngms-service-detail-reference .ngms-sd-tagline { max-width:650px; font-size:clamp(1.25rem,2.4vw,2.1rem); line-height:1.12; font-weight:750; }
+.ngms-service-detail-reference .ngms-sd-summary { max-width:650px; margin-top:18px; color:#e2ded6; font-size:clamp(.96rem,1.25vw,1.12rem); line-height:1.8; }
+.ngms-service-detail-reference .ngms-sd-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:30px; }
+.ngms-service-detail-reference .ngms-sd-button {
+  min-height:52px; display:inline-flex; align-items:center; justify-content:space-between; gap:24px;
+  padding:14px 18px; border:1px solid currentColor; border-radius:2px; text-decoration:none;
+  font-size:12px; font-weight:850; letter-spacing:.06em; text-transform:uppercase; transition:transform .2s ease,background .2s ease,color .2s ease;
+}
+.ngms-service-detail-reference .ngms-sd-button:hover { transform:translateY(-3px); }
+.ngms-service-detail-reference .ngms-sd-button--orange { background:var(--ngms-sd-orange); color:#171716; border-color:var(--ngms-sd-orange); }
+.ngms-service-detail-reference .ngms-sd-button--outline { color:#fffdf8; background:rgba(0,0,0,.12); }
+.ngms-service-detail-reference .ngms-sd-proof { display:flex; flex-wrap:wrap; gap:12px 24px; margin-top:34px; color:#c8c2b9; font-size:9px; }
+.ngms-service-detail-reference .ngms-sd-hero__visual { align-self:end; justify-self:end; text-align:right; }
+.ngms-service-detail-reference .ngms-sd-icon-frame { width:clamp(130px,20vw,280px); aspect-ratio:1; display:grid; place-items:center; border:1px solid rgba(255,255,255,.36); background:rgba(255,255,255,.035); color:var(--ngms-sd-orange); }
+.ngms-service-detail-reference .ngms-sd-visual-label { display:block; margin-top:12px; color:#e2ded6; font-size:9px; }
+.ngms-service-detail-reference .ngms-sd-hero__foot { width:100%; display:flex; justify-content:space-between; gap:16px; padding:16px clamp(22px,6vw,88px); border-top:1px solid rgba(255,255,255,.22); font-size:9px; font-weight:800; letter-spacing:.14em; }
+.ngms-service-detail-reference .ngms-sd-trust { padding:16px clamp(20px,5vw,72px); background:var(--ngms-sd-orange); color:#171716; }
+.ngms-service-detail-reference .ngms-sd-intro,
+.ngms-service-detail-reference .ngms-sd-included,
+.ngms-service-detail-reference .ngms-sd-pricing,
+.ngms-service-detail-reference .ngms-sd-faq,
+.ngms-service-detail-reference .ngms-sd-areas,
+.ngms-service-detail-reference .ngms-sd-final {
+  padding:clamp(58px,8vw,120px) clamp(22px,6vw,88px);
+}
+.ngms-service-detail-reference .ngms-sd-section-label { display:flex; gap:20px; padding-bottom:16px; border-bottom:1px solid var(--ngms-sd-line); color:#625e57; }
+.ngms-service-detail-reference .ngms-sd-section-label span:first-child { color:var(--ngms-sd-orange); }
+.ngms-service-detail-reference .ngms-sd-intro__body {
+  display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr); gap:clamp(28px,8vw,130px);
+  max-width:1300px; margin:clamp(32px,5vw,72px) auto 0;
+}
+.ngms-service-detail-reference .ngms-sd-intro h2,
+.ngms-service-detail-reference .ngms-sd-included h2,
+.ngms-service-detail-reference .ngms-sd-pricing h2,
+.ngms-service-detail-reference .ngms-sd-faq h2,
+.ngms-service-detail-reference .ngms-sd-areas h2,
+.ngms-service-detail-reference .ngms-sd-final h2 {
+  margin:0; font-size:clamp(2.6rem,6vw,6rem); line-height:.9; letter-spacing:-.055em; font-weight:900; text-transform:uppercase;
+}
+.ngms-service-detail-reference .ngms-sd-intro h2 em,
+.ngms-service-detail-reference .ngms-sd-areas h2 em,
+.ngms-service-detail-reference .ngms-sd-final h2 em { color:var(--ngms-sd-orange); font-style:normal; }
+.ngms-service-detail-reference .ngms-sd-intro__body > div { max-width:600px; font-size:clamp(1rem,1.3vw,1.18rem); line-height:1.85; }
+.ngms-service-detail-reference .ngms-sd-intro__body > div p + p { margin-top:18px; color:#625e57; }
+.ngms-service-detail-reference .ngms-sd-included { background:var(--ngms-sd-white); }
+.ngms-service-detail-reference .ngms-sd-included__layout {
+  display:grid; grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr); gap:clamp(32px,8vw,130px);
+  max-width:1300px; margin:clamp(32px,5vw,72px) auto 0;
+}
+.ngms-service-detail-reference .ngms-sd-included__layout > div > .ngms-sd-eyebrow { color:#625e57; }
+.ngms-service-detail-reference .ngms-sd-included h2 { margin-top:18px; }
+.ngms-service-detail-reference .ngms-sd-muted { max-width:440px; margin-top:24px; color:#625e57; line-height:1.8; }
+.ngms-service-detail-reference .ngms-sd-checklist { list-style:none; margin:0; padding:0; border-top:1px solid var(--ngms-sd-line); }
+.ngms-service-detail-reference .ngms-sd-checklist li { display:grid; grid-template-columns:36px minmax(0,1fr) 20px; gap:14px; align-items:start; padding:20px 0; border-bottom:1px solid var(--ngms-sd-line); }
+.ngms-service-detail-reference .ngms-sd-checklist li > span { color:var(--ngms-sd-orange); font-size:11px; font-weight:900; }
+.ngms-service-detail-reference .ngms-sd-checklist li p { margin:0; line-height:1.6; }
+.ngms-service-detail-reference .ngms-sd-checklist li b { font-size:16px; }
+.ngms-service-detail-reference .ngms-sd-pricing { background:#e5e0d6; }
+.ngms-service-detail-reference .ngms-sd-pricing__layout { display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); gap:clamp(28px,7vw,100px); max-width:1300px; margin:clamp(32px,5vw,72px) auto 0; }
+.ngms-service-detail-reference .ngms-sd-pricing__layout > div:first-child > p:not(.ngms-sd-eyebrow) { max-width:490px; margin-top:24px; line-height:1.8; }
+.ngms-service-detail-reference .ngms-sd-text-link { display:inline-flex; gap:20px; align-items:center; margin-top:22px; color:#171716; font-weight:900; text-transform:uppercase; font-size:11px; letter-spacing:.06em; text-decoration-color:var(--ngms-sd-orange); text-underline-offset:6px; }
+.ngms-service-detail-reference .ngms-sd-price-table { background:var(--ngms-sd-white); padding:clamp(18px,3vw,32px); }
+.ngms-service-detail-reference .ngms-sd-price-table__head,
+.ngms-service-detail-reference .ngms-sd-price-table__row { display:flex; justify-content:space-between; gap:18px; padding:16px 0; border-bottom:1px solid var(--ngms-sd-line); }
+.ngms-service-detail-reference .ngms-sd-price-table__head { color:#625e57; font-size:10px; letter-spacing:.1em; text-transform:uppercase; }
+.ngms-service-detail-reference .ngms-sd-price-table__row strong { font-weight:900; }
+.ngms-service-detail-reference .ngms-sd-price-table > p { margin-top:20px; color:#625e57; font-size:12px; line-height:1.7; }
+.ngms-service-detail-reference .ngms-sd-quote-note { padding:clamp(24px,4vw,48px); background:var(--ngms-sd-white); border-left:4px solid var(--ngms-sd-orange); line-height:1.8; }
+.ngms-service-detail-reference .ngms-sd-faq { background:var(--ngms-sd-paper); }
+.ngms-service-detail-reference .ngms-sd-faq__layout { display:grid; grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr); gap:clamp(28px,8vw,120px); max-width:1300px; margin:clamp(32px,5vw,72px) auto 0; }
+.ngms-service-detail-reference .ngms-sd-faq-item { border-bottom:1px solid var(--ngms-sd-line); }
+.ngms-service-detail-reference .ngms-sd-faq-item summary { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:22px 0; cursor:pointer; list-style:none; font-weight:800; }
+.ngms-service-detail-reference .ngms-sd-faq-item summary::-webkit-details-marker { display:none; }
+.ngms-service-detail-reference .ngms-sd-faq-item summary span { color:var(--ngms-sd-orange); font-size:24px; }
+.ngms-service-detail-reference .ngms-sd-faq-item p { max-width:760px; padding:0 40px 22px 0; color:#625e57; line-height:1.8; }
+.ngms-service-detail-reference .ngms-sd-areas { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,.8fr); gap:clamp(32px,8vw,120px); background:#171716; color:var(--ngms-sd-white); }
+.ngms-service-detail-reference .ngms-sd-areas .ngms-sd-eyebrow { color:#c8c2b9; }
+.ngms-service-detail-reference .ngms-sd-areas > div:first-child > p:last-child { max-width:430px; margin-top:24px; color:#c8c2b9; line-height:1.8; }
+.ngms-service-detail-reference .ngms-sd-area-links { border-top:1px solid #514e49; }
+.ngms-service-detail-reference .ngms-sd-area-links a { display:flex; justify-content:space-between; gap:16px; padding:18px 0; border-bottom:1px solid #514e49; color:var(--ngms-sd-white); text-decoration:none; }
+.ngms-service-detail-reference .ngms-sd-area-links a span { color:var(--ngms-sd-orange); }
+.ngms-service-detail-reference .ngms-sd-final { display:flex; justify-content:space-between; align-items:end; gap:40px; background:var(--ngms-sd-orange); color:#171716; }
+.ngms-service-detail-reference .ngms-sd-final .ngms-sd-eyebrow { color:#171716; }
+.ngms-service-detail-reference .ngms-sd-final h2 em { color:#fffdf8; }
+.ngms-service-detail-reference .ngms-sd-final > div:first-child > p:last-child { max-width:500px; margin-top:22px; line-height:1.8; }
+.ngms-service-detail-reference .ngms-sd-final__actions { display:flex; flex-wrap:wrap; gap:10px; }
+.ngms-service-detail-reference .ngms-sd-final .ngms-sd-button--orange { background:#171716; border-color:#171716; color:#fffdf8; }
+.ngms-service-detail-reference .ngms-sd-final .ngms-sd-button--outline { border-color:#171716; color:#171716; background:transparent; }
+.ngms-service-detail-reference a:focus-visible,
+.ngms-service-detail-reference summary:focus-visible { outline:3px solid var(--ngms-sd-orange); outline-offset:4px; }
+@media (max-width: 800px) {
+  .ngms-service-detail-reference .ngms-sd-hero { min-height:auto; }
+  .ngms-service-detail-reference .ngms-sd-hero__inner { grid-template-columns:1fr; padding-top:44px; padding-bottom:40px; }
+  .ngms-service-detail-reference .ngms-sd-hero__visual { display:none; }
+  .ngms-service-detail-reference .ngms-sd-hero h1 { font-size:clamp(3.1rem,13vw,6rem); }
+  .ngms-service-detail-reference .ngms-sd-hero__veil { background:linear-gradient(90deg,rgba(15,15,14,.91),rgba(15,15,14,.58)),linear-gradient(0deg,rgba(15,15,14,.7),transparent 55%); }
+  .ngms-service-detail-reference .ngms-sd-hero__foot { flex-direction:column; padding:14px 22px; font-size:8px; }
+  .ngms-service-detail-reference .ngms-sd-intro__body,
+  .ngms-service-detail-reference .ngms-sd-included__layout,
+  .ngms-service-detail-reference .ngms-sd-pricing__layout,
+  .ngms-service-detail-reference .ngms-sd-faq__layout,
+  .ngms-service-detail-reference .ngms-sd-areas { grid-template-columns:1fr; }
+  .ngms-service-detail-reference .ngms-sd-intro__body,
+  .ngms-service-detail-reference .ngms-sd-included__layout,
+  .ngms-service-detail-reference .ngms-sd-pricing__layout,
+  .ngms-service-detail-reference .ngms-sd-faq__layout,
+  .ngms-service-detail-reference .ngms-sd-areas { gap:30px; }
+  .ngms-service-detail-reference .ngms-sd-final { align-items:flex-start; flex-direction:column; }
+  .ngms-service-detail-reference .ngms-sd-actions .ngms-sd-button { flex:1 1 100%; }
+}
+@media (max-width: 420px) {
+  .ngms-service-detail-reference .ngms-sd-proof { gap:9px 14px; }
+  .ngms-service-detail-reference .ngms-sd-proof span { font-size:8px; }
+  .ngms-service-detail-reference .ngms-sd-final__actions { width:100%; }
+  .ngms-service-detail-reference .ngms-sd-final__actions .ngms-sd-button { width:100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ngms-service-detail-reference .ngms-sd-button { transition:none; }
+  .ngms-service-detail-reference .ngms-sd-button:hover { transform:none; }
+}
