@@ -16,6 +16,7 @@ import PWARegister from '@/components/PWARegister'
 import './globals.css'
 import './homepage-editorial.css'
 import './ngms-public-fusion.css'
+import './ngms-industrial-editorial.css'
 import './homepage-fusion.css'
 
 // Solar Forge type system: Inter for body/UI, Poppins for display headings.
