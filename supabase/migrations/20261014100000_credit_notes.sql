@@ -66,7 +66,11 @@ drop policy if exists credit_notes_staff_update_draft on public.credit_notes;
 create policy credit_notes_staff_update_draft on public.credit_notes
   for update to authenticated
   using ((select private.is_ngms_prompt_user()) and status = 'draft')
-  with check ((select private.is_ngms_prompt_user()) and status = 'draft');
+  with check (
+    (select private.is_ngms_prompt_user())
+    and status = 'draft'
+    and review_status in ('pending', 'manual_review_required', 'rejected')
+  );
 
 drop policy if exists credit_notes_staff_delete_draft on public.credit_notes;
 create policy credit_notes_staff_delete_draft on public.credit_notes
@@ -202,8 +206,9 @@ begin
     raise exception 'Credit note client must match the source invoice client.';
   end if;
   if v_invoice.status = 'void' then raise exception 'A void invoice cannot be credited.'; end if;
-  if v_invoice.status in ('paid', 'partial') then
-    raise exception 'Paid and partially-paid invoices require manual accounting review before credit can be applied.';
+  if v_invoice.status in ('paid', 'partial')
+     and not (v_note.review_status = 'approved' and v_note.reviewed_by is not null) then
+    raise exception 'Paid and partially-paid invoices require recorded Admin accounting review before a credit note can be issued.';
   end if;
 
   select coalesce(sum(line_subtotal), 0) into v_items_subtotal
