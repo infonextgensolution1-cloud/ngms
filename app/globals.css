@@ -999,7 +999,6 @@ input:disabled, select:disabled, textarea:disabled { opacity: .6; cursor: not-al
   }
 }
 
-
 /* Reference-led editorial hero: graphite material palette, architectural modules, lime signal. */
 .ngms-home-refresh .ngms-industrial-hero {
   min-height: clamp(700px, 78vw, 850px);
@@ -1997,8 +1996,7 @@ input:disabled, select:disabled, textarea:disabled { opacity: .6; cursor: not-al
   margin-top:18px;
   font-size:clamp(13px,1.2vw,16px);
   line-height:1.45;
-}
-.ngms-services-reference .ngms-services-hero .btn,
+}.ngms-services-reference .ngms-services-hero .btn,
 .ngms-services-reference .ngms-services-hero a.btn {
   border-radius:0 !important;
   min-height:42px;
@@ -2997,8 +2995,7 @@ input:disabled, select:disabled, textarea:disabled { opacity: .6; cursor: not-al
   display:grid;
   grid-template-columns:minmax(170px,.45fr) minmax(0,1.55fr);
   border:1px solid var(--mp-ink);
-  border-top:0;
-}
+  border-top:0;}
 .ngms-mp-final-cta__red {
   display:flex;
   flex-direction:column;
@@ -3240,6 +3237,68 @@ body:has(.ngms-about-editorial) footer[data-site-marketing] { display:none !impo
 }
 
 
+/* NGMS Formula / industrial visual refresh — public website global surfaces.
+   Global design tokens and component polish; this does not alter route logic or integrations. */
+:root {
+  --ngms-race-orange: #ff6426;
+  --ngms-race-paper: #f7f4ef;
+  --ngms-race-concrete: #b8b8b8;
+  --ngms-race-ink: #111111;
+  --ngms-race-canvas: #090909;
+  --ngms-race-panel: #202020;
+  --ngms-race-border: #454545;
+}
+html { color-scheme: dark; }
+body { background: var(--ngms-race-canvas); color: #fff; overflow-x: clip; }
+h1,h2,h3,h4 {
+  font-family: var(--font-heading), "Rajdhani", "Arial Narrow", system-ui, sans-serif;
+  text-transform: uppercase; letter-spacing: -.015em; text-wrap: balance;
+}
+:focus-visible { outline: 2px solid var(--ngms-race-orange); outline-offset: 3px; }
+.skip-link { background: var(--ngms-race-orange); color: #111; border-radius: 2px; }
+.kicker,.tag { color: var(--ngms-race-orange); }
+.text-blue { color: var(--ngms-race-orange) !important; }
+.bg-blue { background-color: var(--ngms-race-orange) !important; }
+.border-blue { border-color: var(--ngms-race-orange) !important; }
+.card,.panel { border-radius: 4px; border-color: #383838; }
+.card { background: #1b1b1b; }
+.panel { background: #171717; box-shadow: 0 12px 30px rgba(0,0,0,.18); }
+.border-darkgrey,.border-line { border-color: #383838; }
+.bg-graphite { background-color: #242424; }
+.bg-cardgrey { background-color: #171717; }
+.text-mist { color: #c4c1bb; }
+.btn { border-radius: 2px; letter-spacing: .02em; }
+.btn-quote,.btn-glow,.btn-quote-popup,.btn-quote-hero,.btn-blue,.btn-power {
+  background: var(--ngms-race-orange) !important;
+  border-color: var(--ngms-race-orange) !important; color: #111 !important;
+}
+.btn-quote:hover,.btn-glow:hover,.btn-quote-popup:hover,.btn-quote-hero:hover,.btn-blue:hover,.btn-power:hover {
+  background: #ff7a45 !important; border-color: #ff7a45 !important; color: #111 !important;
+}
+.btn-wa,.btn-wa-price { background: #111 !important; border-color: var(--ngms-race-orange) !important; color: #fff !important; }
+.btn-wa:hover,.btn-wa-price:hover { background: #222 !important; }
+.btn-wa svg,.btn-wa .icon,.btn-wa [data-icon],.btn-wa-price svg { color: #25d366 !important; filter: none !important; }
+.btn-touch,.btn-dark,.btn-jet { background: #202020; border-color: #484848; color: #fff; }
+.btn-touch:hover,.btn-dark:hover,.btn-jet:hover,.btn-outline:hover { border-color: var(--ngms-race-orange); }
+.btn-outline { border-color: #77736d; }
+.btn-facebook { background: #1877f2 !important; border-color: #1877f2 !important; color: #fff !important; }
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="color"]),
+select,textarea { border-radius: 2px; border-color: #454545; }
+input:focus,select:focus,textarea:focus { border-color: var(--ngms-race-orange) !important; box-shadow: 0 0 0 3px rgba(255,100,38,.2); }
+
+/* Optional reusable angular panels for page templates. */
+.race-panel { position: relative; overflow: hidden; border-radius: 10px 26px 10px 10px; clip-path: polygon(0 0,calc(100% - 34px) 0,100% 34px,100% 100%,0 100%); }
+.race-panel--paper { background: var(--ngms-race-paper); color: #111; }
+.race-panel--concrete { background: var(--ngms-race-concrete); color: #111; }
+.race-number { font-family: var(--font-heading),"Rajdhani","Arial Narrow",sans-serif; font-weight: 800; line-height: .82; letter-spacing: -.06em; color: var(--ngms-race-orange); }
+.race-eyebrow { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .12em; }
+.race-rule { height: 3px; width: clamp(48px,8vw,112px); background: var(--ngms-race-orange); }
+
+/* Avoid motion when the user requests reduced motion. */
+@media(prefers-reduced-motion:reduce) {
+  .ngms-icon,.forge-interactive,.forge-reveal,.forge-shimmer::after { animation:none !important; transition:none !important; }
+  html { scroll-behavior:auto; }
+}
 /* Maintenance plans — industrial editorial reference redesign (scoped to this route). */
 .ngms-maintenance-brut {
   --mp-paper:#dfe1dc;
@@ -3935,8 +3994,7 @@ body:has(.ngms-about-editorial) footer[data-site-marketing] { display:none !impo
 .ngms-home-refresh .ngms-services-editorial .kicker,.ngms-home-refresh .ngms-services-editorial .text-orange{color:#B94A18!important;-webkit-text-fill-color:#B94A18!important}
 .ngms-home-refresh .ngms-services-editorial .text-mist,.ngms-home-refresh .ngms-services-editorial p:not(.kicker){color:#30343B!important;-webkit-text-fill-color:#30343B!important}
 .ngms-home-refresh .ngms-services-editorial .btn-outline{color:#23262C!important;border-color:#3A3F47!important;background:transparent!important}
-.ngms-home-refresh .ngms-services-editorial .btn-outline:hover{color:#FFF!important;background:#23262C!important;border-color:#23262C!important}
-.ngms-home-refresh .ngms-services-editorial [aria-label="Service categories"]>div{background:#F7F8FA!important;border-color:#AEB4BD!important;border-radius:2px!important;box-shadow:none!important}
+.ngms-home-refresh .ngms-services-editorial .btn-outline:hover{color:#FFF!important;background:#23262C!important;border-color:#23262C!important}.ngms-home-refresh .ngms-services-editorial [aria-label="Service categories"]>div{background:#F7F8FA!important;border-color:#AEB4BD!important;border-radius:2px!important;box-shadow:none!important}
 .ngms-home-refresh .ngms-services-editorial [aria-label="Service categories"] .text-graphite{color:#B94A18!important;-webkit-text-fill-color:#B94A18!important}
 .ngms-home-refresh .ngms-services-editorial [aria-label="Service categories"] .text-slate{color:#3A3F47!important;-webkit-text-fill-color:#3A3F47!important}
 .ngms-home-refresh .ngms-services-editorial .ngms-service-tile{background:#23262C!important;border:1px solid #3A3F47!important;border-radius:2px!important;box-shadow:none!important}
