@@ -16,7 +16,7 @@ import { LOGO_DATA_URI } from '@/lib/logo'
 import { PLACEHOLDER_ACC } from '@/lib/quote-terms'
 
 type PaymentEntry = { line: string; amount: number; index: number; reversed: boolean }
-type CreditNote = { id:string; credit_note_number:string; invoice_id:string; client_id:string; status:'draft'|'issued'|'void'; review_status:'pending'|'manual_review_required'|'approved'|'rejected'; reason:string; subtotal:number; vat_amount:number; total_amount:number; created_at:string; issued_at:string|null; review_note:string|null }
+type CreditNote = { id:string; credit_note_number:string; invoice_id:string; client_id:string; status:'draft'|'issued'|'void'; review_status:'pending'|'manual_review_required'|'approved'|'rejected'; reason:string; subtotal:number; vat_amount:number; total_amount:number; created_at:string; issued_at:string|null; review_note:string|null; line_description?:string|null }
 
 function paymentEntries(notes: string | null): PaymentEntry[] {
   const lines = (notes ?? '').split('\n')
@@ -96,11 +96,11 @@ function InvoiceView() {
       setMoney(sc.money)
       setQuoteNumber(sc.quote_number)
       setBusiness(sc.business)
-      const { data: creditRows, error: creditRowsError } = await supabase.from('credit_notes').select('id,credit_note_number,invoice_id,client_id,status,review_status,reason,subtotal,vat_amount,total_amount,created_at,issued_at,review_note').eq('invoice_id', id).order('created_at', { ascending: false })
+      const { data: creditRows, error: creditRowsError } = await supabase.from('credit_notes').select('id,credit_note_number,invoice_id,client_id,status,review_status,reason,subtotal,vat_amount,total_amount,created_at,issued_at,review_note,credit_note_items(description)').eq('invoice_id', id).order('created_at', { ascending: false })
       if (creditRowsError) {
         if (/credit_notes|schema cache|does not exist/i.test(creditRowsError.message)) { setCreditNotesAvailable(false); setCreditNotes([]) }
         else throw creditRowsError
-      } else { setCreditNotesAvailable(true); setCreditNotes((creditRows ?? []) as CreditNote[]) }
+      } else { setCreditNotesAvailable(true); setCreditNotes((creditRows ?? []).map((row: any) => ({ ...row, line_description: row.credit_note_items?.[0]?.description ?? null })) as CreditNote[]) }
       setCreditVatRate(String(sc.money.subtotal > 0 ? Math.round((sc.money.vat / sc.money.subtotal) * 10000) / 100 : 0))
       const { data: linkedJob } = sc.invoice.quote_id ? await supabase.from('jobs').select('id,status').eq('quote_id', sc.invoice.quote_id).neq('status','cancelled').order('created_at',{ascending:false}).limit(1).maybeSingle() : { data: null }
       setJobId((linkedJob as {id:string;status:string}|null)?.id ?? null)
@@ -569,7 +569,7 @@ function InvoiceView() {
           <p style={{fontWeight:800,fontSize:24,marginBottom:4}}>CREDIT NOTE</p><p style={{color:BRAND.grey,fontSize:13,marginBottom:18}}>{printCreditNote?.credit_note_number??''}</p>
           <p style={{fontSize:12,marginBottom:8}}>Issued to: <strong>{client?.name??'—'}</strong></p><p style={{fontSize:12,marginBottom:8}}>Original invoice: <strong>{invoice.invoice_number}</strong></p>
           <p style={{fontSize:12,marginBottom:16}}>Reason: {printCreditNote?.reason??''}</p>
-          <table style={{width:'100%',borderCollapse:'collapse',fontSize:12.5,marginBottom:16}}><thead><tr style={{background:BRAND.black,color:'#fff'}}><th style={{textAlign:'left',padding:8}}>Credit description</th><th style={{textAlign:'right',padding:8}}>Subtotal</th></tr></thead><tbody><tr style={{borderBottom:`1px solid ${BRAND.line}`}}><td style={{padding:8}}>{printCreditNote?.reason??'Credit against original invoice'}</td><td style={{padding:8,textAlign:'right'}}>{rand(Number(printCreditNote?.subtotal??0))}</td></tr></tbody></table>
+          <table style={{width:'100%',borderCollapse:'collapse',fontSize:12.5,marginBottom:16}}><thead><tr style={{background:BRAND.black,color:'#fff'}}><th style={{textAlign:'left',padding:8}}>Credit description</th><th style={{textAlign:'right',padding:8}}>Subtotal</th></tr></thead><tbody><tr style={{borderBottom:`1px solid ${BRAND.line}`}}><td style={{padding:8}}>{printCreditNote?.line_description??printCreditNote?.reason??'Credit against original invoice'}</td><td style={{padding:8,textAlign:'right'}}>{rand(Number(printCreditNote?.subtotal??0))}</td></tr></tbody></table>
           <div style={{marginLeft:'auto',width:240,fontSize:13}}><Row label="Subtotal" value={rand(Number(printCreditNote?.subtotal??0))}/><Row label="VAT" value={rand(Number(printCreditNote?.vat_amount??0))}/><Row label="CREDIT TOTAL" value={rand(Number(printCreditNote?.total_amount??0))} bold border accent={BRAND.orange}/></div>
           <p style={{marginTop:24,paddingTop:12,borderTop:`1px solid ${BRAND.line}`,textAlign:'center',fontSize:11,color:BRAND.grey}}>This credit note does not itself confirm a cash refund or rewrite payment history.</p>
         </div>
