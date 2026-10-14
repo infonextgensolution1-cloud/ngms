@@ -240,6 +240,7 @@ begin
     raise exception 'Credit note client must match the source invoice client.';
   end if;
   if v_invoice.status = 'void' then raise exception 'A void invoice cannot be credited.'; end if;
+  if v_invoice.status = 'draft' then raise exception 'A draft invoice cannot be credited; correct or delete the draft instead.'; end if;
   if v_invoice.status in ('paid', 'partial')
      and not (
        v_note.review_status = 'approved'
