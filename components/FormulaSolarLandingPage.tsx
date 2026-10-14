@@ -46,7 +46,7 @@ export default async function FormulaSolarLandingPage() {
   const [slotPhotos, galleryPhotos] = await Promise.all([getSlotPhotos(['hero_solar']), getGalleryPhotos(24)])
   const solarPhoto = slotPhotos.hero_solar ?? galleryPhotos.find((photo) => photo.service_slug === 'solar-panel-cleaning') ?? galleryPhotos[0]
   return (
-    <main id="main-content" className="overflow-hidden bg-black p-2 text-black sm:p-3">
+    <main id="main-content" className="ngms-solar-fusion overflow-hidden bg-black p-2 text-black sm:p-3">
       <section className="relative mx-auto mb-2 grid max-w-[1440px] gap-8 overflow-hidden rounded-[24px] border-b-[6px] border-black bg-[#f5f3ef] px-5 py-9 sm:mb-3 sm:px-10 sm:py-14 lg:min-h-[550px] lg:grid-cols-[.8fr_1.2fr] lg:gap-12 lg:px-14">
         <div className="flex flex-col items-start">
           <Eyebrow>FORMULA 01 / NGMS SOLAR DIVISION / HELDERBERG</Eyebrow>
