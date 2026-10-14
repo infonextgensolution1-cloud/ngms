@@ -4,22 +4,29 @@ import Link from 'next/link'
 import SeasonalBanner from '@/components/SeasonalBanner'
 import DiscountPopup from '@/components/DiscountPopup'
 import HomeHero from '@/components/home/HomeHero'
+import HowItWorks from '@/components/HowItWorks'
+import BodyCorporateSection from '@/components/BodyCorporateSection'
+import HelderbergToday from '@/components/home/HelderbergToday'
+import { GoogleReviews, WhyNgms, AreasAndFaq } from '@/components/home/HomeSections'
 import { services } from '@/lib/services'
 import { SITE, whatsappLink } from '@/lib/site'
 import { getBusinessHours } from '@/lib/business-hours'
-import { getGalleryPhotos, getHeroSlides, getServiceImages } from '@/lib/queries'
+import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages, getSlotPhotos } from '@/lib/queries'
 
 export const revalidate = 300
 export const metadata: Metadata = { alternates: { canonical: '/' } }
 
 export default async function HomePage() {
-  const [hours, slides, gallery, serviceImages] = await Promise.all([
+  const [hours, slides, gallery, serviceImages, beforeAfter, slotPhotos] = await Promise.all([
     getBusinessHours(),
     getHeroSlides(),
     getGalleryPhotos(18),
     getServiceImages(),
+    getBeforeAfter(),
+    getSlotPhotos(['hero_feature', 'mission_left']),
   ])
   const projectPhotos = gallery.filter((photo) => photo.image_url).slice(0, 6)
+  const comparisonPhotos = beforeAfter.filter((photo) => photo.before_image_url && photo.after_image_url).slice(0, 3)
 
   return (
     <main className="ngms-home-new">
@@ -98,6 +105,43 @@ export default async function HomePage() {
         </div>
       </section>}
 
+      {comparisonPhotos.length > 0 && <section className="bg-[#F2F2F2] text-[#0D0D0D] px-5 py-16 sm:px-8 sm:py-24" aria-labelledby="ngms-before-after-title">
+        <div className="mx-auto max-w-7xl">
+          <p className="mb-4 text-xs font-black uppercase tracking-[.16em] text-[#A43C00]">Visible proof</p>
+          <h2 id="ngms-before-after-title" className="mb-10 text-4xl leading-none sm:text-6xl">BEFORE.<br /><span className="text-[#A43C00]">AFTER.</span></h2>
+          <div className="grid gap-5 md:grid-cols-3">
+            {comparisonPhotos.map((photo, index) => <article key={photo.after_image_url} className="min-w-0 border border-[#D0D0D0] bg-white">
+              <div className="grid grid-cols-2">
+                <div>
+                  <div className="relative aspect-[4/3] bg-[#D8D8D8]">
+                    <Image src={photo.before_image_url} alt={`Before: ${photo.caption || photo.location || 'NGMS project'}`} fill sizes="(max-width: 768px) 50vw, 20vw" quality={72} unoptimized={photo.before_image_url.includes('.supabase.co/storage/')} className="object-cover" />
+                  </div>
+                  <p className="bg-[#0D0D0D] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-white">Before</p>
+                </div>
+                <div>
+                  <div className="relative aspect-[4/3] bg-[#D8D8D8]">
+                    <Image src={photo.after_image_url} alt={`After: ${photo.caption || photo.location || 'NGMS project'}`} fill sizes="(max-width: 768px) 50vw, 20vw" quality={72} unoptimized={photo.after_image_url.includes('.supabase.co/storage/')} className="object-cover" />
+                  </div>
+                  <p className="bg-[#FF5A00] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-[#0D0D0D]">After</p>
+                </div>
+              </div>
+              <div className="p-4">
+                <p className="text-sm font-bold">{photo.caption || 'Completed maintenance work'}</p>
+                <p className="mt-1 text-xs text-[#555]">{photo.location}</p>
+              </div>
+            </article>)}
+          </div>
+          <p className="mt-8"><Link href="/portfolio" className="inline-flex border-b-2 border-[#FF5A00] py-3 text-xs font-black uppercase tracking-wider">VIEW MORE PROJECTS ↗</Link></p>
+        </div>
+      </section>}
+
+      <GoogleReviews />
+      <WhyNgms photo={slotPhotos.mission_left ? { src: slotPhotos.mission_left.image_url, caption: slotPhotos.mission_left.caption || 'Recent NGMS maintenance project' } : undefined} />
+      <HowItWorks />
+      <BodyCorporateSection photo={slotPhotos.hero_feature ? { src: slotPhotos.hero_feature.image_url, caption: slotPhotos.hero_feature.caption || 'Complex maintenance' } : undefined} />
+      <HelderbergToday />
+      <AreasAndFaq />
+
       <section className="ngms-new-clients" aria-labelledby="ngms-clients-title">
         <div>
           <p className="ngms-new-eyebrow ngms-new-eyebrow--dark">WHO WE HELP</p>
@@ -108,15 +152,6 @@ export default async function HomePage() {
           <Link href="/body-corporate-maintenance"><span>02</span><strong>BODY CORPORATES</strong><small>Planned upkeep for shared spaces.</small><b aria-hidden="true">↗</b></Link>
           <Link href="/quote?type=commercial"><span>03</span><strong>BUSINESSES</strong><small>One contact for ongoing maintenance.</small><b aria-hidden="true">↗</b></Link>
         </div>
-      </section>
-
-      <section className="ngms-new-coverage" aria-labelledby="ngms-coverage-title">
-        <div>
-          <p className="ngms-new-eyebrow">LOCAL KNOW-HOW</p>
-          <h2 id="ngms-coverage-title">PROUDLY SERVING<br /><span>THE HELDERBERG.</span></h2>
-          <p>Serving Strand, Gordon’s Bay and Somerset West, with additional work across the Overberg by arrangement.</p>
-        </div>
-        <div className="ngms-new-coverage__places"><span>STRAND</span><span>GORDON’S BAY</span><span>SOMERSET WEST</span><span>OVERBERG</span></div>
       </section>
 
       <section className="ngms-new-final" aria-labelledby="ngms-final-title">
