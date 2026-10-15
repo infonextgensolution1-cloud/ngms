@@ -11,7 +11,7 @@ export type SegmentLandingConfig = {
 
 export default function SegmentLandingPage({config}:{config:SegmentLandingConfig}) {
   const waHref=waLink("Hi NextGen, I'd like a quote for "+config.eyebrow.toLowerCase()+".\nWhat I need: \n(via "+config.slug+" landing page)")
-  return <main className="bg-jet text-paper">
+  return <main data-editorial-page={config.slug} className="bg-jet text-paper">
     <section className="border-b border-darkgrey bg-jet px-4 pb-16 pt-14 sm:pt-20"><div className="mx-auto max-w-6xl">
       <p className="mb-4 font-heading text-sm font-bold uppercase tracking-[0.18em] text-orange">{config.eyebrow}</p>
       <div className="grid gap-10 lg:grid-cols-[1.15fr_.85fr] lg:items-end"><div>
