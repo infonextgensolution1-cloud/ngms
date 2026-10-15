@@ -1,0 +1,111 @@
+/* NGMS Industrial Editorial Design — shared public-page layer.
+   Scoped to the public website. Admin, portal, quote/invoice print workflows retain their existing UI. */
+:root {
+  --ngms-industrial-ink: #111214;
+  --ngms-industrial-charcoal: #23262c;
+  --ngms-industrial-surface: #e7ebf3;
+  --ngms-industrial-paper: #f8f9fb;
+  --ngms-industrial-muted: #68707c;
+  --ngms-industrial-orange: #df4b2c;
+  --ngms-industrial-orange-dark: #a9361e;
+  --ngms-industrial-line: #c6cbd4;
+}
+html { scroll-behavior: smooth; }
+body { background: var(--ngms-industrial-ink); }
+body [data-site-marketing] a,
+body main a { text-underline-offset: .22em; }
+body main :is(h1,h2,h3) {
+  text-wrap: balance;
+  letter-spacing: -.045em;
+}
+body main :is(section, article)[class*="bg-paper"],
+body main :is(section, article)[class*="bg-fog"],
+body main :is(section, article)[class*="bg-white"],
+body main .band-light {
+  border-radius: 2px;
+}
+body main :is(.btn,.btn-quote,.btn-touch,.btn-outline,.btn-wa,.btn-power,.btn-blue) {
+  border-radius: 2px !important;
+  text-transform: uppercase;
+  letter-spacing: .045em;
+  font-weight: 700;
+  min-height: 46px;
+}
+body main :is(.btn-quote,.btn-glow,.btn-quote-hero) {
+  background: var(--ngms-industrial-orange) !important;
+  border-color: var(--ngms-industrial-orange) !important;
+  color: #fff !important;
+}
+body main :is(.btn-quote,.btn-glow,.btn-quote-hero):hover {
+  background: var(--ngms-industrial-orange-dark) !important;
+  border-color: var(--ngms-industrial-orange-dark) !important;
+}
+body main :is(.text-orange,.kicker) { color: var(--ngms-industrial-orange) !important; }
+body main .band-light :is(.text-orange,.kicker) {
+  color: var(--ngms-industrial-orange-dark) !important;
+}
+body main :is(a,button,summary):focus-visible {
+  outline: 3px solid var(--ngms-industrial-orange) !important;
+  outline-offset: 3px;
+}
+body main img { border-radius: 2px; }
+body main :is(.card,.panel,[class*="rounded-card"],[class*="rounded-panel"]) {
+  border-radius: 2px !important;
+}
+body footer[data-site-marketing] {
+  background: #101113;
+  border-top: 1px solid #42454b;
+}
+body footer[data-site-marketing] .text-blue { color: #e7ebf3 !important; }
+body footer[data-site-marketing] a:hover { color: var(--ngms-industrial-orange) !important; }
+
+/* Shared industrial page framing: light editorial panels against a charcoal canvas. */
+.ngms-industrial-page {
+  color: var(--ngms-industrial-ink);
+  background: var(--ngms-industrial-ink);
+}
+.ngms-industrial-page__panel {
+  background: var(--ngms-industrial-paper);
+  color: var(--ngms-industrial-charcoal);
+  border: 1px solid var(--ngms-industrial-line);
+  border-radius: 2px;
+}
+.ngms-industrial-page__eyebrow {
+  color: var(--ngms-industrial-orange-dark);
+  text-transform: uppercase;
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+}
+.ngms-industrial-page__title {
+  font-size: clamp(2.6rem, 7vw, 6.8rem);
+  line-height: .88;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.ngms-industrial-page__cta {
+  background: var(--ngms-industrial-orange);
+  color: #fff;
+  border: 1px solid var(--ngms-industrial-orange);
+  border-radius: 2px;
+  min-height: 48px;
+  padding: .8rem 1.2rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+@media (max-width: 767px) {
+  body main { min-width: 0; }
+  body main :is(h1,h2) { overflow-wrap: anywhere; }
+  body main :is(.btn,.btn-quote,.btn-touch,.btn-outline,.btn-wa,.btn-power,.btn-blue) {
+    min-height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  body main *, body main *::before, body main *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

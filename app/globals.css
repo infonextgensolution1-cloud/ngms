@@ -258,15 +258,17 @@ textarea:disabled {
 form[data-quote-step="1"] [data-quote-step]:not([data-quote-step="1"]),
 form[data-quote-step="2"] [data-quote-step]:not([data-quote-step="2"]),
 form[data-quote-step="3"] [data-quote-step]:not([data-quote-step="3"]),
-form[data-quote-step="4"] [data-quote-step]:not([data-quote-step="4"]) {
+form[data-quote-step="4"] [data-quote-step]:not([data-quote-step="4"]),
+form[data-quote-step="5"] [data-quote-step]:not([data-quote-step="5"]) {
   display: none;
 }
 form[data-quote-step="1"] [data-quote-submit],
 form[data-quote-step="2"] [data-quote-submit],
-form[data-quote-step="3"] [data-quote-submit] {
+form[data-quote-step="3"] [data-quote-submit],
+form[data-quote-step="4"] [data-quote-submit] {
   display: none;
 }
-form[data-quote-step="4"] [data-quote-navigation] {
+form[data-quote-step="5"] [data-quote-navigation] {
   display: none;
 }
 
@@ -996,7 +998,6 @@ input:disabled, select:disabled, textarea:disabled { opacity: .6; cursor: not-al
                linear-gradient(0deg,rgba(8,9,9,.98),transparent 62%);
   }
 }
-
 
 /* Reference-led editorial hero: graphite material palette, architectural modules, lime signal. */
 .ngms-home-refresh .ngms-industrial-hero {

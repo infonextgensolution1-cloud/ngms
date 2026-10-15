@@ -1,5 +1,7 @@
-import type { Metadata } from 'next'
-import SegmentLandingPage from '@/components/SegmentLandingPage'
-import { segmentConfigs } from '@/lib/segment-landings'
-export const metadata: Metadata = { alternates: { canonical: '/solar-panel-cleaning/helderberg' }, title: segmentConfigs.solar.title, description: segmentConfigs.solar.intro }
-export default function Page() { return <SegmentLandingPage config={segmentConfigs.solar} /> }
+import { redirect } from 'next/navigation'
+
+// Retire the legacy location-specific landing page and send visitors to the
+// current solar panel cleaning service page instead of leaving a dead URL.
+export default function Page() {
+  redirect('/services/solar-panel-cleaning')
+}
