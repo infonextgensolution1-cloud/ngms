@@ -21,24 +21,12 @@ const GOOGLE_REVIEW_LINK = 'https://maps.app.goo.gl/eoWNCRjJDscGmQsSA'
 const FALLBACK_MAPS_URI = `https://www.google.com/maps/search/?api=1&query=NextGen%20Solar%20Cleaning%20Maintenance%20Solutions&query_place_id=${PLACE_ID}`
 const FALLBACK_WRITE_REVIEW_URI = `https://search.google.com/local/writereview?placeid=${PLACE_ID}`
 
-// A genuine review already published in the site repository. Keep the homepage
-// useful when the Places API key is missing, while linking visitors to Google
-// for the original review and the latest review list.
-const FALLBACK_REVIEWS: GoogleReview[] = [
-  {
-    authorName: 'Alewyn Bronn',
-    rating: 5,
-    text: 'Reasonable price. Professional cleaning on 3 of my commercial buildings.',
-    googleMapsUri: GOOGLE_REVIEW_LINK,
-  },
-]
-
 export async function getGoogleReviews(): Promise<GoogleReviewsData> {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY
 
   if (!apiKey) {
     return {
-      reviews: FALLBACK_REVIEWS,
+      reviews: [],
       googleMapsUri: FALLBACK_MAPS_URI,
       writeAReviewUri: FALLBACK_WRITE_REVIEW_URI,
       reviewsUri: GOOGLE_REVIEW_LINK,
@@ -75,7 +63,7 @@ export async function getGoogleReviews(): Promise<GoogleReviewsData> {
   } catch (error) {
     console.error('Google reviews fetch failed:', error)
     return {
-      reviews: FALLBACK_REVIEWS,
+      reviews: [],
       googleMapsUri: FALLBACK_MAPS_URI,
       writeAReviewUri: FALLBACK_WRITE_REVIEW_URI,
       reviewsUri: GOOGLE_REVIEW_LINK,
