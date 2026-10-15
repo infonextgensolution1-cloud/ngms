@@ -5,8 +5,11 @@ import Link from 'next/link'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import BusinessSummary from '@/components/admin/BusinessSummary'
 import AdminSearch from '@/components/admin/AdminSearch'
+import MfaChallenge from '@/components/admin/MfaChallenge'
+import MfaSetup from '@/components/admin/MfaSetup'
+import WeekAheadButton from '@/components/admin/WeekAheadButton'
 import { supabase } from '@/lib/supabaseClient'
-import { Loader2, Image as ImageIcon, LogOut, Sparkles, Users, Receipt, FileText, Cloud, LucideIcon, HardHat, Wallet, Boxes, Contact, CalendarDays, BarChart3, Activity } from 'lucide-react'
+import { Loader2, Image as ImageIcon, LogOut, Sparkles, Send, Users, Receipt, FileText, Cloud, LucideIcon, HardHat, Wallet, Boxes, Contact, CalendarDays, BarChart3, Activity, RefreshCw } from 'lucide-react'
 
 const NAV_ITEMS: Array<{
   href: string
@@ -15,10 +18,22 @@ const NAV_ITEMS: Array<{
   desc: string
 }> = [
   {
+    href: '/admin/ai-quote-intake',
+    icon: Sparkles,
+    title: 'AI Quote Intake',
+    desc: 'Turn WhatsApp/site notes into structured quote-ready scope for staff review',
+  },
+  {
     href: '/admin/leads',
     icon: Users,
     title: 'Leads',
     desc: 'Work the pipeline: new → contacted → site visit → quoted → won/lost',
+  },
+  {
+    href: '/admin/maintenance',
+    icon: RefreshCw,
+    title: 'Maintenance Control',
+    desc: 'Customer offers, activation links, active plans and upcoming service cycles',
   },
   {
     href: '/admin/plans',
@@ -84,7 +99,25 @@ const NAV_ITEMS: Array<{
     href: '/admin/media',
     icon: ImageIcon,
     title: 'Media',
-    desc: 'Manage hero slides, before/after pairs & the gallery',
+    desc: 'Manage homepage photos, hero slides, service images, before/after pairs and the gallery',
+  },
+  {
+    href: '/admin/media-wizard',
+    icon: Sparkles,
+    title: 'Solar Forge Media Wizard',
+    desc: 'Create Facebook, Instagram, WhatsApp, Reels, Stories, promotions and bilingual campaigns',
+  },
+  {
+    href: '/admin/media-studio',
+    icon: Sparkles,
+    title: 'Solar Forge Creative Studio',
+    desc: 'Turn approved campaigns into branded creative assets, Reels and Story packs',
+  },
+  {
+    href: '/admin/media-publishing',
+    icon: Send,
+    title: 'Solar Forge Publishing & Attribution',
+    desc: 'Queue approved creative for social distribution and track campaign attribution',
   },
   {
     href: '/admin/prompts',
@@ -97,6 +130,12 @@ const NAV_ITEMS: Array<{
     icon: Sparkles,
     title: 'NGMS Prompt Library',
     desc: 'Client-getting, marketing & content prompts filled in for NGMS, English + Afrikaans',
+  },
+  {
+    href: '/admin/subcontractors',
+    icon: Users,
+    title: 'Subcontractors',
+    desc: 'Prepare invitations and define restricted subcontractor access — draft only',
   },
   {
     href: '/admin/vercel-projects',
@@ -148,7 +187,7 @@ function LiveVisitors() {
 }
 
 export default function AdminPage() {
-  const { session, checking } = useAdminAuth()
+  const { session, mfaPending, checking, refresh } = useAdminAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -174,6 +213,8 @@ export default function AdminPage() {
       </main>
     )
   }
+
+  if (mfaPending) return <MfaChallenge onDone={refresh} />
 
   if (!session) {
     return (
@@ -213,7 +254,7 @@ export default function AdminPage() {
           <button
             type="submit"
             disabled={signingIn}
-            className="w-full bg-blue hover:bg-blue-dark text-white font-heading font-semibold px-6 py-3 rounded-btn disabled:opacity-50 inline-flex items-center justify-center gap-2"
+            className="w-full bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-6 py-3 rounded-btn disabled:opacity-50 inline-flex items-center justify-center gap-2"
           >
             {signingIn && <Loader2 className="w-4 h-4 animate-spin" />}
             {signingIn ? 'Signing in…' : 'Sign in'}
@@ -240,6 +281,10 @@ export default function AdminPage() {
         </div>
 
         <AdminSearch />
+
+        <MfaSetup />
+
+        <WeekAheadButton />
 
         <BusinessSummary />
 

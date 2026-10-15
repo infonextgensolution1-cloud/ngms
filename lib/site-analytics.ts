@@ -1,7 +1,7 @@
 // Snapshot of Vercel Web Analytics for the live site, shown at /admin/analytics.
 //
 // Vercel has no public API for reading Web Analytics, so these numbers are
-// pulled by Claude (Vercel connector) and pasted in here. To refresh: ask
+// pulled by OpenAI (Vercel connector) and pasted in here. To refresh: ask
 // Claude to "update the site analytics snapshot".
 //
 // Filter used for every figure: production only, excluding /admin pages and

@@ -1,8 +1,8 @@
 import type { Config } from 'tailwindcss'
 
-// Solar Forge theme — one grey ramp (dark to light) with Solar Orange as the only accent.
-// Builds on Ember Grid: every existing token keeps its name and value, and three are new
-// (slate, fog, ember-deep). Spec: docs/solar-forge-theme.md
+// NGMS Pinterest-inspired visual palette — carbon black, warm off-white, concrete grey, white and signal orange.
+// WhatsApp green and Facebook blue are reserved exclusively for their respective social actions.
+// Spec: docs/solar-forge-theme.md
 //
 //   Dark greys:   jet  cardgrey  graphite  darkgrey
 //   Mid greys:    slate (text on light)   mist (text on dark)
@@ -16,36 +16,41 @@ const config: Config = {
     extend: {
       colors: {
         // Jet Black — primary page background
-        jet: '#0A0A0A',
+        jet: '#0B0D0F',
         // Graphite — section/band background, hover cards
-        graphite: '#1F2023',
+        graphite: '#151719',
         // Steel Line — borders / dividers
-        darkgrey: '#2E3035',
+        darkgrey: '#343434',
         // Carbon — card/panel background
-        cardgrey: '#141517',
+        cardgrey: '#111214',
         // Slate — secondary text on light bands (4.9:1 on Concrete, 5.8:1 on Fog)
-        slate: '#55585E',
+        slate: '#57534E',
         // Ash — secondary text on dark
-        mist: '#9A9CA1',
+        mist: '#B8B7B2',
         // Chalk — primary text on dark, cards on light bands
-        paper: '#F4F4F2',
+        paper: '#FFFFFF',
         // Fog — the main light band background
-        fog: '#E7E7E4',
+        fog: '#F3F0E9',
         // Concrete — light tiles, borders and dividers on light bands
-        concrete: '#D6D6D3',
+        concrete: '#D5D4D0',
         // Ember Deep — orange TEXT on light bands only (Chalk 5.5:1, Fog 4.9:1).
         // Bright Solar Orange fails contrast as small text on light greys.
-        'ember-deep': '#A84300',
-        // Solar Orange — the single accent (CTAs, icons, markers, split panels)
+        'ember-deep': '#B83E00',
+        // Solar Orange — the conversion colour: primary "Get a quote" CTAs and rare attention marks only
         orange: {
-          DEFAULT: '#F57C1B',
-          dark: '#FF5A1F',
+          DEFAULT: '#FF6A00',
+          dark: '#D94F00',
         },
-        // Legacy 'blue' token now maps to the orange accent so existing
-        // kickers/links switch to the one-accent look without component edits
+        // Legacy blue utility names map to the NGMS orange accent for backwards compatibility.
+        //   DEFAULT  text/icons on dark (5.96:1 on Jet)
+        //   fill     solid fills under white text (4.63:1)
+        //   dark     hover/pressed fill (5.43:1 under white)
+        //   deep     blue TEXT on light bands (4.9:1 on Fog, 5.5:1 on Chalk)
         blue: {
-          DEFAULT: '#F57C1B',
-          dark: '#FF5A1F',
+          DEFAULT: '#FF6A00',
+          fill: '#E65A00',
+          dark: '#C94D00',
+          deep: '#B83E00',
         },
         // WhatsApp Green — WhatsApp buttons only (functional, kept)
         whatsapp: {
@@ -54,18 +59,18 @@ const config: Config = {
         },
         // Luminous Orange — "Get a quote" / CTA buttons (black text, Eco Green border)
         glow: {
-          DEFAULT: '#FF8A1F',
-          bright: '#FFA033',
+          DEFAULT: '#FF6A00',
+          bright: '#FF896B',
         },
-        // Power Purple — brand purple for highlight CTAs, the seasonal banner and price badges
-        // (white text on it is 5.6:1)
+        // Legacy 'power' token (was purple) now follows NextGen Blue so older
+        // components stay on-palette without edits.
         power: {
-          DEFAULT: '#8B1BF5',
-          dark: '#7210D6',
-          light: '#B77BFA',
+          DEFAULT: '#FF6A00',
+          dark: '#C94D00',
+          light: '#FF8A3D',
         },
-        // Eco Green — CTA button border
-        ecogreen: '#39D353',
+        // Solar Orange — legacy CTA border token
+        ecogreen: '#FF6A00',
         // Facebook Blue — Facebook icon and the "Book a site walk-through" button
         facebook: {
           DEFAULT: '#1877F2',
@@ -73,14 +78,19 @@ const config: Config = {
         },
       },
       fontFamily: {
-        // Big Shoulders Display — set in app/layout.tsx
-        heading: ['var(--font-heading)', 'sans-serif'],
-        // IBM Plex Sans — set in app/layout.tsx
-        body: ['var(--font-body)', 'sans-serif'],
+        // Poppins — display headings, loaded with next/font in app/layout.tsx
+        heading: ['var(--font-heading)', 'Poppins', 'system-ui', 'sans-serif'],
+        // Inter — body and UI, loaded with next/font in app/layout.tsx
+        body: ['var(--font-body)', 'Inter', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
-        card: '2px',
-        btn: '2px',
+        card: '6px',
+        btn: '4px',
+        panel: '10px',
+      },
+      boxShadow: {
+        // Subtle depth for premium cards on dark: hairline highlight + soft drop
+        panel: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 10px 30px -12px rgba(0,0,0,0.6)',
       },
     },
   },

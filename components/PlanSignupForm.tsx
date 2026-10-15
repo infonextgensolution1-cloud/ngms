@@ -57,7 +57,7 @@ export default function PlanSignupForm() {
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
       <label className="flex items-start gap-2 text-xs text-mist">
         <input required type="checkbox" name="consent" className="mt-0.5" />
-        <span>I agree that NextGen may store my details and email me service reminders. I can unsubscribe at any time (POPIA).</span>
+        <span>I agree that NextGen may store my details and email me service reminders. I can unsubscribe at any time. See our <a href="/privacy" className="underline">privacy policy</a> (POPIA).</span>
       </label>
       <button className="btn btn-quote" type="submit" disabled={status === 'sending'}>
         {status === 'sending' ? 'Sending...' : 'Sign up for this plan'}

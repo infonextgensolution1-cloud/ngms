@@ -99,8 +99,8 @@ export default function GalleryUpload({ onSuccess }: { onSuccess?: () => void })
         <label className="block text-sm font-bold mb-1 text-paper font-heading">Homepage slot (optional)</label>
         <select value={slot} onChange={(e) => setSlot(e.target.value)} className={inputClass}>
           <option value="">None — auto-rotate with the rest of the gallery</option>
-          <option value="mission_left">Mission section — left photo</option>
-          <option value="mission_right">Mission section — right photo</option>
+          <option value="mission_left">Homepage — Why NextGen photo</option>
+          <option value="mission_right">Homepage — closing CTA background</option>
         </select>
         <p className="text-xs text-mist mt-1">
           Pin this photo to a fixed spot on the homepage. Uploading a new photo to the same slot replaces the old one.

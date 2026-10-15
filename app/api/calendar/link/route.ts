@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { errorResponse, requireStaff } from '@/lib/ai/claude'
+import { errorResponse, requireStaff } from '@/lib/ai/openai'
 import { feedUrl } from '@/lib/calendar-feed'
 
 // Hands the private calendar feed URL to a signed-in staff member only.

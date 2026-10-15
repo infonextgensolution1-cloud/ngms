@@ -32,25 +32,24 @@ const STEPS = [
 // desktop, stacked on mobile.
 export default function HowItWorks() {
   return (
-    <section className="bg-graphite py-16 px-4 border-y border-darkgrey">
+    <section className="bg-jet py-16 sm:py-24 px-4" aria-labelledby="process-title">
       <div className="wrap">
-        <div className="text-center mb-12">
+        <div className="max-w-2xl mb-12">
           <p className="kicker">How it works</p>
-          <h2 className="text-3xl md:text-4xl">Four steps to a finished job</h2>
+          <h2 id="process-title" className="text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1.05]">From photo to finished job in four steps</h2>
         </div>
-        <div className="relative grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div className="hidden lg:block absolute top-6 left-[12.5%] right-[12.5%] h-px bg-darkgrey" aria-hidden />
+        <ol className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {STEPS.map((step, i) => (
-            <div key={step.n} className="group relative text-center">
-              <div className="relative z-10 w-12 h-12 rounded-full bg-orange text-jet font-heading font-bold text-lg grid place-items-center mx-auto mb-4">
-                {step.n}
+            <li key={step.n} className="group panel p-6 relative">
+              <div className="flex items-center justify-between">
+                <span className="font-heading font-semibold text-sm text-blue tracking-[0.18em]">{step.n}</span>
+                <NgmsIcon name={step.icon} index={i} className="h-10 w-10" />
               </div>
-              <NgmsIcon name={step.icon} index={i} className="h-12 w-12 mx-auto mb-3" />
-              <h3 className="font-heading font-bold text-base text-paper uppercase tracking-wide">{step.title}</h3>
+              <h3 className="font-heading font-semibold text-lg text-paper normal-case tracking-normal mt-6">{step.title}</h3>
               <p className="text-mist text-sm mt-2 leading-relaxed">{step.body}</p>
-            </div>
+            </li>
           ))}
-        </div>
+        </ol>
       </div>
     </section>
   );

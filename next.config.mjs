@@ -22,7 +22,7 @@ const nextConfig = {
   },
   // Internal tools: kept out of robots.txt (which would advertise them) and marked noindex instead.
   async headers() {
-    return ['/ops', '/ops/:path*', '/prompt-dashboard', '/prompt-dashboard/:path*'].map((source) => ({
+    return ['/ops', '/ops/:path*', '/prompt-dashboard', '/prompt-dashboard/:path*', '/portal', '/quote/:token', '/maintenance/:token'].map((source) => ({
       source,
       headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
     }))
@@ -30,6 +30,10 @@ const nextConfig = {
   async redirects() {
     return [
       { source: '/projects', destination: '/portfolio', permanent: true },
+      // Legacy public paths observed failing in production. Use canonical destinations.
+      { source: '/maintenance', destination: '/maintenance-packages', permanent: true },
+      { source: '/corporate', destination: '/body-corporate-maintenance', permanent: true },
+      { source: '/reviews', destination: '/#reviews', permanent: true },
       ...Object.entries(SOLAR_AREA_REDIRECTS).map(([from, to]) => ({
         source: `/services/solar-panel-cleaning/${from}`,
         destination: `/solar-panel-cleaning/${to}`,

@@ -22,7 +22,7 @@ export default function StaffGate({ title, children }: { title: string; children
         <div className="w-full max-w-sm bg-cardgrey border border-darkgrey rounded-card p-8 text-center">
           <h1 className="font-heading text-2xl font-bold text-paper mb-2">{title}</h1>
           <p className="text-sm text-mist mb-6">Staff only. Sign in, then come back here.</p>
-          <Link href="/admin" className="inline-block bg-blue hover:bg-blue-dark text-white font-heading font-semibold px-6 py-3 rounded-btn">
+          <Link href="/admin" className="inline-block bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-6 py-3 rounded-btn">
             Staff login
           </Link>
         </div>

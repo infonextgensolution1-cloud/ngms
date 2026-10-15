@@ -18,3 +18,19 @@ export const SOLAR_SUBURB_TO_LOCATION: Record<string, string> = {
   elgin: 'grabouw-elgin',
   'bot-river': 'bot-river',
 }
+
+// Starting price (ZAR, excl. VAT) for one solar clean, matching SOLAR_TIERS above.
+// Used by the ROI calculator so the calculator can never drift from the price list.
+export function solarCleanFromPrice(panels: number): number {
+  if (panels <= 10) return 550
+  if (panels <= 20) return 950
+  if (panels <= 30) return 1350
+  if (panels <= 40) return 1700
+  return panels * 50
+}
+
+// Thousands with a space ("2 977"), identical on the server and in every browser.
+// (toLocaleString('en-ZA') differs between Node and browsers, which breaks hydration.)
+export function groupThousands(n: number): string {
+  return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+}

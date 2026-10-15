@@ -13,6 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ location:
   return {
     title: loc.metaTitle,
     description: loc.metaDescription,
+    alternates: { canonical: `/solar-panel-cleaning/${location}` },
   }
 }
 

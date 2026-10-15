@@ -1,4 +1,4 @@
-import { ask, errorResponse, HttpError, requireStaff } from '@/lib/ai/claude'
+import { ask, errorResponse, HttpError, requireStaff } from '@/lib/ai/openai'
 import { LEAD_COLUMNS, type Lead } from '@/lib/ngms-leads-ui'
 import { RATE_CARD } from '@/lib/rate-card'
 

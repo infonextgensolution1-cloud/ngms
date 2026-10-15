@@ -83,7 +83,7 @@ function NewWorkerForm({ onSaved }: { onSaved: () => void }) {
       </div>
       {error && <p className="text-xs text-orange mt-2">{error}</p>}
       <div className="flex items-center gap-3 mt-3">
-        <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 bg-blue hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50">
+        <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50">
           {saving && <Loader2 className="w-4 h-4 animate-spin" />} Save
         </button>
         <button onClick={() => setOpen(false)} className="text-sm text-mist hover:text-paper">

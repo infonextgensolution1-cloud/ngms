@@ -1,0 +1,53 @@
+name: NGMS Production Build Gate
+
+# Build check for pull requests and pushes to main.
+#
+# Deployment is NOT done here: Vercel's Git integration builds and deploys every
+# push to main (and a preview for every PR). The post-deploy smoke test against
+# the live site lives in production-qa.yml.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ngms-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 22
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+  # Kept under the same name so any branch-protection rule that requires
+  # "Release Gate" keeps working.
+  release-gate:
+    name: Release Gate
+    if: always()
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate gate
+        env:
+          BUILD_RESULT: ${{ needs.build.result }}
+        run: |
+          echo "Build: $BUILD_RESULT"
+          test "$BUILD_RESULT" = success
+          echo "NGMS RELEASE GATE PASSED"

@@ -1,0 +1,241 @@
+import { NextResponse } from 'next/server'
+import { Resend } from 'resend'
+import { supabaseAdmin } from '@/lib/supabase-admin'
+import { REPLY_FROM, NOTIFY_TO } from '@/lib/lead-email'
+import { buildFollowUpEmail, type DepositAlert, type DueInvoice, type DueLead, type DueQuote, type UpcomingJob } from '@/lib/lead-followup-email'
+import { DEPOSIT_WARNING_DAYS, daysUntilJob, depositIssue, jobDayLabel } from '@/lib/deposit-warning'
+import { getWeather } from '@/lib/helderberg'
+import { jobWeather } from '@/lib/job-weather-core'
+import { balanceOwed, invoiceChaseDay } from '@/lib/invoice-followup'
+import { quoteRemindersDue, sastDateOf } from '@/lib/quote-followup'
+import { addDaysSAST, todaySAST } from '@/lib/ngms-leads-ui'
+import { site } from '@/lib/site'
+import { isMondaySAST, sendWeekAheadEmail } from '@/lib/week-ahead'
+import { WATCH_FROM_DAYS, WATCH_TO_DAYS, weatherWatch, type WatchAlert } from '@/lib/weather-watch'
+
+export const dynamic = 'force-dynamic'
+
+// Daily cron (vercel.json, 06:00 UTC = 08:00 SAST). Emails the owner one digest of:
+//  - jobs scheduled for today and tomorrow, with a rain/wind warning from the forecast
+//  - weather watch: jobs 2 to 5 days out that the forecast says to hold, with replacement days (Sundays skipped)
+//  - jobs in the next 3 days whose quote deposit is not fully paid
+//  - open leads whose follow-up date is today or earlier
+//  - sent quotes hitting a reminder day (3 and 7 days after sending, 2 days before expiry)
+//  - unpaid invoices on a chase day (3, 7, 14 days overdue, then every 14 days)
+// Sends nothing when none are due.
+// On Mondays it also sends the separate "Week ahead" email (lib/week-ahead.ts), even on a quiet
+// week. That email can never block the daily one: its failure is only logged and reported.
+// Requires CRON_SECRET (same as plan-reminders); Vercel sends it as a bearer token.
+export async function GET(req: Request) {
+  const secret = process.env.CRON_SECRET
+  if (!secret || req.headers.get('authorization') !== `Bearer ${secret}`) {
+    return NextResponse.json({ ok: false }, { status: 401 })
+  }
+
+  const db = supabaseAdmin()
+
+  let weekly: { sent: boolean; error?: string } | undefined
+  if (isMondaySAST()) {
+    try {
+      await sendWeekAheadEmail(db)
+      weekly = { sent: true }
+    } catch (e) {
+      console.error('week-ahead email failed', (e as Error).message)
+      weekly = { sent: false, error: (e as Error).message }
+    }
+  }
+
+  const { data, error } = await db
+    .from('leads')
+    .select('id,name,phone,service,service_slug,suburb,status,notes,follow_up_at')
+    .not('status', 'in', '(won,lost)')
+    .not('follow_up_at', 'is', null)
+    .lte('follow_up_at', todaySAST())
+    .order('follow_up_at', { ascending: true })
+    .limit(50)
+  if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
+
+  const due = (data ?? []) as DueLead[]
+
+  // Quotes still awaiting an answer. "Sent" date = latest sent version, else the quote's last update.
+  const today = todaySAST()
+  const dueQuotes: DueQuote[] = []
+  const { data: sentQuotes, error: quoteError } = await db
+    .from('quotes')
+    .select('id,quote_number,client_id,total_amount,valid_until,updated_at')
+    .eq('status', 'sent')
+    .limit(200)
+  if (quoteError) return NextResponse.json({ ok: false, error: quoteError.message }, { status: 500 })
+  if (sentQuotes?.length) {
+    const ids = sentQuotes.map((q) => q.id)
+    const { data: versions } = await db
+      .from('quote_versions')
+      .select('quote_id,version_number,sent_at')
+      .in('quote_id', ids)
+      .eq('version_status', 'sent')
+      .not('sent_at', 'is', null)
+      .order('version_number', { ascending: false })
+    const sentAt = new Map<string, string>()
+    for (const v of versions ?? []) if (!sentAt.has(v.quote_id) && v.sent_at) sentAt.set(v.quote_id, v.sent_at)
+
+    const clientIds = Array.from(new Set(sentQuotes.map((q) => q.client_id).filter(Boolean))) as string[]
+    const { data: clients } = clientIds.length ? await db.from('clients').select('id,name,phone').in('id', clientIds) : { data: [] }
+    const byId = new Map((clients ?? []).map((c) => [c.id, c]))
+
+    for (const q of sentQuotes) {
+      const sent = sentAt.get(q.id) ?? q.updated_at
+      if (!sent) continue
+      const reminders = quoteRemindersDue(sastDateOf(sent), q.valid_until, today)
+      if (!reminders.length) continue
+      const c = q.client_id ? byId.get(q.client_id) : undefined
+      dueQuotes.push({
+        id: q.id,
+        quote_number: q.quote_number,
+        client_name: c?.name ?? null,
+        client_phone: c?.phone ?? null,
+        total_amount: q.total_amount == null ? null : Number(q.total_amount),
+        valid_until: q.valid_until,
+        reminders,
+      })
+    }
+  }
+
+  // Unpaid invoices past their due date, on a chase day.
+  const dueInvoices: DueInvoice[] = []
+  const { data: openInvoices, error: invoiceError } = await db
+    .from('invoices')
+    .select('id,invoice_number,client_id,total_amount,paid_amount,due_date')
+    .not('status', 'in', '(paid,void,draft)')
+    .not('due_date', 'is', null)
+    .lt('due_date', today)
+    .limit(200)
+  if (invoiceError) return NextResponse.json({ ok: false, error: invoiceError.message }, { status: 500 })
+  const chase = (openInvoices ?? [])
+    .map((inv) => ({ inv, day: invoiceChaseDay(inv.due_date, today), balance: balanceOwed(inv.total_amount, inv.paid_amount) }))
+    .filter((x) => x.day !== null && x.balance > 0)
+  if (chase.length) {
+    const ids = Array.from(new Set(chase.map((x) => x.inv.client_id).filter(Boolean))) as string[]
+    const { data: invClients } = ids.length ? await db.from('clients').select('id,name,phone').in('id', ids) : { data: [] }
+    const byClient = new Map((invClients ?? []).map((c) => [c.id, c]))
+    for (const { inv, day, balance } of chase) {
+      const c = inv.client_id ? byClient.get(inv.client_id) : undefined
+      dueInvoices.push({
+        id: inv.id,
+        invoice_number: inv.invoice_number,
+        client_name: c?.name ?? null,
+        client_phone: c?.phone ?? null,
+        total_amount: Number(inv.total_amount) || 0,
+        paid_amount: Number(inv.paid_amount) || 0,
+        balance,
+        days_overdue: day as number,
+      })
+    }
+  }
+
+  // Jobs today and tomorrow, with a forecast warning where the weather says hold.
+  const tomorrow = addDaysSAST(1)
+  const upcomingJobs: UpcomingJob[] = []
+  const { data: jobRows, error: jobError } = await db
+    .from('jobs')
+    .select('id,title,description,status,scheduled_date,client_id,created_at')
+    .in('scheduled_date', [today, tomorrow])
+    .not('status', 'in', '(completed,cancelled)')
+    .order('scheduled_date', { ascending: true })
+    .order('created_at', { ascending: true })
+    .limit(50)
+  if (jobError) return NextResponse.json({ ok: false, error: jobError.message }, { status: 500 })
+  const forecast = (await getWeather())?.days ?? [] // empty if the forecast is down: jobs are still listed, just without warnings
+  if (jobRows?.length) {
+    const jobClientIds = Array.from(new Set(jobRows.map((j) => j.client_id).filter(Boolean))) as string[]
+    const { data: jobClients } = jobClientIds.length ? await db.from('clients').select('id,name,phone,suburb,address').in('id', jobClientIds) : { data: [] }
+    const jobClient = new Map((jobClients ?? []).map((c) => [c.id, c]))
+    for (const j of jobRows) {
+      const c = j.client_id ? jobClient.get(j.client_id) : undefined
+      upcomingJobs.push({
+        id: j.id,
+        title: j.title,
+        when: j.scheduled_date === today ? 'today' : 'tomorrow',
+        status: j.status,
+        client_name: c?.name ?? null,
+        client_phone: c?.phone ?? null,
+        suburb: c?.suburb ?? null,
+        address: c?.address ?? null,
+        warning: jobWeather(`${j.title ?? ''} ${j.description ?? ''}`, j.scheduled_date, forecast)?.note ?? null,
+      })
+    }
+  }
+
+  // Jobs in the next few days whose quote deposit is not fully paid.
+  const depositAlerts: DepositAlert[] = []
+  const { data: windowJobs, error: windowError } = await db
+    .from('jobs')
+    .select('id,title,status,scheduled_date,client_id,quote_id')
+    .eq('status', 'scheduled')
+    .not('quote_id', 'is', null)
+    .gte('scheduled_date', today)
+    .lte('scheduled_date', addDaysSAST(DEPOSIT_WARNING_DAYS))
+    .order('scheduled_date', { ascending: true })
+    .limit(50)
+  if (windowError) return NextResponse.json({ ok: false, error: windowError.message }, { status: 500 })
+  if (windowJobs?.length) {
+    const quoteIds = Array.from(new Set(windowJobs.map((j) => j.quote_id).filter(Boolean))) as string[]
+    const { data: depQuotes } = await db.from('quotes').select('id,deposit_amount').in('id', quoteIds)
+    const { data: depInvoices } = await db.from('invoices').select('id,quote_id,invoice_number,status,paid_amount').in('quote_id', quoteIds)
+    const depClientIds = Array.from(new Set(windowJobs.map((j) => j.client_id).filter(Boolean))) as string[]
+    const { data: depClients } = depClientIds.length ? await db.from('clients').select('id,name,phone').in('id', depClientIds) : { data: [] }
+    const quoteById = new Map((depQuotes ?? []).map((q) => [q.id, q]))
+    const clientById = new Map((depClients ?? []).map((c) => [c.id, c]))
+    for (const j of windowJobs) {
+      const days = daysUntilJob(j.scheduled_date, today)
+      const quote = j.quote_id ? quoteById.get(j.quote_id) : undefined
+      if (days === null || !quote) continue
+      const issue = depositIssue(
+        quote.deposit_amount == null ? null : Number(quote.deposit_amount),
+        (depInvoices ?? []).filter((i) => i.quote_id === j.quote_id).map((i) => ({ id: i.id, invoice_number: i.invoice_number, status: i.status, paid_amount: i.paid_amount == null ? null : Number(i.paid_amount) })),
+      )
+      if (!issue) continue
+      const c = j.client_id ? clientById.get(j.client_id) : undefined
+      depositAlerts.push({ job_id: j.id, job_title: j.title, client_name: c?.name ?? null, client_phone: c?.phone ?? null, when: jobDayLabel(j.scheduled_date, days), issue: issue.text })
+    }
+  }
+
+  // Weather watch: scheduled jobs 2 to 5 days out that the forecast says to hold.
+  let watchAlerts: WatchAlert[] = []
+  if (forecast.length) {
+    const { data: watchRows, error: watchError } = await db
+      .from('jobs')
+      .select('id,title,description,scheduled_date,client_id')
+      .eq('status', 'scheduled')
+      .gte('scheduled_date', addDaysSAST(WATCH_FROM_DAYS))
+      .lte('scheduled_date', addDaysSAST(WATCH_TO_DAYS))
+      .order('scheduled_date', { ascending: true })
+      .limit(50)
+    if (watchError) return NextResponse.json({ ok: false, error: watchError.message }, { status: 500 })
+    if (watchRows?.length) {
+      const wIds = Array.from(new Set(watchRows.map((j) => j.client_id).filter(Boolean))) as string[]
+      const { data: wClients } = wIds.length ? await db.from('clients').select('id,name,phone').in('id', wIds) : { data: [] }
+      const wById = new Map((wClients ?? []).map((c) => [c.id, c]))
+      watchAlerts = weatherWatch(
+        watchRows.map((j) => ({ id: j.id, title: j.title, description: j.description, scheduled_date: j.scheduled_date, client_name: wById.get(j.client_id)?.name ?? null, client_phone: wById.get(j.client_id)?.phone ?? null })),
+        forecast,
+        today,
+      )
+    }
+  }
+
+  if (!due.length && !dueQuotes.length && !dueInvoices.length && !upcomingJobs.length && !depositAlerts.length && !watchAlerts.length) return NextResponse.json({ ok: true, due: 0, quotes: 0, invoices: 0, jobs: 0, deposits: 0, watch: 0, sent: false, weekly })
+
+  const { subject, html, text } = buildFollowUpEmail(due, site.url, dueQuotes, dueInvoices, upcomingJobs, depositAlerts, watchAlerts)
+  const { error: sendError } = await new Resend(process.env.RESEND_API_KEY).emails.send({
+    from: REPLY_FROM,
+    to: NOTIFY_TO,
+    subject,
+    html,
+    text,
+  })
+  if (sendError) {
+    console.error('lead follow-up email failed', sendError.message)
+    return NextResponse.json({ ok: false, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, jobs: upcomingJobs.length, deposits: depositAlerts.length, watch: watchAlerts.length, weekly, error: sendError.message }, { status: 502 })
+  }
+  return NextResponse.json({ ok: true, due: due.length, quotes: dueQuotes.length, invoices: dueInvoices.length, jobs: upcomingJobs.length, deposits: depositAlerts.length, watch: watchAlerts.length, sent: true, weekly })
+}

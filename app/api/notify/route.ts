@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { sendLeadEmail, sendCustomerAutoReply } from '@/lib/lead-email'
 import { rateLimit, clientIp, isEmail } from '@/lib/rate-limit'
+import { supabaseAdmin } from '@/lib/supabase-admin'
+import { quotePhotoPath, signQuotePhoto } from '@/lib/quote-photo'
 
 // RESEND_API_KEY must be added in Vercel → Project Settings → Environment
 // Variables (never commit it to the repo).
@@ -20,6 +22,8 @@ type LeadPayload = {
   estimate?: string
   photoUrl?: string
   preferredDate?: string
+  leadScore?: number
+  notSaved?: boolean // the browser could not save the lead to Supabase; this email is the only copy
 }
 
 export async function POST(request: Request) {
@@ -31,7 +35,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { name, phone, email, suburb, service, sizeDetails, preferredContact, firstBookingDiscount, message, website, estimate, photoUrl, preferredDate } = body
+  const { name, phone, email, suburb, service, sizeDetails, preferredContact, firstBookingDiscount, message, website, estimate, photoUrl, preferredDate, leadScore, notSaved } = body
 
   // Honeypot: pretend success so bots don't retry.
   if (website) return NextResponse.json({ ok: true })
@@ -39,11 +43,36 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: 'Too many requests' }, { status: 429 })
   }
 
-  if (!name || !phone) {
+  if (typeof name !== 'string' || typeof phone !== 'string' || !name.trim() || !phone.trim()) {
     return NextResponse.json({ ok: false, error: 'Missing name or phone' }, { status: 400 })
+  }
+  const phoneDigits = phone.replace(/\D/g, '')
+  if (phone.length > 20 || phoneDigits.length < 9 || phoneDigits.length > 13) {
+    return NextResponse.json({ ok: false, error: 'Invalid phone number' }, { status: 400 })
+  }
+  // Cap free-text fields so the endpoint can't be used to relay large payloads by email.
+  const tooLong = [name, email, suburb, service, sizeDetails, preferredContact, estimate, photoUrl, preferredDate]
+    .some((v) => typeof v === 'string' && v.length > 300)
+  if (tooLong || (typeof message === 'string' && message.length > 4000)) {
+    return NextResponse.json({ ok: false, error: 'Field too long' }, { status: 400 })
+  }
+
+  // Photos are in a private bucket: email a 7-day signed link (the lead in Admin
+  // always has the photo). Only quote-photos/ paths are ever signed.
+  let photoLine: string | null = null
+  if (photoUrl && quotePhotoPath(photoUrl)) {
+    let signed: string | null = null
+    try {
+      signed = await signQuotePhoto(supabaseAdmin(), photoUrl, 7 * 24 * 60 * 60)
+    } catch (err) {
+      console.error('Could not sign quote photo for email:', err)
+    }
+    photoLine = signed ? `Photo (link valid 7 days): ${signed}` : 'Photo: attached to the lead in Admin → Leads'
   }
 
   const lines = [
+    notSaved ? `⚠ NOT SAVED IN ADMIN — the website could not reach the database. Add this lead manually.` : null,
+    notSaved ? `` : null,
     `New quote request from the website:`,
     ``,
     `Name: ${name}`,
@@ -55,16 +84,14 @@ export async function POST(request: Request) {
     preferredContact ? `Preferred contact: ${preferredContact}` : null,
     firstBookingDiscount ? '10% first-booking discount requested' : null,
     preferredDate ? `Preferred date: ${preferredDate}` : null,
+    typeof leadScore === 'number' ? `Lead readiness score: ${Math.max(0, Math.min(100, Math.round(leadScore)))} / 100` : null,
     estimate ? `Instant estimate shown: ${estimate}` : null,
-    photoUrl ? `Photo: ${photoUrl}` : null,
+    photoLine,
     message ? `Details: ${message}` : null,
-    ``,
-    `A WhatsApp tab was also opened on the customer's device with these details —`,
-    `they still need to press send on their side, so don't rely on that alone.`,
-  ].filter(Boolean) as string[]
+  ].filter((l) => l !== null) as string[]
 
   try {
-    await sendLeadEmail(`New lead — ${service ?? 'quote request'} (${suburb ?? 'unknown area'})`, lines, email)
+    await sendLeadEmail(`${notSaved ? '[NOT SAVED] ' : ''}New lead — ${service ?? 'quote request'} (${suburb ?? 'unknown area'})`, lines, isEmail(email) ? email : null)
   } catch (err) {
     // Best-effort: a failed notification email should never break the
     // customer's quote submission flow. Log it so it's visible in

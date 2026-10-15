@@ -73,7 +73,7 @@ export default function LeadReplyDraft({ lead }: { lead: Lead }) {
       <button
         onClick={draft}
         disabled={busy}
-        className="mt-2 inline-flex items-center gap-2 bg-blue hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50"
+        className="mt-2 inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50"
       >
         {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />} {text ? 'Redraft' : 'Draft message'}
       </button>
@@ -93,7 +93,7 @@ export default function LeadReplyDraft({ lead }: { lead: Lead }) {
               </a>
             )}
             {channel === 'email' && mailto && (
-              <a href={mailto} className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-btn bg-blue hover:bg-blue-dark text-white font-semibold">
+              <a href={mailto} className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-btn bg-blue-fill hover:bg-blue-dark text-white font-semibold">
                 <Mail className="w-4 h-4" /> Open in email
               </a>
             )}

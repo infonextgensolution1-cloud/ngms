@@ -284,6 +284,8 @@ export const handlersC: Record<string, Handler> = {
     const amount = num(args, 'amount', { min: 0, max: 100_000_000 })
     const purchaseDate = date(args, 'purchase_date')
     const receiptUrl = str(args, 'receipt_url', { max: 2000 })
+    const receiptUrls = Array.isArray(args.receipt_urls) ? args.receipt_urls.filter((v): v is string => typeof v === 'string').slice(0, 10) : undefined
+    const paidBy = oneOf(args, 'paid_by', ['company', 'subcontractor'] as const)
     const paymentStatus = oneOf(args, 'payment_status', PAYMENT_STATUSES)
     const notes = str(args, 'notes', { max: 2000 })
     const logToJob = args.log_to_job === true
@@ -297,6 +299,8 @@ export const handlersC: Record<string, Handler> = {
       if (amount !== undefined) patch.amount = r2(amount)
       if (purchaseDate) patch.purchase_date = purchaseDate
       if (receiptUrl !== undefined) patch.receipt_url = receiptUrl
+      if (receiptUrls !== undefined) patch.receipt_urls = receiptUrls
+      if (paidBy) patch.paid_by = paidBy
       if (paymentStatus) patch.payment_status = paymentStatus
       if (notes !== undefined) patch.notes = notes
       if (!Object.keys(patch).length && !logToJob) throw new ToolError('Nothing to update.')
@@ -317,7 +321,7 @@ export const handlersC: Record<string, Handler> = {
       .from('supplier_purchases')
       .insert({
         supplier_id: supplierId, job_id: jobId, description, category, amount: r2(amount),
-        purchase_date: purchaseDate ?? todaySast(), receipt_url: receiptUrl ?? null, payment_status: paymentStatus ?? 'unpaid', notes: notes ?? null,
+        purchase_date: purchaseDate ?? todaySast(), receipt_url: receiptUrl ?? receiptUrls?.[0] ?? null, receipt_urls: receiptUrls ?? (receiptUrl ? [receiptUrl] : []), paid_by: paidBy ?? 'company', payment_status: paymentStatus ?? 'unpaid', notes: notes ?? null,
       })
       .select('*')
       .single()

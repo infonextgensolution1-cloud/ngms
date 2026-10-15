@@ -8,7 +8,7 @@ export const site = {
   phone: "+27631387945",
   phoneDisplay: "063 138 7945",
   whatsapp: "27631387945",
-  email: "info.nextgensolution1@gmail.com",
+  email: "nextgensolarmaintenance@gmail.com",
   region: "Helderberg Basin, Western Cape",
   serviceAreas: [
     "Strand",

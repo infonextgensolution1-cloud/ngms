@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { timingSafeEqual } from 'crypto'
+import { quotePhotoPath } from '@/lib/quote-photo'
 
 /**
  * NGSMS Leads MCP server
@@ -154,7 +155,7 @@ function leadDetail(l: Lead): string {
     `- **Area:** ${l.suburb || '—'}`,
     `- **Service:** ${l.service || l.service_slug || '—'}`,
     `- **Received:** ${sast(l.created_at)}   **Last updated:** ${sast(l.updated_at)}`,
-    l.photo_url ? `- **Photo:** ${l.photo_url}` : null,
+    l.photo_url ? `- **Photo:** ${quotePhotoPath(l.photo_url) ? 'attached (private — open the lead in Admin → Leads)' : l.photo_url}` : null,
     `- **ID:** \`${l.id}\``,
     '',
     '### Enquiry',

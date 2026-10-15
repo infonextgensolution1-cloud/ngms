@@ -194,7 +194,7 @@ function GoogleSync() {
         Subscribe once and every booked job appears in your Google Calendar as an all-day event, with the client, phone and address. Google refreshes it every few hours.
       </p>
       {!url ? (
-        <button onClick={getLink} disabled={busy} className="inline-flex items-center gap-2 bg-blue hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50">
+        <button onClick={getLink} disabled={busy} className="inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50">
           {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarDays className="w-4 h-4" />} Get my calendar link
         </button>
       ) : (

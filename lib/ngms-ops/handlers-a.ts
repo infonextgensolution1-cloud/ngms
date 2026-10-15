@@ -229,7 +229,6 @@ export const handlersA: Record<string, Handler> = {
   // ---------------------------------------------------------- quotes
   async ngms_list_quotes(sb, args) {
     const { limit, offset } = page(args)
-    const status = oneOf(args, 'status', QUOTE_STATUSES)
     const clientId = uuid(args, 'client_id', 'from ngms_list_clients', false)
     const search = str(args, 'search', { max: 100 })
     const sinceDays = num(args, 'since_days', { min: 1, max: 730, integer: true })
@@ -320,6 +319,24 @@ export const handlersA: Record<string, Handler> = {
       warnings.push(`⚠️ ${client.suburb} is outside the Helderberg Basin — no callout line found. Standard is a flat R350 callout.`)
     }
     const loaded = await loadQuote(sb, quote.id)
+
+    if (status === 'sent') {
+      const publicToken = typeof globalThis.crypto?.randomUUID === 'function'
+        ? globalThis.crypto.randomUUID().replaceAll('-', '')
+        : String(Date.now().toString(36) + Math.random().toString(36).slice(2))
+      const now = new Date().toISOString()
+      const { error: versionError } = await sb.from('quote_versions').insert({
+        quote_id: quote.id,
+        version_number: 1,
+        version_status: 'sent',
+        change_summary: 'Initial customer-facing version',
+        snapshot: { quote: loaded.quote, client: loaded.client, items: loaded.items, money: quoteMoney(loaded.quote, loaded.items, s.vat_rate), version: 1 },
+        public_token: publicToken,
+        sent_at: now,
+      })
+      fail('Could not save customer quote version', versionError)
+    }
+
     const extra = ['', ...[clientNote, leadMsg, ...warnings].filter((x): x is string => !!x)]
     return ok(`Quote created.\n\n${quoteDoc(loaded.quote, loaded.client, loaded.items, s, extra)}`, {
       quote: loaded.quote,
@@ -330,11 +347,56 @@ export const handlersA: Record<string, Handler> = {
     })
   },
 
+
+  async ngms_create_quote_revision(sb, args) {
+    const s = await getSettings(sb)
+    const { quote: source, client, items } = await quoteById(sb, args)
+    const reason = str(args, 'revision_reason', { max: 500 })
+    if (!client) throw new ToolError(`${source.quote_number} has no linked client and cannot be revised.`)
+    if (!reason) throw new ToolError('revision_reason is required so the customer-facing change is documented.')
+    const validDays = num(args, 'valid_days', { min: 1, max: 365, integer: true }) ?? s.quote_expiry_days
+    const total = totals(items, !!source.vat_included, s.vat_rate).total
+    const oldDeposit = r2(n0(source.deposit_amount))
+    const oldTotal = r2(n0(source.total_amount))
+    const depositPercent = oldTotal > 0 ? oldDeposit / oldTotal : DEFAULT_DEPOSIT_PERCENT / 100
+    const deposit = r2(total * depositPercent)
+    const notes = [`Revision of ${source.quote_number}.`, `Reason: ${reason}`, source.notes ?? ''].filter(Boolean).join('\\n\\n')
+    const revised = await insertNumbered<Quote>(sb, 'quotes', 'quote_number', 'Q', {
+      client_id: client.id, lead_id: source.lead_id, status: 'draft', vat_included: !!source.vat_included,
+    revision_of_quote_id: source.id,
+      deposit_amount: deposit, total_amount: total, notes, valid_until: addDays(todaySast(), validDays),
+    }, QUOTE_COLS)
+    const itemErr = await writeItems(sb, 'quote_items', 'quote_id', revised.id, items.map((i) => ({ ...i, id: undefined })))
+    if (itemErr) {
+      await sb.from('quotes').delete().eq('id', revised.id)
+      throw new ToolError(`Could not copy quote lines (revision rolled back): ${itemErr.message}`)
+    }
+    const loaded = await loadQuote(sb, revised.id)
+    return ok(`Revision created from ${source.quote_number}: ${revised.quote_number}. The original quote remains unchanged and locked.\\n\\n${quoteDoc(loaded.quote, loaded.client, loaded.items, s, ['', `Revision reason: ${reason}`])}`, {
+      source_quote: source, quote: loaded.quote, client: loaded.client, items: loaded.items,
+      money: quoteMoney(loaded.quote, loaded.items, s.vat_rate), revision_reason: reason,
+    })
+  },
+
   async ngms_update_quote(sb, args) {
     const s = await getSettings(sb)
     const { quote, items: oldItems } = await quoteById(sb, args)
     const patch: Record<string, unknown> = {}
     const changed: string[] = []
+    const revisionReason = str(args, 'revision_reason', { max: 500 })
+    const hasContentChange = args.items !== undefined || args.apply_vat !== undefined || args.deposit_amount !== undefined || args.deposit_percent !== undefined || args.valid_until !== undefined || args.notes !== undefined
+
+    const requestedStatus = oneOf(args, 'status', QUOTE_STATUSES)
+    const terminalStatus = quote.status === 'accepted' || quote.status === 'declined'
+    if (terminalStatus && (hasContentChange || (requestedStatus && requestedStatus !== quote.status))) {
+      throw new ToolError(`${quote.quote_number} is ${quote.status} and locked. Create a new quote revision instead of changing the closed version.`)
+    }
+    if (quote.status === 'sent' && hasContentChange && !revisionReason) {
+      throw new ToolError(`${quote.quote_number} has already been sent. Add a revision_reason before changing customer-facing content.`)
+    }
+    if (quote.status === 'sent' && requestedStatus === 'draft') {
+      throw new ToolError(`${quote.quote_number} has already been sent. It cannot be moved back to draft; create a new quote revision instead.`)
+    }
 
     const newItems = args.items !== undefined ? parseItems(args) : null
     if (newItems) {
@@ -382,6 +444,7 @@ export const handlersA: Record<string, Handler> = {
       const cur = await loadQuote(sb, quote.id)
       return ok(`Nothing to change.\n\n${quoteDoc(cur.quote, cur.client, cur.items, s)}`, { quote: cur.quote, changed: [] })
     }
+
     patch.updated_at = new Date().toISOString()
 
     if (newItems) {
@@ -402,6 +465,40 @@ export const handlersA: Record<string, Handler> = {
     else if (status === 'sent') leadMsg = await touchLead(sb, quote.lead_id, 'quoted', `Quote ${quote.quote_number} sent ${rand(t.total)}`)
 
     const cur = await loadQuote(sb, quote.id)
+
+    // Persist an immutable customer-facing version after the quote update succeeds.
+    const { data: latest } = await sb.from('quote_versions')
+      .select('version_number')
+      .eq('quote_id', quote.id)
+      .order('version_number', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    const nextVersion = Number(latest?.version_number ?? 0) + 1
+    const versionStatus = status === 'accepted' ? 'accepted' : status === 'declined' ? 'declined' : status === 'sent' ? 'sent' : 'draft'
+    const publicToken = typeof globalThis.crypto?.randomUUID === 'function'
+      ? globalThis.crypto.randomUUID().replaceAll('-', '')
+      : String(Date.now().toString(36) + Math.random().toString(36).slice(2))
+    const now = new Date().toISOString()
+    const { error: versionError } = await sb.from('quote_versions').insert({
+      quote_id: quote.id,
+      version_number: nextVersion,
+      version_status: versionStatus,
+      revision_reason: revisionReason ?? null,
+      change_summary: changed.join('; '),
+      snapshot: { quote: cur.quote, client: cur.client, items: cur.items, money: quoteMoney(cur.quote, cur.items, s.vat_rate), version: nextVersion },
+      public_token: publicToken,
+      sent_at: versionStatus === 'sent' || versionStatus === 'accepted' ? now : null,
+      accepted_at: versionStatus === 'accepted' ? now : null,
+    })
+    fail('Could not save quote revision', versionError)
+    if (nextVersion > 1) {
+      await sb.from('quote_versions')
+        .update({ version_status: 'superseded' })
+        .eq('quote_id', quote.id)
+        .lt('version_number', nextVersion)
+        .neq('version_status', 'accepted')
+    }
+
     const next = status === 'accepted' ? '\n\nNext: ngms_create_invoice (kind "deposit") and ngms_create_job with this quote_id.' : ''
     return ok(`Updated: ${changed.join(', ')}.${leadMsg ? ` ${leadMsg}` : ''}${next}\n\n${quoteDoc(cur.quote, cur.client, cur.items, s)}`, {
       quote: cur.quote,

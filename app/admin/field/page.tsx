@@ -7,6 +7,8 @@ import { supabase } from '@/lib/supabaseClient'
 import { handlersB } from '@/lib/ngms-ops/handlers-b'
 import { handlersC } from '@/lib/ngms-ops/handlers-c'
 import { PHOTO_TYPES } from '@/lib/ngms-ops/core'
+import { prepareJobPhoto, withJobPhotoTimeout } from '@/lib/job-photo-upload'
+import { signedJobPhotoUrl } from '@/lib/job-photo-url'
 
 type FieldJob = {
   id: string; title: string | null; description: string | null; status: string
@@ -34,22 +36,30 @@ function FieldPhoto({ jobId, type, onSaved }: { jobId: string; type: (typeof PHO
   async function upload(file: File) {
     setBusy(true); setError('')
     try {
-      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-      const path = `${jobId}/${type}-${Date.now()}.${ext}`
-      const { error: uploadError } = await supabase.storage.from('job-photos').upload(path, file, { cacheControl: '3600', upsert: false })
+      const prepared = await prepareJobPhoto(file)
+      const extension = prepared.type === 'image/webp' ? 'webp' : 'jpg'
+      const path = `${jobId}/${type}-${Date.now()}.${extension}`
+      const { error: uploadError } = await withJobPhotoTimeout(
+        supabase.storage.from('job-photos').upload(path, prepared, {
+          cacheControl: '3600', upsert: false, contentType: prepared.type,
+        }),
+      )
       if (uploadError) throw uploadError
       const { data } = supabase.storage.from('job-photos').getPublicUrl(path)
-      const result = await handlersC.ngms_save_job_photo(supabase, { job_id: jobId, photo_url: data.publicUrl, type })
-      if (result.isError) throw new Error(result.content[0]?.text ?? 'Could not save photo')
-      onSaved()
-    } catch (e) { setError((e as Error).message) }
-    finally { setBusy(false) }
+      const result = await withJobPhotoTimeout(handlersC.ngms_save_job_photo(supabase, {
+        job_id: jobId, photo_url: data.publicUrl, type,
+      }))
+      if (result.isError) throw new Error(result.content[0]?.text ?? 'Could not save photo record')
+      await onSaved()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Photo upload failed. Please try again.')
+    } finally { setBusy(false) }
   }
   return (
     <label className="flex min-h-24 flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-darkgrey bg-jet px-3 py-3 text-center text-xs text-mist hover:border-blue hover:text-paper">
       {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
       <span>{busy ? 'Uploading…' : type === 'before' ? 'Before' : type === 'progress' ? 'Progress' : 'After'}</span>
-      <input type="file" accept="image/*" capture="environment" className="hidden" disabled={busy} onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
+      <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" capture="environment" className="hidden" disabled={busy} onChange={(e) => { const input = e.currentTarget; const file = input.files?.[0]; input.value = ''; if (file) void upload(file) }} />
       {error && <span className="text-orange">{error}</span>}
     </label>
   )
@@ -88,7 +98,11 @@ export default function FieldOperationsPage() {
 
   async function loadPhotos(jobId: string) {
     const result = await handlersC.ngms_list_job_photos(supabase, { job_id: jobId })
-    if (!result.isError) setPhotos((current) => ({ ...current, [jobId]: (result.structuredContent?.photos as Photo[]) ?? [] }))
+    if (!result.isError) {
+      const rows = (result.structuredContent?.photos as Photo[]) ?? []
+      const signed = await Promise.all(rows.map(async (photo) => ({ ...photo, photo_url: await signedJobPhotoUrl(photo.photo_url) })))
+      setPhotos((current) => ({ ...current, [jobId]: signed.filter((photo) => !!photo.photo_url) as Photo[] }))
+    }
   }
 
   useEffect(() => { jobs.forEach((job) => { void loadPhotos(job.id) }) }, [jobs])
@@ -144,7 +158,7 @@ export default function FieldOperationsPage() {
                       <FieldPhoto jobId={job.id} type="after" onSaved={() => loadPhotos(job.id)} />
                     </div>
                     {jobPhotos.length > 0 && <div className="mt-3 flex gap-2 overflow-x-auto">{jobPhotos.slice(-6).map((photo) => <img key={photo.id} src={photo.photo_url} alt={photo.caption ?? `${photo.type} job photo`} className="h-16 w-16 shrink-0 rounded-lg object-cover border border-darkgrey" />)}</div>}
-                    <button onClick={() => changeStatus(job)} disabled={saving === job.id || job.status === 'cancelled'} className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-heading font-bold text-white disabled:opacity-50 ${job.status === 'in_progress' ? 'bg-whatsapp' : 'bg-blue'}`}>
+                    <button onClick={() => changeStatus(job)} disabled={saving === job.id || job.status === 'cancelled'} className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-heading font-bold text-white disabled:opacity-50 ${job.status === 'in_progress' ? 'bg-whatsapp' : 'bg-blue-fill'}`}>
                       {saving === job.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ActionIcon className="h-4 w-4" />}
                       {saving === job.id ? 'Saving…' : meta?.label ?? 'Update job'}
                     </button>

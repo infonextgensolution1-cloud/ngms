@@ -1,129 +1,174 @@
-import { Space_Grotesk } from 'next/font/google'
-import { services } from '@/lib/services'
+import type { Metadata } from 'next'
+import Image from 'next/image'
+import Link from 'next/link'
 import SeasonalBanner from '@/components/SeasonalBanner'
 import DiscountPopup from '@/components/DiscountPopup'
-import TrustStrip from '@/components/TrustStrip'
-import TrustBadges from '@/components/TrustBadges'
+import HomeHero from '@/components/home/HomeHero'
 import HowItWorks from '@/components/HowItWorks'
-import SolarRoiCalculator from '@/components/SolarRoiCalculator'
 import BodyCorporateSection from '@/components/BodyCorporateSection'
-import DiyTips from '@/components/home/DiyTips'
 import HelderbergToday from '@/components/home/HelderbergToday'
+import { GoogleReviews, WhyNgms, AreasAndFaq } from '@/components/home/HomeSections'
+import { services } from '@/lib/services'
+import { SITE, whatsappLink } from '@/lib/site'
+import { getBusinessHours } from '@/lib/business-hours'
 import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages, getSlotPhotos } from '@/lib/queries'
-import LandingSlideshow from '@/components/home/LandingSlideshow'
-import { HeroBento, JobReel, MissionBand, PostTrio, ServicePhotoGrid, type Photo } from '@/components/home/VestoxHome'
+import './homepage-mason-editorial.css'
 
 export const revalidate = 300
-
-// Homepage display font: Space Grotesk Bold (modern / tech look).
-// Sets --font-heading on <main>, so every font-heading class on the homepage uses it.
-const techHeading = Space_Grotesk({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-heading' })
-
-const TICKER_ITEMS = services.map((s) => s.name)
+export const metadata: Metadata = { alternates: { canonical: '/' } }
 
 export default async function HomePage() {
-  const [slides, gallery, beforeAfter, serviceImages, slotPhotos] = await Promise.all([
+  const [hours, slides, gallery, serviceImages, beforeAfter, slotPhotos] = await Promise.all([
+    getBusinessHours(),
     getHeroSlides(),
-    getGalleryPhotos(24),
-    getBeforeAfter(),
+    getGalleryPhotos(18),
     getServiceImages(),
-    getSlotPhotos(['hero_solar', 'hero_feature', 'mission_left', 'mission_right']),
+    getBeforeAfter(),
+    getSlotPhotos(['hero_feature', 'mission_left']),
   ])
-
-  // All photos come from Admin → Media, so new uploads show up here automatically.
-  const jobPhotos: Photo[] = slides
-    .filter((s) => s.image_url)
-    .map((s) => ({ src: s.image_url, caption: s.caption || s.alt_text || 'Recent job' }))
-  const solarPhotos: Photo[] = gallery
-    .filter((g) => g.service_slug === 'solar-panel-cleaning' && g.image_url)
-    .map((g) => ({ src: g.image_url, caption: g.caption || 'Solar panel cleaning' }))
-  const afterPhotos: Photo[] = beforeAfter.map((b) => ({
-    src: b.after_image_url,
-    caption: b.location && !(b.caption ?? '').includes(b.location)
-      ? `${b.caption || 'Completed job'} — ${b.location}`
-      : b.caption || 'Completed job',
-  }))
-  const servicePhotos: Photo[] = Object.entries(serviceImages).map(([slug, src]) => ({
-    src,
-    caption: services.find((s) => s.slug === slug)?.name ?? 'Recent job',
-  }))
-
-  const pool = [...jobPhotos, ...afterPhotos, ...servicePhotos]
-  const pick = (i: number) => pool.length ? pool[i % pool.length] : undefined
-  const solar = (i: number) => solarPhotos[i] ?? pick(i)
-
-  // Pinned from Admin → Media → Homepage slot; falls back to the usual auto-pick.
-  const slot = (key: string): Photo | undefined =>
-    slotPhotos[key] ? { src: slotPhotos[key].image_url, caption: slotPhotos[key].caption || 'Recent job' } : undefined
-  const heroSolar = slot('hero_solar')
-  const heroFeature = slot('hero_feature')
-
-  const missionLeft: Photo | undefined = slotPhotos.mission_left
-    ? { src: slotPhotos.mission_left.image_url, caption: slotPhotos.mission_left.caption || 'Recent job' }
-    : undefined
-  const missionRight: Photo | undefined = slotPhotos.mission_right
-    ? { src: slotPhotos.mission_right.image_url, caption: slotPhotos.mission_right.caption || 'Recent job' }
-    : undefined
+  const projectPhotos = gallery.filter((photo) => photo.image_url).slice(0, 6)
+  const comparisonPhotos = beforeAfter.filter((photo) => photo.before_image_url && photo.after_image_url).slice(0, 3)
 
   return (
-    <main className={`bg-jet ${techHeading.variable}`}>
+    <main className="ngms-home-new">
       <SeasonalBanner />
       <DiscountPopup />
+      <HomeHero slides={slides} days={hours.days} open={hours.open} close={hours.close} />
 
-      {/* Landing slideshow — up to 12 slides from Admin → Media → Landing slides */}
-      <LandingSlideshow slides={slides} />
-
-      <HeroBento
-        solar={heroSolar ?? solar(0)}
-        avatars={[pick(1), pick(2), pick(3)].filter(Boolean) as Photo[]}
-        feature={heroFeature ?? pick(0)}
-      />
-
-      <TrustBadges />
-
-      {/* Scrolling service ticker */}
-      <div className="bg-graphite overflow-hidden py-3">
-        <div className="flex w-max animate-marquee">
-          {[...TICKER_ITEMS, ...TICKER_ITEMS].map((name, i) => (
-            <span
-              key={`${name}-${i}`}
-              className="flex items-center text-mist text-xs uppercase tracking-[0.15em] font-heading font-semibold px-6 whitespace-nowrap"
-            >
-              {name}
-              <span className="text-orange ml-6" aria-hidden>
-                &bull;
-              </span>
-            </span>
-          ))}
+      <section className="ngms-new-intro" aria-labelledby="ngms-intro-title">
+        <div>
+          <p className="ngms-new-eyebrow ngms-new-eyebrow--dark">ONE LOCAL POINT OF CONTACT</p>
+          <h2 id="ngms-intro-title">LESS CHASING.<br /><span>MORE GETTING DONE.</span></h2>
         </div>
-      </div>
+        <p>From solar panel cleaning to repairs, painting and exterior maintenance, NGMS helps homeowners, body corporates and businesses manage property work with one reliable team.</p>
+      </section>
 
-      <JobReel photos={[...jobPhotos, ...solarPhotos.slice(1, 3)]} />
+      <section className="ngms-new-services" aria-labelledby="ngms-services-title">
+        <div className="ngms-new-section-head">
+          <div>
+            <p className="ngms-new-eyebrow ngms-new-eyebrow--dark">WHAT WE DO</p>
+            <h2 id="ngms-services-title">ONE TEAM.<br /><span>MANY SOLUTIONS.</span></h2>
+          </div>
+          <Link href="/services" className="ngms-new-text-link">VIEW ALL SERVICES <span aria-hidden="true">↗</span></Link>
+        </div>
+        <ul className="ngms-new-service-grid">
+          {services.map((service, index) => {
+            const image = serviceImages[service.slug]
+            return <li key={service.slug}>
+              <Link href={`/services/${service.slug}`} className="ngms-new-service-card">
+                <div className="ngms-new-service-card__media">
+                  {image ? <Image src={image} alt={service.name} fill sizes="(max-width: 700px) 100vw, (max-width: 1050px) 50vw, 25vw" quality={76} unoptimized={image.includes('.supabase.co/storage/')} /> : <div className="ngms-new-service-card__fallback" />}
+                  <span className="ngms-new-service-card__number">{String(index + 1).padStart(2, '0')}</span>
+                </div>
+                <div className="ngms-new-service-card__body">
+                  <h3>{service.name}</h3>
+                  <p>{service.tagline}</p>
+                  <span className="ngms-new-service-card__link">EXPLORE SERVICE <span aria-hidden="true">↗</span></span>
+                </div>
+              </Link>
+            </li>
+          })}
+        </ul>
+      </section>
 
-      {/* Solar ROI calculator — the best selling tool */}
-      <section className="bg-jet py-14 px-4">
-        <div className="max-w-[520px] mx-auto">
-          <SolarRoiCalculator />
+      <section className="ngms-new-solar" aria-labelledby="ngms-solar-title">
+        <div className="ngms-new-solar__copy">
+          <p className="ngms-new-eyebrow">FLAGSHIP SERVICE · SOLAR</p>
+          <h2 id="ngms-solar-title">CLEAN PANELS.<br /><span>CLEAR RESULTS.</span></h2>
+          <p>Coastal salt, dust and pollen build up on solar panels. Our careful cleaning service helps keep your panels clear, with before-and-after photos so you can see the work.</p>
+          <div className="ngms-new-solar__actions">
+            <Link href="/solar-panel-cleaning/helderberg" className="ngms-new-button ngms-new-button--orange">SOLAR PANEL CLEANING <span aria-hidden="true">↗</span></Link>
+            <Link href="/roi-calculator" className="ngms-new-button ngms-new-button--outline">CHECK CLEANING ROI</Link>
+          </div>
+        </div>
+        <div className="ngms-new-solar__facts">
+          <div><strong>01</strong><span>Gentle cleaning method</span></div>
+          <div><strong>02</strong><span>Before-and-after photos</span></div>
+          <div><strong>03</strong><span>Local Helderberg service</span></div>
         </div>
       </section>
 
-      <MissionBand photo={missionLeft ?? pick(4) ?? pick(0)} side={missionRight ?? afterPhotos[0] ?? pick(2)} />
+      {projectPhotos.length > 0 && <section className="ngms-new-work" aria-labelledby="ngms-work-title">
+        <div className="ngms-new-section-head">
+          <div>
+            <p className="ngms-new-eyebrow">REAL WORK · REAL PROPERTIES</p>
+            <h2 id="ngms-work-title">WORK THAT<br /><span>SPEAKS FOR ITSELF.</span></h2>
+          </div>
+          <Link href="/portfolio" className="ngms-new-text-link ngms-new-text-link--light">VIEW PROJECTS <span aria-hidden="true">↗</span></Link>
+        </div>
+        <div className="ngms-new-work-grid">
+          {projectPhotos.map((photo, index) => <figure key={photo.image_url}>
+            <div className="ngms-new-work-photo">
+              <Image src={photo.image_url} alt={photo.caption || 'Completed NGMS maintenance project'} fill sizes="(max-width: 700px) 100vw, 33vw" quality={76} unoptimized={photo.image_url.includes('.supabase.co/storage/')} />
+            </div>
+            <figcaption><span>{String(index + 1).padStart(2, '0')}</span>{photo.caption || 'Completed NGMS project'}</figcaption>
+          </figure>)}
+        </div>
+      </section>}
 
-      {/* Before/after sliders + real reviews */}
-      <TrustStrip beforeAfter={beforeAfter} />
+      {comparisonPhotos.length > 0 && <section className="bg-[#F2F2F2] text-[#0D0D0D] px-5 py-16 sm:px-8 sm:py-24" aria-labelledby="ngms-before-after-title">
+        <div className="mx-auto max-w-7xl">
+          <p className="mb-4 text-xs font-black uppercase tracking-[.16em] text-[#A43C00]">Visible proof</p>
+          <h2 id="ngms-before-after-title" className="mb-10 text-4xl leading-none sm:text-6xl">BEFORE.<br /><span className="text-[#A43C00]">AFTER.</span></h2>
+          <div className="grid gap-5 md:grid-cols-3">
+            {comparisonPhotos.map((photo, index) => <article key={photo.after_image_url} className="min-w-0 border border-[#D0D0D0] bg-white">
+              <div className="grid grid-cols-2">
+                <div>
+                  <div className="relative aspect-[4/3] bg-[#D8D8D8]">
+                    <Image src={photo.before_image_url} alt={`Before: ${photo.caption || photo.location || 'NGMS project'}`} fill sizes="(max-width: 768px) 50vw, 20vw" quality={72} unoptimized={photo.before_image_url.includes('.supabase.co/storage/')} className="object-cover" />
+                  </div>
+                  <p className="bg-[#0D0D0D] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-white">Before</p>
+                </div>
+                <div>
+                  <div className="relative aspect-[4/3] bg-[#D8D8D8]">
+                    <Image src={photo.after_image_url} alt={`After: ${photo.caption || photo.location || 'NGMS project'}`} fill sizes="(max-width: 768px) 50vw, 20vw" quality={72} unoptimized={photo.after_image_url.includes('.supabase.co/storage/')} className="object-cover" />
+                  </div>
+                  <p className="bg-[#FF5A00] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-[#0D0D0D]">After</p>
+                </div>
+              </div>
+              <div className="p-4">
+                <p className="text-sm font-bold">{photo.caption || 'Completed maintenance work'}</p>
+                <p className="mt-1 text-xs text-[#555]">{photo.location}</p>
+              </div>
+            </article>)}
+          </div>
+          <p className="mt-8"><Link href="/portfolio" className="inline-flex border-b-2 border-[#FF5A00] py-3 text-xs font-black uppercase tracking-wider">VIEW MORE PROJECTS ↗</Link></p>
+        </div>
+      </section>}
 
+      <GoogleReviews />
+      <WhyNgms photo={slotPhotos.mission_left ? { src: slotPhotos.mission_left.image_url, caption: slotPhotos.mission_left.caption || 'Recent NGMS maintenance project' } : undefined} />
       <HowItWorks />
-
-      <ServicePhotoGrid services={services} images={serviceImages} />
-
-      {/* DIY tips + live Helderberg weather for outdoor work */}
-      <DiyTips />
-
+      <BodyCorporateSection photo={slotPhotos.hero_feature ? { src: slotPhotos.hero_feature.image_url, caption: slotPhotos.hero_feature.caption || 'Complex maintenance' } : undefined} />
       <HelderbergToday />
+      <AreasAndFaq />
 
-      <BodyCorporateSection />
+      <section className="ngms-new-clients" aria-labelledby="ngms-clients-title">
+        <div>
+          <p className="ngms-new-eyebrow ngms-new-eyebrow--dark">WHO WE HELP</p>
+          <h2 id="ngms-clients-title">PROPERTY CARE<br /><span>WITHOUT THE RUNAROUND.</span></h2>
+        </div>
+        <div className="ngms-new-client-grid">
+          <Link href="/quote?type=homeowner"><span>01</span><strong>HOMEOWNERS</strong><small>Keep your property in shape.</small><b aria-hidden="true">↗</b></Link>
+          <Link href="/body-corporate-maintenance"><span>02</span><strong>BODY CORPORATES</strong><small>Planned upkeep for shared spaces.</small><b aria-hidden="true">↗</b></Link>
+          <Link href="/quote?type=commercial"><span>03</span><strong>BUSINESSES</strong><small>One contact for ongoing maintenance.</small><b aria-hidden="true">↗</b></Link>
+        </div>
+      </section>
 
-      <PostTrio left={solar(3)} right={afterPhotos[1] ?? pick(3)} />
+      <section className="ngms-new-final" aria-labelledby="ngms-final-title">
+        <p className="ngms-new-eyebrow">YOUR PROPERTY. ONE POINT OF CONTACT.</p>
+        <h2 id="ngms-final-title">ONE CALL.<br /><span>ALL SOLUTIONS.</span></h2>
+        <p>Tell us what needs doing. We’ll help you plan the next step.</p>
+        <div className="ngms-new-final__actions">
+          <Link href="/quote" className="ngms-new-button ngms-new-button--black">REQUEST A QUOTE <span aria-hidden="true">↗</span></Link>
+          <a href={whatsappLink("Hi NextGen, I'd like to discuss a property maintenance quote.")} target="_blank" rel="noopener noreferrer" className="ngms-new-button ngms-new-button--black-outline">WHATSAPP {SITE.phoneDisplay}</a>
+        </div>
+      </section>
+      <footer className="ngms-new-footer">
+        <Link href="/" className="ngms-new-footer__brand">NEXTGEN <span>MAINTENANCE SOLUTIONS</span></Link>
+        <p>ONE CALL. ALL SOLUTIONS.</p>
+        <nav aria-label="Footer navigation"><Link href="/services">Services</Link><Link href="/portfolio">Projects</Link><Link href="/contact">Contact</Link><Link href="/privacy">Privacy</Link></nav>
+      </footer>
     </main>
   )
 }
