@@ -23,7 +23,7 @@ function sessionIdFromToken(token: string): string | null {
 }
 
 async function getPortalClients(request: Request) {
-  const token = request.headers.get('authorization')?.replace(/^Bearer\\s+/i, '').trim()
+  const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '').trim()
   if (!token) return { error: 'Sign in to the customer portal first.', status: 401 as const }
 
   let admin
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
   const { data: file, error: fileError } = await result.admin.storage.from('client-documents').download(document.storage_path)
   if (fileError || !file) return NextResponse.json({ error: 'The document file is unavailable.' }, { status: 404 })
 
-  const safeName = document.original_filename.replace(/[\\r\\n"]/g, '_').slice(0, 180)
+  const safeName = document.original_filename.replace(/[\r\n"]/g, '_').slice(0, 180)
   return new NextResponse(file as BodyInit, {
     headers: {
       'Content-Type': document.content_type,
