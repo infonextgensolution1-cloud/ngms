@@ -36,16 +36,15 @@ export async function POST(request: Request) {
   if (accessError) return NextResponse.json({ error: 'Portal access is not configured yet. Contact NGMS.' }, { status: 500 })
   const accessByClient = new Map((accessRows ?? []).map((a) => [a.client_id, a]))
 
+  let activeAccessCount = 0
   for (const client of ownClients) {
     const access = accessByClient.get(client.id)
-    if (!access || access.revoked_at) return NextResponse.json({ error: 'Portal access is disabled. Contact NGMS.' }, { status: 403 })
-    if (access.access_mode === 'temporary' && (!access.expires_at || new Date(access.expires_at).getTime() <= Date.now())) {
-      return NextResponse.json({ error: 'Your portal access has expired. Contact NGMS.' }, { status: 403 })
-    }
+    // A shared email may belong to multiple client records. One disabled record must not
+    // block a separate record that has explicitly active access; RLS scopes data per record.
+    if (!access || access.revoked_at) continue
+    if (access.access_mode === 'temporary' && (!access.expires_at || new Date(access.expires_at).getTime() <= Date.now())) continue
     if (access.access_mode === 'one_time') {
-      if (access.one_time_session_id && access.one_time_session_id !== sessionId) {
-        return NextResponse.json({ error: 'This one-time access has already been used. Ask NGMS to issue a new link.' }, { status: 403 })
-      }
+      if (access.one_time_session_id && access.one_time_session_id !== sessionId) continue
       if (!access.one_time_session_id) {
         const claimResult = await db.from('client_portal_access')
           .update({ one_time_session_id: sessionId, updated_at: new Date().toISOString() })
@@ -55,12 +54,12 @@ export async function POST(request: Request) {
         const claimed = claimResult.data as { one_time_session_id: string | null } | null
         if (!claimed || claimed.one_time_session_id !== sessionId) {
           const { data: latest } = await db.from('client_portal_access').select('one_time_session_id,revoked_at').eq('client_id', client.id).maybeSingle()
-          if (latest?.one_time_session_id !== sessionId || latest.revoked_at) {
-            return NextResponse.json({ error: 'This one-time access has already been used. Ask NGMS to issue a new link.' }, { status: 403 })
-          }
+          if (latest?.one_time_session_id !== sessionId || latest.revoked_at) continue
         }
       }
     }
+    activeAccessCount += 1
   }
+  if (!activeAccessCount) return NextResponse.json({ error: 'Portal access is disabled or expired for this email. Ask NGMS to enable access for your customer record.' }, { status: 403 })
   return NextResponse.json({ ok: true }, { headers: { 'Cache-Control': 'no-store' } })
 }

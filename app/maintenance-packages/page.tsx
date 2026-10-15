@@ -4,45 +4,42 @@ import { COMMERCIAL_COMBOS, RECURRING_PACKAGES, SEASONAL_COMBOS, type Package } 
 
 export const metadata = {
   alternates: { canonical: '/maintenance-packages' },
-  title: 'Maintenance Packages | NextGen Solar Clean & Maintenance Solutions',
-  description: "Recurring, seasonal and commercial property maintenance packages from NextGen Solar Clean & Maintenance Solutions — Strand, Gordon's Bay, Somerset West.",
+  title: 'Property Maintenance Plans | NextGen Maintenance Solutions',
+  description: "Straightforward recurring, seasonal and commercial property maintenance plans across Strand, Gordon's Bay and Somerset West.",
 }
 
-function PackageRow({ pkg, index, joinable = false }: { pkg: Package; index: number; joinable?: boolean }) {
+function PlanCard({ pkg, index, recurring = false }: { pkg: Package; index: number; recurring?: boolean }) {
   return (
-    <article className={'ngms-mp-package ngms-mp-package--' + (index % 3) + (pkg.featured ? ' is-featured' : '')}>
-      <div className="ngms-mp-package__number">{String(index + 1).padStart(2, '0')}</div>
-      <div className="ngms-mp-package__summary">
-        <p className="ngms-mp-kicker">{pkg.frequency}</p>
-        <h3>{pkg.name}</h3>
-        <p className="ngms-mp-package__unit">{pkg.unit} · VAT excluded</p>
-        {pkg.featured ? <span className="ngms-mp-badge">{pkg.badge || 'Featured plan'}</span> : null}
+    <article className={`ngms-mp2-card ${pkg.featured ? 'ngms-mp2-card--featured' : ''}`}>
+      <div className="ngms-mp2-card__top">
+        <span className="ngms-mp2-number">{String(index + 1).padStart(2, '0')}</span>
+        {pkg.featured ? <span className="ngms-mp2-badge">{pkg.badge || 'Recommended'}</span> : null}
       </div>
-      <div className="ngms-mp-package__features">
-        <p className="ngms-mp-kicker">WHAT’S INCLUDED</p>
-        <ul>{pkg.features.map((feature) => <li key={feature}><span aria-hidden="true">↗</span>{feature}</li>)}</ul>
-      </div>
-      <div className="ngms-mp-package__price">
-        <span className="ngms-mp-kicker">FROM</span>
-        <strong>{pkg.price}</strong>
-        <Link href={joinable ? '#join' : '/quote?service=Property%20Maintenance'}>{joinable ? 'CHOOSE PLAN' : 'ENQUIRE ↗'}</Link>
-      </div>
+      <p className="ngms-mp2-eyebrow">{pkg.frequency}</p>
+      <h3>{pkg.name}</h3>
+      <p className="ngms-mp2-price">{pkg.price}<span> / {pkg.unit.replace(/^per /, '').replace(/^once-off project$/, 'project')}</span></p>
+      <div className="ngms-mp2-rule" />
+      <p className="ngms-mp2-included">WHAT’S INCLUDED</p>
+      <ul>{pkg.features.map((feature) => <li key={feature}><span aria-hidden="true">↗</span>{feature}</li>)}</ul>
+      <Link className="ngms-mp2-card__link" href={recurring ? '#join-plan' : '/quote?service=Property%20Maintenance'}>
+        {recurring ? 'CHOOSE THIS PLAN' : 'REQUEST A QUOTE'} <span aria-hidden="true">↗</span>
+      </Link>
     </article>
   )
 }
 
-function PackageSection({ id, eyebrow, title, description, packages, joinable = false }: {
-  id: string; eyebrow: string; title: string; description: string; packages: Package[]; joinable?: boolean
+function PlanSection({ id, index, eyebrow, title, intro, packages, recurring = false }: {
+  id: string; index: string; eyebrow: string; title: string; intro: string; packages: Package[]; recurring?: boolean
 }) {
   return (
-    <section id={id} className="ngms-mp-section">
-      <div className="ngms-mp-section__heading">
-        <p className="ngms-mp-kicker">{eyebrow}</p>
+    <section id={id} className="ngms-mp2-section">
+      <div className="ngms-mp2-section__head">
+        <p className="ngms-mp2-eyebrow"><span>{index}</span> / {eyebrow}</p>
         <h2>{title}</h2>
-        <p>{description}</p>
+        <p>{intro}</p>
       </div>
-      <div className="ngms-mp-package-list">
-        {packages.map((pkg, index) => <PackageRow key={pkg.name} pkg={pkg} index={index} joinable={joinable} />)}
+      <div className="ngms-mp2-grid">
+        {packages.map((pkg, i) => <PlanCard key={pkg.name} pkg={pkg} index={i} recurring={recurring} />)}
       </div>
     </section>
   )
@@ -50,108 +47,97 @@ function PackageSection({ id, eyebrow, title, description, packages, joinable = 
 
 export default function MaintenancePackagesPage() {
   return (
-    <main className="ngms-maintenance-brut">
-      <div className="ngms-mp-topline">
-        <Link href="/" className="ngms-mp-wordmark" aria-label="NextGen home">NEXT<span>GEN</span><b>.</b></Link>
-        <span>PROPERTY MAINTENANCE / HELDERBERG BASIN</span>
-        <Link className="ngms-mp-top-cta" href="#join">START A PLAN <span>↗</span></Link>
-      </div>
+    <main className="ngms-maintenance-v2">
+      <header className="ngms-mp2-header">
+        <Link href="/" className="ngms-mp2-brand" aria-label="NextGen home">NEXTGEN<span>®</span><b>.</b></Link>
+        <nav aria-label="Main navigation">
+          <Link href="/services">SERVICES</Link>
+          <Link href="#plans">PLANS</Link>
+          <Link href="#commercial">BODY CORPORATES</Link>
+          <Link href="/contact">CONTACT</Link>
+        </nav>
+        <Link href="#join-plan" className="ngms-mp2-header-cta">BUILD MY PLAN <span>↗</span></Link>
+      </header>
 
-      <section className="ngms-mp-hero">
-        <div className="ngms-mp-hero__headline">
-          <p className="ngms-mp-kicker">ONE CALL. ALL SOLUTIONS. / 2026</p>
-          <h1>CARE FOR<br />YOUR PROPERTY.<br /><span>WITHOUT</span><br />THE RUNAROUND<span className="ngms-mp-period">.</span></h1>
-          <div className="ngms-mp-hero__bottom">
-            <p><i aria-hidden="true" /> RECURRING CARE. SEASONAL PROJECTS. ONE TRUSTED TEAM.</p>
-            <Link href="#packages">EXPLORE PACKAGES <span>↗</span></Link>
+      <section className="ngms-mp2-hero">
+        <div className="ngms-mp2-hero__copy">
+          <p className="ngms-mp2-eyebrow"><span className="ngms-mp2-dot" /> PROPERTY CARE / HELDERBERG BASIN</p>
+          <h1>MAINTAIN<br />WHAT <em>MATTERS.</em></h1>
+          <p className="ngms-mp2-lead">A better way to look after your property. Planned maintenance, clear scopes and one trusted local team — without juggling a different contractor for every job.</p>
+          <div className="ngms-mp2-actions">
+            <Link href="#plans" className="ngms-mp2-button">EXPLORE PLANS <span>↘</span></Link>
+            <Link href="/quote" className="ngms-mp2-textlink">REQUEST A SITE ASSESSMENT ↗</Link>
           </div>
+          <div className="ngms-mp2-hero__meta"><span>STRAND</span><i /> <span>GORDON’S BAY</span><i /> <span>SOMERSET WEST</span></div>
         </div>
-        <div className="ngms-mp-hero__visual">
-          <div className="ngms-mp-hero__visual-top"><span>NGMS / FIELD NOTES</span><span>01—03</span></div>
-          <div className="ngms-mp-architecture" aria-hidden="true">
-            <div className="ngms-mp-architecture__block ngms-mp-architecture__block--one" />
-            <div className="ngms-mp-architecture__block ngms-mp-architecture__block--two" />
-            <div className="ngms-mp-architecture__block ngms-mp-architecture__block--three" />
-            <div className="ngms-mp-architecture__line" />
-            <div className="ngms-mp-architecture__target">↗</div>
+        <div className="ngms-mp2-hero__visual" aria-label="Property maintenance editorial graphic">
+          <div className="ngms-mp2-visual__top"><span>NGMS / MAINTENANCE SYSTEMS</span><span>001—026</span></div>
+          <div className="ngms-mp2-visual__art" aria-hidden="true">
+            <div className="ngms-mp2-block ngms-mp2-block--a" />
+            <div className="ngms-mp2-block ngms-mp2-block--b" />
+            <div className="ngms-mp2-block ngms-mp2-block--c" />
+            <div className="ngms-mp2-cross">+</div>
+            <div className="ngms-mp2-vertical">PLAN / MAINTAIN / PROTECT</div>
           </div>
-          <div className="ngms-mp-hero__visual-caption"><strong>MAINTAIN<br />WHAT MATTERS.</strong><span>STRAND · GORDON’S BAY<br />SOMERSET WEST</span></div>
+          <div className="ngms-mp2-visual__bottom"><strong>ONE CALL.<br />ALL SOLUTIONS.</strong><span>PREVENTIVE CARE<br />RECURRING VISITS<br />LOCAL CREWS</span></div>
         </div>
-        <div className="ngms-mp-hero__side-note">MAINTENANCE SYSTEMS / 001</div>
+        <div className="ngms-mp2-hero__index">NGMS / 01</div>
       </section>
 
-      <div className="ngms-mp-manifesto">
-        <span className="ngms-mp-manifesto__year">NGMS / 2026</span>
-        <p>WE DON’T WAIT FOR THINGS TO BREAK.<br /><strong>WE PLAN. WE MAINTAIN. WE DELIVER.</strong></p>
-        <a href="#packages" aria-label="Scroll to packages">↓</a>
-        <Link href="#join">AVAILABLE FOR NEW PLANS <span>●</span></Link>
-      </div>
-
-      <div id="packages" className="ngms-mp-selected">
-        <aside className="ngms-mp-selected__aside">
-          <p className="ngms-mp-kicker">01 / RECURRING CARE</p>
-          <h2>SELECTED<br />PACKAGES</h2>
-          <p>Scheduled property care, designed around your site, season and budget.</p>
-          <a href="#seasonal">SEE SEASONAL OPTIONS <span>↘</span></a>
-        </aside>
-        <div className="ngms-mp-selected__content">
-          <PackageSection id="recurring" eyebrow="01—03 / RECURRING PLANS" title="CARE THAT COMES BACK." description="Regular visits keep small maintenance tasks from turning into costly repairs. Choose your service rhythm." packages={RECURRING_PACKAGES} joinable />
-          <p className="ngms-mp-note">Panel counts above 20 are quoted at the standard per-panel rate. All plans can be tailored during a free site visit; scope and pricing are confirmed before your first visit.</p>
-        </div>
-      </div>
-
-      <section className="ngms-mp-signup" id="join">
-        <div className="ngms-mp-signup__copy">
-          <p className="ngms-mp-kicker">02 / GET ON THE SCHEDULE</p>
-          <h2>BUILT AROUND<br /><span>YOUR PROPERTY.</span></h2>
-          <p>Choose a plan and we’ll confirm your first visit. We’ll also remind you when your next service is due.</p>
-          <div className="ngms-mp-signup__sticker" aria-hidden="true">✳</div>
-        </div>
-        <div className="ngms-mp-signup__form"><PlanSignupForm /></div>
+      <section className="ngms-mp2-proof" aria-label="How our maintenance plans work">
+        <div><span>01</span><p>INSPECT THE PROPERTY</p></div>
+        <div><span>02</span><p>AGREE THE SCOPE</p></div>
+        <div><span>03</span><p>KEEP IT IN GOOD SHAPE</p></div>
+        <p className="ngms-mp2-proof__note">No guesswork. We confirm the scope and price before work begins.</p>
       </section>
 
-      <PackageSection id="seasonal" eyebrow="03 / SEASONAL COMBOS" title="BUILT FOR THE CAPE." description="Winter rain and summer sun bring different maintenance priorities. These one-off combinations help you prepare for the season ahead." packages={SEASONAL_COMBOS} />
-      <p className="ngms-mp-note ngms-mp-note--wide">Once-off project pricing. Final scope is confirmed on-site. Ask about combining a seasonal combo with a recurring plan for an additional discount.</p>
+      <section id="plans" className="ngms-mp2-intro">
+        <div><p className="ngms-mp2-eyebrow"><span>01</span> / RECURRING CARE</p><h2>GOOD MAINTENANCE<br />IS <em style={{ color: "#1A1A1A" }}>PLANNED.</em></h2></div>
+        <p>Choose a regular service rhythm that suits your property. Each plan can be discussed during a free site assessment, with final scope confirmed before the first visit.</p>
+      </section>
+      <div className="ngms-mp2-packages">
+        <PlanSection id="recurring" index="01" eyebrow="RECURRING PLANS" title="CARE THAT COMES BACK." intro="Scheduled visits for solar cleaning and practical exterior maintenance." packages={RECURRING_PACKAGES} recurring />
+        <p className="ngms-mp2-note">Panel counts above 20 are quoted separately. Plan inclusions and final pricing are confirmed for your property before booking.</p>
+      </div>
 
-      <PackageSection id="commercial" eyebrow="04 / COMMERCIAL & BODY CORPORATE" title="ONE SITE. ONE POINT OF CONTACT." description="Volume-priced property care for security complexes, body corporates and light commercial sites." packages={COMMERCIAL_COMBOS} />
-      <p className="ngms-mp-note ngms-mp-note--wide">Pricing shown reflects a typical mid-size site. Larger complexes and multi-building sites are quoted after a free walk-through.</p>
-
-      <section className="ngms-mp-services">
-        <div className="ngms-mp-services__intro">
-          <p className="ngms-mp-kicker">05 / OUR CAPABILITIES</p>
-          <h2>MORE THAN<br />A CHECKLIST<span>.</span></h2>
-          <p>One local team for solar cleaning and the maintenance jobs that keep your property working as it should.</p>
+      <section id="join-plan" className="ngms-mp2-signup">
+        <div className="ngms-mp2-signup__copy">
+          <p className="ngms-mp2-eyebrow"><span>02</span> / START WITH YOUR PROPERTY</p>
+          <h2 style={{ color: "#1A1A1A" }}>LET’S MAKE<br />A PLAN.</h2>
+          <p>Tell us how to reach you and choose the recurring plan you want to discuss. We’ll follow up to confirm the details and your first visit.</p>
+          <div className="ngms-mp2-signup__foot"><span>FREE SITE ASSESSMENT</span><span>WRITTEN QUOTES</span><span>LOCAL TEAM</span></div>
         </div>
-        <div className="ngms-mp-services__list">
+        <div className="ngms-mp2-signup__form"><PlanSignupForm /></div>
+      </section>
+
+      <PlanSection id="seasonal" index="03" eyebrow="SEASONAL COMBOS" title="READY FOR THE SEASON." intro="One-off combinations built around Cape weather and the jobs properties commonly need before or after seasonal changes." packages={SEASONAL_COMBOS} />
+      <div className="ngms-mp2-note ngms-mp2-note--wide">Seasonal pricing is indicative. We confirm site conditions and the final scope before booking.</div>
+
+      <section id="commercial" className="ngms-mp2-commercial">
+        <div className="ngms-mp2-commercial__head"><p className="ngms-mp2-eyebrow"><span>04</span> / SHARED & COMMERCIAL SITES</p><h2>ONE SITE.<br /><em>ONE CONTACT.</em></h2><p>Coordinated property care for body corporates, security complexes and light commercial sites — with a clear scope and a single point of contact.</p><Link href="/body-corporate-maintenance" className="ngms-mp2-textlink">BODY CORPORATE SERVICES ↗</Link></div>
+        <div className="ngms-mp2-commercial__plans"><PlanSection id="commercial-plans" index="04" eyebrow="COMMERCIAL PLANS" title="BUILT FOR SHARED SPACES." intro="Starting points for site-specific maintenance quotes." packages={COMMERCIAL_COMBOS} /></div>
+      </section>
+
+      <section className="ngms-mp2-services">
+        <div className="ngms-mp2-services__head"><p className="ngms-mp2-eyebrow"><span>05</span> / WHAT WE COORDINATE</p><h2>MORE THAN<br />A CHECKLIST<span>.</span></h2><p>One point of contact for the maintenance jobs that keep a property safe, presentable and working as it should.</p></div>
+        <div className="ngms-mp2-services__list">
           {[
-            ['01', 'SOLAR PANEL CLEANING', 'Soft-wash cleaning, before-and-after photos and practical maintenance scheduling.'],
-            ['02', 'EXTERIOR & HIGH-PRESSURE CLEANING', 'Refresh driveways, entrances, walls and outdoor areas.'],
-            ['03', 'GUTTERS & WATERPROOFING', 'Keep water moving correctly and catch potential leak points early.'],
-            ['04', 'PAINTING & HANDYMAN WORK', 'Planned touch-ups and minor repairs to help protect your property.'],
-            ['05', 'BODY CORPORATE & COMMERCIAL', 'Coordinated maintenance for shared spaces and multi-building sites.'],
-          ].map(([number, title, description]) => (
-            <details className="ngms-mp-service" key={number}>
-              <summary><span>{number}</span><strong>{title}</strong><b aria-hidden="true">＋</b></summary>
-              <p>{description}</p>
-            </details>
-          ))}
+            ['01', 'SOLAR PANEL CLEANING', 'Careful cleaning and practical repeat scheduling.'],
+            ['02', 'GUTTERS & WATERPROOFING', 'Help keep water moving and identify potential leak points early.'],
+            ['03', 'EXTERIOR & HIGH-PRESSURE CLEANING', 'Refresh driveways, entrances, walls and outdoor areas.'],
+            ['04', 'PAINTING & HANDYMAN WORK', 'Planned touch-ups and minor repairs.'],
+            ['05', 'PAVING, PLUMBING & ELECTRICAL', 'Coordinated trade services through one point of contact.'],
+          ].map(([number, title, description]) => <details className="ngms-mp2-service" key={number}><summary><span>{number}</span><strong>{title}</strong><b aria-hidden="true">＋</b></summary><p>{description}</p></details>)}
         </div>
       </section>
 
-      <section className="ngms-mp-final-cta">
-        <div className="ngms-mp-final-cta__red"><p>LET’S KEEP IT<br />IN GOOD SHAPE.</p><Link href="#join" aria-label="Start a maintenance plan">↗</Link></div>
-        <div className="ngms-mp-final-cta__main">
-          <p className="ngms-mp-kicker">NEXTGEN MAINTENANCE SOLUTIONS / WESTERN CAPE</p>
-          <h2>YOUR PROPERTY.<br />OUR NEXT PROJECT<span>.</span></h2>
-          <div className="ngms-mp-final-cta__links">
-            <Link href="#join">START A PLAN ↗</Link>
-            <a href="https://wa.me/27631387945" target="_blank" rel="noopener noreferrer">WHATSAPP US ↗</a>
-            <Link href="/price-list">VIEW PRICE LIST ↗</Link>
-          </div>
-        </div>
+      <section className="ngms-mp2-final">
+        <div className="ngms-mp2-final__stamp">NGMS<br /><span>2026</span></div>
+        <p className="ngms-mp2-eyebrow">NEXTGEN MAINTENANCE SOLUTIONS / WESTERN CAPE</p>
+        <h2>YOUR PROPERTY.<br /><em>OUR NEXT PROJECT.</em></h2>
+        <div className="ngms-mp2-final__links"><Link href="#join-plan">START A PLAN ↗</Link><a href="https://wa.me/27631387945" target="_blank" rel="noopener noreferrer">WHATSAPP US ↗</a><Link href="/price-list">VIEW PRICE LIST ↗</Link></div>
       </section>
-
-      <div className="ngms-mp-footerline"><span>ONE CALL. ALL SOLUTIONS.</span><span>STRAND / GORDON’S BAY / SOMERSET WEST</span><Link href="/contact">CONTACT NGMS ↗</Link></div>
+      <footer className="ngms-mp2-footer"><span>ONE CALL. ALL SOLUTIONS.</span><span>STRAND / GORDON’S BAY / SOMERSET WEST</span><Link href="/contact">CONTACT NGMS ↗</Link></footer>
     </main>
   )
 }
