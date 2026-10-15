@@ -85,7 +85,7 @@ export default function MaintenancePackagesPage() {
               <span className="mt-1 text-xs font-semibold text-[#F04427]">01 / 04</span>
               <p className="max-w-[135px] text-[10px] leading-relaxed text-[#777780] sm:text-xs">Property care.<br />Planned around you.<br />Made straightforward.</p>
             </div>
-            <h1 className="max-w-[760px] text-[clamp(3.2rem,9vw,7.7rem)] font-medium uppercase leading-[.82] tracking-[-.085em] text-[#29292F]">
+            <h1 className="max-w-[760px] text-[clamp(3.2rem,9vw,7.7rem)] font-black uppercase leading-[.84] tracking-[-.075em] text-[#111111]">
               Planned<br />Maintenance<span className="text-[#F04427]">.</span>
             </h1>
             <p className="mt-6 max-w-lg text-sm leading-relaxed text-[#686770] sm:mt-8 sm:text-base">Reliable property upkeep across Strand, Gordon’s Bay and Somerset West. One point of contact for recurring care, seasonal jobs and shared properties.</p>
@@ -128,7 +128,7 @@ export default function MaintenancePackagesPage() {
       <section id="recurring" className="scroll-mt-20 bg-[#F4F3F7] px-4 py-14 sm:px-7 sm:py-20 lg:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="mb-9 grid gap-5 md:grid-cols-[.85fr_1.15fr] md:items-end">
-            <div><SectionLabel index="02" light>Recurring plans</SectionLabel><h2 className="mt-5 text-4xl font-medium uppercase leading-[.9] tracking-[-.07em] sm:text-6xl">Keep ahead<br />of the work<span className="text-[#F04427]">.</span></h2></div>
+            <div><SectionLabel index="02" light>Recurring plans</SectionLabel><h2 className="mt-5 text-4xl font-black uppercase leading-[.9] tracking-[-.065em] text-[#111111] sm:text-6xl">Keep ahead<br />of the work<span className="text-[#F04427]">.</span></h2></div>
             <p className="max-w-2xl text-base leading-relaxed text-[#686770] md:justify-self-end">Choose the visit frequency that fits your property. Plans combine practical maintenance services so you can budget ahead and reduce last-minute call-outs.</p>
           </div>
           <PackageGrid packages={RECURRING_PACKAGES} joinable />
@@ -138,7 +138,7 @@ export default function MaintenancePackagesPage() {
 
       <section id="join" className="scroll-mt-20 border-y border-[#DEDEE3] bg-[#29292F] px-4 py-14 text-white sm:px-7 sm:py-20 lg:px-10">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-start">
-          <div><SectionLabel index="03">Start a plan</SectionLabel><h2 className="mt-5 text-4xl font-medium uppercase leading-[.9] tracking-[-.07em] sm:text-6xl">Make upkeep<br /><span className="text-[#F04427]">automatic.</span></h2><p className="mt-5 max-w-md leading-relaxed text-white/65">Send through your details and we’ll confirm the plan and first visit with you.</p><div className="mt-7 border-l-2 border-[#F04427] pl-4 text-sm text-white/75">No guesswork. We confirm the scope before work begins.</div></div>
+          <div><SectionLabel index="03">Start a plan</SectionLabel><h2 className="mt-5 text-4xl font-black uppercase leading-[.9] tracking-[-.065em] text-[#111111] sm:text-6xl">Make upkeep<br /><span className="text-[#F04427]">automatic.</span></h2><p className="mt-5 max-w-md leading-relaxed text-white/65">Send through your details and we’ll confirm the plan and first visit with you.</p><div className="mt-7 border-l-2 border-[#F04427] pl-4 text-sm text-white/75">No guesswork. We confirm the scope before work begins.</div></div>
           <div className="border border-white/15 bg-[#33333A] p-4 sm:p-6"><PlanSignupForm /></div>
         </div>
       </section>
@@ -146,7 +146,7 @@ export default function MaintenancePackagesPage() {
       <section id="seasonal" className="scroll-mt-20 bg-[#E9E8ED] px-4 py-14 sm:px-7 sm:py-20 lg:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="mb-9 grid gap-5 md:grid-cols-[.85fr_1.15fr] md:items-end">
-            <div><SectionLabel index="04" light>Seasonal combinations</SectionLabel><h2 className="mt-5 text-4xl font-medium uppercase leading-[.9] tracking-[-.07em] sm:text-6xl">Built for<br />Cape weather<span className="text-[#F04427]">.</span></h2></div>
+            <div><SectionLabel index="04" light>Seasonal combinations</SectionLabel><h2 className="mt-5 text-4xl font-black uppercase leading-[.9] tracking-[-.065em] text-[#111111] sm:text-6xl">Built for<br />Cape weather<span className="text-[#F04427]">.</span></h2></div>
             <p className="max-w-2xl text-base leading-relaxed text-[#686770] md:justify-self-end">Prepare for winter rain or refresh your property for summer. These once-off combinations bring the right jobs together in one coordinated visit.</p>
           </div>
           <PackageGrid packages={SEASONAL_COMBOS} />
@@ -157,7 +157,7 @@ export default function MaintenancePackagesPage() {
       <section id="commercial" className="scroll-mt-20 bg-[#F4F3F7] px-4 py-14 sm:px-7 sm:py-20 lg:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="mb-9 grid gap-5 md:grid-cols-[.85fr_1.15fr] md:items-end">
-            <div><SectionLabel index="05" light>For shared properties</SectionLabel><h2 className="mt-5 text-4xl font-medium uppercase leading-[.9] tracking-[-.07em] sm:text-6xl">One team.<br />One plan<span className="text-[#F04427]">.</span></h2></div>
+            <div><SectionLabel index="05" light>For shared properties</SectionLabel><h2 className="mt-5 text-4xl font-black uppercase leading-[.9] tracking-[-.065em] text-[#111111] sm:text-6xl">One team.<br />One plan<span className="text-[#F04427]">.</span></h2></div>
             <p className="max-w-2xl text-base leading-relaxed text-[#686770] md:justify-self-end">Volume-conscious maintenance for body corporates, security complexes and light commercial sites — with a single point of contact for coordinated work.</p>
           </div>
           <PackageGrid packages={COMMERCIAL_COMBOS} />
@@ -167,7 +167,7 @@ export default function MaintenancePackagesPage() {
 
       <section className="bg-[#F4F3F7] px-4 pb-14 sm:px-7 sm:pb-20 lg:px-10">
         <div className="mx-auto grid max-w-7xl gap-6 border-y border-[#DAD9E0] py-8 md:grid-cols-[1fr_auto] md:items-center">
-          <div><p className="text-xs font-bold uppercase tracking-[.18em] text-[#D94324]">Not sure where to start?</p><h2 className="mt-3 text-3xl font-medium uppercase leading-tight tracking-[-.06em] sm:text-5xl">Let’s plan your maintenance.</h2><p className="mt-3 max-w-2xl text-[#686770]">Request a quote or ask us about the right package for your home, complex or business.</p></div>
+          <div><p className="text-xs font-bold uppercase tracking-[.18em] text-[#D94324]">Not sure where to start?</p><h2 className="mt-3 text-3xl font-black uppercase leading-tight tracking-[-.06em] text-[#111111] sm:text-5xl">Let’s plan your maintenance.</h2><p className="mt-3 max-w-2xl text-[#686770]">Request a quote or ask us about the right package for your home, complex or business.</p></div>
           <div className="flex flex-wrap items-center gap-3">
             <Link href="/quote" className="inline-flex min-h-12 items-center gap-3 bg-[#F04427] px-5 py-3 text-sm font-bold uppercase text-white hover:bg-[#D94324]">Request a quote <ArrowUpRight aria-hidden="true" className="h-5 w-5" /></Link>
             <a href="https://wa.me/27631387945" aria-label="Contact NextGen Maintenance Solutions on WhatsApp" title="WhatsApp NextGen Maintenance Solutions" className="inline-flex h-12 w-12 items-center justify-center border border-[#29292F] text-[#29292F] transition-colors hover:border-[#25D366] hover:text-[#25D366]"><MessageCircle aria-hidden="true" className="h-6 w-6" /></a>
