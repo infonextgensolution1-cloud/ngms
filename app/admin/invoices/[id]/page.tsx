@@ -16,6 +16,7 @@ import { LOGO_DATA_URI } from '@/lib/logo'
 import { PLACEHOLDER_ACC } from '@/lib/quote-terms'
 
 type PaymentEntry = { line: string; amount: number; index: number; reversed: boolean }
+type CreditNote = { id:string; credit_note_number:string; invoice_id:string; client_id:string; status:'draft'|'issued'|'void'; review_status:'pending'|'manual_review_required'|'approved'|'rejected'; reason:string; subtotal:number; vat_amount:number; total_amount:number; created_at:string; issued_at:string|null; review_note:string|null; line_description?:string|null }
 
 function paymentEntries(notes: string | null): PaymentEntry[] {
   const lines = (notes ?? '').split('\n')
@@ -37,6 +38,7 @@ type Business = { name: string | null; phone: string | null; whatsapp: string | 
 
 const BRAND = { black: '#0A0A0A', purple: '#8B1BF5', orange: '#F57C1B', green: '#39D353', grey: '#5B5B5B', line: '#E4E4E4' }
 const PAY_METHODS = ['eft', 'cash', 'card', 'other'] as const
+const CREDIT_NOTE_UI_ENABLED = process.env.NEXT_PUBLIC_NGMS_CREDIT_NOTES_ENABLED === 'true'
 
 const STATUS_STYLE: Record<string, string> = {
   draft: 'text-mist border-darkgrey',
@@ -67,6 +69,15 @@ function InvoiceView() {
   const [note, setNote] = useState('')
   const [jobId, setJobId] = useState<string | null>(null)
   const [jobStatus, setJobStatus] = useState<string | null>(null)
+  const [creditNotes, setCreditNotes] = useState<CreditNote[]>([])
+  const [creditNotesAvailable, setCreditNotesAvailable] = useState(true)
+  const [creditReason, setCreditReason] = useState('')
+  const [creditDescription, setCreditDescription] = useState('Credit against original invoice')
+  const [creditSubtotal, setCreditSubtotal] = useState('')
+  const [creditVatRate, setCreditVatRate] = useState('0')
+  const [creditReviewNote, setCreditReviewNote] = useState('')
+  const [creditBusy, setCreditBusy] = useState<string | null>(null)
+  const [printCreditNote, setPrintCreditNote] = useState<CreditNote | null>(null)
 
   const [payAmount, setPayAmount] = useState('')
   const [payMethod, setPayMethod] = useState<(typeof PAY_METHODS)[number]>('eft')
@@ -85,6 +96,12 @@ function InvoiceView() {
       setMoney(sc.money)
       setQuoteNumber(sc.quote_number)
       setBusiness(sc.business)
+      const { data: creditRows, error: creditRowsError } = await supabase.from('credit_notes').select('id,credit_note_number,invoice_id,client_id,status,review_status,reason,subtotal,vat_amount,total_amount,created_at,issued_at,review_note,credit_note_items(description)').eq('invoice_id', id).order('created_at', { ascending: false })
+      if (creditRowsError) {
+        if (/credit_notes|schema cache|does not exist/i.test(creditRowsError.message)) { setCreditNotesAvailable(false); setCreditNotes([]) }
+        else throw creditRowsError
+      } else { setCreditNotesAvailable(true); setCreditNotes((creditRows ?? []).map((row: any) => ({ ...row, line_description: row.credit_note_items?.[0]?.description ?? null })) as CreditNote[]) }
+      setCreditVatRate(String(sc.money.subtotal > 0 ? Math.round((sc.money.vat / sc.money.subtotal) * 10000) / 100 : 0))
       const { data: linkedJob } = sc.invoice.quote_id ? await supabase.from('jobs').select('id,status').eq('quote_id', sc.invoice.quote_id).neq('status','cancelled').order('created_at',{ascending:false}).limit(1).maybeSingle() : { data: null }
       setJobId((linkedJob as {id:string;status:string}|null)?.id ?? null)
       setJobStatus((linkedJob as {id:string;status:string}|null)?.status ?? null)
@@ -205,6 +222,62 @@ function InvoiceView() {
     }
   }
 
+
+  async function createCreditNoteDraft() {
+    if (!CREDIT_NOTE_UI_ENABLED) { setMsg('Credit-note writes are disabled until the isolated preview database and feature flag are configured.'); return }
+    if (!invoice || !client || !money) return
+    const subtotal = Number(creditSubtotal), vatRate = Number(creditVatRate)
+    if (!creditReason.trim() || !creditDescription.trim()) { setMsg('Credit reason and line description are required.'); return }
+    if (!Number.isFinite(subtotal) || subtotal <= 0 || !Number.isFinite(vatRate) || vatRate < 0 || vatRate > 100) { setMsg('Enter a positive subtotal and a valid VAT rate.'); return }
+    const vat = Math.round(subtotal * vatRate) / 100
+    const total = Math.round((subtotal + vat + Number.EPSILON) * 100) / 100
+    const issuedTotal = creditNotes.filter(n => n.status === 'issued').reduce((s,n) => s + Number(n.total_amount), 0)
+    if (total > money.total - issuedTotal + 0.004) { setMsg('Credit exceeds the remaining creditable invoice value.'); return }
+    const { data: auth, error: authError } = await supabase.auth.getUser()
+    if (authError || !auth.user) { setMsg('Staff session expired. Sign in again.'); return }
+    setCreditBusy('create'); setMsg('')
+    try {
+      const { data: row, error } = await supabase.from('credit_notes').insert({ invoice_id: invoice.id, client_id: client.id, reason: creditReason.trim(), subtotal, vat_amount: vat, total_amount: total, created_by: auth.user.id, status: 'draft', review_status: 'pending' }).select('id').single()
+      if (error || !row) throw new Error(error?.message ?? 'Could not create credit note.')
+      const { error: itemError } = await supabase.from('credit_note_items').insert({ credit_note_id: row.id, description: creditDescription.trim(), quantity: 1, unit: 'item', unit_price: subtotal, vat_rate: vatRate })
+      if (itemError) { await supabase.from('credit_notes').delete().eq('id', row.id).eq('status', 'draft'); throw new Error(itemError.message) }
+      setCreditReason(''); setCreditSubtotal(''); setMsg('Credit-note draft created. It must be reviewed before issue.'); await load()
+    } catch(e) { setMsg((e as Error).message) } finally { setCreditBusy(null) }
+  }
+
+  async function reviewCreditNote(note: CreditNote, decision: 'approve'|'reject') {
+    if (!CREDIT_NOTE_UI_ENABLED) { setMsg('Credit-note writes are disabled until the isolated preview database and feature flag are configured.'); return }
+    if (creditReviewNote.trim().length < 8) { setMsg('Review note must be at least 8 characters.'); return }
+    if (!window.confirm(`${decision === 'approve' ? 'Approve' : 'Reject'} ${note.credit_note_number}? Paid and partially paid invoices require explicit Admin review.`)) return
+    setCreditBusy(note.id); setMsg('')
+    try {
+      const { data, error } = await supabase.rpc('ngms_review_credit_note', { p_credit_note_id: note.id, p_decision: decision, p_review_note: creditReviewNote.trim() })
+      if (error) throw new Error(error.message)
+      const result = data as { message?: string; review_status?: string }
+      setMsg(result.message ?? `Review recorded: ${result.review_status ?? decision}.`); setCreditReviewNote(''); await load()
+    } catch(e) { setMsg((e as Error).message) } finally { setCreditBusy(null) }
+  }
+
+  async function issueCreditNote(note: CreditNote) {
+    if (!CREDIT_NOTE_UI_ENABLED) { setMsg('Credit-note writes are disabled until the isolated preview database and feature flag are configured.'); return }
+    if (!window.confirm(`Issue ${note.credit_note_number}? This will not change invoice balances or payment history.`)) return
+    setCreditBusy(note.id); setMsg('')
+    try {
+      const { data, error } = await supabase.rpc('ngms_issue_credit_note', { p_credit_note_id: note.id })
+      if (error) throw new Error(error.message)
+      const result = data as { credit_note_number?: string; message?: string }
+      setMsg(result.message ?? `${result.credit_note_number ?? note.credit_note_number} issued. Invoice and payment history remain unchanged.`); await load()
+    } catch(e) { setMsg((e as Error).message) } finally { setCreditBusy(null) }
+  }
+
+  useEffect(() => {
+    if (!printCreditNote) return
+    document.body.classList.add('print-credit-note')
+    window.print()
+    document.body.classList.remove('print-credit-note')
+    setPrintCreditNote(null)
+  }, [printCreditNote])
+
   async function saveNote() {
     if (!invoice || !note.trim()) return
     setBusy('note')
@@ -268,6 +341,10 @@ function InvoiceView() {
           body * { visibility: hidden; }
           #print-area, #print-area * { visibility: visible; }
           #print-area { position: absolute; left: 0; top: 0; width: 100%; margin: 0 !important; padding: 14mm !important; box-shadow: none !important; border-radius: 0 !important; }
+          #credit-note-print-area { display: none; }
+          body.print-credit-note #print-area { display: none !important; }
+          body.print-credit-note #credit-note-print-area { display: block !important; visibility: visible; position: absolute; left: 0; top: 0; width: 100%; margin: 0 !important; padding: 14mm !important; }
+          body.print-credit-note #credit-note-print-area * { visibility: visible; }
           .no-print { display: none !important; }
           @page { margin: 10mm; }
         }
@@ -441,6 +518,38 @@ function InvoiceView() {
 
 
 
+
+          <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-4">
+            <h2 className="font-heading font-bold text-paper mb-1">CREDIT NOTES</h2>
+            <p className="text-xs text-mist mb-3">Separate, numbered accounting documents. Issuing does not refund cash or rewrite invoice/payment history.</p>
+            {!creditNotesAvailable && <p className="text-xs text-orange border border-orange/40 rounded-btn p-3 mb-3">Credit-note database migration is not available in this environment. Existing invoice operations remain unaffected.</p>}
+            {!CREDIT_NOTE_UI_ENABLED && <p className="text-xs text-mist border border-darkgrey rounded-btn p-3 mb-3">Read-only preview mode. Credit-note writes remain disabled until an isolated preview database is configured and NEXT_PUBLIC_NGMS_CREDIT_NOTES_ENABLED is explicitly enabled there.</p>}
+            {['paid','partial'].includes(invoice.status) && <p className="text-xs text-orange border border-orange/40 rounded-btn p-3 mb-3">Manual Admin accounting review is required for this {invoice.status} invoice.</p>}
+            {CREDIT_NOTE_UI_ENABLED && creditNotesAvailable && (<>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="text-xs text-mist sm:col-span-2">Reason<textarea className={`${input} mt-1 min-h-[60px]`} value={creditReason} onChange={e=>setCreditReason(e.target.value)} placeholder="Reason for credit" /></label>
+              <label className="text-xs text-mist sm:col-span-2">Credit line description<input className={`${input} mt-1`} value={creditDescription} onChange={e=>setCreditDescription(e.target.value)} /></label>
+              <label className="text-xs text-mist">Subtotal excluding VAT (R)<input className={`${input} mt-1`} inputMode="decimal" value={creditSubtotal} onChange={e=>setCreditSubtotal(e.target.value)} placeholder="0.00" /></label>
+              <label className="text-xs text-mist">VAT rate (%)<input className={`${input} mt-1`} inputMode="decimal" value={creditVatRate} onChange={e=>setCreditVatRate(e.target.value)} /></label>
+            </div>
+            <p className="text-xs text-mist mt-2">Confirm the original invoice VAT treatment before creating a draft.</p>
+            <button onClick={createCreditNoteDraft} disabled={!!creditBusy || !creditReason.trim() || !creditSubtotal} className="mt-3 inline-flex items-center gap-2 bg-blue-fill text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50">{creditBusy==='create' ? 'Creating…' : 'Create credit-note draft'}</button>
+            </>)}
+            <div className="border-t border-darkgrey mt-4 pt-4 space-y-3">
+              <h3 className="font-heading font-semibold text-paper text-sm">Linked credit-note history</h3>
+              {creditNotes.length===0 ? <p className="text-xs text-mist">No credit notes recorded.</p> : creditNotes.map(note=><div key={note.id} className="border border-darkgrey rounded-btn p-3">
+                <div className="flex flex-wrap justify-between gap-2"><div><p className="font-semibold text-paper text-sm">{note.credit_note_number}</p><p className="text-xs text-mist mt-1">{note.reason}</p><p className="text-xs text-mist mt-1">{sastDate(note.created_at)} · {note.review_status.replaceAll('_',' ')}</p></div><div className="text-right"><p className="font-semibold text-paper">{rand(Number(note.total_amount))}</p><p className="text-[10px] uppercase text-mist">{note.status}</p></div></div>
+                {note.review_note && <p className="text-xs text-mist mt-2">Review: {note.review_note}</p>}
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <button onClick={()=>setPrintCreditNote(note)} className="border border-darkgrey text-mist px-3 py-2 rounded-btn text-xs">Print credit note</button>
+                  {CREDIT_NOTE_UI_ENABLED && note.status==='draft' && note.review_status!=='approved' && <button onClick={()=>reviewCreditNote(note,'approve')} disabled={!!creditBusy || creditReviewNote.trim().length<8} className="border border-blue text-blue px-3 py-2 rounded-btn text-xs disabled:opacity-50">Record approval</button>}
+                  {CREDIT_NOTE_UI_ENABLED && note.status==='draft' && note.review_status!=='rejected' && <button onClick={()=>reviewCreditNote(note,'reject')} disabled={!!creditBusy || creditReviewNote.trim().length<8} className="border border-orange text-orange px-3 py-2 rounded-btn text-xs disabled:opacity-50">Reject</button>}
+                  {CREDIT_NOTE_UI_ENABLED && note.status==='draft' && note.review_status==='approved' && <button onClick={()=>issueCreditNote(note)} disabled={!!creditBusy} className="bg-orange text-black px-3 py-2 rounded-btn text-xs font-semibold disabled:opacity-50">{creditBusy===note.id?'Issuing…':'Issue credit note'}</button>}
+                </div>
+              </div>)}
+              {CREDIT_NOTE_UI_ENABLED && creditNotes.some(n=>n.status==='draft') && <label className="block text-xs text-mist">Review note (minimum 8 characters)<textarea className={`${input} mt-1 min-h-[56px]`} value={creditReviewNote} onChange={e=>setCreditReviewNote(e.target.value)} placeholder="Reason for approval or rejection" /></label>}
+            </div>
+          </section>
           <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-6">
             <h2 className="font-heading font-bold text-paper mb-2">Notes</h2>
             <p className="text-sm text-mist whitespace-pre-line mb-3">{invoice.notes || '(no notes yet)'}</p>
@@ -451,6 +560,19 @@ function InvoiceView() {
           </section>
         </div>
 
+
+        <div id="credit-note-print-area" style={{ display:'none', background:'#fff', color:BRAND.black, padding:'28px 26px', fontFamily:'Inter, system-ui, sans-serif' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', gap:20, borderBottom:`3px solid ${BRAND.orange}`, paddingBottom:16, marginBottom:20 }}>
+            <img src={LOGO_DATA_URI} alt="NGMS logo" style={{ height:52, width:'auto', objectFit:'contain' }} />
+            <div style={{ textAlign:'right', fontSize:12, color:BRAND.grey, lineHeight:1.5 }}><p style={{fontWeight:700,fontSize:15,color:BRAND.black}}>{business.name}</p>{business.address&&<p>{business.address}</p>}{business.phone&&<p>{business.phone}</p>}{business.email&&<p>{business.email}</p>}{business.vat_number&&<p>VAT no: {business.vat_number}</p>}</div>
+          </div>
+          <p style={{fontWeight:800,fontSize:24,marginBottom:4}}>CREDIT NOTE</p><p style={{color:BRAND.grey,fontSize:13,marginBottom:18}}>{printCreditNote?.credit_note_number??''}</p>
+          <p style={{fontSize:12,marginBottom:8}}>Issued to: <strong>{client?.name??'—'}</strong></p><p style={{fontSize:12,marginBottom:8}}>Original invoice: <strong>{invoice.invoice_number}</strong></p>
+          <p style={{fontSize:12,marginBottom:16}}>Reason: {printCreditNote?.reason??''}</p>
+          <table style={{width:'100%',borderCollapse:'collapse',fontSize:12.5,marginBottom:16}}><thead><tr style={{background:BRAND.black,color:'#fff'}}><th style={{textAlign:'left',padding:8}}>Credit description</th><th style={{textAlign:'right',padding:8}}>Subtotal</th></tr></thead><tbody><tr style={{borderBottom:`1px solid ${BRAND.line}`}}><td style={{padding:8}}>{printCreditNote?.line_description??printCreditNote?.reason??'Credit against original invoice'}</td><td style={{padding:8,textAlign:'right'}}>{rand(Number(printCreditNote?.subtotal??0))}</td></tr></tbody></table>
+          <div style={{marginLeft:'auto',width:240,fontSize:13}}><Row label="Subtotal" value={rand(Number(printCreditNote?.subtotal??0))}/><Row label="VAT" value={rand(Number(printCreditNote?.vat_amount??0))}/><Row label="CREDIT TOTAL" value={rand(Number(printCreditNote?.total_amount??0))} bold border accent={BRAND.orange}/></div>
+          <p style={{marginTop:24,paddingTop:12,borderTop:`1px solid ${BRAND.line}`,textAlign:'center',fontSize:11,color:BRAND.grey}}>This credit note does not itself confirm a cash refund or rewrite payment history.</p>
+        </div>
         {/* -------- printable invoice sheet -------- */}
         <div
           id="print-area"

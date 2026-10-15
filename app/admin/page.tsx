@@ -99,6 +99,7 @@ const NAV_ITEMS: Array<{
     href: '/admin/media',
     icon: ImageIcon,
     title: 'Media',
+    desc: 'Manage admin-driven hero slides, promotions, before/after pairs & the gallery',
     desc: 'Manage homepage photos, hero slides, service images, before/after pairs and the gallery',
   },
   {
@@ -136,12 +137,6 @@ const NAV_ITEMS: Array<{
     icon: Users,
     title: 'Subcontractors',
     desc: 'Prepare invitations and define restricted subcontractor access — draft only',
-  },
-  {
-    href: '/admin/subcontractor-templates',
-    icon: FileText,
-    title: 'Subcontractor Template Generator',
-    desc: 'Create inspection, progress, completion, variation and materials templates for assigned jobs',
   },
   {
     href: '/admin/vercel-projects',

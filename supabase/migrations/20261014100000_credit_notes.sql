@@ -47,7 +47,7 @@ create index if not exists credit_notes_client_id_idx on public.credit_notes(cli
 create index if not exists credit_note_items_note_id_idx on public.credit_note_items(credit_note_id);
 -- Serialize line edits against issuance by locking the parent credit-note row.
 create or replace function public.ngms_guard_credit_note_item_edit()
-returns trigger language plpgsql security definer set search_path = pg_catalog, public as $
+returns trigger language plpgsql security definer set search_path = pg_catalog, public as $$
 declare v_note_id uuid; v_status text;
 begin
   if tg_op = 'UPDATE' and new.credit_note_id is distinct from old.credit_note_id then
@@ -59,7 +59,7 @@ begin
   if v_status <> 'draft' then raise exception 'Only draft credit-note lines can be changed.'; end if;
   if tg_op = 'DELETE' then return old; end if;
   return new;
-end; $;
+end; $$;
 revoke all on function public.ngms_guard_credit_note_item_edit() from public, anon, authenticated;
 drop trigger if exists credit_note_items_guard_draft on public.credit_note_items;
 create trigger credit_note_items_guard_draft before insert or update or delete on public.credit_note_items
@@ -150,7 +150,7 @@ begin
   if auth.uid() is null or not private.is_ngms_prompt_user() then
     raise exception 'Staff only.' using errcode = '42501';
   end if;
-  if p_decision not in ('approve', 'reject') then
+  if p_decision is null or p_decision not in ('approve', 'reject') then
     raise exception 'Decision must be approve or reject.';
   end if;
   if length(btrim(coalesce(p_review_note, ''))) < 8 then
@@ -167,6 +167,7 @@ begin
     raise exception 'Credit note client must match the source invoice client.';
   end if;
   if v_invoice.status = 'void' then raise exception 'A void invoice cannot be credited.'; end if;
+  if v_invoice.status = 'draft' then raise exception 'A draft invoice cannot be credited; correct or delete the draft instead.'; end if;
 
   -- Paid and partially-paid source invoices require an explicit Admin decision.
   -- A non-admin cannot approve them through the generic staff workflow.
@@ -239,8 +240,15 @@ begin
     raise exception 'Credit note client must match the source invoice client.';
   end if;
   if v_invoice.status = 'void' then raise exception 'A void invoice cannot be credited.'; end if;
+  if v_invoice.status = 'draft' then raise exception 'A draft invoice cannot be credited; correct or delete the draft instead.'; end if;
   if v_invoice.status in ('paid', 'partial')
-     and not (v_note.review_status = 'approved' and v_note.reviewed_by is not null) then
+     and not (
+       v_note.review_status = 'approved'
+       and exists (
+         select 1 from public.prompt_users pu
+         where pu.user_id = v_note.reviewed_by and pu.active = true and pu.role = 'Admin'
+       )
+     ) then
     raise exception 'Paid and partially-paid invoices require recorded Admin accounting review before a credit note can be issued.';
   end if;
 
