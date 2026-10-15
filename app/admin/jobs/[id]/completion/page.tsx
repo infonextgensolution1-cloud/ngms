@@ -15,7 +15,8 @@ type Job = { id:string; client_id:string|null; title:string|null; description:st
 type Client = { name:string; phone:string|null; email:string|null; address:string|null; suburb:string|null }
 type Photo = { id:string; photo_url:string; type:string; caption:string|null }
 type Settings = { google_review_url:string|null; facebook_review_url:string|null }
-type Balance = { id:string; invoice_number:string; total_amount:number; paid_amount:number; status:string }\ntype CompletionReport = { work_completed:string|null; completion_notes:string|null; outstanding_issues:string|null; warranty_notes:string|null; client_satisfaction:string|null; updated_at:string }
+type Balance = { id:string; invoice_number:string; total_amount:number; paid_amount:number; status:string }
+type CompletionReport = { work_completed:string|null; completion_notes:string|null; outstanding_issues:string|null; warranty_notes:string|null; client_satisfaction:string|null; updated_at:string }
 
 const brand={black:'#0A0A0A',purple:'#8B1BF5',grey:'#5B5B5B',line:'#E4E4E4'}
 
