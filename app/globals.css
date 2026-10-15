@@ -4806,8 +4806,7 @@ input:focus,select:focus,textarea:focus { border-color: var(--ngms-race-orange) 
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  /* Preserve NGMS's established rem scale; avoid a site-wide 18px -> 16px shift. */
-  font-size: 18px;
+  font-size: 100%;
 }
 
 body {
@@ -4831,8 +4830,7 @@ body main :is(h1, h2, h3, h4, h5, h6) {
   font-family: var(--font-heading), Poppins, system-ui, sans-serif;
   line-height: 1.12;
   text-wrap: balance;
-  /* Allow long headings to wrap when needed without forcing mid-word breaks. */
-  overflow-wrap: break-word;
+  overflow-wrap: normal;
 }
 body main h1 { line-height: 1.04; }
 body main h2 { line-height: 1.1; }
