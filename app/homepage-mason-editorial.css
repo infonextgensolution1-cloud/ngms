@@ -1,15 +1,17 @@
 /* Mason Reed-inspired editorial homepage treatment.
    Scoped to the public homepage; preserves components, routes, CMS-fed imagery and actions. */
 .ngms-home-new {
-  --ngms-orange: #ff503f;
-  --ngms-paper: #f4f0e9;
-  --ngms-ink: #090909;
+  --ngms-orange: #EC562E;
+  --ngms-blue: #3478F7;
+  --ngms-peach: #F3D2C6;
+  --ngms-paper: #F3D2C6;
+  --ngms-ink: #000000;
 }
 .ngms-home-new .ngms-new-hero {
   min-height: clamp(560px, 42vw, 720px);
   align-items: center;
   padding: clamp(36px, 5vw, 76px) clamp(22px, 8vw, 120px);
-  background: #080808;
+  background: #000000;
 }
 .ngms-home-new .ngms-new-hero__photo {
   left: auto;
@@ -18,11 +20,11 @@
   right: clamp(22px, 8vw, 120px);
   z-index: -1;
   overflow: hidden;
-  background: #e8e5df;
+  background: #F3D2C6;
 }
 .ngms-home-new .ngms-new-hero__image { object-position: center; }
 .ngms-home-new .ngms-new-hero__shade {
-  background: linear-gradient(90deg, #080808 0%, rgba(8,8,8,.45) 16%, transparent 42%);
+  background: linear-gradient(90deg, #000000 0%, rgba(8,8,8,.45) 16%, transparent 42%);
 }
 .ngms-home-new .ngms-new-hero__content {
   width: min(54%, 650px);
@@ -56,7 +58,7 @@
 .ngms-home-new .ngms-new-section-head { margin-bottom: 26px; }
 .ngms-home-new .ngms-new-section-head h2 { font-size: clamp(2.25rem, 4vw, 4rem); }
 .ngms-home-new .ngms-new-service-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-.ngms-home-new .ngms-new-service-card { border-color: #e0ddd7; background: #f6f3ee; }
+.ngms-home-new .ngms-new-service-card { border-color: #d9b6aa; background: #F3D2C6; }
 .ngms-home-new .ngms-new-service-card__media { aspect-ratio: 1.45; }
 .ngms-home-new .ngms-new-service-card__body { padding: 15px; }
 .ngms-home-new .ngms-new-service-card h3 { font-size: clamp(.92rem, 1.1vw, 1.12rem); letter-spacing: -.025em; }
@@ -64,18 +66,18 @@
 .ngms-home-new .ngms-new-solar { padding: clamp(46px, 6vw, 84px) clamp(22px, 8vw, 120px); }
 .ngms-home-new .ngms-new-work { padding: clamp(46px, 6vw, 84px) clamp(22px, 8vw, 120px); }
 .ngms-home-new .ngms-new-work-grid { gap: 14px; }
-.ngms-home-new .ngms-new-work-grid figure { background: #f4f0e9; color: #090909; padding: 0 0 8px; }
+.ngms-home-new .ngms-new-work-grid figure { background: #F3D2C6; color: #000000; padding: 0 0 8px; }
 .ngms-home-new .ngms-new-work-grid figcaption { padding: 12px 14px; color: #222; }
 .ngms-home-new .ngms-new-final { background: var(--ngms-paper); color: var(--ngms-ink); }
 .ngms-home-new .ngms-new-final h2 span { color: var(--ngms-orange); -webkit-text-stroke: 0; }
-.ngms-home-new .ngms-new-button--orange { background: var(--ngms-orange); border-color: var(--ngms-orange); color: #090909; }
+.ngms-home-new .ngms-new-button--orange { background: var(--ngms-orange); border-color: var(--ngms-orange); color: #000000; }
 .ngms-home-new .ngms-new-text-link { border-bottom-color: var(--ngms-orange); }
 @media (max-width: 760px) {
   .ngms-home-new .ngms-new-hero { min-height: 760px; align-items: flex-end; padding: 250px 20px 28px; }
   .ngms-home-new .ngms-new-hero__photo { inset: 0 0 auto; width: 100%; height: 360px; right: auto; }
   .ngms-home-new .ngms-new-hero__image { object-position: center 36%; }
   .ngms-home-new .ngms-new-hero__shade {
-    background: linear-gradient(0deg, #080808 0%, rgba(8,8,8,.88) 28%, rgba(8,8,8,.05) 75%);
+    background: linear-gradient(0deg, #000000 0%, rgba(8,8,8,.88) 28%, rgba(8,8,8,.05) 75%);
   }
   .ngms-home-new .ngms-new-hero__content { width: 100%; margin: 0; }
   .ngms-home-new .ngms-new-hero h1 { font-size: clamp(3.2rem, 13vw, 5.5rem); }
@@ -87,4 +89,26 @@
   .ngms-home-new .ngms-new-hero { min-height: 780px; padding-top: 230px; }
   .ngms-home-new .ngms-new-service-grid { grid-template-columns: 1fr; }
   .ngms-home-new .ngms-new-service-card__media { aspect-ratio: 1.6; }
+}
+
+/* Approved NGMS cobalt/tangerine palette: blue is reserved for dark-surface accents. */
+.ngms-home-new .ngms-new-hero__proof strong,
+.ngms-home-new .ngms-new-eyebrow,
+.ngms-home-new .ngms-new-solar__facts strong,
+.ngms-home-new .ngms-new-work-grid figcaption span {
+  color: var(--ngms-blue);
+}
+.ngms-home-new .ngms-new-service-card:focus-visible,
+.ngms-home-new .ngms-new-client-grid a:focus-visible,
+.ngms-home-new .ngms-new-button:focus-visible,
+.ngms-home-new .ngms-new-text-link:focus-visible {
+  outline: 3px solid var(--ngms-blue);
+  outline-offset: 3px;
+}
+.ngms-home-new .ngms-new-final {
+  background: var(--ngms-peach);
+  color: var(--ngms-ink);
+}
+.ngms-home-new .ngms-new-final h2 span {
+  color: var(--ngms-orange);
 }
