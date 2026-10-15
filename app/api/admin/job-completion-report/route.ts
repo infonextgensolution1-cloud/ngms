@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 async function authorize(request: Request) {
-  const token = request.headers.get('authorization')?.replace(/^Bearer\\s+/i, '').trim()
+  const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '').trim()
   if (!token) return { error: NextResponse.json({ error: 'Sign in to /admin first.' }, { status: 401 }) }
   let db
   try { db = supabaseAdmin() } catch {
