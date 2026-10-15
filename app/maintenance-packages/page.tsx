@@ -92,7 +92,7 @@ export default function MaintenancePackagesPage() {
       </section>
 
       <section id="plans" className="ngms-mp2-intro">
-        <div><p className="ngms-mp2-eyebrow"><span>01</span> / RECURRING CARE</p><h2>GOOD MAINTENANCE<br />IS <em>PLANNED.</em></h2></div>
+        <div><p className="ngms-mp2-eyebrow"><span>01</span> / RECURRING CARE</p><h2>GOOD MAINTENANCE<br />IS <em style={{ color: "#1A1A1A" }}>PLANNED.</em></h2></div>
         <p>Choose a regular service rhythm that suits your property. Each plan can be discussed during a free site assessment, with final scope confirmed before the first visit.</p>
       </section>
       <div className="ngms-mp2-packages">
@@ -103,7 +103,7 @@ export default function MaintenancePackagesPage() {
       <section id="join-plan" className="ngms-mp2-signup">
         <div className="ngms-mp2-signup__copy">
           <p className="ngms-mp2-eyebrow"><span>02</span> / START WITH YOUR PROPERTY</p>
-          <h2>LET’S MAKE<br />A PLAN.</h2>
+          <h2 style={{ color: "#1A1A1A" }}>LET’S MAKE<br />A PLAN.</h2>
           <p>Tell us how to reach you and choose the recurring plan you want to discuss. We’ll follow up to confirm the details and your first visit.</p>
           <div className="ngms-mp2-signup__foot"><span>FREE SITE ASSESSMENT</span><span>WRITTEN QUOTES</span><span>LOCAL TEAM</span></div>
         </div>

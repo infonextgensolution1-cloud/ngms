@@ -1,13 +1,7 @@
-import type { Metadata } from 'next'
-import FormulaSolarLandingPage from '@/components/FormulaSolarLandingPage'
-import { segmentConfigs } from '@/lib/segment-landings'
+import { redirect } from 'next/navigation'
 
-export const metadata: Metadata = {
-  alternates: { canonical: '/solar-panel-cleaning/helderberg' },
-  title: segmentConfigs.solar.title,
-  description: segmentConfigs.solar.intro,
-}
-
+// Retire the legacy location-specific landing page and send visitors to the
+// current solar panel cleaning service page instead of leaving a dead URL.
 export default function Page() {
-  return <FormulaSolarLandingPage />
+  redirect('/services/solar-panel-cleaning')
 }
