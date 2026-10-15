@@ -2094,3 +2094,51 @@ input:disabled, select:disabled, textarea:disabled { opacity: .6; cursor: not-al
   .ngms-structure-portal { padding-left:1rem;padding-right:1rem; }
   .ngms-system-state__panel { box-shadow:5px 5px 0 rgba(221,98,17,.9); }
 }
+
+/* PATH-inspired editorial UI — deliberately scoped to the Services and Solar landing pages only. */
+.ngms-services-reference,
+.ngms-solar-fusion {
+  --path-ink: #050505;
+  --path-charcoal: #171717;
+  --path-paper: #BDBDBD;
+  --path-orange: #FF3D00;
+  --path-white: #F5F5F5;
+  font-family: var(--font-body), Inter, Arial, sans-serif;
+}
+.ngms-services-reference h1,
+.ngms-services-reference h2,
+.ngms-services-reference h3,
+.ngms-solar-fusion h1,
+.ngms-solar-fusion h2,
+.ngms-solar-fusion h3 {
+  font-family: var(--font-heading), "Arial Narrow", Inter, sans-serif;
+  font-weight: 800;
+  letter-spacing: -.045em;
+  line-height: .92;
+  text-transform: uppercase;
+}
+.ngms-services-reference .ngms-services-hero {
+  background-color: var(--path-charcoal);
+  background-image: repeating-linear-gradient(135deg, transparent 0 23px, rgba(255,255,255,.035) 24px 25px);
+}
+.ngms-services-reference .ngms-services-intro,
+.ngms-services-reference .ngms-services-range {
+  background-color: var(--path-paper);
+  color: var(--path-ink);
+}
+.ngms-services-reference a,
+.ngms-solar-fusion a { text-underline-offset: .22em; }
+.ngms-services-reference a:hover,
+.ngms-solar-fusion a:hover { color: var(--path-orange); }
+.ngms-services-reference :is(button,[role="button"]),
+.ngms-solar-fusion :is(button,[role="button"]) {
+  border-radius: 0;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.ngms-services-reference :is(.bg-\\[\\#FF6A00\\],.bg-\\[\\#F47721\\]),
+.ngms-solar-fusion :is(.bg-\\[\\#FF6A00\\],.bg-\\[\\#F47721\\]) { background-color: var(--path-orange); }
+@media (max-width: 640px) {
+  .ngms-services-reference h1, .ngms-solar-fusion h1 { font-size: clamp(2.8rem, 14vw, 5rem); }
+  .ngms-services-reference h2, .ngms-solar-fusion h2 { font-size: clamp(2rem, 10vw, 3.5rem); }
+}
