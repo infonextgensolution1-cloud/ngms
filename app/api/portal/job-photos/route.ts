@@ -32,16 +32,15 @@ export async function GET(request: Request) {
   const { data: accessRows, error: accessError } = await db.from('client_portal_access')
     .select('client_id,access_mode,expires_at,revoked_at,one_time_session_id').in('client_id', own.map((c) => c.id))
   if (accessError) return NextResponse.json({ error: 'Could not verify portal access.' }, { status: 500 })
-  for (const client of own) {
+  const accessibleClientIds = own.filter((client) => {
     const access = (accessRows ?? []).find((row) => row.client_id === client.id)
-    if (!access || access.revoked_at ||
-      (access.access_mode === 'temporary' && (!access.expires_at || new Date(access.expires_at).getTime() <= Date.now())) ||
-      (access.access_mode === 'one_time' && access.one_time_session_id !== sessionId)) {
-      return NextResponse.json({ error: 'Portal access is inactive or expired.' }, { status: 403 })
-    }
-  }
+    return !!access && !access.revoked_at &&
+      !(access.access_mode === 'temporary' && (!access.expires_at || new Date(access.expires_at).getTime() <= Date.now())) &&
+      !(access.access_mode === 'one_time' && access.one_time_session_id !== sessionId)
+  }).map((client) => client.id)
+  if (!accessibleClientIds.length) return NextResponse.json({ error: 'Portal access is inactive or expired.' }, { status: 403 })
 
-  const { data: jobs, error: jobsError } = await db.from('jobs').select('id').in('client_id', own.map((c) => c.id))
+  const { data: jobs, error: jobsError } = await db.from('jobs').select('id').in('client_id', accessibleClientIds)
   if (jobsError) return NextResponse.json({ error: 'Could not load assigned jobs.' }, { status: 500 })
   const jobIds = (jobs ?? []).map((job) => job.id)
   if (!jobIds.length) return NextResponse.json({ photos: [] })

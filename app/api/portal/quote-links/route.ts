@@ -46,16 +46,15 @@ export async function GET(request: Request) {
   const { data: accessRows, error: accessError } = await db.from('client_portal_access')
     .select('client_id,access_mode,expires_at,revoked_at,one_time_session_id').in('client_id', ownIds)
   if (accessError) return NextResponse.json({ error: 'Could not verify portal access.' }, { status: 500 })
-  for (const clientId of ownIds) {
+  const accessibleClientIds = ownIds.filter((clientId) => {
     const access = (accessRows ?? []).find((row) => row.client_id === clientId)
-    if (!access || access.revoked_at ||
-      (access.access_mode === 'temporary' && (!access.expires_at || new Date(access.expires_at).getTime() <= Date.now())) ||
-      (access.access_mode === 'one_time' && access.one_time_session_id !== sessionId)) {
-      return NextResponse.json({ error: 'Portal access is inactive or expired.' }, { status: 403 })
-    }
-  }
+    return !!access && !access.revoked_at &&
+      !(access.access_mode === 'temporary' && (!access.expires_at || new Date(access.expires_at).getTime() <= Date.now())) &&
+      !(access.access_mode === 'one_time' && access.one_time_session_id !== sessionId)
+  })
+  if (!accessibleClientIds.length) return NextResponse.json({ error: 'Portal access is inactive or expired.' }, { status: 403 })
 
-  const { data: quotes, error: quoteError } = await db.from('quotes').select('id').in('client_id', ownIds).eq('status', 'sent')
+  const { data: quotes, error: quoteError } = await db.from('quotes').select('id').in('client_id', accessibleClientIds).eq('status', 'sent')
   if (quoteError) return NextResponse.json({ error: 'Could not load quotes.' }, { status: 500 })
   const quoteIds = (quotes ?? []).map((q) => q.id)
   if (!quoteIds.length) return NextResponse.json({ links: {} })
