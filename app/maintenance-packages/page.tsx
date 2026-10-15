@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowDownRight, ArrowUpRight, Check, MessageCircle } from 'lucide-react'
 import NgmsIcon from '@/components/NgmsIcon'
 import PlanSignupForm from '@/components/PlanSignupForm'
+import { getGalleryPhotos } from '@/lib/queries'
 import { COMMERCIAL_COMBOS, RECURRING_PACKAGES, SEASONAL_COMBOS, type Package } from '@/lib/packages'
 
 export const metadata = {
@@ -53,7 +54,12 @@ function PackageGrid({ packages, joinable = false }: { packages: Package[]; join
   )
 }
 
-export default function MaintenancePackagesPage() {
+export default async function MaintenancePackagesPage() {
+  // Use active, admin-managed Gallery photos only; never substitute stock photography.
+  const adminPhotos = await getGalleryPhotos(60)
+  const solarPhoto = adminPhotos.find((photo) => photo.service_slug === 'solar-panel-cleaning' && photo.image_url) ?? adminPhotos.find((photo) => photo.image_url)
+  const propertyPhoto = adminPhotos.find((photo) => photo.service_slug && photo.service_slug !== 'solar-panel-cleaning' && photo.image_url) ?? adminPhotos.find((photo) => photo.image_url && photo.image_url !== solarPhoto?.image_url)
+  const pavingPhoto = adminPhotos.find((photo) => ['paving', 'high-pressure-cleaning', 'painting', 'waterproofing'].includes(photo.service_slug ?? '') && photo.image_url && photo.image_url !== solarPhoto?.image_url && photo.image_url !== propertyPhoto?.image_url) ?? adminPhotos.find((photo) => photo.image_url && photo.image_url !== solarPhoto?.image_url && photo.image_url !== propertyPhoto?.image_url)
   return (
     <main id="main-content" className="overflow-hidden bg-[#F4F3F7] text-[#29292F]">
       <section className="relative isolate mx-auto max-w-[1440px] overflow-hidden border-x border-[#E0DFE5] bg-[#F4F3F7] px-4 sm:px-7 lg:px-10">
@@ -85,7 +91,7 @@ export default function MaintenancePackagesPage() {
               <span className="mt-1 text-xs font-semibold text-[#F04427]">01 / 04</span>
               <p className="max-w-[135px] text-[10px] leading-relaxed text-[#777780] sm:text-xs">Property care.<br />Planned around you.<br />Made straightforward.</p>
             </div>
-            <h1 className="max-w-[760px] text-[clamp(3.2rem,9vw,7.7rem)] font-medium uppercase leading-[.82] tracking-[-.085em] text-[#29292F]">
+            <h1 className="max-w-[760px] text-[clamp(3.2rem,9vw,7.7rem)] font-black uppercase leading-[.84] tracking-[-.075em] text-[#111111]">
               Planned<br />Maintenance<span className="text-[#F04427]">.</span>
             </h1>
             <p className="mt-6 max-w-lg text-sm leading-relaxed text-[#686770] sm:mt-8 sm:text-base">Reliable property upkeep across Strand, Gordon’s Bay and Somerset West. One point of contact for recurring care, seasonal jobs and shared properties.</p>
@@ -95,12 +101,26 @@ export default function MaintenancePackagesPage() {
             </div>
           </div>
 
-          <div className="relative col-span-2 hidden min-h-[470px] items-end justify-center border-b border-[#E0DFE5] pb-8 lg:col-span-1 lg:flex">
-            <Link href="#recurring" aria-label="Explore maintenance plans" className="group relative mb-3 flex h-40 w-40 flex-col items-center justify-center rounded-full bg-[#F04427] text-center text-white shadow-[0_10px_28px_rgba(240,68,39,.12)] transition-transform duration-300 hover:scale-105 xl:h-48 xl:w-48">
-              <span className="max-w-[120px] text-xs font-semibold uppercase leading-snug tracking-wide xl:text-sm">Explore maintenance plans</span>
-              <ArrowDownRight aria-hidden="true" className="mt-3 h-6 w-6 transition-transform group-hover:translate-x-1 group-hover:translate-y-1" />
+          <div className="relative col-span-2 hidden min-h-[470px] overflow-hidden border-b border-[#E0DFE5] pb-8 lg:col-span-1 lg:block" aria-label="Solar cleaning, paving and property maintenance photos">
+            <div className="absolute inset-5 bg-[#D9D9D6]">
+              <span className="absolute right-4 top-4 z-20 text-[10px] font-black uppercase tracking-[.18em] text-[#111111] [writing-mode:vertical-rl]">PLAN / MAINTAIN / PROTECT</span>
+              <div className="absolute left-[9%] top-[14%] h-[66%] w-[68%] overflow-hidden bg-[#111111]">
+                {solarPhoto?.image_url ? <img src={solarPhoto.image_url} alt={solarPhoto.caption || 'NGMS solar panel cleaning project'} className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" /> : <div className="flex h-full items-center justify-center px-5 text-center text-xs font-bold uppercase tracking-wide text-white">Add solar job photos in Admin → Media</div>}
+                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-4 pt-14 text-xs font-black uppercase tracking-[.12em] text-white">Solar panel cleaning</span>
+              </div>
+              <div className="absolute right-[12%] top-[27%] z-10 h-[26%] w-[29%] border-[8px] border-[#F4F3F7] bg-[#1A1A1A]">
+                {propertyPhoto?.image_url ? <img src={propertyPhoto.image_url} alt={propertyPhoto.caption || 'NGMS property maintenance project'} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center px-2 text-center text-[9px] font-bold uppercase text-white">Add job photo</div>}
+              </div>
+              <div className="absolute bottom-[10%] right-[6%] z-10 flex h-[38%] w-[48%] items-end overflow-hidden bg-[#FF4B1B] [clip-path:polygon(0_0,100%_0,100%_100%,0_100%,19%_62%)]">
+                {pavingPhoto?.image_url ? <img src={pavingPhoto.image_url} alt={pavingPhoto.caption || 'NGMS paving and exterior maintenance project'} className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-700 hover:scale-105" /> : <div className="absolute inset-0 flex items-center justify-center px-3 text-center text-[10px] font-black uppercase text-white">Add paving / exterior job photos in Admin → Media</div>}
+                <span className="relative z-10 w-full bg-black/65 px-3 py-3 text-[10px] font-black uppercase tracking-[.12em] text-white">Paving &amp; exterior repairs</span>
+              </div>
+              <span className="absolute bottom-[9%] left-[5%] text-3xl font-light text-white">+</span>
+            </div>
+            <Link href="#recurring" aria-label="Explore maintenance plans" className="absolute bottom-3 left-8 inline-flex items-center gap-2 bg-[#111111] px-4 py-3 text-xs font-black uppercase tracking-wide text-white transition-colors hover:bg-[#FF4B1B]">
+              Explore maintenance plans <ArrowDownRight aria-hidden="true" className="h-4 w-4" />
             </Link>
-            <span className="absolute bottom-7 right-3 text-[10px] uppercase tracking-[.14em] text-[#85848D]">Strand / Helderberg / Western Cape</span>
+            <span className="absolute bottom-4 right-3 text-[10px] font-bold uppercase tracking-[.14em] text-[#55545C]">Strand / Helderberg / Western Cape</span>
           </div>
         </div>
 
@@ -128,7 +148,7 @@ export default function MaintenancePackagesPage() {
       <section id="recurring" className="scroll-mt-20 bg-[#F4F3F7] px-4 py-14 sm:px-7 sm:py-20 lg:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="mb-9 grid gap-5 md:grid-cols-[.85fr_1.15fr] md:items-end">
-            <div><SectionLabel index="02" light>Recurring plans</SectionLabel><h2 className="mt-5 text-4xl font-medium uppercase leading-[.9] tracking-[-.07em] sm:text-6xl">Keep ahead<br />of the work<span className="text-[#F04427]">.</span></h2></div>
+            <div><SectionLabel index="02" light>Recurring plans</SectionLabel><h2 className="mt-5 text-4xl font-black uppercase leading-[.9] tracking-[-.065em] text-[#111111] sm:text-6xl">Keep ahead<br />of the work<span className="text-[#F04427]">.</span></h2></div>
             <p className="max-w-2xl text-base leading-relaxed text-[#686770] md:justify-self-end">Choose the visit frequency that fits your property. Plans combine practical maintenance services so you can budget ahead and reduce last-minute call-outs.</p>
           </div>
           <PackageGrid packages={RECURRING_PACKAGES} joinable />
@@ -138,7 +158,7 @@ export default function MaintenancePackagesPage() {
 
       <section id="join" className="scroll-mt-20 border-y border-[#DEDEE3] bg-[#29292F] px-4 py-14 text-white sm:px-7 sm:py-20 lg:px-10">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-start">
-          <div><SectionLabel index="03">Start a plan</SectionLabel><h2 className="mt-5 text-4xl font-medium uppercase leading-[.9] tracking-[-.07em] sm:text-6xl">Make upkeep<br /><span className="text-[#F04427]">automatic.</span></h2><p className="mt-5 max-w-md leading-relaxed text-white/65">Send through your details and we’ll confirm the plan and first visit with you.</p><div className="mt-7 border-l-2 border-[#F04427] pl-4 text-sm text-white/75">No guesswork. We confirm the scope before work begins.</div></div>
+          <div><SectionLabel index="03">Start a plan</SectionLabel><h2 className="mt-5 text-4xl font-black uppercase leading-[.9] tracking-[-.065em] text-[#111111] sm:text-6xl">Make upkeep<br /><span className="text-[#F04427]">automatic.</span></h2><p className="mt-5 max-w-md leading-relaxed text-white/65">Send through your details and we’ll confirm the plan and first visit with you.</p><div className="mt-7 border-l-2 border-[#F04427] pl-4 text-sm text-white/75">No guesswork. We confirm the scope before work begins.</div></div>
           <div className="border border-white/15 bg-[#33333A] p-4 sm:p-6"><PlanSignupForm /></div>
         </div>
       </section>
@@ -146,7 +166,7 @@ export default function MaintenancePackagesPage() {
       <section id="seasonal" className="scroll-mt-20 bg-[#E9E8ED] px-4 py-14 sm:px-7 sm:py-20 lg:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="mb-9 grid gap-5 md:grid-cols-[.85fr_1.15fr] md:items-end">
-            <div><SectionLabel index="04" light>Seasonal combinations</SectionLabel><h2 className="mt-5 text-4xl font-medium uppercase leading-[.9] tracking-[-.07em] sm:text-6xl">Built for<br />Cape weather<span className="text-[#F04427]">.</span></h2></div>
+            <div><SectionLabel index="04" light>Seasonal combinations</SectionLabel><h2 className="mt-5 text-4xl font-black uppercase leading-[.9] tracking-[-.065em] text-[#111111] sm:text-6xl">Built for<br />Cape weather<span className="text-[#F04427]">.</span></h2></div>
             <p className="max-w-2xl text-base leading-relaxed text-[#686770] md:justify-self-end">Prepare for winter rain or refresh your property for summer. These once-off combinations bring the right jobs together in one coordinated visit.</p>
           </div>
           <PackageGrid packages={SEASONAL_COMBOS} />
@@ -157,7 +177,7 @@ export default function MaintenancePackagesPage() {
       <section id="commercial" className="scroll-mt-20 bg-[#F4F3F7] px-4 py-14 sm:px-7 sm:py-20 lg:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="mb-9 grid gap-5 md:grid-cols-[.85fr_1.15fr] md:items-end">
-            <div><SectionLabel index="05" light>For shared properties</SectionLabel><h2 className="mt-5 text-4xl font-medium uppercase leading-[.9] tracking-[-.07em] sm:text-6xl">One team.<br />One plan<span className="text-[#F04427]">.</span></h2></div>
+            <div><SectionLabel index="05" light>For shared properties</SectionLabel><h2 className="mt-5 text-4xl font-black uppercase leading-[.9] tracking-[-.065em] text-[#111111] sm:text-6xl">One team.<br />One plan<span className="text-[#F04427]">.</span></h2></div>
             <p className="max-w-2xl text-base leading-relaxed text-[#686770] md:justify-self-end">Volume-conscious maintenance for body corporates, security complexes and light commercial sites — with a single point of contact for coordinated work.</p>
           </div>
           <PackageGrid packages={COMMERCIAL_COMBOS} />
@@ -167,7 +187,7 @@ export default function MaintenancePackagesPage() {
 
       <section className="bg-[#F4F3F7] px-4 pb-14 sm:px-7 sm:pb-20 lg:px-10">
         <div className="mx-auto grid max-w-7xl gap-6 border-y border-[#DAD9E0] py-8 md:grid-cols-[1fr_auto] md:items-center">
-          <div><p className="text-xs font-bold uppercase tracking-[.18em] text-[#D94324]">Not sure where to start?</p><h2 className="mt-3 text-3xl font-medium uppercase leading-tight tracking-[-.06em] sm:text-5xl">Let’s plan your maintenance.</h2><p className="mt-3 max-w-2xl text-[#686770]">Request a quote or ask us about the right package for your home, complex or business.</p></div>
+          <div><p className="text-xs font-bold uppercase tracking-[.18em] text-[#D94324]">Not sure where to start?</p><h2 className="mt-3 text-3xl font-black uppercase leading-tight tracking-[-.06em] text-[#111111] sm:text-5xl">Let’s plan your maintenance.</h2><p className="mt-3 max-w-2xl text-[#686770]">Request a quote or ask us about the right package for your home, complex or business.</p></div>
           <div className="flex flex-wrap items-center gap-3">
             <Link href="/quote" className="inline-flex min-h-12 items-center gap-3 bg-[#F04427] px-5 py-3 text-sm font-bold uppercase text-white hover:bg-[#D94324]">Request a quote <ArrowUpRight aria-hidden="true" className="h-5 w-5" /></Link>
             <a href="https://wa.me/27631387945" aria-label="Contact NextGen Maintenance Solutions on WhatsApp" title="WhatsApp NextGen Maintenance Solutions" className="inline-flex h-12 w-12 items-center justify-center border border-[#29292F] text-[#29292F] transition-colors hover:border-[#25D366] hover:text-[#25D366]"><MessageCircle aria-hidden="true" className="h-6 w-6" /></a>
