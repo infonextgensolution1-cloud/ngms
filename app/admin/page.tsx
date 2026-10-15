@@ -138,12 +138,6 @@ const NAV_ITEMS: Array<{
     desc: 'Prepare invitations and define restricted subcontractor access — draft only',
   },
   {
-    href: '/admin/subcontractor-templates',
-    icon: FileText,
-    title: 'Subcontractor Template Generator',
-    desc: 'Create inspection, progress, completion, variation and materials templates for assigned jobs',
-  },
-  {
     href: '/admin/vercel-projects',
     icon: Cloud,
     title: 'Vercel Projects',
