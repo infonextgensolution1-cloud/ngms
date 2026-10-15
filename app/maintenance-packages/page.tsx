@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowDownRight, ArrowUpRight, Check, MessageCircle } from 'lucide-react'
 import NgmsIcon from '@/components/NgmsIcon'
 import PlanSignupForm from '@/components/PlanSignupForm'
+import { getGalleryPhotos } from '@/lib/queries'
 import { COMMERCIAL_COMBOS, RECURRING_PACKAGES, SEASONAL_COMBOS, type Package } from '@/lib/packages'
 
 export const metadata = {
@@ -53,7 +54,12 @@ function PackageGrid({ packages, joinable = false }: { packages: Package[]; join
   )
 }
 
-export default function MaintenancePackagesPage() {
+export default async function MaintenancePackagesPage() {
+  // Use active, admin-managed Gallery photos only; never substitute stock photography.
+  const adminPhotos = await getGalleryPhotos(60)
+  const solarPhoto = adminPhotos.find((photo) => photo.service_slug === 'solar-panel-cleaning' && photo.image_url) ?? adminPhotos.find((photo) => photo.image_url)
+  const propertyPhoto = adminPhotos.find((photo) => photo.service_slug && photo.service_slug !== 'solar-panel-cleaning' && photo.image_url) ?? adminPhotos.find((photo) => photo.image_url && photo.image_url !== solarPhoto?.image_url)
+  const pavingPhoto = adminPhotos.find((photo) => ['paving', 'high-pressure-cleaning', 'painting', 'waterproofing'].includes(photo.service_slug ?? '') && photo.image_url && photo.image_url !== solarPhoto?.image_url && photo.image_url !== propertyPhoto?.image_url) ?? adminPhotos.find((photo) => photo.image_url && photo.image_url !== solarPhoto?.image_url && photo.image_url !== propertyPhoto?.image_url)
   return (
     <main id="main-content" className="overflow-hidden bg-[#F4F3F7] text-[#29292F]">
       <section className="relative isolate mx-auto max-w-[1440px] overflow-hidden border-x border-[#E0DFE5] bg-[#F4F3F7] px-4 sm:px-7 lg:px-10">
@@ -99,14 +105,14 @@ export default function MaintenancePackagesPage() {
             <div className="absolute inset-5 bg-[#D9D9D6]">
               <span className="absolute right-4 top-4 z-20 text-[10px] font-black uppercase tracking-[.18em] text-[#111111] [writing-mode:vertical-rl]">PLAN / MAINTAIN / PROTECT</span>
               <div className="absolute left-[9%] top-[14%] h-[66%] w-[68%] overflow-hidden bg-[#111111]">
-                <img src="https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=1000&q=85" alt="Solar panels on a residential roof" className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" />
+                {solarPhoto?.image_url ? <img src={solarPhoto.image_url} alt={solarPhoto.caption || 'NGMS solar panel cleaning project'} className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" /> : <div className="flex h-full items-center justify-center px-5 text-center text-xs font-bold uppercase tracking-wide text-white">Add solar job photos in Admin → Media</div>}
                 <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-4 pt-14 text-xs font-black uppercase tracking-[.12em] text-white">Solar panel cleaning</span>
               </div>
               <div className="absolute right-[12%] top-[27%] z-10 h-[26%] w-[29%] border-[8px] border-[#F4F3F7] bg-[#1A1A1A]">
-                <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=500&q=85" alt="Well-maintained residential property exterior" className="h-full w-full object-cover" />
+                {propertyPhoto?.image_url ? <img src={propertyPhoto.image_url} alt={propertyPhoto.caption || 'NGMS property maintenance project'} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center px-2 text-center text-[9px] font-bold uppercase text-white">Add job photo</div>}
               </div>
               <div className="absolute bottom-[10%] right-[6%] z-10 flex h-[38%] w-[48%] items-end overflow-hidden bg-[#FF4B1B] [clip-path:polygon(0_0,100%_0,100%_100%,0_100%,19%_62%)]">
-                <img src="https://images.unsplash.com/photo-1590725140246-20ac9737e3dd?auto=format&fit=crop&w=900&q=85" alt="Outdoor paving and hard landscaping" className="absolute inset-0 h-full w-full object-cover object-center mix-blend-multiply opacity-95 transition-transform duration-700 hover:scale-105" />
+                {pavingPhoto?.image_url ? <img src={pavingPhoto.image_url} alt={pavingPhoto.caption || 'NGMS paving and exterior maintenance project'} className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-700 hover:scale-105" /> : <div className="absolute inset-0 flex items-center justify-center px-3 text-center text-[10px] font-black uppercase text-white">Add paving / exterior job photos in Admin → Media</div>}
                 <span className="relative z-10 w-full bg-black/65 px-3 py-3 text-[10px] font-black uppercase tracking-[.12em] text-white">Paving &amp; exterior repairs</span>
               </div>
               <span className="absolute bottom-[9%] left-[5%] text-3xl font-light text-white">+</span>
