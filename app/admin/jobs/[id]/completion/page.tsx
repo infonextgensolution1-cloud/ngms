@@ -42,7 +42,8 @@ function CompletionView(){
       const [jr,pr,sr,cr]=await Promise.all([
         handlersB.ngms_get_job(supabase,{job_id:params.id}),
         handlersC.ngms_list_job_photos(supabase,{job_id:params.id}),
-        supabase.from('settings').select('google_review_url,facebook_review_url').eq('id',1).maybeSingle(),\n        supabase.from('job_completion_reports').select('work_completed,completion_notes,outstanding_issues,warranty_notes,client_satisfaction,updated_at').eq('job_id',params.id).maybeSingle()
+        supabase.from('settings').select('google_review_url,facebook_review_url').eq('id',1).maybeSingle(),
+        supabase.from('job_completion_reports').select('work_completed,completion_notes,outstanding_issues,warranty_notes,client_satisfaction,updated_at').eq('job_id',params.id).maybeSingle()
       ])
       if(jr.isError) throw new Error(jr.content[0]?.text??'Could not load job')
       const sc=jr.structuredContent as {job:Job;client:Client|null}
