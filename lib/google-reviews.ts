@@ -17,6 +17,7 @@ export type GoogleReviewsData = {
 }
 
 const PLACE_ID = 'ChIJA4Z3AZU_jUURHiApfVOkoNY'
+const GOOGLE_REVIEW_LINK = 'https://maps.app.goo.gl/eoWNCRjJDscGmQsSA'
 const FALLBACK_MAPS_URI = `https://www.google.com/maps/search/?api=1&query=NextGen%20Solar%20Cleaning%20Maintenance%20Solutions&query_place_id=${PLACE_ID}`
 const FALLBACK_WRITE_REVIEW_URI = `https://search.google.com/local/writereview?placeid=${PLACE_ID}`
 
@@ -28,7 +29,7 @@ export async function getGoogleReviews(): Promise<GoogleReviewsData> {
       reviews: [],
       googleMapsUri: FALLBACK_MAPS_URI,
       writeAReviewUri: FALLBACK_WRITE_REVIEW_URI,
-      reviewsUri: FALLBACK_MAPS_URI,
+      reviewsUri: GOOGLE_REVIEW_LINK,
     }
   }
 
@@ -57,7 +58,7 @@ export async function getGoogleReviews(): Promise<GoogleReviewsData> {
       })),
       googleMapsUri: data.googleMapsLinks?.placeUri ?? FALLBACK_MAPS_URI,
       writeAReviewUri: data.googleMapsLinks?.writeAReviewUri ?? FALLBACK_WRITE_REVIEW_URI,
-      reviewsUri: data.googleMapsLinks?.reviewsUri ?? FALLBACK_MAPS_URI,
+      reviewsUri: data.googleMapsLinks?.reviewsUri ?? GOOGLE_REVIEW_LINK,
     }
   } catch (error) {
     console.error('Google reviews fetch failed:', error)
@@ -65,7 +66,7 @@ export async function getGoogleReviews(): Promise<GoogleReviewsData> {
       reviews: [],
       googleMapsUri: FALLBACK_MAPS_URI,
       writeAReviewUri: FALLBACK_WRITE_REVIEW_URI,
-      reviewsUri: FALLBACK_MAPS_URI,
+      reviewsUri: GOOGLE_REVIEW_LINK,
     }
   }
 }
