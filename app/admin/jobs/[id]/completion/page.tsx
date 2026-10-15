@@ -51,7 +51,8 @@ function CompletionView(){
       const photoRows = (pr.structuredContent?.photos as Photo[]) ?? []
       const signedPhotos = await Promise.all(photoRows.map(async (photo) => ({ ...photo, photo_url: await signedJobPhotoUrl(photo.photo_url) })))
       setPhotos(signedPhotos.filter((photo) => !!photo.photo_url) as Photo[])
-      setSettings((sr.data as Settings|null) ?? {google_review_url:null,facebook_review_url:null})\n      setCompletionReport((cr.data as CompletionReport|null) ?? null)
+      setSettings((sr.data as Settings|null) ?? {google_review_url:null,facebook_review_url:null})
+      setCompletionReport((cr.data as CompletionReport|null) ?? null)
       if(sc.job.quote_id){
         const {data:invoices}=await supabase.from('invoices').select('id,invoice_number,total_amount,paid_amount,status,notes').eq('quote_id',sc.job.quote_id).neq('status','void').order('created_at',{ascending:false})
         const b=(invoices??[]).find((i:any)=>/balance/i.test(String(i.notes??'')))
