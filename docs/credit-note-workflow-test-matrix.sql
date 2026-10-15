@@ -1,0 +1,20 @@
+-- NGMS credit-note workflow regression checklist (run only against a disposable test DB).
+-- This is a manual SQL acceptance script/checklist, not a production migration.
+-- The workflow migration is deliberately accounting-neutral: it must never update
+-- invoices.paid_amount, invoices.status, or invoice payment notes when a credit is issued.
+--
+-- 1. Unauthenticated calls to ngms_review_credit_note/ngms_issue_credit_note fail 42501.
+-- 2. Authenticated non-staff calls fail 42501.
+-- 3. Staff can create a draft only; direct insert as issued/review_status=approved is denied by RLS.
+-- 4. Paid source invoice: review RPC returns manual_review_required=true; invoice fields unchanged.
+-- 5. Partially-paid source invoice: review RPC returns manual_review_required=true; invoice fields unchanged.
+-- 6. Void source invoice is rejected.
+-- 7. Wrong client/invoice linkage is rejected.
+-- 8. Missing reason, zero total, missing lines, or subtotal mismatch is rejected.
+-- 9. Duplicate issue attempts are rejected because status is no longer draft.
+-- 10. Two concurrent issues against one invoice serialize on the invoice row and cannot over-credit.
+-- 11. Issued/void credit notes cannot be edited/deleted through staff RLS.
+-- 12. Customer portal accounts cannot select or mutate either credit-note table.
+--
+-- Before merge, run this matrix in an isolated Supabase project with representative
+-- draft/sent/partial/paid/void invoices and confirm invoice/payment rows are unchanged.

@@ -1,4 +1,6 @@
 import type { Client, Item, Quote, Settings } from '@/lib/ngms-ops/core'
+import { inflateSync } from 'node:zlib'
+import { LOGO_DATA_URI } from '@/lib/logo'
 
 type Money = { subtotal: number; vat: number; total: number; deposit: number; deposit_percent: number; balance: number }
 
@@ -54,20 +56,26 @@ export function buildQuotePdf(input: {
     ensure(16); txt(bold ? 'F2' : 'F1', bold ? 10.5 : 9.5, 390, y, label); txt(bold ? 'F2' : 'F1', bold ? 10.5 : 9.5, 515, y, value); y -= bold ? 18 : 14
   }
 
-  op(rectOp(40, 780, 515, 3, '8B1BF5'))
-  txt('F2', 22, 40, 750, 'NEXTGEN')
-  txt('F2', 9, 40, 734, 'ONE CALL. ALL SOLUTIONS.')
-  txt('F1', 8.5, 380, 750, s.business_name || 'NextGen Maintenance Solutions')
-  if (s.address) txt('F1', 8, 380, 737, s.address)
-  if (s.phone) txt('F1', 8, 380, 725, s.phone)
-  if (s.email) txt('F1', 8, 380, 713, s.email)
-  op(lineOp(40, 700, 555, 700, '5B5B5B', 0.5))
-  txt('F2', 20, 40, 675, 'QUOTE'); txt('F1', 9, 40, 659, q.quote_number)
-  txt('F1', 9, 410, 675, 'Date: ' + new Date(q.created_at).toLocaleDateString('en-ZA'))
-  txt('F1', 9, 410, 661, 'Valid until: ' + (q.valid_until || '—'))
-  txt('F2', 8, 410, 647, (input.expired ? 'EXPIRED' : q.status).toUpperCase())
+  // Premium NGMS print identity: charcoal header, Solar Orange accent, high-contrast type.
+  op(rectOp(40, 704, 515, 80, '111111'))
+  op(rectOp(40, 780, 515, 4, 'F57C1B'))
+  op('q 50 0 0 43 54 721 cm /Im1 Do Q')
+  op('1 1 1 rg')
+  txt('F2', 22, 116, 750, 'NEXTGEN')
+  txt('F2', 8.5, 116, 734, 'ONE CALL. ALL SOLUTIONS.')
+  txt('F2', 8.5, 355, 750, s.business_name || 'NextGen Maintenance Solutions')
+  if (s.address) txt('F1', 8, 355, 737, s.address)
+  if (s.phone) txt('F1', 8, 355, 725, s.phone)
+  if (s.email) txt('F1', 8, 355, 713, s.email)
+  op('0 0 0 rg')
+  op(lineOp(40, 696, 555, 696, 'F57C1B', 1.2))
+  txt('F2', 20, 40, 671, 'QUOTATION')
+  txt('F1', 9, 40, 655, q.quote_number)
+  txt('F1', 9, 410, 671, 'Date: ' + new Date(q.created_at).toLocaleDateString('en-ZA'))
+  txt('F1', 9, 410, 657, 'Valid until: ' + (q.valid_until || '—'))
+  txt('F2', 8, 410, 643, (input.expired ? 'EXPIRED' : q.status).toUpperCase())
 
-  op(rectOp(40, 580, 515, 48, 'F7F5FA'))
+  op(rectOp(40, 580, 515, 48, 'F5F5F4'))
   txt('F2', 8, 52, 612, 'QUOTED TO'); txt('F2', 11, 52, 596, c?.name || '—')
   if (c?.phone) txt('F1', 8.5, 52, 583, c.phone)
   if (c?.email) txt('F1', 8.5, 200, 583, c.email)
@@ -88,7 +96,7 @@ export function buildQuotePdf(input: {
   ensure(110); y -= 8; row('Subtotal', money(m.subtotal))
   if (q.vat_included) row('VAT', money(m.vat))
   else { txt('F1', 7.5, 390, y, 'Prices exclude VAT — not VAT registered.'); y -= 14 }
-  op(lineOp(390, y + 4, 555, y + 4, '0A0A0A', 1.2)); row('TOTAL', money(m.total), true)
+  op(lineOp(390, y + 4, 555, y + 4, 'F57C1B', 1.6)); row('TOTAL', money(m.total), true)
   row('Deposit (' + m.deposit_percent + '%)', money(m.deposit)); row('Balance on completion', money(m.balance))
 
   if (q.notes) { ensure(40); y -= 8; txt('F2', 8, 40, y, 'NOTES'); y -= 13; for (const l of wrap(q.notes, 105)) { ensure(12); txt('F1', 8.5, 40, y, l); y -= 11 } }
@@ -96,11 +104,82 @@ export function buildQuotePdf(input: {
   for (const t of input.terms) for (const l of wrap('• ' + t, 105)) { ensure(12); txt('F1', 7.5, 48, y, l); y -= 10 }
   ensure(55); y -= 8; txt('F2', 8, 40, y, 'BANKING DETAILS'); y -= 13
   for (const l of wrap(s.bank_details || 'Banking details to follow — please contact us before paying a deposit.', 105)) { ensure(12); txt(s.bank_details ? 'F1' : 'F2', 8, 40, y, l); y -= 11 }
-  for (let i = 0; i < pages.length; i++) pages[i].push(textOp('F1', 7.5, 40, 28, (s.business_name || 'NextGen') + ' · Quote ' + q.quote_number + ' · Page ' + (i + 1) + ' of ' + pages.length))
-  return makePdf(pages)
+
+  // Customer acceptance block for a clear written approval trail.
+  ensure(82); y -= 7
+  op(lineOp(40, y + 3, 555, y + 3, 'D6D3D1', 0.6))
+  txt('F2', 8, 40, y - 12, 'CLIENT ACCEPTANCE')
+  txt('F1', 7.5, 40, y - 25, 'I accept the scope, price and terms set out in this quotation.')
+  const sigY = y - 52
+  op(lineOp(40, sigY, 205, sigY, '777777', 0.6))
+  op(lineOp(225, sigY, 390, sigY, '777777', 0.6))
+  op(lineOp(410, sigY, 555, sigY, '777777', 0.6))
+  txt('F1', 7, 40, sigY - 11, 'Client name / signature')
+  txt('F1', 7, 225, sigY - 11, 'Signature')
+  txt('F1', 7, 410, sigY - 11, 'Date')
+
+  for (let i = 0; i < pages.length; i++) pages[i].push(textOp('F1', 7.5, 40, 28, (s.business_name || 'NextGen') + ' | Quote ' + q.quote_number + ' | Page ' + (i + 1) + ' of ' + pages.length))
+  return makePdf(pages, decodeLogoPng(LOGO_DATA_URI))
 }
 
-function makePdf(pageOps: string[][]): Uint8Array {
+function decodeLogoPng(dataUri: string): { width: number; height: number; rgbHex: string; alphaHex: string } {
+  const encoded = dataUri.slice(dataUri.indexOf(',') + 1)
+  const png = Buffer.from(encoded, 'base64')
+  const readU32 = (i: number) => png.readUInt32BE(i)
+  if (png.toString('hex', 0, 8) !== '89504e470d0a1a0a') throw new Error('NGMS logo is not a valid PNG.')
+  let width = 0, height = 0, bitDepth = 0, colourType = 0
+  const idat: Buffer[] = []
+  let palette = Buffer.alloc(0), transparency = Buffer.alloc(0)
+  for (let i = 8; i + 12 <= png.length;) {
+    const size = readU32(i), type = png.toString('ascii', i + 4, i + 8)
+    const data = png.subarray(i + 8, i + 8 + size)
+    if (type === 'IHDR') { width = data.readUInt32BE(0); height = data.readUInt32BE(4); bitDepth = data[8]; colourType = data[9] }
+    if (type === 'IDAT') idat.push(data)
+    if (type === 'PLTE') palette = Buffer.from(data)
+    if (type === 'tRNS') transparency = Buffer.from(data)
+    i += 12 + size
+    if (type === 'IEND') break
+  }
+  if (!width || !height || bitDepth !== 8 || (colourType !== 6 && colourType !== 2 && colourType !== 3)) throw new Error('NGMS logo PNG format is not supported by the PDF renderer.')
+  if (colourType === 3 && palette.length < 3) throw new Error('NGMS logo palette is missing.')
+  const channels = colourType === 6 ? 4 : colourType === 2 ? 3 : 1, stride = width * channels
+  const raw = inflateSync(Buffer.concat(idat))
+  const pixels = Buffer.alloc(height * stride)
+  let source = 0
+  for (let y = 0; y < height; y++) {
+    const filter = raw[source++]
+    for (let x = 0; x < stride; x++) {
+      const value = raw[source++]
+      const left = x >= channels ? pixels[y * stride + x - channels] : 0
+      const up = y > 0 ? pixels[(y - 1) * stride + x] : 0
+      const upperLeft = y > 0 && x >= channels ? pixels[(y - 1) * stride + x - channels] : 0
+      let predictor = 0
+      if (filter === 1) predictor = left
+      else if (filter === 2) predictor = up
+      else if (filter === 3) predictor = Math.floor((left + up) / 2)
+      else if (filter === 4) {
+        const p = left + up - upperLeft, pa = Math.abs(p - left), pb = Math.abs(p - up), pc = Math.abs(p - upperLeft)
+        predictor = pa <= pb && pa <= pc ? left : pb <= pc ? up : upperLeft
+      } else if (filter !== 0) throw new Error('Unsupported PNG filter in NGMS logo.')
+      pixels[y * stride + x] = (value + predictor) & 255
+    }
+  }
+  const rgb = Buffer.alloc(width * height * 3), alpha = Buffer.alloc(width * height)
+  for (let i = 0, p = 0; i < width * height; i++, p += channels) {
+    if (colourType === 3) {
+      const index = pixels[p], paletteOffset = index * 3
+      if (paletteOffset + 2 >= palette.length) throw new Error('NGMS logo palette index is invalid.')
+      rgb[i * 3] = palette[paletteOffset]; rgb[i * 3 + 1] = palette[paletteOffset + 1]; rgb[i * 3 + 2] = palette[paletteOffset + 2]
+      alpha[i] = index < transparency.length ? transparency[index] : 255
+    } else {
+      rgb[i * 3] = pixels[p]; rgb[i * 3 + 1] = pixels[p + 1]; rgb[i * 3 + 2] = pixels[p + 2]
+      alpha[i] = channels === 4 ? pixels[p + 3] : 255
+    }
+  }
+  return { width, height, rgbHex: rgb.toString('hex').toUpperCase() + '>', alphaHex: alpha.toString('hex').toUpperCase() + '>' }
+}
+
+function makePdf(pageOps: string[][], logo: { width: number; height: number; rgbHex: string; alphaHex: string }): Uint8Array {
   // Build the PDF from ASCII-only strings and calculate every PDF offset/length
   // from encoded bytes. This matters because PDF xref offsets and stream
   // lengths are byte counts, not JavaScript character counts.
@@ -113,6 +192,10 @@ function makePdf(pageOps: string[][]): Uint8Array {
 
   const font1 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>')
   const font2 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>')
+  const alphaData = logo.alphaHex
+  const alphaId = add('<< /Type /XObject /Subtype /Image /Width ' + logo.width + ' /Height ' + logo.height + ' /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /ASCIIHexDecode /Length ' + alphaData.length + ' >>\nstream\n' + alphaData + '\\nendstream')
+  const rgbData = logo.rgbHex
+  const imageId = add('<< /Type /XObject /Subtype /Image /Width ' + logo.width + ' /Height ' + logo.height + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /ASCIIHexDecode /Length ' + rgbData.length + ' /SMask ' + alphaId + ' 0 R >>\nstream\n' + rgbData + '\\nendstream')
   const pagesObj = add('')
   const pageIds: number[] = []
 
@@ -126,7 +209,7 @@ function makePdf(pageOps: string[][]): Uint8Array {
       '<< /Type /Page /Parent ' + pagesObj +
       ' 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ' +
       font1 + ' 0 R /F2 ' + font2 +
-      ' 0 R >> >> /Contents ' + contentId + ' 0 R >>'
+      ' 0 R >> /XObject << /Im1 ' + imageId + ' 0 R >> >> /Contents ' + contentId + ' 0 R >>'
   }
 
   objects[pagesObj - 1] =

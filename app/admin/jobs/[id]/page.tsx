@@ -8,6 +8,8 @@ import StaffGate from '@/components/admin/StaffGate'
 import DeleteRecord from '@/components/admin/DeleteRecord'
 import { supabase } from '@/lib/supabaseClient'
 import TrackerLinkButton from '@/components/admin/TrackerLinkButton'
+import SubcontractorJobAssignment from '@/components/admin/SubcontractorJobAssignment'
+import FinalCompletionReportEditor from '@/components/admin/FinalCompletionReportEditor'
 import { deleteJob } from '@/lib/admin-delete'
 import { jobWeather, useForecast } from '@/lib/job-weather'
 import { googleCalendarLink } from '@/lib/gcal-link'
@@ -16,6 +18,7 @@ import { handlersC } from '@/lib/ngms-ops/handlers-c'
 import { rand, JOB_STATUSES, COST_CATEGORIES, PHOTO_TYPES } from '@/lib/ngms-ops/core'
 import type { Job, Client } from '@/lib/ngms-ops/core'
 import { LOGO_DATA_URI } from '@/lib/logo'
+import { signedJobPhotoUrl } from '@/lib/job-photo-url'
 
 const BRAND = { black: '#0A0A0A', purple: '#8B1BF5', orange: '#F57C1B', green: '#39D353', grey: '#5B5B5B', line: '#E4E4E4' }
 const input = 'w-full bg-jet border border-darkgrey text-paper rounded-btn px-3 py-2.5 text-sm focus:outline-none focus:border-blue'
@@ -143,8 +146,7 @@ function PhotoUploader({ jobId, onSaved }: { jobId: string; onSaved: () => void 
       const path = `${jobId}/${type}-${Date.now()}.${ext}`
       const { error: upErr } = await supabase.storage.from('job-photos').upload(path, file, { cacheControl: '3600', upsert: false })
       if (upErr) throw upErr
-      const { data } = supabase.storage.from('job-photos').getPublicUrl(path)
-      const res = await handlersC.ngms_save_job_photo(supabase, { job_id: jobId, photo_url: data.publicUrl, type, caption: caption.trim() || undefined })
+      const res = await handlersC.ngms_save_job_photo(supabase, { job_id: jobId, photo_url: path, type, caption: caption.trim() || undefined })
       if (res.isError) throw new Error(res.content[0]?.text)
       setCaption('')
       onSaved()
@@ -198,7 +200,9 @@ function JobDetail() {
       setJob(sc.job)
       setClient(sc.client)
       setCosting(sc.costing)
-      setPhotos(((photoRes.structuredContent?.photos as Photo[]) ?? []) as Photo[])
+      const rawPhotos = ((photoRes.structuredContent?.photos as Photo[]) ?? []) as Photo[]
+      const signedPhotos = await Promise.all(rawPhotos.map(async (photo) => ({ ...photo, photo_url: await signedJobPhotoUrl(photo.photo_url) })))
+      setPhotos(signedPhotos.filter((photo): photo is Photo & { photo_url: string } => !!photo.photo_url) as Photo[])
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -290,6 +294,8 @@ function JobDetail() {
           </div>
 
           <div className="mb-3"><TrackerLinkButton jobId={job.id} /></div>
+          <SubcontractorJobAssignment jobId={job.id} />
+          <FinalCompletionReportEditor jobId={job.id} />
           <div className="mb-4 flex flex-wrap gap-2">
             {job.quote_id && (
               <Link href={`/admin/quotes/${job.quote_id}`} className="inline-flex items-center gap-2 text-xs border border-darkgrey hover:border-blue text-mist hover:text-paper px-3 py-1.5 rounded-btn">
