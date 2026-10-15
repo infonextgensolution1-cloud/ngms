@@ -15,8 +15,8 @@ export const FAQS = [
     a: 'Pricing depends on system size, starting from R550 for up to 10 panels. See our full price list for all tiers, or use the ROI Calculator to see what dirty panels might be costing you.',
   },
   {
-    q: 'Do your prices include VAT?',
-    a: 'No — all prices on our price list and quotes exclude VAT (15%), which is added separately.',
+    q: 'Are prices confirmed before work starts?',
+    a: 'Yes — we provide a written quote confirming the agreed price and scope before work starts.',
   },
   {
     q: 'How often should solar panels be cleaned?',

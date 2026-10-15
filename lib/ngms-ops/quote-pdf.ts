@@ -95,8 +95,8 @@ export function buildQuotePdf(input: {
 
   ensure(110); y -= 8; row('Subtotal', money(m.subtotal))
   if (q.vat_included) row('VAT', money(m.vat))
-  else { txt('F1', 7.5, 390, y, 'Prices exclude VAT — not VAT registered.'); y -= 14 }
-  op(lineOp(390, y + 4, 555, y + 4, 'F57C1B', 1.6)); row('TOTAL', money(m.total), true)
+  else { /* No VAT line is displayed when VAT is not applicable. */ }
+  op(lineOp(390, y + 4, 555, y + 4, '0A0A0A', 1.2)); row('TOTAL', money(m.total), true)
   row('Deposit (' + m.deposit_percent + '%)', money(m.deposit)); row('Balance on completion', money(m.balance))
 
   if (q.notes) { ensure(40); y -= 8; txt('F2', 8, 40, y, 'NOTES'); y -= 13; for (const l of wrap(q.notes, 105)) { ensure(12); txt('F1', 8.5, 40, y, l); y -= 11 } }

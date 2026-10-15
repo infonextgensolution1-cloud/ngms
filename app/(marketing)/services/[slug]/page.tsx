@@ -89,13 +89,51 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
         </div>
       </section>
 
-      <section className="ngms-sd-included">
-        <div className="ngms-sd-section-label"><span>02</span><span>WHAT'S INCLUDED</span></div>
-        <div className="ngms-sd-included__layout">
-          <div><p className="ngms-sd-eyebrow">A considered approach</p><h2>Clear scope.<br />No guesswork.</h2><p className="ngms-sd-muted">Every job starts with an agreed scope. Your quote sets out the work to be completed before the team gets started.</p></div>
-          <ul className="ngms-sd-checklist">{s.whatsIncluded.map((item, index) => <li key={item}><span>{String(index + 1).padStart(2, "0")}</span><p>{item}</p><b aria-hidden>↗</b></li>)}</ul>
-        </div>
-      </section>
+        <h2 className="text-xl mt-8 mb-3">What&rsquo;s included</h2>
+        <ul className="space-y-2">
+          {s.whatsIncluded.map((p) => (
+            <li key={p} className="card !py-3 !px-4 text-sm text-mist">{p}</li>
+          ))}
+        </ul>
+        {isSolar ? (
+          <>
+            <h2 className="text-xl mt-8 mb-3">Pricing</h2>
+            <div className="overflow-x-auto rounded-card border border-line">
+              <table className="w-full text-sm">
+                <tbody>
+                  {SOLAR_TIERS.map((t) => (
+                    <tr key={t.size} className="border-t border-line first:border-t-0">
+                      <td className="px-4 py-3 text-mist">{t.size}</td>
+                      <td className="px-4 py-3 font-bold text-orange">{t.price}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-mist text-xs mt-3">
+              No callout fee in Strand, Gordon&rsquo;s Bay or Somerset West &mdash; R350 callout
+              outside the Helderberg (Overberg, Stellenbosch, Paarl, Worcester, Cape Town). Maintenance plan (every 4&ndash;6 months) gets 15% off with priority booking.
+            </p>
+            <div className="card mt-6 text-center">
+              <p className="font-semibold text-paper">No site visit needed for most homes</p>
+              <p className="text-mist text-sm mt-1">
+                WhatsApp us a photo of your roof and the number of panels &mdash; we&rsquo;ll send a fixed price, usually
+                the same day.
+              </p>
+              <a
+                href={whatsappLink("Hi NextGen, I'd like a solar panel cleaning quote. I have ___ panels. Photo attached.")}
+                className="btn-wa inline-block mt-4"
+              >
+                WhatsApp a photo for a quote
+              </a>
+            </div>
+          </>
+        ) : (
+          <p className="text-mist text-xs mt-3">
+            Prices exclude VAT. Most jobs are priced from WhatsApp photos, usually the same day; bigger jobs get a free
+            site visit and a written quote.
+          </p>
+        )}
 
       {isSolar ? (
         <section className="ngms-sd-pricing">
