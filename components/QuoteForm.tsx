@@ -107,7 +107,7 @@ export default function QuoteForm({
     const form = e.currentTarget;
     // Disable browser-wide native validation: hidden wizard steps must not block submission.
     if (step < 5) {
-      const fields = Array.from(form.querySelectorAll(`[data-quote-step="${step}"] input, [data-quote-step="${step}"] select, [data-quote-step="${step}"] textarea`));
+      const fields = Array.from(form.querySelectorAll(`:scope > [data-quote-step="${step}"] input, :scope > [data-quote-step="${step}"] select, :scope > [data-quote-step="${step}"] textarea`));
       const invalid = fields.find((field) => field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement ? !field.checkValidity() : false);
       if (invalid instanceof HTMLInputElement || invalid instanceof HTMLSelectElement || invalid instanceof HTMLTextAreaElement) { invalid.reportValidity(); invalid.focus(); return; }
       setStep((current) => Math.min(5, current + 1));
@@ -411,7 +411,7 @@ export default function QuoteForm({
         <button type="button" className="btn-quote flex-1" onClick={(e) => {
           const form = e.currentTarget.form;
           if (!form) return;
-          const fields = Array.from(form.querySelectorAll(`[data-quote-step="${step}"] input, [data-quote-step="${step}"] select, [data-quote-step="${step}"] textarea`));
+          const fields = Array.from(form.querySelectorAll(`:scope > [data-quote-step="${step}"] input, :scope > [data-quote-step="${step}"] select, :scope > [data-quote-step="${step}"] textarea`));
           const invalid = fields.find((field) => field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement ? !field.checkValidity() : false);
           if (invalid instanceof HTMLInputElement || invalid instanceof HTMLSelectElement || invalid instanceof HTMLTextAreaElement) { invalid.reportValidity(); invalid.focus(); return; }
           setStep((s) => Math.min(5, s + 1));
