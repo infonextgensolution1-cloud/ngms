@@ -50,7 +50,7 @@ async function getPortalClients(request: Request) {
   if (accessError) return { error: 'Could not verify portal access.', status: 500 as const }
 
   const sessionId = sessionIdFromToken(token)
-  const accessByClient = new Map<string, PortalAccess>((accessRows ?? []).map((row) => [row.client_id, row as PortalAccess]))
+  const accessByClient = new Map<string, PortalAccess>((accessRows ?? []).map((row) => [row.client_id, row as PortalAccess] as const))
   const accessibleClientIds = clients.filter((client) => {
     const access = accessByClient.get(client.id)
     if (!access || access.revoked_at) return false
