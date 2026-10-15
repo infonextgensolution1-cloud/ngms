@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ArrowDownRight, ArrowUpRight, Check, MessageCircle } from 'lucide-react'
 import NgmsIcon from '@/components/NgmsIcon'
 import PlanSignupForm from '@/components/PlanSignupForm'
-import { getGalleryPhotos } from '@/lib/queries'
+import { getSlotPhotos } from '@/lib/queries'
 import { COMMERCIAL_COMBOS, RECURRING_PACKAGES, SEASONAL_COMBOS, type Package } from '@/lib/packages'
 
 export const metadata = {
@@ -55,11 +55,11 @@ function PackageGrid({ packages, joinable = false }: { packages: Package[]; join
 }
 
 export default async function MaintenancePackagesPage() {
-  // Use active, admin-managed Gallery photos only; never substitute stock photography.
-  const adminPhotos = await getGalleryPhotos(60)
-  const solarPhoto = adminPhotos.find((photo) => photo.service_slug === 'solar-panel-cleaning' && photo.image_url) ?? adminPhotos.find((photo) => photo.image_url)
-  const propertyPhoto = adminPhotos.find((photo) => photo.service_slug && photo.service_slug !== 'solar-panel-cleaning' && photo.image_url) ?? adminPhotos.find((photo) => photo.image_url && photo.image_url !== solarPhoto?.image_url)
-  const pavingPhoto = adminPhotos.find((photo) => ['paving', 'high-pressure-cleaning', 'painting', 'waterproofing'].includes(photo.service_slug ?? '') && photo.image_url && photo.image_url !== solarPhoto?.image_url && photo.image_url !== propertyPhoto?.image_url) ?? adminPhotos.find((photo) => photo.image_url && photo.image_url !== solarPhoto?.image_url && photo.image_url !== propertyPhoto?.image_url)
+  // These hero photos are explicitly managed in Admin → Media → Maintenance projects.
+  const maintenancePhotos = await getSlotPhotos(['maintenance_high_pressure', 'maintenance_painting', 'maintenance_paving'])
+  const solarPhoto = maintenancePhotos.maintenance_high_pressure
+  const propertyPhoto = maintenancePhotos.maintenance_painting
+  const pavingPhoto = maintenancePhotos.maintenance_paving
   return (
     <main id="main-content" className="overflow-hidden bg-[#F4F3F7] text-[#29292F]">
       <section className="relative isolate mx-auto max-w-[1440px] overflow-hidden border-x border-[#E0DFE5] bg-[#F4F3F7] px-4 sm:px-7 lg:px-10">
