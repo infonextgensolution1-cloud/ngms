@@ -4,6 +4,23 @@
     "dub1"
   ],
   "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':(exclude)docs' ':(exclude)*.md'",
+  "redirects": [
+    {
+      "source": "/maintenance",
+      "destination": "/maintenance-packages",
+      "permanent": true
+    },
+    {
+      "source": "/corporate",
+      "destination": "/body-corporate-maintenance",
+      "permanent": true
+    },
+    {
+      "source": "/reviews",
+      "destination": "/#reviews",
+      "permanent": true
+    }
+  ],
   "crons": [
     {
       "path": "/api/cron/plan-reminders",

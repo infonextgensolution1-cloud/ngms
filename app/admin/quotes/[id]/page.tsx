@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, Printer, Download, Check, X, Send, AlertTriangle, Receipt, Briefcase, CalendarPlus, MessageCircle } from 'lucide-react'
+import { ArrowLeft, Loader2, Printer, Download, Eye, Check, X, Send, AlertTriangle, Receipt, Briefcase, CalendarPlus, MessageCircle } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import DeleteRecord from '@/components/admin/DeleteRecord'
 import { supabase } from '@/lib/supabaseClient'
@@ -19,6 +19,7 @@ import { QUOTE_TERMS, PLACEHOLDER_ACC } from '@/lib/quote-terms'
 type Money = { subtotal: number; vat: number; total: number; deposit: number; deposit_percent: number; balance: number }
 type JobRow = { id: string; title: string | null; status: string; scheduled_date: string | null }
 type InvoiceRow = { id: string; invoice_number: string; status: string; total_amount: number | null; paid_amount: number | null }
+type QuoteVersionRow = { id: string; version_number: number; version_status: string; revision_reason: string | null; change_summary: string | null; created_at: string; sent_at: string | null; accepted_at: string | null; public_token: string | null }
 
 const BRAND = { black: '#0A0A0A', purple: '#8B1BF5', orange: '#F57C1B', green: '#39D353', grey: '#5B5B5B', line: '#E4E4E4' }
 
@@ -51,6 +52,10 @@ function QuoteView() {
   const [customerLink, setCustomerLink] = useState<string | null>(null)
   const [linkCopied, setLinkCopied] = useState(false)
   const [pdfSaved, setPdfSaved] = useState(false)
+  const [versions, setVersions] = useState<QuoteVersionRow[]>([])
+  const [sourceQuote, setSourceQuote] = useState<{ id: string; quote_number: string } | null>(null)
+  const [revisionOpen, setRevisionOpen] = useState(false)
+  const [revisionReason, setRevisionReason] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -59,7 +64,7 @@ function QuoteView() {
       const [res, s, versionRes] = await Promise.all([
         handlersA.ngms_get_quote(supabase, { quote_id: id }),
         getSettings(supabase),
-        supabase.from('quote_versions').select('public_token,version_number,version_status').eq('quote_id', id).order('version_number', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('quote_versions').select('id,version_number,version_status,revision_reason,change_summary,created_at,sent_at,accepted_at,public_token').eq('quote_id', id).order('version_number', { ascending: false }),
       ])
       if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not load that quote')
       const sc = res.structuredContent as {
@@ -77,7 +82,16 @@ function QuoteView() {
       setJobs(sc.jobs ?? [])
       setInvoices(sc.invoices ?? [])
       setSettings(s)
-      setCustomerLink(versionRes.data?.public_token ? `${window.location.origin}/quote/${versionRes.data.public_token}` : null)
+      const versionRows = (versionRes.data ?? []) as QuoteVersionRow[]
+      setVersions(versionRows)
+      if (sc.quote.revision_of_quote_id) {
+        const { data: source } = await supabase.from('quotes').select('id,quote_number').eq('id', sc.quote.revision_of_quote_id).maybeSingle()
+        setSourceQuote(source as { id: string; quote_number: string } | null)
+      } else {
+        setSourceQuote(null)
+      }
+      const latestVersion = versionRows[0]
+      setCustomerLink(latestVersion?.public_token ? `${window.location.origin}/quote/${latestVersion.public_token}` : null)
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -119,6 +133,45 @@ function QuoteView() {
       window.setTimeout(() => URL.revokeObjectURL(url), 1000)
       setMsg('Saved PDF downloaded.')
     } catch (e) {
+      setMsg((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function viewSavedPdf() {
+    if (!quote) return
+    setBusy('pdf-view')
+    setMsg('')
+    const viewWindow = window.open('', '_blank')
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('Your session has expired. Sign in again.')
+
+      const response = await fetch('/api/quotes/' + quote.id + '/pdf', {
+        method: 'GET',
+        headers: { Authorization: 'Bearer ' + token },
+      })
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}))
+        throw new Error(body.error || 'Could not open the saved PDF.')
+      }
+
+      const blob = await response.blob()
+      if (!blob.size) throw new Error('The saved PDF is empty.')
+      const url = URL.createObjectURL(blob)
+
+      if (viewWindow) {
+        viewWindow.location.href = url
+        window.setTimeout(() => URL.revokeObjectURL(url), 60000)
+      } else {
+        window.open(url, '_blank')
+        window.setTimeout(() => URL.revokeObjectURL(url), 60000)
+      }
+      setMsg('Saved quote opened for viewing.')
+    } catch (e) {
+      if (viewWindow) viewWindow.close()
       setMsg((e as Error).message)
     } finally {
       setBusy(null)
@@ -238,6 +291,37 @@ function QuoteView() {
     }
   }
 
+  async function createQuoteRevision() {
+    if (!quote) return
+    const reason = revisionReason.trim()
+    if (!reason) {
+      setMsg('Add a revision reason before creating the new quote.')
+      return
+    }
+    setBusy('revision')
+    setMsg('')
+    try {
+      const res = await handlersA.ngms_create_quote_revision(supabase, {
+        quote_id: quote.id,
+        revision_reason: reason,
+      })
+      if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not create the quote revision')
+      const revised = res.structuredContent?.quote as { id?: string } | undefined
+      setRevisionOpen(false)
+      setRevisionReason('')
+      if (revised?.id) {
+        router.push(`/admin/quotes/${revised.id}`)
+        return
+      }
+      setMsg('Quote revision created.')
+      await load()
+    } catch (e) {
+      setMsg((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
+  }
+
   async function createInvoice(kind: 'full' | 'balance') {
     if (!quote) return
     setBusy(kind)
@@ -278,7 +362,7 @@ function QuoteView() {
     setMsg('')
     try {
       const res = await handlersB.ngms_create_invoice(supabase, { quote_id: quote.id, kind: 'deposit' })
-      setMsg(res.content[0]?.text?.split('\n')[0] ?? (res.isError ? 'Could not create the invoice' : 'Deposit invoice created.'))
+      setMsg(res.content[0]?.text?.split('\\n')[0] ?? (res.isError ? 'Could not create the invoice' : 'Deposit invoice created.'))
       if (!res.isError) await load()
     } catch (e) {
       setMsg((e as Error).message)
@@ -358,15 +442,26 @@ function QuoteView() {
                 {busy === 'pdf' ? 'Generating…' : pdfSaved || quote.pdf_path ? 'Save / Download PDF' : 'Generate & Save PDF'}
               </button>
               {quote.pdf_path && (
-                <button
-                  type="button"
-                  onClick={downloadSavedPdf}
-                  disabled={!!busy}
-                  className="inline-flex items-center gap-2 border border-darkgrey hover:border-blue text-mist hover:text-paper font-heading font-semibold px-3 py-2.5 rounded-btn shrink-0 disabled:opacity-50"
-                >
-                  {busy === 'pdf-download' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                  Saved PDF
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={viewSavedPdf}
+                    disabled={!!busy}
+                    className="inline-flex items-center gap-2 border border-darkgrey hover:border-blue text-mist hover:text-paper font-heading font-semibold px-3 py-2.5 rounded-btn shrink-0 disabled:opacity-50"
+                  >
+                    {busy === 'pdf-view' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+                    {busy === 'pdf-view' ? 'Opening…' : 'View Saved PDF'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={downloadSavedPdf}
+                    disabled={!!busy}
+                    className="inline-flex items-center gap-2 border border-darkgrey hover:border-blue text-mist hover:text-paper font-heading font-semibold px-3 py-2.5 rounded-btn shrink-0 disabled:opacity-50"
+                  >
+                    {busy === 'pdf-download' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                    Download Saved PDF
+                  </button>
+                </>
               )}
               <button
                 onClick={() => window.print()}
@@ -402,6 +497,40 @@ function QuoteView() {
           )}
           <p className="text-[11px] text-mist mb-4">The PDF is generated and saved first. On supported phones, WhatsApp opens with the PDF attached; otherwise WhatsApp opens with the message and the downloaded PDF can be attached.</p>
 
+          {sourceQuote && (
+            <div className="mb-4 rounded-card border border-blue bg-cardgrey p-3">
+              <p className="text-xs font-heading font-semibold text-paper">Revision lineage</p>
+              <p className="mt-1 text-[11px] text-mist">This draft was created from the original quote:</p>
+              <Link href={`/admin/quotes/${sourceQuote.id}`} className="mt-1 inline-flex text-xs text-blue hover:text-paper font-heading font-semibold">
+                ← {sourceQuote.quote_number}
+              </Link>
+            </div>
+          )}
+
+          {versions.length > 0 && (
+            <div className="mb-4 rounded-card border border-darkgrey bg-cardgrey p-3">
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <div>
+                  <p className="text-xs font-heading font-semibold text-paper">Quote version history</p>
+                  <p className="text-[11px] text-mist mt-0.5">Customer-facing versions are preserved as snapshots.</p>
+                </div>
+                <span className="text-[10px] uppercase tracking-wider text-mist">{versions.length} version{versions.length === 1 ? '' : 's'}</span>
+              </div>
+              <div className="space-y-2">
+                {versions.map((v) => (
+                  <div key={v.id} className="rounded-btn border border-darkgrey px-3 py-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-xs font-heading font-semibold text-paper">v{v.version_number} · {v.version_status}</span>
+                      <span className="text-[10px] text-mist">{new Date(v.created_at).toLocaleString('en-ZA')}</span>
+                    </div>
+                    {v.change_summary && <p className="mt-1 text-[11px] text-mist">{v.change_summary}</p>}
+                    {v.revision_reason && <p className="mt-1 text-[11px] text-paper">Reason: {v.revision_reason}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {customerLink && (
             <div className="mb-4 rounded-card border border-blue bg-cardgrey p-3">
               <div className="flex items-center justify-between gap-3">
@@ -421,6 +550,56 @@ function QuoteView() {
                 </button>
               </div>
               <p className="mt-2 text-[11px] text-mist">This link opens the exact latest quote version. Send it to the customer for review and acceptance.</p>
+            </div>
+          )}
+
+          {(['sent', 'accepted'].includes(quote.status) || expired) && (
+            <div className="mb-4 rounded-card border border-orange/50 bg-cardgrey p-3.5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-heading font-semibold text-paper">Need to change this quote?</p>
+                  <p className="text-[11px] text-mist mt-0.5">Create a new draft revision. The current customer-facing version stays unchanged.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setRevisionOpen((v) => !v)}
+                  disabled={!!busy}
+                  className="inline-flex items-center gap-1.5 border border-orange text-orange hover:bg-orange hover:text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
+                >
+                  {busy === 'revision' ? <Loader2 className="w-4 h-4 animate-spin" /> : <AlertTriangle className="w-4 h-4" />}
+                  Create revision
+                </button>
+              </div>
+              {revisionOpen && (
+                <div className="mt-3 border-t border-darkgrey pt-3">
+                  <label className="block text-xs text-mist">
+                    Revision reason
+                    <textarea
+                      value={revisionReason}
+                      onChange={(e) => setRevisionReason(e.target.value)}
+                      maxLength={500}
+                      rows={3}
+                      placeholder="e.g. Customer requested 6 additional panels and revised access date."
+                      className="mt-1.5 block w-full bg-jet border border-darkgrey text-paper rounded-btn px-3 py-2.5 text-sm placeholder:text-mist/60 focus:border-blue outline-none"
+                    />
+                  </label>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={createQuoteRevision}
+                      disabled={!!busy || !revisionReason.trim()}
+                      className="inline-flex items-center gap-1.5 bg-blue-fill hover:bg-blue-dark text-white text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
+                    >
+                      {busy === 'revision' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                      Create new draft
+                    </button>
+                    <button type="button" onClick={() => { setRevisionOpen(false); setRevisionReason('') }} disabled={!!busy} className="text-sm text-mist hover:text-paper py-2">
+                      Cancel
+                    </button>
+                    <span className="text-[11px] text-mist">{revisionReason.length}/500</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

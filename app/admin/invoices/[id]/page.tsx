@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, Printer, Send, Ban, AlertTriangle, Save, CircleDollarSign, MessageCircle, BellRing } from 'lucide-react'
+import { ArrowLeft, Loader2, Printer, Send, Ban, AlertTriangle, Save, CircleDollarSign, MessageCircle, BellRing, CheckCircle2 } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import DeleteRecord from '@/components/admin/DeleteRecord'
 import { supabase } from '@/lib/supabaseClient'
@@ -14,6 +14,23 @@ import { rand } from '@/lib/ngms-ops/core'
 import type { Invoice, Client, Item } from '@/lib/ngms-ops/core'
 import { LOGO_DATA_URI } from '@/lib/logo'
 import { PLACEHOLDER_ACC } from '@/lib/quote-terms'
+
+type PaymentEntry = { line: string; amount: number; index: number; reversed: boolean }
+
+function paymentEntries(notes: string | null): PaymentEntry[] {
+  const lines = (notes ?? '').split('\n')
+  return lines.flatMap((line, index) => {
+    // Notes may be timestamp-prefixed, e.g. "[13 Oct 2026, 01:30] Payment R4 050.00 ...".
+    // Keep the original line for audit/reversal matching; strip the timestamp only for parsing.
+    const paymentLine = line.replace(/^\[[^\]]+\]\s*/, '')
+    if (!/^Payment\s+/i.test(paymentLine)) return []
+    const match = paymentLine.match(/^Payment\s+R?\s*([\d, ]+(?:\.\d{1,2})?)/i)
+    if (!match) return []
+    const amount = Number(match[1].replace(/[ ,]/g, ''))
+    if (!Number.isFinite(amount) || amount <= 0) return []
+    return [{ line, amount, index, reversed: lines.some((entry) => entry.startsWith(`PAYMENT REVERSAL [entry ${index + 1}]:`)) }]
+  })
+}
 
 type Money = { subtotal: number; vat: number; total: number; paid: number; balance: number; overdue: boolean; days_overdue: number }
 type Business = { name: string | null; phone: string | null; whatsapp: string | null; email: string | null; address: string | null; vat_number: string | null; bank_details: string | null; logo_url: string | null }
@@ -48,6 +65,8 @@ function InvoiceView() {
   const [busy, setBusy] = useState<string | null>(null)
   const [msg, setMsg] = useState('')
   const [note, setNote] = useState('')
+  const [jobId, setJobId] = useState<string | null>(null)
+  const [jobStatus, setJobStatus] = useState<string | null>(null)
 
   const [payAmount, setPayAmount] = useState('')
   const [payMethod, setPayMethod] = useState<(typeof PAY_METHODS)[number]>('eft')
@@ -66,6 +85,9 @@ function InvoiceView() {
       setMoney(sc.money)
       setQuoteNumber(sc.quote_number)
       setBusiness(sc.business)
+      const { data: linkedJob } = sc.invoice.quote_id ? await supabase.from('jobs').select('id,status').eq('quote_id', sc.invoice.quote_id).neq('status','cancelled').order('created_at',{ascending:false}).limit(1).maybeSingle() : { data: null }
+      setJobId((linkedJob as {id:string;status:string}|null)?.id ?? null)
+      setJobStatus((linkedJob as {id:string;status:string}|null)?.status ?? null)
       setPayAmount(sc.money.balance > 0 ? String(sc.money.balance) : '')
     } catch (e) {
       setError((e as Error).message)
@@ -80,7 +102,24 @@ function InvoiceView() {
 
   async function setStatus(status: 'sent' | 'void') {
     if (!invoice) return
-    if (status === 'void' && !window.confirm(`Void ${invoice.invoice_number}? It stays on record as cancelled and drops out of your totals.`)) return
+    if (status === 'void') {
+      const reason = window.prompt(`Why are you voiding ${invoice.invoice_number}? This keeps the invoice on record but removes it from active totals.`, 'Created incorrectly')
+      if (reason === null) return
+      if (!reason.trim()) { setMsg('A reason is required when voiding an invoice.'); return }
+      setBusy(status)
+      setMsg('')
+      try {
+        const res = await handlersB.ngms_update_invoice(supabase, { invoice_id: invoice.id, status, note: `VOID REASON: ${reason.trim()}` })
+        if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not void the invoice')
+        setMsg('Invoice voided and the reason was recorded.')
+        await load()
+      } catch (e) {
+        setMsg((e as Error).message)
+      } finally {
+        setBusy(null)
+      }
+      return
+    }
     setBusy(status)
     setMsg('')
     try {
@@ -109,6 +148,55 @@ function InvoiceView() {
       if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not record the payment')
       setMsg(`Payment of ${rand(amount)} recorded.`)
       setPayRef('')
+      await load()
+    } catch (e) {
+      setMsg((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function reversePayment(entry: PaymentEntry) {
+    if (!invoice || !money || entry.reversed) return
+    const reason = window.prompt(`Why are you reversing this payment on ${invoice.invoice_number}?\\n\\n${entry.line}`, 'Payment incorrectly recorded')
+    if (reason === null) return
+    if (!reason.trim()) { setMsg('A reason is required to reverse a payment.'); return }
+    if (!window.confirm(`Reverse ${rand(entry.amount)} from ${invoice.invoice_number}? The outstanding balance will increase.`)) return
+    setBusy(`reverse-${entry.index}`)
+    setMsg('')
+    try {
+      // Read the latest row before applying the correction to avoid relying only on the page's cached amount.
+      const { data: latest, error: readError } = await supabase.from('invoices').select('paid_amount,status,notes').eq('id', invoice.id).single()
+      if (readError || !latest) throw new Error(readError?.message ?? 'Could not reload the latest invoice payment state.')
+      const latestNotes = String(latest.notes ?? '')
+      const currentLines = latestNotes.split('\n')
+      const marker = `PAYMENT REVERSAL [entry ${entry.index + 1}]:`
+      if (currentLines.some((line: string) => line.startsWith(marker))) throw new Error('This payment has already been reversed. Refresh the invoice to see the latest history.')
+      if (!currentLines.includes(entry.line)) throw new Error('This payment entry has changed. Refresh the invoice before reversing it.')
+      if (Number(latest.paid_amount ?? 0) + 0.004 < entry.amount) throw new Error('The current paid amount is lower than this payment. Refresh and reconcile the invoice before reversing it.')
+      const nextPaid = Math.max(0, Math.round((Number(latest.paid_amount ?? 0) - entry.amount) * 100) / 100)
+      const nextStatus = nextPaid <= 0.004 ? 'sent' : nextPaid >= money.total - 0.004 ? 'paid' : 'partial'
+      const audit = `${marker} ${rand(entry.amount)} reversed on ${new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Johannesburg' })}. Reason: ${reason.trim()}. Original: ${entry.line}`
+      const { error: updateError } = await supabase.from('invoices').update({ paid_amount: nextPaid, status: nextStatus, notes: [latestNotes, audit].filter(Boolean).join('\n') }).eq('id', invoice.id)
+      if (updateError) throw new Error(updateError.message)
+      setMsg(`Payment reversed. Paid amount and outstanding balance recalculated; invoice is now ${nextStatus}.`)
+      await load()
+    } catch (e) {
+      setMsg((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function completeJobAndRequestFinal() {
+    if (!jobId) return
+    if (!window.confirm('Mark this job completed and create/request the outstanding final balance invoice?')) return
+    setBusy('complete')
+    setMsg('')
+    try {
+      const res = await handlersB.ngms_update_job(supabase, { job_id: jobId, status: 'completed', note: 'Job completed from invoice workflow. Final balance requested; completion report/review workflow unlocked.' })
+      if (res.isError) throw new Error(res.content[0]?.text ?? 'Could not complete the job')
+      setMsg('Job completed. The outstanding balance invoice has been created or confirmed. Next: send the completion report and review request.')
       await load()
     } catch (e) {
       setMsg((e as Error).message)
@@ -252,19 +340,46 @@ function InvoiceView() {
                 disabled={!!busy}
                 className="inline-flex items-center gap-1.5 border border-darkgrey hover:border-orange text-mist hover:text-orange text-sm font-heading font-semibold px-3.5 py-2 rounded-btn disabled:opacity-50"
               >
-                {busy === 'void' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />} Void (cancel)
+                {busy === 'void' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />} Void invoice
               </button>
             )}
             {/* Only unsent drafts can be deleted; issued invoices are voided so they stay on record. */}
             {invoice.status === 'draft' && money.paid <= 0.004 && (
               <DeleteRecord
-                label="Delete draft"
-                confirmText={`Delete draft ${invoice.invoice_number}${client?.name ? ` for ${client.name}` : ''}?`}
+                label="Delete draft invoice"
+                confirmText={`Permanently delete draft ${invoice.invoice_number}${client?.name ? ` for ${client.name}` : ''}? This cannot be undone. Only unpaid drafts can be deleted.`}
                 onDelete={() => deleteDraftInvoice(supabase, invoice.id)}
                 redirectTo="/admin/invoices"
               />
             )}
           </div>
+
+          <section id="payment-history" className="bg-cardgrey border-2 border-orange rounded-card p-4 mb-4 scroll-mt-6">
+            <h2 className="font-heading font-bold text-paper mb-2 text-base">PAYMENT HISTORY &amp; CORRECTIONS</h2>
+            <p className="text-xs text-mist mb-3">Reverse an incorrectly recorded payment here. A reason is required and the correction is appended to the invoice audit notes.</p>
+            {paymentEntries(invoice.notes).length === 0 ? (
+              <p className="text-sm text-mist">No payment entries found in this invoice&apos;s notes.</p>
+            ) : (
+              <div className="space-y-2">
+                {paymentEntries(invoice.notes).map((entry) => (
+                  <div key={entry.index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border border-darkgrey rounded-btn p-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-paper">{rand(entry.amount)}</p>
+                      <p className="text-xs text-mist break-words">{entry.line}</p>
+                      {entry.reversed && <p className="text-xs text-orange mt-1">Reversal recorded in audit history</p>}
+                    </div>
+                    {entry.reversed ? (
+                      <span className="text-xs text-mist border border-darkgrey px-2 py-1 rounded shrink-0">Reversed</span>
+                    ) : (
+                      <button onClick={() => reversePayment(entry)} disabled={!!busy || entry.amount > (money?.paid ?? 0) + 0.004} className="inline-flex items-center justify-center gap-1.5 border border-orange text-orange hover:bg-orange/10 text-xs font-semibold px-3 py-2 rounded-btn disabled:opacity-40 shrink-0">
+                        {busy === `reverse-${entry.index}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Ban className="w-3.5 h-3.5" />} Reverse payment
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
 
           {money.balance > 0.004 && invoice.status !== 'void' && (
             <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-4">
@@ -298,7 +413,33 @@ function InvoiceView() {
             </section>
           )}
 
+          {jobId && invoice.status === 'paid' && invoice.notes?.toLowerCase().includes('deposit invoice') && (
+            <section className="bg-cardgrey border border-blue/40 rounded-card p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 text-whatsapp shrink-0" />
+                <div className="flex-1">
+                  <h2 className="font-heading font-bold text-paper">Deposit received — next step</h2>
+                  <p className="mt-1 text-xs text-mist">The deposit is paid. Complete the job to automatically calculate the actual outstanding balance and unlock the completion/review workflow.</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {jobStatus === 'completed' ? (
+                      <Link href={`/admin/jobs/${jobId}/completion`} className="inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-3.5 py-2.5 rounded-btn">
+                        View completion report
+                      </Link>
+                    ) : (
+                      <button onClick={completeJobAndRequestFinal} disabled={!!busy} className="inline-flex items-center gap-2 bg-whatsapp hover:opacity-90 text-white font-heading font-semibold px-3.5 py-2.5 rounded-btn disabled:opacity-50">
+                        {busy === 'complete' ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                        Complete job &amp; request final balance
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
           {msg && <p className="text-xs text-mist mb-4">{msg}</p>}
+
+
 
           <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-6">
             <h2 className="font-heading font-bold text-paper mb-2">Notes</h2>

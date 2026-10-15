@@ -3,16 +3,20 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, CheckCircle2, Image as ImageIcon, Loader2, MessageCircle, Printer } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Image as ImageIcon, Loader2, MessageCircle, Printer, Receipt, Mail } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import { supabase } from '@/lib/supabaseClient'
 import { handlersB } from '@/lib/ngms-ops/handlers-b'
 import { handlersC } from '@/lib/ngms-ops/handlers-c'
 import { LOGO_DATA_URI } from '@/lib/logo'
+import { signedJobPhotoUrl } from '@/lib/job-photo-url'
 
-type Job = { id:string; title:string|null; description:string|null; status:string; scheduled_date:string|null; completed_date:string|null; quote_id:string|null }
+type Job = { id:string; client_id:string|null; title:string|null; description:string|null; status:string; scheduled_date:string|null; completed_date:string|null; quote_id:string|null }
 type Client = { name:string; phone:string|null; email:string|null; address:string|null; suburb:string|null }
 type Photo = { id:string; photo_url:string; type:string; caption:string|null }
+type Settings = { google_review_url:string|null; facebook_review_url:string|null }
+type Balance = { id:string; invoice_number:string; total_amount:number; paid_amount:number; status:string }
+type CompletionReport = { work_completed:string|null; completion_notes:string|null; outstanding_issues:string|null; warranty_notes:string|null; client_satisfaction:string|null; updated_at:string }
 
 const brand={black:'#0A0A0A',purple:'#8B1BF5',grey:'#5B5B5B',line:'#E4E4E4'}
 
@@ -23,17 +27,42 @@ function CompletionView(){
   const [photos,setPhotos]=useState<Photo[]>([])
   const [loading,setLoading]=useState(true)
   const [error,setError]=useState('')
+  const [settings,setSettings]=useState<Settings>({google_review_url:null,facebook_review_url:null})
+  const [balance,setBalance]=useState<Balance|null>(null)
+  const [completionReport,setCompletionReport]=useState<CompletionReport|null>(null)
+  const [reviewRequested,setReviewRequested]=useState(false)
+  const [action,setAction]=useState<string|null>(null)
+  const [deliveryMsg,setDeliveryMsg]=useState('')
+  const [finalBusy,setFinalBusy]=useState(false)
+  const [finalRequested,setFinalRequested]=useState(false)
 
   const load=useCallback(async()=>{
     setLoading(true); setError('')
     try{
-      const [jr,pr]=await Promise.all([
+      const [jr,pr,sr,cr]=await Promise.all([
         handlersB.ngms_get_job(supabase,{job_id:params.id}),
-        handlersC.ngms_list_job_photos(supabase,{job_id:params.id})
+        handlersC.ngms_list_job_photos(supabase,{job_id:params.id}),
+        supabase.from('settings').select('google_review_url,facebook_review_url').eq('id',1).maybeSingle(),
+        supabase.from('job_completion_reports').select('work_completed,completion_notes,outstanding_issues,warranty_notes,client_satisfaction,updated_at').eq('job_id',params.id).maybeSingle()
       ])
       if(jr.isError) throw new Error(jr.content[0]?.text??'Could not load job')
       const sc=jr.structuredContent as {job:Job;client:Client|null}
-      setJob(sc.job); setClient(sc.client); setPhotos((pr.structuredContent?.photos as Photo[])??[])
+      setJob(sc.job); setClient(sc.client)
+      const photoRows = (pr.structuredContent?.photos as Photo[]) ?? []
+      const signedPhotos = await Promise.all(photoRows.map(async (photo) => ({ ...photo, photo_url: await signedJobPhotoUrl(photo.photo_url) })))
+      setPhotos(signedPhotos.filter((photo) => !!photo.photo_url) as Photo[])
+      setSettings((sr.data as Settings|null) ?? {google_review_url:null,facebook_review_url:null})
+      setCompletionReport((cr.data as CompletionReport|null) ?? null)
+      if(sc.job.quote_id){
+        const {data:invoices}=await supabase.from('invoices').select('id,invoice_number,total_amount,paid_amount,status,notes').eq('quote_id',sc.job.quote_id).neq('status','void').order('created_at',{ascending:false})
+        const b=(invoices??[]).find((i:any)=>/balance/i.test(String(i.notes??'')))
+        setBalance((b as Balance|null)??null)
+        setFinalRequested(!!b && /FINAL PAYMENT (EMAIL SENT|WHATSAPP PREPARED)/i.test(String((b as any).notes??'')))
+      }
+      if(sc.job.client_id){
+        const {data:rr}=await supabase.from('review_requests').select('id').eq('job_id',sc.job.id).neq('status','closed').limit(1).maybeSingle()
+        setReviewRequested(!!rr)
+      }
     }catch(e){setError((e as Error).message)}
     finally{setLoading(false)}
   },[params.id])
@@ -45,6 +74,64 @@ function CompletionView(){
     photos.forEach(p=>{if(p.type in g) g[p.type as keyof typeof g].push(p)})
     return g
   },[photos])
+
+  async function requestReview(){
+    if(!job||!client) return
+    setAction('review')
+    setError('')
+    try{
+      const {error:e}=await supabase.from('review_requests').insert({
+        client_id:job.client_id ?? undefined,
+        job_id:job.id,
+        google_review_url:settings.google_review_url,
+        facebook_review_url:settings.facebook_review_url,
+        status:'requested'
+      })
+      if(e) throw e
+      setReviewRequested(true)
+    }catch(e){setError((e as Error).message)}
+    finally{setAction(null)}
+  }
+
+  async function deliver(channel:'email'|'whatsapp'|'both', mode:'completion'|'final'='completion'){
+    if(!job||!client) return
+    if(mode==='final' && !balance) { setDeliveryMsg('Create the final balance invoice first.'); return }
+    if(mode==='final'){
+      const amount=Math.max(0,Number(balance?.total_amount||0)-Number(balance?.paid_amount||0))
+      if(amount<=0.004){ setDeliveryMsg('No outstanding final balance remains.'); return }
+      if(!window.confirm(`Request the final balance of R ${amount.toFixed(2)} from ${client.name} via ${channel}?`)) return
+    }
+    setAction(mode==='final'?'final-delivery':'delivery'); setDeliveryMsg('')
+    try{
+      const {data:{session}}=await supabase.auth.getSession()
+      if(!session?.access_token) throw new Error('Admin session expired. Sign in again.')
+      const res=await fetch('/api/admin/completion-delivery',{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${session.access_token}`},body:JSON.stringify({jobId:job.id,channel,mode})})
+      const data=await res.json()
+      if(!res.ok) throw new Error(data.error||'Delivery failed')
+      if(channel==='whatsapp'&&data.whatsappText&&client.phone){
+        const digits=client.phone.replace(/\\D/g,'').replace(/^0/,'27')
+        window.open(`https://wa.me/${digits}?text=${encodeURIComponent(data.whatsappText)}`,'_blank','noopener,noreferrer')
+      }
+      if(mode==='final') setFinalRequested(true)
+      setDeliveryMsg(mode==='final'
+        ? (channel==='email'?'Final payment request email sent.':channel==='whatsapp'?'Final payment WhatsApp message prepared.':'Final payment email sent; WhatsApp is ready.')
+        : (channel==='email'?'Completion email sent.':channel==='whatsapp'?'WhatsApp opened with the completion message.':'Completion email sent; WhatsApp is ready.'))
+      await load()
+    }catch(e){setDeliveryMsg((e as Error).message)}
+    finally{setAction(null)}
+  }
+
+  async function createFinalInvoice(){
+    if(!job?.quote_id) return
+    setFinalBusy(true); setError(''); setDeliveryMsg('')
+    try{
+      const res=await handlersB.ngms_create_invoice(supabase,{quote_id:job.quote_id,kind:'balance'})
+      if(res.isError) throw new Error(res.content[0]?.text??'Could not create the final balance invoice')
+      setDeliveryMsg('Final balance invoice created. The outstanding amount is now ready to request.')
+      await load()
+    }catch(e){setError((e as Error).message)}
+    finally{setFinalBusy(false)}
+  }
 
   function whatsapp(){
     if(!client?.phone||!job) return
@@ -67,7 +154,8 @@ function CompletionView(){
       <div className="no-print mb-5 flex items-center justify-between gap-3">
         <Link href={`/admin/jobs/${job.id}`} className="inline-flex items-center gap-1 text-sm text-mist hover:text-paper"><ArrowLeft className="h-4 w-4"/> Job</Link>
         <div className="flex gap-2">
-          {client?.phone&&<button onClick={whatsapp} className="inline-flex items-center gap-2 rounded-btn bg-[#25D366] px-3 py-2 text-sm font-semibold text-white"><MessageCircle className="h-4 w-4"/> WhatsApp</button>}
+          {client?.phone&&<button onClick={()=>deliver('whatsapp')} disabled={!!action} className="inline-flex items-center gap-2 rounded-btn bg-[#25D366] px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"><MessageCircle className="h-4 w-4"/> Send WhatsApp</button>}
+          {client?.email&&<button onClick={()=>deliver('email')} disabled={!!action} className="inline-flex items-center gap-2 rounded-btn bg-blue-fill px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"><Mail className="h-4 w-4"/> Send Email</button>}
           <button onClick={()=>window.print()} className="inline-flex items-center gap-2 rounded-btn border border-darkgrey px-3 py-2 text-sm text-mist hover:border-blue hover:text-paper"><Printer className="h-4 w-4"/> Print / PDF</button>
         </div>
       </div>
@@ -90,6 +178,8 @@ function CompletionView(){
 
         {job.description&&<div className="mt-5 whitespace-pre-line text-sm" style={{color:brand.grey}}><strong style={{color:brand.black}}>Work / site notes</strong><div className="mt-2">{job.description}</div></div>}
 
+        {completionReport?.work_completed&&<section className="mt-5 rounded-xl border p-4" style={{borderColor:brand.line}}><h2 className="text-sm font-bold" style={{color:brand.black}}>Final completion report</h2><div className="mt-2 whitespace-pre-line text-sm" style={{color:brand.grey}}>{completionReport.work_completed}</div>{completionReport.completion_notes&&<div className="mt-3 text-sm" style={{color:brand.grey}}><strong style={{color:brand.black}}>Completion notes / follow-up</strong><p className="mt-1 whitespace-pre-line">{completionReport.completion_notes}</p></div>}{completionReport.outstanding_issues&&<div className="mt-3 text-sm" style={{color:brand.grey}}><strong style={{color:brand.black}}>Outstanding work / issues</strong><p className="mt-1 whitespace-pre-line">{completionReport.outstanding_issues}</p></div>}{completionReport.warranty_notes&&<div className="mt-3 text-sm" style={{color:brand.grey}}><strong style={{color:brand.black}}>Warranty / handover</strong><p className="mt-1 whitespace-pre-line">{completionReport.warranty_notes}</p></div>}{completionReport.client_satisfaction&&<div className="mt-3 text-sm" style={{color:brand.grey}}><strong style={{color:brand.black}}>Client sign-off</strong><p className="mt-1 whitespace-pre-line">{completionReport.client_satisfaction}</p></div>}</section>}
+
         <div className="mt-6">
           <div className="mb-3 flex items-center gap-2 font-bold"><ImageIcon className="h-4 w-4"/>{photos.length} site photo{photos.length===1?'':'s'}</div>
           {(['before','progress','after'] as const).map(type=>grouped[type].length>0&&<section key={type} className="mb-6">
@@ -100,6 +190,48 @@ function CompletionView(){
             </figure>)}</div>
           </section>)}
           {!photos.length&&<p className="text-sm" style={{color:brand.grey}}>No site photos were added to this job.</p>}
+        </div>
+
+        <div className="mt-7 rounded-xl border p-4" style={{borderColor:brand.line,background:'#FAFAFA'}}>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-bold" style={{color:brand.black}}>Final 30% payment</p>
+            {finalRequested&&<span className="text-[10px] uppercase tracking-wider font-bold" style={{color:'#2E7D32'}}>Request recorded</span>}
+          </div>
+          {balance ? (
+            <>
+              <div className="mt-2 grid grid-cols-2 gap-3 text-xs sm:grid-cols-3">
+                <div><span style={{color:brand.grey}}>Balance invoice</span><div className="font-bold">{balance.invoice_number}</div></div>
+                <div><span style={{color:brand.grey}}>Outstanding</span><div className="font-bold">R {(Number(balance.total_amount)-Number(balance.paid_amount)).toFixed(2)}</div></div>
+                <div><span style={{color:brand.grey}}>Status</span><div className="font-bold uppercase">{balance.status}</div></div>
+              </div>
+              {Number(balance.total_amount)-Number(balance.paid_amount)>0.004 && !finalRequested && <div className="no-print mt-4 flex flex-wrap gap-2">
+                {client?.phone&&<button onClick={()=>deliver('whatsapp','final')} disabled={!!action} className="inline-flex items-center gap-2 rounded-btn bg-[#25D366] px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"><MessageCircle className="h-4 w-4"/> Request final 30% on WhatsApp</button>}
+                {client?.email&&<button onClick={()=>deliver('email','final')} disabled={!!action} className="inline-flex items-center gap-2 rounded-btn bg-blue-fill px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"><Mail className="h-4 w-4"/> Request final 30% by email</button>}
+                {client?.phone&&client?.email&&<button onClick={()=>deliver('both','final')} disabled={!!action} className="inline-flex items-center gap-2 rounded-btn border px-3 py-2 text-xs font-semibold disabled:opacity-50" style={{borderColor:brand.line,color:brand.black}}>Both</button>}
+              </div>}
+              {finalRequested&&<p className="no-print mt-3 text-xs" style={{color:brand.grey}}>The final payment request has already been recorded. This prevents accidental duplicate requests.</p>}
+            </>
+          ) : job.quote_id ? (
+            <div className="mt-2">
+              <p className="text-xs" style={{color:brand.grey}}>The job has a linked quote but no final balance invoice yet.</p>
+              <button onClick={createFinalInvoice} disabled={finalBusy} className="no-print mt-3 inline-flex items-center gap-2 rounded-btn bg-[#F57C1B] px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"><Receipt className="h-4 w-4"/>{finalBusy?'Creating…':'Create final 30% invoice'}</button>
+            </div>
+          ) : <p className="mt-1 text-xs" style={{color:brand.grey}}>No quote is linked to this job yet. Link the correct quote before requesting payment.</p>}
+          {deliveryMsg&&<p className="no-print mt-3 text-xs" style={{color:brand.grey}}>{deliveryMsg}</p>}
+        </div>
+
+        <div className="mt-6 rounded-xl border p-4" style={{borderColor:brand.line,background:'#F7F5FA'}}>
+          <p className="text-sm font-bold" style={{color:brand.black}}>Thank you — we value your business</p>
+          <p className="mt-1 text-xs leading-5" style={{color:brand.grey}}>Thank you for trusting NextGen Maintenance Solutions with your project. If you are happy with our work, your review helps local customers find and trust NGMS.</p>
+          <p className="mt-2 text-xs" style={{color:brand.grey}}>If you know a homeowner, landlord, body corporate or business that could use our services, we would really appreciate a referral.</p>
+          <div className="no-print mt-3 flex flex-wrap gap-2">
+            {settings.google_review_url && <a href={settings.google_review_url} target="_blank" rel="noreferrer" className="rounded-btn bg-blue-fill px-3 py-2 text-xs font-semibold text-white">Google Review</a>}
+            {settings.facebook_review_url && <a href={settings.facebook_review_url} target="_blank" rel="noreferrer" className="rounded-btn border px-3 py-2 text-xs font-semibold" style={{borderColor:brand.line,color:brand.black}}>Facebook Review</a>}
+            <button onClick={requestReview} disabled={reviewRequested||!!action} className="rounded-btn border px-3 py-2 text-xs font-semibold disabled:opacity-50" style={{borderColor:brand.line,color:brand.black}}>
+              {action==='review'?'Saving…':reviewRequested?'Review request recorded':'Record review request'}
+            </button>
+          </div>
+          {!settings.google_review_url&&!settings.facebook_review_url&&<p className="mt-2 text-[11px]" style={{color:'#A15A00'}}>Review links are not configured yet. Add the Google and Facebook review URLs in NGMS Business Settings.</p>}
         </div>
 
         <div className="mt-8 border-t pt-4 text-xs" style={{borderColor:brand.line,color:brand.grey}}>
