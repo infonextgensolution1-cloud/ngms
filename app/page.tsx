@@ -7,6 +7,7 @@ import HowItWorks from '@/components/HowItWorks'
 import BodyCorporateSection from '@/components/BodyCorporateSection'
 import HelderbergToday from '@/components/home/HelderbergToday'
 import HomeHero from '@/components/home/HomeHero'
+import LocalPointOfContact from '@/components/home/LocalPointOfContact'
 import { getBusinessHours } from '@/lib/business-hours'
 import { AreasAndFaq, FinalCta, GoogleReviews, RecentWork, ServicesOverview, SolarFeature, WhyNgms, type Photo } from '@/components/home/HomeSections'
 import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages, getSlotPhotos } from '@/lib/queries'
@@ -16,10 +17,9 @@ export const revalidate = 300
 // Title/description/OG come from the root layout; only the canonical is page-specific.
 export const metadata: Metadata = { alternates: { canonical: '/' } }
 
-// Homepage flow: who/what/where (hero) → services → flagship solar offer → proof
-// (recent work, before/after, reviews) → why NGMS → process → complexes →
-// weather-aware planning → service area + FAQ → final quote/WhatsApp CTA.
-// Every photo comes from Admin → Media, so new uploads show up here automatically.
+// Homepage flow: hero → local point-of-contact statement → services → solar offer →
+// proof, reviews, why NGMS, process, body corporates, local planning and final CTA.
+// Homepage imagery remains managed through Admin → Media.
 export default async function HomePage() {
   const hours = await getBusinessHours()
   const [slides, gallery, beforeAfter, serviceImages, slotPhotos] = await Promise.all([
@@ -50,11 +50,9 @@ export default async function HomePage() {
   const pool = [...afterPhotos, ...galleryPhotos, ...jobPhotos]
   const pick = (i: number) => (pool.length ? pool[i % pool.length] : undefined)
 
-  // Pinned from Admin → Media → Homepage slot; falls back to an automatic pick.
   const slot = (key: string): Photo | undefined =>
     slotPhotos[key] ? { src: slotPhotos[key].image_url, caption: slotPhotos[key].caption || 'Recent job' } : undefined
 
-  // Recent work strip: completed jobs first, de-duplicated by image.
   const seen = new Set<string>()
   const recent = [...afterPhotos, ...galleryPhotos, ...jobPhotos].filter((p) => {
     if (!p.src || seen.has(p.src)) return false
@@ -66,8 +64,8 @@ export default async function HomePage() {
     <main className="bg-jet ngms-home-refresh" data-ngms-home-refresh>
       <SeasonalBanner />
       <DiscountPopup />
-
       <HomeHero slides={slides} days={hours.days} open={hours.open} close={hours.close} />
+      <LocalPointOfContact />
       <ServicesOverview services={services} images={serviceImages} />
       <SolarFeature photo={slot('hero_solar') ?? solarPhotos[0] ?? pick(0)} />
       <RecentWork photos={recent} />
