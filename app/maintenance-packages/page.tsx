@@ -95,12 +95,26 @@ export default function MaintenancePackagesPage() {
             </div>
           </div>
 
-          <div className="relative col-span-2 hidden min-h-[470px] items-end justify-center border-b border-[#E0DFE5] pb-8 lg:col-span-1 lg:flex">
-            <Link href="#recurring" aria-label="Explore maintenance plans" className="group relative mb-3 flex h-40 w-40 flex-col items-center justify-center rounded-full bg-[#F04427] text-center text-white shadow-[0_10px_28px_rgba(240,68,39,.12)] transition-transform duration-300 hover:scale-105 xl:h-48 xl:w-48">
-              <span className="max-w-[120px] text-xs font-semibold uppercase leading-snug tracking-wide xl:text-sm">Explore maintenance plans</span>
-              <ArrowDownRight aria-hidden="true" className="mt-3 h-6 w-6 transition-transform group-hover:translate-x-1 group-hover:translate-y-1" />
+          <div className="relative col-span-2 hidden min-h-[470px] overflow-hidden border-b border-[#E0DFE5] pb-8 lg:col-span-1 lg:block" aria-label="Solar cleaning, paving and property maintenance photos">
+            <div className="absolute inset-5 bg-[#D9D9D6]">
+              <span className="absolute right-4 top-4 z-20 text-[10px] font-black uppercase tracking-[.18em] text-[#111111] [writing-mode:vertical-rl]">PLAN / MAINTAIN / PROTECT</span>
+              <div className="absolute left-[9%] top-[14%] h-[66%] w-[68%] overflow-hidden bg-[#111111]">
+                <img src="https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=1000&q=85" alt="Solar panels on a residential roof" className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" />
+                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-4 pt-14 text-xs font-black uppercase tracking-[.12em] text-white">Solar panel cleaning</span>
+              </div>
+              <div className="absolute right-[12%] top-[27%] z-10 h-[26%] w-[29%] border-[8px] border-[#F4F3F7] bg-[#1A1A1A]">
+                <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=500&q=85" alt="Well-maintained residential property exterior" className="h-full w-full object-cover" />
+              </div>
+              <div className="absolute bottom-[10%] right-[6%] z-10 flex h-[38%] w-[48%] items-end overflow-hidden bg-[#FF4B1B] [clip-path:polygon(0_0,100%_0,100%_100%,0_100%,19%_62%)]">
+                <img src="https://images.unsplash.com/photo-1590725140246-20ac9737e3dd?auto=format&fit=crop&w=900&q=85" alt="Outdoor paving and hard landscaping" className="absolute inset-0 h-full w-full object-cover object-center mix-blend-multiply opacity-95 transition-transform duration-700 hover:scale-105" />
+                <span className="relative z-10 w-full bg-black/65 px-3 py-3 text-[10px] font-black uppercase tracking-[.12em] text-white">Paving &amp; exterior repairs</span>
+              </div>
+              <span className="absolute bottom-[9%] left-[5%] text-3xl font-light text-white">+</span>
+            </div>
+            <Link href="#recurring" aria-label="Explore maintenance plans" className="absolute bottom-3 left-8 inline-flex items-center gap-2 bg-[#111111] px-4 py-3 text-xs font-black uppercase tracking-wide text-white transition-colors hover:bg-[#FF4B1B]">
+              Explore maintenance plans <ArrowDownRight aria-hidden="true" className="h-4 w-4" />
             </Link>
-            <span className="absolute bottom-7 right-3 text-[10px] uppercase tracking-[.14em] text-[#85848D]">Strand / Helderberg / Western Cape</span>
+            <span className="absolute bottom-4 right-3 text-[10px] font-bold uppercase tracking-[.14em] text-[#55545C]">Strand / Helderberg / Western Cape</span>
           </div>
         </div>
 
