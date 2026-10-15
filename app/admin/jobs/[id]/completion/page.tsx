@@ -16,6 +16,7 @@ type Client = { name:string; phone:string|null; email:string|null; address:strin
 type Photo = { id:string; photo_url:string; type:string; caption:string|null }
 type Settings = { google_review_url:string|null; facebook_review_url:string|null }
 type Balance = { id:string; invoice_number:string; total_amount:number; paid_amount:number; status:string }
+type CompletionReport = { work_completed:string|null; completion_notes:string|null; outstanding_issues:string|null; warranty_notes:string|null; client_satisfaction:string|null; updated_at:string }
 
 const brand={black:'#0A0A0A',purple:'#8B1BF5',grey:'#5B5B5B',line:'#E4E4E4'}
 
@@ -28,6 +29,7 @@ function CompletionView(){
   const [error,setError]=useState('')
   const [settings,setSettings]=useState<Settings>({google_review_url:null,facebook_review_url:null})
   const [balance,setBalance]=useState<Balance|null>(null)
+  const [completionReport,setCompletionReport]=useState<CompletionReport|null>(null)
   const [reviewRequested,setReviewRequested]=useState(false)
   const [action,setAction]=useState<string|null>(null)
   const [deliveryMsg,setDeliveryMsg]=useState('')
@@ -37,10 +39,11 @@ function CompletionView(){
   const load=useCallback(async()=>{
     setLoading(true); setError('')
     try{
-      const [jr,pr,sr]=await Promise.all([
+      const [jr,pr,sr,cr]=await Promise.all([
         handlersB.ngms_get_job(supabase,{job_id:params.id}),
         handlersC.ngms_list_job_photos(supabase,{job_id:params.id}),
-        supabase.from('settings').select('google_review_url,facebook_review_url').eq('id',1).maybeSingle()
+        supabase.from('settings').select('google_review_url,facebook_review_url').eq('id',1).maybeSingle(),
+        supabase.from('job_completion_reports').select('work_completed,completion_notes,outstanding_issues,warranty_notes,client_satisfaction,updated_at').eq('job_id',params.id).maybeSingle()
       ])
       if(jr.isError) throw new Error(jr.content[0]?.text??'Could not load job')
       const sc=jr.structuredContent as {job:Job;client:Client|null}
@@ -49,6 +52,7 @@ function CompletionView(){
       const signedPhotos = await Promise.all(photoRows.map(async (photo) => ({ ...photo, photo_url: await signedJobPhotoUrl(photo.photo_url) })))
       setPhotos(signedPhotos.filter((photo) => !!photo.photo_url) as Photo[])
       setSettings((sr.data as Settings|null) ?? {google_review_url:null,facebook_review_url:null})
+      setCompletionReport((cr.data as CompletionReport|null) ?? null)
       if(sc.job.quote_id){
         const {data:invoices}=await supabase.from('invoices').select('id,invoice_number,total_amount,paid_amount,status,notes').eq('quote_id',sc.job.quote_id).neq('status','void').order('created_at',{ascending:false})
         const b=(invoices??[]).find((i:any)=>/balance/i.test(String(i.notes??'')))
@@ -173,6 +177,8 @@ function CompletionView(){
         </div>
 
         {job.description&&<div className="mt-5 whitespace-pre-line text-sm" style={{color:brand.grey}}><strong style={{color:brand.black}}>Work / site notes</strong><div className="mt-2">{job.description}</div></div>}
+
+        {completionReport?.work_completed&&<section className="mt-5 rounded-xl border p-4" style={{borderColor:brand.line}}><h2 className="text-sm font-bold" style={{color:brand.black}}>Final completion report</h2><div className="mt-2 whitespace-pre-line text-sm" style={{color:brand.grey}}>{completionReport.work_completed}</div>{completionReport.completion_notes&&<div className="mt-3 text-sm" style={{color:brand.grey}}><strong style={{color:brand.black}}>Completion notes / follow-up</strong><p className="mt-1 whitespace-pre-line">{completionReport.completion_notes}</p></div>}{completionReport.outstanding_issues&&<div className="mt-3 text-sm" style={{color:brand.grey}}><strong style={{color:brand.black}}>Outstanding work / issues</strong><p className="mt-1 whitespace-pre-line">{completionReport.outstanding_issues}</p></div>}{completionReport.warranty_notes&&<div className="mt-3 text-sm" style={{color:brand.grey}}><strong style={{color:brand.black}}>Warranty / handover</strong><p className="mt-1 whitespace-pre-line">{completionReport.warranty_notes}</p></div>}{completionReport.client_satisfaction&&<div className="mt-3 text-sm" style={{color:brand.grey}}><strong style={{color:brand.black}}>Client sign-off</strong><p className="mt-1 whitespace-pre-line">{completionReport.client_satisfaction}</p></div>}</section>}
 
         <div className="mt-6">
           <div className="mb-3 flex items-center gap-2 font-bold"><ImageIcon className="h-4 w-4"/>{photos.length} site photo{photos.length===1?'':'s'}</div>
