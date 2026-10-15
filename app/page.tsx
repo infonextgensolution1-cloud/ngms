@@ -12,6 +12,7 @@ import { services } from '@/lib/services'
 import { SITE, whatsappLink } from '@/lib/site'
 import { getBusinessHours } from '@/lib/business-hours'
 import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages, getSlotPhotos } from '@/lib/queries'
+import './homepage-mason-editorial.css'
 
 export const revalidate = 300
 export const metadata: Metadata = { alternates: { canonical: '/' } }
