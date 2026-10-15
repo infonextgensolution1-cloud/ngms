@@ -8,6 +8,7 @@ import { handlersB } from '@/lib/ngms-ops/handlers-b'
 import { handlersC } from '@/lib/ngms-ops/handlers-c'
 import { PHOTO_TYPES } from '@/lib/ngms-ops/core'
 import { prepareJobPhoto, withJobPhotoTimeout } from '@/lib/job-photo-upload'
+import { signedJobPhotoUrl } from '@/lib/job-photo-url'
 
 type FieldJob = {
   id: string; title: string | null; description: string | null; status: string
@@ -97,7 +98,11 @@ export default function FieldOperationsPage() {
 
   async function loadPhotos(jobId: string) {
     const result = await handlersC.ngms_list_job_photos(supabase, { job_id: jobId })
-    if (!result.isError) setPhotos((current) => ({ ...current, [jobId]: (result.structuredContent?.photos as Photo[]) ?? [] }))
+    if (!result.isError) {
+      const rows = (result.structuredContent?.photos as Photo[]) ?? []
+      const signed = await Promise.all(rows.map(async (photo) => ({ ...photo, photo_url: await signedJobPhotoUrl(photo.photo_url) })))
+      setPhotos((current) => ({ ...current, [jobId]: signed.filter((photo) => !!photo.photo_url) as Photo[] }))
+    }
   }
 
   useEffect(() => { jobs.forEach((job) => { void loadPhotos(job.id) }) }, [jobs])

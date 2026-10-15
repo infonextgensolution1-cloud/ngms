@@ -8,6 +8,8 @@ import StaffGate from '@/components/admin/StaffGate'
 import DeleteRecord from '@/components/admin/DeleteRecord'
 import { supabase } from '@/lib/supabaseClient'
 import TrackerLinkButton from '@/components/admin/TrackerLinkButton'
+import SubcontractorJobAssignment from '@/components/admin/SubcontractorJobAssignment'
+import FinalCompletionReportEditor from '@/components/admin/FinalCompletionReportEditor'
 import { deleteJob } from '@/lib/admin-delete'
 import { jobWeather, useForecast } from '@/lib/job-weather'
 import { googleCalendarLink } from '@/lib/gcal-link'
@@ -206,7 +208,9 @@ function JobDetail() {
       setJob(sc.job)
       setClient(sc.client)
       setCosting(sc.costing)
-      setPhotos(((photoRes.structuredContent?.photos as Photo[]) ?? []) as Photo[])
+      const rawPhotos = ((photoRes.structuredContent?.photos as Photo[]) ?? []) as Photo[]
+      const signedPhotos = await Promise.all(rawPhotos.map(async (photo) => ({ ...photo, photo_url: await signedJobPhotoUrl(photo.photo_url) })))
+      setPhotos(signedPhotos.filter((photo): photo is Photo & { photo_url: string } => !!photo.photo_url) as Photo[])
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -298,6 +302,8 @@ function JobDetail() {
           </div>
 
           <div className="mb-3"><TrackerLinkButton jobId={job.id} /></div>
+          <SubcontractorJobAssignment jobId={job.id} />
+          <FinalCompletionReportEditor jobId={job.id} />
           <div className="mb-4 flex flex-wrap gap-2">
             {job.quote_id && (
               <Link href={`/admin/quotes/${job.quote_id}`} className="inline-flex items-center gap-2 text-xs border border-darkgrey hover:border-blue text-mist hover:text-paper px-3 py-1.5 rounded-btn">
