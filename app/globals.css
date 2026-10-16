@@ -514,8 +514,8 @@ body { background-color: #111111; }
 .text-blue { color: var(--ngms-orange) !important; }
 .bg-blue { background-color: var(--ngms-orange) !important; }
 .border-blue { border-color: var(--ngms-orange) !important; }
-.hover\\:text-blue:hover { color: var(--ngms-orange) !important; }
-.hover\\:border-blue:hover { border-color: var(--ngms-orange) !important; }
+.hover\:text-blue:hover { color: var(--ngms-orange) !important; }
+.hover\:border-blue:hover { border-color: var(--ngms-orange) !important; }
 
 /* ---------- NGMS public design system: Pinterest orange + warm neutrals ----------
    Public website only. Quote/invoice print templates retain their own palette.
