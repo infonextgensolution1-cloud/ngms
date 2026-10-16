@@ -31,7 +31,7 @@ export default function OperationsControlPage() {
   const [file, setFile] = useState<File | null>(null)
   const [settlementJob, setSettlementJob] = useState('')
   const [labour, setLabour] = useState('')
-  const [vatRate, setVatRate] = useState('0.15')
+  const [vatRate, setVatRate] = useState('0')
   const [savingSettlement, setSavingSettlement] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const booted = useRef(false)
@@ -207,7 +207,7 @@ export default function OperationsControlPage() {
               <div className="grid gap-3 md:grid-cols-3">
                 <label className="text-xs text-mist md:col-span-1">Job<select className={input + ' mt-1'} value={settlementJob} onChange={(e) => setSettlementJob(e.target.value)}><option value="">Choose job…</option>{data.jobs.map((job) => <option key={job.id} value={job.id}>{job.title || 'Untitled job'} · {job.status}</option>)}</select></label>
                 <label className="text-xs text-mist">Total labour only (ex VAT)<input className={input + ' mt-1'} type="number" min="0" step="0.01" value={labour} onChange={(e) => setLabour(e.target.value)} placeholder="R 0.00" /></label>
-                <label className="text-xs text-mist">VAT rate<select className={input + ' mt-1'} value={vatRate} onChange={(e) => setVatRate(e.target.value)}><option value="0.15">15% standard VAT</option><option value="0">0% / no VAT charged</option></select></label>
+                <label className="text-xs text-mist">VAT rate<select className={input + ' mt-1'} value={vatRate} onChange={(e) => setVatRate(e.target.value)}><option value="0">0% / not charging VAT</option><option value="0.15">15% standard VAT (only if applicable)</option></select></label>
               </div>
               <div className="grid grid-cols-2 gap-3 my-4"><div className="border border-darkgrey rounded-btn p-3"><p className="text-xs text-mist">Subcontractor 50% · ex VAT</p><p className="font-heading text-xl font-bold text-paper mt-1">{money(ex)}</p></div><div className="border border-darkgrey rounded-btn p-3"><p className="text-xs text-mist">Subcontractor 50% · incl VAT</p><p className="font-heading text-xl font-bold text-paper mt-1">{money(inc)}</p></div></div>
               <button onClick={() => void saveSettlement()} disabled={savingSettlement || !settlementJob || labour === ''} className="inline-flex items-center gap-2 bg-orange text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50">{savingSettlement ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save settlement</button>
