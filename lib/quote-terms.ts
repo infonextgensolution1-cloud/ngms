@@ -4,7 +4,7 @@ export const PLACEHOLDER_ACC = /0{6,}/
 // Terms printed on every quote. Edit this list to change them everywhere.
 // {deposit} is replaced with the quote's deposit percentage.
 export const QUOTE_TERMS: string[] = [
-  'All prices are in South African Rand and exclude VAT (NextGen is not VAT registered).',
+  'All prices are in South African Rand. The agreed price and scope are shown in this quote.',
   'This quote is valid until the date shown above.',
   'A {deposit}% deposit confirms the booking. The balance is payable on completion.',
   'Work is scheduled once the deposit reflects in our account. Please use the quote number as your payment reference.',
