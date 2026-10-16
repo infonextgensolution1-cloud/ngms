@@ -84,44 +84,6 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
           </div>
         </div>
 
-        <div className="mt-auto pt-12 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
-          <ul className="grid grid-cols-3 gap-px rounded-panel overflow-hidden border border-white/10 bg-white/10 max-w-xl">
-            {PROOF.map(([a, b]) => (
-              <li key={a} className="bg-jet/70 backdrop-blur px-3 py-3 sm:px-4">
-                <p className="font-heading font-semibold text-sm sm:text-base text-paper">{a}</p>
-                <p className="text-[11px] sm:text-xs text-mist mt-0.5">{b}</p>
-              </li>
-            ))}
-          </ul>
-
-          {count > 0 && (
-            <div
-              role="group"
-              aria-roledescription="carousel"
-              aria-label="Recent NextGen jobs"
-              className="flex items-center gap-3 rounded-panel border border-white/10 bg-jet/70 backdrop-blur p-2 pl-4 max-w-md"
-            >
-              <p className="flex-1 min-w-0 text-sm" aria-live={playing ? 'off' : 'polite'}>
-                <span className="block text-[11px] uppercase tracking-[0.18em] text-mist">
-                  Recent work {count > 1 && `· ${index + 1}/${count}`}
-                </span>
-                <span className="block truncate text-paper">{slide.caption || slide.alt_text || 'Completed NextGen job'}</span>
-              </p>
-              {count > 1 && (
-                <div className="flex items-center gap-1 shrink-0">
-                  <HeroButton label="Previous photo" onClick={() => go(index - 1)}>
-                    <path d="M15 18l-6-6 6-6" />
-                  </HeroButton>
-                  <HeroButton label={paused ? 'Play slideshow' : 'Pause slideshow'} onClick={() => setPaused((p) => !p)}>
-                    {paused || reduce ? <path d="M8 5v14l11-7z" fill="currentColor" /> : <path d="M9 5v14M15 5v14" />}
-                  </HeroButton>
-                  <HeroButton label="Next photo" onClick={() => go(index + 1)}>
-                    <path d="M9 18l6-6-6-6" />
-                  </HeroButton>
-                </div>
-              )}
-            </div>
-          )}
       <div className="ngms-new-hero__content">
         <p className="ngms-new-eyebrow"><span /> Property maintenance · Helderberg Basin</p>
         <h1 id="ngms-home-title">ONE CALL.<br /><span>ALL SOLUTIONS.</span></h1>
