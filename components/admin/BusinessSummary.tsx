@@ -14,7 +14,7 @@ import Link from 'next/link'
  * Business summary for the admin dashboard.
  * Uses the same logic as the NGSMS Ops connector (lib/ngms-ops) with the
  * signed-in admin's Supabase session, so the numbers always match what
- * Claude reports. Leads come straight from the leads table.
+ * the underlying NGMS records. Leads come straight from the leads table.
  *
  * Live: reloads when a lead, quote, invoice or job changes (Supabase Realtime),
  * when the app comes back into view, and every 2 minutes as a fallback.
