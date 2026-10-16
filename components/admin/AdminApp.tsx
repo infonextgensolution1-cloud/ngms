@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CalendarDays, HardHat, Home, Plus, Users, WifiOff } from 'lucide-react'
+import { CalendarDays, HardHat, Home, Plus, Users, WifiOff, Files } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
 
 const DATA_CACHE = 'ngms-admin-data' // must match public/admin-sw.js
@@ -14,6 +14,7 @@ const TABS = [
   { href: '/admin/quotes/new', label: 'Quote', icon: Plus, primary: true },
   { href: '/admin/jobs', label: 'Jobs', icon: HardHat },
   { href: '/admin/calendar', label: 'Calendar', icon: CalendarDays },
+  { href: '/admin/operations-control', label: 'Ops', icon: Files },
 ]
 
 /**
