@@ -2257,3 +2257,527 @@ input:disabled, select:disabled, textarea:disabled { opacity: .6; cursor: not-al
   .ngms-services-reference h1, .ngms-solar-fusion h1 { font-size: clamp(2.8rem, 14vw, 5rem); }
   .ngms-services-reference h2, .ngms-solar-fusion h2 { font-size: clamp(2rem, 10vw, 3.5rem); }
 }
+
+
+/* Solar panel cleaning detail page — reference-led editorial layout.
+   Scope is limited to the solar detail route's .ngms-solar-editorial wrapper. */
+.ngms-solar-editorial {
+  --solar-ink:#050505;
+  --solar-paper:#c7c7c7;
+  --solar-white:#f4f4f2;
+  --solar-mid:#999;
+  --solar-dark:#242424;
+  --solar-red:#f20d0d;
+  --solar-muted-red:#ac2020;
+  margin:0 auto;
+  overflow:hidden;
+  color:var(--solar-ink);
+  background:var(--solar-paper);
+  font-family:Inter,Arial,sans-serif;
+}
+.ngms-solar-editorial * { box-sizing:border-box; }
+.ngms-solar-editorial a { text-decoration:none; }
+.ngms-solar-editorial a:focus-visible {
+  outline:2px solid var(--solar-red);
+  outline-offset:4px;
+}
+.ngms-solar-editorial__eyebrow {
+  margin:0;
+  font-size:10px;
+  line-height:1.3;
+  font-weight:800;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
+.ngms-solar-editorial__services {
+  display:grid;
+  grid-template-columns:minmax(230px,.8fr) minmax(0,1.2fr);
+  gap:clamp(24px,5vw,80px);
+  padding:clamp(30px,6vw,78px) clamp(20px,6vw,90px) 34px;
+  border-bottom:1px solid #929292;
+}
+.ngms-solar-editorial__side {
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  min-height:330px;
+  padding-right:clamp(0px,3vw,44px);
+  border-right:1px solid #a1a1a1;
+}
+.ngms-solar-editorial__side h1 {
+  margin:25px 0 12px;
+  font-size:clamp(3.2rem,7vw,7.5rem);
+  font-weight:900;
+  line-height:.78;
+  letter-spacing:-.085em;
+  text-transform:uppercase;
+}
+.ngms-solar-editorial__side > p:not(.ngms-solar-editorial__eyebrow) {
+  max-width:260px;
+  font-size:12px;
+  line-height:1.45;
+  text-transform:uppercase;
+}
+.ngms-solar-editorial__round-arrow {
+  display:grid;
+  place-items:center;
+  width:76px;
+  height:76px;
+  margin:auto 0 0 12%;
+  border:1px solid #111;
+  border-radius:50%;
+  color:#000;
+  font-size:40px;
+  font-weight:300;
+  transition:background .2s,color .2s,transform .2s;
+}
+.ngms-solar-editorial__round-arrow:hover {
+  color:#fff;
+  background:var(--solar-red);
+  border-color:var(--solar-red);
+  transform:rotate(-8deg);
+}
+.ngms-solar-editorial__service-list { min-width:0; }
+.ngms-solar-editorial__service-list > .ngms-solar-editorial__eyebrow { color:#444; }
+.ngms-solar-editorial__service-list h2 {
+  margin:14px 0 5px;
+  font-size:clamp(2rem,4.5vw,4.5rem);
+  line-height:.9;
+  font-weight:900;
+  letter-spacing:-.065em;
+  text-transform:uppercase;
+}
+.ngms-solar-editorial__intro {
+  margin:0 0 18px;
+  color:#444;
+  font-size:12px;
+}
+.ngms-solar-editorial__rows { border-top:1px solid #9b9b9b; }
+.ngms-solar-editorial__row {
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr) 28px;
+  gap:10px;
+  align-items:center;
+  min-height:48px;
+  padding:7px 0;
+  border-bottom:1px solid #999;
+  color:#080808;
+  font-size:clamp(11px,1.25vw,15px);
+  font-weight:800;
+  text-transform:uppercase;
+  transition:background .18s,color .18s,padding .18s;
+}
+.ngms-solar-editorial__row:hover {
+  padding-left:8px;
+  padding-right:8px;
+  color:#fff;
+  background:#090909;
+}
+.ngms-solar-editorial__row-icon {
+  display:grid;
+  place-items:center;
+  width:23px;
+  height:23px;
+  border:1px solid #151515;
+  border-radius:50%;
+  font-size:13px;
+}
+.ngms-solar-editorial__row:hover .ngms-solar-editorial__row-icon {
+  border-color:var(--solar-red);
+  background:var(--solar-red);
+}
+.ngms-solar-editorial__row-index {
+  color:#6d6d6d;
+  font-size:9px;
+  text-align:right;
+}
+.ngms-solar-editorial__service-image {
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  align-items:flex-start;
+  min-height:120px;
+  margin-top:16px;
+  padding:15px;
+  overflow:hidden;
+  color:#fff;
+  background:
+    linear-gradient(90deg,rgba(0,0,0,.94),rgba(0,0,0,.48)),
+    repeating-linear-gradient(135deg,#1b1b1b 0 3px,#555 3px 4px,#242424 4px 11px);
+}
+.ngms-solar-editorial__service-image::before {
+  content:"";
+  position:absolute;
+  width:55%;
+  height:160%;
+  right:9%;
+  top:-28%;
+  transform:rotate(25deg);
+  border:1px solid #999;
+  background:repeating-linear-gradient(90deg,transparent 0 17px,rgba(255,255,255,.17) 18px 19px);
+}
+.ngms-solar-editorial__service-image > * { position:relative; z-index:1; }
+.ngms-solar-editorial__service-image > span {
+  font-size:8px;
+  letter-spacing:.12em;
+}
+.ngms-solar-editorial__service-image strong {
+  margin-top:16px;
+  font-size:clamp(1.5rem,3.1vw,3rem);
+  line-height:.85;
+  letter-spacing:-.055em;
+}
+.ngms-solar-editorial__service-image > a {
+  position:absolute;
+  right:12px;
+  bottom:12px;
+  display:grid;
+  place-items:center;
+  width:30px;
+  height:30px;
+  color:#fff;
+  background:var(--solar-red);
+  border-radius:50%;
+  font-size:17px;
+}
+.ngms-solar-editorial__feedback {
+  display:grid;
+  grid-template-columns:minmax(190px,.72fr) minmax(0,1.6fr);
+  gap:clamp(20px,4vw,60px);
+  padding:30px clamp(20px,6vw,90px) 42px;
+  border-bottom:1px solid #969696;
+}
+.ngms-solar-editorial__feedback-heading h2 {
+  margin:16px 0 12px;
+  font-size:clamp(2rem,4vw,4rem);
+  line-height:.82;
+  letter-spacing:-.07em;
+  font-weight:900;
+  text-transform:uppercase;
+}
+.ngms-solar-editorial__feedback-heading > p:not(.ngms-solar-editorial__eyebrow) {
+  max-width:230px;
+  font-size:11px;
+  line-height:1.45;
+  text-transform:uppercase;
+}
+.ngms-solar-editorial__feedback-heading > a {
+  display:inline-block;
+  margin-top:12px;
+  padding-bottom:4px;
+  border-bottom:1px solid #111;
+  color:#111;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.08em;
+}
+.ngms-solar-editorial__review-grid {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+  align-items:stretch;
+}
+.ngms-solar-editorial__review {
+  min-width:0;
+  min-height:145px;
+  padding:12px 10px;
+  border:1px solid #777;
+  background:rgba(255,255,255,.16);
+}
+.ngms-solar-editorial__review-top {
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+.ngms-solar-editorial__avatar {
+  display:grid;
+  place-items:center;
+  flex:0 0 26px;
+  width:26px;
+  height:26px;
+  border:1px solid #555;
+  border-radius:50%;
+  color:#fff;
+  background:#222;
+  font-size:12px;
+  font-weight:800;
+}
+.ngms-solar-editorial__review-top > div { min-width:0; }
+.ngms-solar-editorial__review-top strong,
+.ngms-solar-editorial__review-top span {
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.ngms-solar-editorial__review-top strong {
+  font-size:10px;
+  line-height:1.2;
+}
+.ngms-solar-editorial__review-top span {
+  margin-top:3px;
+  color:#555;
+  font-size:8px;
+}
+.ngms-solar-editorial__stars {
+  margin:8px 0 6px;
+  color:var(--solar-red);
+  font-size:13px;
+  letter-spacing:.04em;
+}
+.ngms-solar-editorial__review-text {
+  margin:0;
+  font-size:10px;
+  line-height:1.4;
+  overflow-wrap:anywhere;
+}
+.ngms-solar-editorial__proof-mark {
+  display:block;
+  margin-bottom:10px;
+  color:var(--solar-red);
+  font-size:22px;
+}
+.ngms-solar-editorial__proof > strong {
+  display:block;
+  margin-bottom:8px;
+  font-size:11px;
+  letter-spacing:.04em;
+}
+.ngms-solar-editorial__talk {
+  position:relative;
+  padding:clamp(38px,6vw,78px) 20px 25px;
+  text-align:center;
+}
+.ngms-solar-editorial__talk h2 {
+  margin:18px auto 22px;
+  font-size:clamp(2.6rem,7vw,6.5rem);
+  line-height:.88;
+  font-weight:850;
+  letter-spacing:-.075em;
+}
+.ngms-solar-editorial__talk h2 span { color:#4d4d4d; }
+.ngms-solar-editorial__talk-dot {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  width:56px;
+  height:56px;
+  margin:0 auto;
+  border-radius:50%;
+  color:#fff;
+  background:#050505;
+  font-size:7px;
+  font-weight:800;
+  line-height:1.2;
+  letter-spacing:.04em;
+}
+.ngms-solar-editorial__talk-dot span { color:var(--solar-red); font-size:14px; }
+.ngms-solar-editorial__ticker {
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  gap:12px;
+  margin-top:34px;
+  padding:12px 0;
+  border-top:1px solid #999;
+  border-bottom:1px solid #999;
+  color:#555;
+  font-size:clamp(8px,1.2vw,13px);
+  letter-spacing:.035em;
+  text-transform:uppercase;
+}
+.ngms-solar-editorial__ticker b { color:var(--solar-red); font-size:16px; }
+.ngms-solar-editorial__contact {
+  padding:clamp(18px,3vw,36px) clamp(16px,4vw,56px) 26px;
+  color:#fff;
+  background:#050505;
+}
+.ngms-solar-editorial__contact > .ngms-solar-editorial__eyebrow { color:#aaa; }
+.ngms-solar-editorial__contact-title {
+  margin:8px 0 4px;
+  font-size:clamp(4rem,17vw,16rem);
+  line-height:.72;
+  font-weight:950;
+  letter-spacing:-.095em;
+  text-align:center;
+  white-space:nowrap;
+}
+.ngms-solar-editorial__contact-title span { color:var(--solar-red); }
+.ngms-solar-editorial__contact-bottom {
+  display:grid;
+  grid-template-columns:1fr 1.3fr 1fr;
+  gap:20px;
+  margin-top:26px;
+  padding-top:17px;
+  border-top:1px solid #414141;
+}
+.ngms-solar-editorial__contact-bottom > div { display:flex; flex-direction:column; gap:8px; }
+.ngms-solar-editorial__contact-bottom p,
+.ngms-solar-editorial__contact-bottom a {
+  margin:0;
+  color:#fff;
+  font-size:9px;
+  line-height:1.55;
+  letter-spacing:.055em;
+}
+.ngms-solar-editorial__contact-bottom a { color:#bbb; overflow-wrap:anywhere; }
+.ngms-solar-editorial__contact-bottom a:hover { color:var(--solar-red); }
+.ngms-solar-editorial__details {
+  display:grid;
+  grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
+  gap:clamp(25px,6vw,80px);
+  padding:clamp(36px,6vw,78px) clamp(20px,6vw,90px);
+  border-bottom:1px solid #999;
+}
+.ngms-solar-editorial__details-copy h2,
+.ngms-solar-editorial__faq h2,
+.ngms-solar-editorial__areas h2 {
+  margin:18px 0;
+  font-size:clamp(2.7rem,6vw,6rem);
+  line-height:.8;
+  font-weight:900;
+  letter-spacing:-.075em;
+  text-transform:uppercase;
+}
+.ngms-solar-editorial__details-copy h2 span { color:#626262; }
+.ngms-solar-editorial__details-copy > p:not(.ngms-solar-editorial__eyebrow) {
+  max-width:470px;
+  font-size:13px;
+  line-height:1.6;
+}
+.ngms-solar-editorial__detail-cta {
+  display:inline-flex;
+  align-items:center;
+  gap:20px;
+  margin-top:12px;
+  padding:13px 18px;
+  color:#fff;
+  background:var(--solar-red);
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.07em;
+}
+.ngms-solar-editorial__details-data h3 {
+  margin:0;
+  padding:12px 0;
+  border-bottom:1px solid #777;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.ngms-solar-editorial__included {
+  display:grid;
+  grid-template-columns:26px minmax(0,1fr) 18px;
+  gap:10px;
+  align-items:start;
+  padding:12px 0;
+  border-bottom:1px solid #aaa;
+}
+.ngms-solar-editorial__included > span {
+  color:#555;
+  font-size:10px;
+}
+.ngms-solar-editorial__included p {
+  margin:0;
+  font-size:12px;
+  line-height:1.45;
+}
+.ngms-solar-editorial__included > span:last-child { color:var(--solar-red); }
+.ngms-solar-editorial__pricing-title { margin-top:28px !important; }
+.ngms-solar-editorial__pricing > div {
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  padding:10px 0;
+  border-bottom:1px solid #aaa;
+  font-size:12px;
+}
+.ngms-solar-editorial__pricing strong { color:#8e1010; }
+.ngms-solar-editorial__pricing-note {
+  font-size:10px;
+  line-height:1.5;
+  color:#454545;
+}
+.ngms-solar-editorial__faq {
+  display:grid;
+  grid-template-columns:minmax(200px,.8fr) minmax(0,1.2fr);
+  gap:30px;
+  padding:clamp(36px,6vw,76px) clamp(20px,6vw,90px);
+  border-bottom:1px solid #999;
+}
+.ngms-solar-editorial__faq h2 { margin-top:16px; }
+.ngms-solar-editorial__faq h2 span { color:var(--solar-red); }
+.ngms-solar-editorial__faq > div article {
+  padding:15px 0;
+  border-bottom:1px solid #999;
+}
+.ngms-solar-editorial__faq h3 {
+  margin:0 0 8px;
+  font-size:13px;
+  font-weight:850;
+}
+.ngms-solar-editorial__faq article p {
+  margin:0;
+  font-size:12px;
+  line-height:1.55;
+  color:#414141;
+}
+.ngms-solar-editorial__areas {
+  padding:clamp(32px,5vw,60px) clamp(20px,6vw,90px);
+  background:#e1e1e1;
+}
+.ngms-solar-editorial__areas h2 { font-size:clamp(2.2rem,5vw,4.5rem); }
+.ngms-solar-editorial__areas > div {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  border-top:1px solid #999;
+}
+.ngms-solar-editorial__areas > div a {
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  padding:14px 10px;
+  border-bottom:1px solid #999;
+  color:#050505;
+  font-size:12px;
+  font-weight:800;
+  text-transform:uppercase;
+}
+.ngms-solar-editorial__areas > div a:nth-child(3n+2) { border-left:1px solid #999; border-right:1px solid #999; }
+.ngms-solar-editorial__areas > div a span { color:var(--solar-red); }
+@media(max-width:760px) {
+  .ngms-solar-editorial__services,
+  .ngms-solar-editorial__feedback,
+  .ngms-solar-editorial__details,
+  .ngms-solar-editorial__faq { grid-template-columns:1fr; }
+  .ngms-solar-editorial__services { gap:30px; padding:28px 18px; }
+  .ngms-solar-editorial__side { min-height:230px; padding:0 0 22px; border-right:0; border-bottom:1px solid #999; }
+  .ngms-solar-editorial__side h1 { font-size:clamp(3.5rem,16vw,6rem); }
+  .ngms-solar-editorial__round-arrow { width:55px; height:55px; margin:15px 0 0 auto; font-size:30px; }
+  .ngms-solar-editorial__service-list h2 { font-size:clamp(2.5rem,10vw,4.5rem); }
+  .ngms-solar-editorial__feedback { padding:28px 18px; }
+  .ngms-solar-editorial__review-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .ngms-solar-editorial__review { min-height:130px; }
+  .ngms-solar-editorial__talk { padding:42px 14px 18px; }
+  .ngms-solar-editorial__talk h2 { font-size:clamp(2.5rem,10vw,4.5rem); }
+  .ngms-solar-editorial__ticker { flex-wrap:wrap; justify-content:center; }
+  .ngms-solar-editorial__contact-title { font-size:clamp(3.5rem,15vw,8rem); }
+  .ngms-solar-editorial__contact-bottom { grid-template-columns:1fr 1fr; }
+  .ngms-solar-editorial__contact-bottom > div:last-child { grid-column:1/-1; }
+  .ngms-solar-editorial__details,
+  .ngms-solar-editorial__faq { padding:32px 18px; }
+  .ngms-solar-editorial__areas { padding:30px 18px; }
+  .ngms-solar-editorial__areas > div { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .ngms-solar-editorial__areas > div a:nth-child(3n+2) { border-right:0; }
+  .ngms-solar-editorial__areas > div a:nth-child(2n) { border-left:1px solid #999; }
+}
+@media(max-width:380px) {
+  .ngms-solar-editorial__review-grid { grid-template-columns:1fr; }
+  .ngms-solar-editorial__contact-title { font-size:13vw; }
+  .ngms-solar-editorial__contact-bottom { grid-template-columns:1fr; }
+  .ngms-solar-editorial__contact-bottom > div:last-child { grid-column:auto; }
+  .ngms-solar-editorial__areas > div { grid-template-columns:1fr; }
+  .ngms-solar-editorial__areas > div a:nth-child(n) { border-left:0;border-right:0; }
+}

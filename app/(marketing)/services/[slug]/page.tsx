@@ -9,6 +9,7 @@ import { whatsappLink } from "@/lib/site";
 import { getServiceImages } from "@/lib/queries";
 import TrustBadges from "@/components/TrustBadges";
 import NgmsIcon from "@/components/NgmsIcon";
+import { getGoogleReviews } from "@/lib/google-reviews";
 
 export function generateStaticParams() {
   return SERVICES.map((s) => ({ slug: s.slug }));
@@ -48,6 +49,120 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
         { slug: "bot-river", name: "Bot River" },
       ]
     : SUBURBS;
+
+  if (isSolar) {
+    const google = await getGoogleReviews();
+    const serviceRows = SERVICES.filter((item) => item.slug !== s.slug).slice(0, 6);
+    const realReviews = google.reviews.filter((review) => review.text || review.authorName).slice(0, 4);
+    return (
+      <section className="ngms-solar-editorial">
+        <div className="ngms-solar-editorial__services">
+          <div className="ngms-solar-editorial__side">
+            <p className="ngms-solar-editorial__eyebrow">01 / NGMS SERVICES</p>
+            <h1>MY<br />SERVICES</h1>
+            <p>End-to-end solar panel cleaning and property maintenance. Safe, reliable work for homes and businesses across the Helderberg Basin.</p>
+            <a className="ngms-solar-editorial__round-arrow" href="#solar-details" aria-label="Explore solar panel cleaning details">↙</a>
+          </div>
+          <div className="ngms-solar-editorial__service-list">
+            <p className="ngms-solar-editorial__eyebrow">SOLAR SPECIALIST / PROPERTY CARE</p>
+            <h2>{s.name}</h2>
+            <p className="ngms-solar-editorial__intro">{s.tagline}</p>
+            <div className="ngms-solar-editorial__rows">
+              {serviceRows.map((item, index) => (
+                <Link key={item.slug} href={`/services/${item.slug}`} className="ngms-solar-editorial__row">
+                  <span className="ngms-solar-editorial__row-icon" aria-hidden="true">↗</span>
+                  <span>{item.name}</span>
+                  <span className="ngms-solar-editorial__row-index">{String(index + 2).padStart(2, "0")}</span>
+                </Link>
+              ))}
+            </div>
+            <div className="ngms-solar-editorial__service-image" role="img" aria-label="Monochrome solar panel cleaning and rooftop maintenance visual">
+              <span>HELDERBERG BASIN / WESTERN CAPE</span>
+              <strong>CLEAN ENERGY.<br />CLEAR RESULTS.</strong>
+              <Link href="/quote?service=Solar%20Panel%20Cleaning" aria-label="Request a solar panel cleaning quote">↗</Link>
+            </div>
+          </div>
+        </div>
+        <div className="ngms-solar-editorial__feedback">
+          <div className="ngms-solar-editorial__feedback-heading">
+            <p className="ngms-solar-editorial__eyebrow">02 / CLIENT FEEDBACK</p>
+            <h2>CLIENTS<br />FEEDBACK</h2>
+            <p>Professional work. Clear communication. Respect for your property.</p>
+            {google.reviewsUri ? <a href={google.reviewsUri} target="_blank" rel="noreferrer">READ GOOGLE REVIEWS ↗</a> : null}
+          </div>
+          <div className="ngms-solar-editorial__review-grid">
+            {realReviews.length > 0 ? realReviews.map((review, index) => (
+              <article className="ngms-solar-editorial__review" key={`${review.authorName ?? "client"}-${index}`}>
+                <div className="ngms-solar-editorial__review-top">
+                  <span className="ngms-solar-editorial__avatar">{(review.authorName || "NG").slice(0, 1).toUpperCase()}</span>
+                  <div><strong>{review.authorName || "Google customer"}</strong><span>{review.relativePublishTimeDescription || "Google review"}</span></div>
+                </div>
+                <p className="ngms-solar-editorial__stars" aria-label={`${review.rating ?? 5} out of 5 stars`}>{"★".repeat(Math.max(0, Math.min(5, review.rating ?? 5)))}</p>
+                <p className="ngms-solar-editorial__review-text">{review.text}</p>
+              </article>
+            )) : (
+              [
+                ["LOCAL SERVICE", "Serving Strand, Gordon’s Bay and Somerset West with practical maintenance support."],
+                ["CLEAR QUOTES", "Written quotations and straightforward communication before work begins."],
+                ["CAREFUL WORK", "Non-abrasive solar panel cleaning methods and respect for your property."],
+                ["ONE CALL", "Solar cleaning plus multiple property maintenance trades under one point of contact."]
+              ].map(([title, description]) => (
+                <article className="ngms-solar-editorial__review ngms-solar-editorial__proof" key={title}>
+                  <span className="ngms-solar-editorial__proof-mark">✳</span>
+                  <strong>{title}</strong>
+                  <p className="ngms-solar-editorial__review-text">{description}</p>
+                </article>
+              ))
+            )}
+          </div>
+        </div>
+        <div className="ngms-solar-editorial__talk">
+          <p className="ngms-solar-editorial__eyebrow">03 / START A PROJECT</p>
+          <h2>Anything in Mind?<br /><span>Let’s Talk</span></h2>
+          <a className="ngms-solar-editorial__talk-dot" href="/quote?service=Solar%20Panel%20Cleaning">LET’S TALK <span>↗</span></a>
+          <div className="ngms-solar-editorial__ticker" aria-hidden="true">
+            <span>RELIABLE PROPERTY CARE</span><b>✳</b><span>HELDERBERG BASIN</span><b>✳</b><span>SOLAR PANEL CLEANING</span><b>✳</b>
+          </div>
+        </div>
+        <div className="ngms-solar-editorial__contact">
+          <p className="ngms-solar-editorial__eyebrow">04 / CONTACT NEXTGEN</p>
+          <div className="ngms-solar-editorial__contact-title">CONTACT<span>.</span></div>
+          <div className="ngms-solar-editorial__contact-bottom">
+            <div><p>ONE CALL. ALL SOLUTIONS.</p><a href={whatsappLink("Hi NextGen, I'd like a solar panel cleaning quote. I have ___ panels. Photo attached.")}>WHATSAPP FOR A QUOTE ↗</a></div>
+            <div><p>STRAND · GORDON’S BAY<br />SOMERSET WEST · HELDERBERG</p><a href="mailto:info.nextgensolution1@gmail.com">INFO.NEXTGENSOLUTION1@GMAIL.COM</a></div>
+            <div><p>MON–SAT / 07:00–17:00</p><a href="tel:+27631387945">+27 63 138 7945</a></div>
+          </div>
+        </div>
+        <div className="ngms-solar-editorial__details" id="solar-details">
+          <div className="ngms-solar-editorial__details-copy">
+            <p className="ngms-solar-editorial__eyebrow">05 / THE SERVICE</p>
+            <h2>KEEP YOUR<br /><span>PANELS CLEAR.</span></h2>
+            <p>{s.description}</p>
+            <Link className="ngms-solar-editorial__detail-cta" href="/quote?service=Solar%20Panel%20Cleaning">GET A QUOTE ↗</Link>
+          </div>
+          <div className="ngms-solar-editorial__details-data">
+            <h3>WHAT’S INCLUDED</h3>
+            {s.whatsIncluded.map((item, index) => <div className="ngms-solar-editorial__included" key={item}><span>{String(index + 1).padStart(2, "0")}</span><p>{item}</p><span>↗</span></div>)}
+            <h3 className="ngms-solar-editorial__pricing-title">STRAIGHTFORWARD PRICING</h3>
+            <div className="ngms-solar-editorial__pricing">
+              {SOLAR_TIERS.map((tier) => <div key={tier.size}><span>{tier.size}</span><strong>{tier.price}</strong></div>)}
+            </div>
+            <p className="ngms-solar-editorial__pricing-note">Prices exclude VAT. No callout fee in Strand, Gordon’s Bay or Somerset West. R350 callout outside the Helderberg Basin.</p>
+          </div>
+        </div>
+        {s.faqs.length > 0 ? <div className="ngms-solar-editorial__faq">
+          <p className="ngms-solar-editorial__eyebrow">06 / GOOD TO KNOW</p>
+          <h2>COMMON<br />QUESTIONS<span>?</span></h2>
+          <div>{s.faqs.map((faq) => <article key={faq.question}><h3>{faq.question}</h3><p>{faq.answer}</p></article>)}</div>
+        </div> : null}
+        <div className="ngms-solar-editorial__areas">
+          <p className="ngms-solar-editorial__eyebrow">07 / SERVICE AREA</p>
+          <h2>LOCAL KNOWLEDGE.<br />PRACTICAL SERVICE.</h2>
+          <div>{areaLinks.map((sub) => <Link key={sub.slug} href={areaHref(sub.slug)}>{sub.name} <span>↗</span></Link>)}</div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <main className="ngms-service-detail-reference">
