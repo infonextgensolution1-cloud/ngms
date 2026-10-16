@@ -137,12 +137,6 @@ const NAV_ITEMS: Array<{
     title: 'Subcontractors',
     desc: 'Prepare invitations and define restricted subcontractor access — draft only',
   },
-  {
-    href: '/admin/vercel-projects',
-    icon: Cloud,
-    title: 'Vercel Projects',
-    desc: 'Monitor NGMS deployment status & project info on Vercel',
-  },
 ]
 
 // Read-only view of the same 'site-visitors' presence channel the public
