@@ -49,7 +49,6 @@ export default function LeadReplyDraft({ lead }: { lead: Lead }) {
       ? `mailto:${lead.email}?subject=${encodeURIComponent(subjectMatch?.[1]?.trim() ?? 'Your NGMS enquiry')}&body=${encodeURIComponent(subjectMatch ? text.slice(subjectMatch[0].length) : text)}`
       : null
 
-  const chatgptUrl = `https://chatgpt.com/?q=${encodeURIComponent(text)}`
   const pick = (c: Channel, label: string) => (
     <button
       type="button"
@@ -87,12 +86,13 @@ export default function LeadReplyDraft({ lead }: { lead: Lead }) {
           <textarea className={`${input} mt-3 min-h-[180px]`} value={text} onChange={(e) => setText(e.target.value)} aria-label="ChatGPT prompt or edited draft" />
           <div className="flex flex-wrap gap-2 mt-2">
             <a
-              href={chatgptUrl}
+              href="https://chatgpt.com/"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => { void navigator.clipboard.writeText(text).then(() => setMsg('Prompt copied. Paste it into the new ChatGPT tab.')).catch(() => setMsg('ChatGPT opened. Copy the prompt manually from the text box.')) }}
               className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-btn bg-blue-fill hover:bg-blue-dark text-white font-semibold"
             >
-              <ExternalLink className="w-4 h-4" /> Open in ChatGPT
+              <ExternalLink className="w-4 h-4" /> Copy prompt and open ChatGPT
             </a>
             {channel === 'whatsapp' && wa && !text.startsWith('Draft a professional') && (
               <a href={`${wa}?text=${encodeURIComponent(text)}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-btn bg-whatsapp hover:bg-whatsapp-dark text-white font-semibold">
