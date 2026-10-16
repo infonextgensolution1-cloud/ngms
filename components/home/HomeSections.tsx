@@ -14,7 +14,7 @@ export type Photo = { src: string; caption: string }
 
 function PhotoFill({ photo, sizes, className = '' }: { photo?: Photo; sizes: string; className?: string }) {
   if (!photo?.src) return <div className={`absolute inset-0 bg-graphite ${className}`} />
-  return <Image src={photo.src} alt={photo.caption} fill sizes={sizes} quality={70} className={`object-cover ${className}`} />
+  return <Image src={photo.src} alt={photo.caption} fill sizes={sizes} quality={70} unoptimized className={`object-cover ${className}`} />
 }
 
 function SectionHead({ kicker, title, intro, action }: { kicker: string; title: ReactNode; intro?: ReactNode; action?: ReactNode }) {
@@ -48,7 +48,7 @@ export function ServicesOverview({
   images: Record<string, string>
 }) {
   return (
-    <section className="bg-jet text-paper py-16 sm:py-24 px-4" aria-labelledby="services-title">
+    <section className="band-light bg-fog text-graphite py-16 sm:py-24 px-4 ngms-services-editorial" aria-labelledby="services-title">
       <div className="max-w-6xl mx-auto">
         <SectionHead
           kicker="What we do"
@@ -67,9 +67,9 @@ export function ServicesOverview({
             ['Cleaning', 'Solar, pressure washing, gutters'],
             ['Repairs', 'Steelwork, handyman, rubble removal'],
           ].map(([label, sub]) => (
-            <div key={label} className="rounded-panel border border-darkgrey bg-cardgrey/60 px-3 py-3">
-              <span className="block font-heading font-semibold text-sm text-paper">{label}</span>
-              <span className="block mt-1 text-[11px] leading-snug text-mist">{sub}</span>
+            <div key={label} className="rounded-panel border border-concrete bg-paper px-3 py-3 shadow-[0_8px_24px_rgba(18,22,26,.045)]">
+              <span className="block font-heading font-semibold text-sm text-graphite">{label}</span>
+              <span className="block mt-1 text-[11px] leading-snug text-slate">{sub}</span>
             </div>
           ))}
         </div>
@@ -85,6 +85,7 @@ export function ServicesOverview({
                 <Link
                   href={`/services/${s.slug}`}
                   className={`group forge-interactive relative flex h-full flex-col justify-end overflow-hidden rounded-panel border border-darkgrey bg-cardgrey ${
+                  className={`group forge-interactive ngms-service-tile relative flex h-full flex-col justify-end overflow-hidden rounded-panel border border-concrete bg-graphite shadow-[0_14px_36px_rgba(18,22,26,.12)] ${
                     feature ? 'min-h-[340px] sm:min-h-[460px]' : 'min-h-[190px] sm:min-h-[220px]'
                   }`}
                 >
@@ -375,7 +376,7 @@ export function FinalCta({ photo }: { photo?: Photo }) {
   return (
     <section className="relative isolate overflow-hidden bg-jet text-paper px-4 py-20 sm:py-28" aria-labelledby="cta-title">
       <div className="absolute inset-0 -z-10" aria-hidden>
-        {photo?.src && <Image src={photo.src} alt="" fill sizes="100vw" quality={60} className="object-cover opacity-35" />}
+        {photo?.src && <Image src={photo.src} alt="" fill sizes="100vw" quality={60} unoptimized className="object-cover opacity-35" />}
         <div className="absolute inset-0 bg-gradient-to-r from-jet via-jet/85 to-jet/50" />
       </div>
       <div className="max-w-6xl mx-auto">
@@ -410,7 +411,7 @@ export async function GoogleReviews() {
   const data = await getGoogleReviews()
 
   return (
-    <section className="bg-fog text-graphite py-16 sm:py-24 px-4" aria-labelledby="google-reviews-title">
+    <section id="reviews" className="bg-fog text-graphite py-16 sm:py-24 px-4" aria-labelledby="google-reviews-title">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-wrap items-end justify-between gap-6 mb-10">
           <div className="max-w-2xl">

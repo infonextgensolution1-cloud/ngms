@@ -41,13 +41,13 @@ function ContactCard({
     <a
       href={href}
       {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-      className="btn-touch group flex items-center justify-between gap-4 rounded-card px-5 py-4 transition"
+      className="group flex min-w-0 items-center justify-between gap-4 border border-white/15 bg-white/[0.035] px-4 py-4 transition duration-200 hover:-translate-y-1 hover:border-[#FF6A00] hover:bg-white/[0.07] sm:px-5"
     >
       <span className="min-w-0">
-        <span className="glow-white block font-heading text-xl font-bold uppercase tracking-wide text-white">{label}</span>
-        <span className="block break-all text-sm text-mist">{value}</span>
+        <span className="block font-heading text-lg font-bold uppercase tracking-wide text-white sm:text-xl">{label}</span>
+        <span className="block break-all text-sm text-white/65">{value}</span>
       </span>
-      <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-darkgrey bg-jet transition group-hover:border-orange">
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center border border-white/15 bg-black/30 text-white transition group-hover:border-[#FF6A00] group-hover:text-[#FF6A00]">
         {icon}
       </span>
     </a>
@@ -56,119 +56,119 @@ function ContactCard({
 
 export default function ContactPage() {
   return (
-    <main className="bg-jet">
-      {/* Hero */}
-      <section
-        className="relative overflow-hidden bg-jet px-4 pb-4 pt-16 text-center sm:pt-24"
-        style={{
-          backgroundImage:
-            'radial-gradient(ellipse at 50% 0%, rgba(245,124,27,0.20), transparent 62%), linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)',
-          backgroundSize: 'auto, 56px 56px, 56px 56px',
-        }}
-      >
-        <p className="kicker animate-fade-up">Get in touch</p>
-        <h1 className="animate-fade-up font-heading text-7xl font-bold leading-[0.9] text-paper sm:text-8xl lg:text-9xl">
-          Contact <span className="text-mist">us.</span>
-        </h1>
-        <p className="mx-auto mt-5 max-w-xl text-lg text-mist">
-          One call for all your property maintenance needs across the Helderberg Basin.
-        </p>
-      </section>
-
-      {/* Contact details + enquiry form */}
-      <section className="wrap grid gap-10 py-12 lg:grid-cols-2 lg:gap-14 lg:py-16">
-        <div>
-          <p className="kicker">★ Helderberg-based team</p>
-          <h2 className="font-heading text-4xl font-bold leading-none text-paper sm:text-6xl">
-            Get in touch with NextGen!
-          </h2>
-          <p className="mt-4 max-w-md text-mist">
-            Message us on WhatsApp, call, or send an enquiry. We reply the same day &mdash; usually within a few
-            hours.
+    <main className="bg-[#0A0B0D] text-white">
+      {/* Cinematic industrial hero */}
+      <section className="relative isolate flex min-h-[560px] items-end overflow-hidden sm:min-h-[650px] lg:min-h-[710px]">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-20 bg-cover bg-center"
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2200&q=85')" }}
+        />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-[#08090B] via-[#08090B]/85 to-[#08090B]/25" />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-[#08090B]/95 via-transparent to-black/25" />
+        <div className="wrap w-full pb-14 pt-28 sm:pb-20 lg:pb-24">
+          <p className="mb-5 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.24em] text-[#FF6A00]">
+            <span className="h-[2px] w-8 bg-[#FF6A00]" /> NextGen Maintenance Solutions · Helderberg
           </p>
-
-          <div className="mt-8 grid gap-3">
-            <ContactCard href="tel:+27631387945" label="Call" value="063 138 7945" icon={<NgmsIcon name="phone" index={0} className="h-9 w-9" />} />
-            <ContactCard
-              href="https://wa.me/27631387945"
-              label="WhatsApp"
-              value="063 138 7945"
-              icon={<NgmsIcon name="fast-reply" index={1} className="h-9 w-9" />}
-              external
-            />
-            <ContactCard
-              href="mailto:nextgensolarmaintenance@gmail.com"
-              label="Email"
-              value="nextgensolarmaintenance@gmail.com"
-              icon={<NgmsIcon name="mail" index={3} className="h-9 w-9" />}
-            />
+          <h1 className="max-w-4xl font-heading text-6xl font-extrabold uppercase leading-[0.82] tracking-[-0.055em] sm:text-8xl lg:text-[8.5rem]">
+            One call.
+            <br />
+            <span className="text-white">All solutions.</span>
+            <br />
+            <span className="text-transparent" style={{ WebkitTextStroke: '1px rgba(255,255,255,.68)' }}>LET’S TALK.</span>
+          </h1>
+          <p className="mt-7 max-w-xl text-base leading-relaxed text-white/75 sm:text-lg">
+            Property maintenance, handled by one local team. Tell us what needs attention and we’ll help you plan the next step.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a href="#contact-form" className="inline-flex min-h-12 items-center gap-3 border-2 border-[#FF6A00] bg-[#FF6A00] px-6 py-3 font-heading text-sm font-bold uppercase tracking-wide text-black transition hover:-translate-y-0.5 hover:bg-[#ff8126]">
+              Send an enquiry <span aria-hidden="true">↗</span>
+            </a>
+            <a href="https://wa.me/27631387945" target="_blank" rel="noopener noreferrer" aria-label="Contact NextGen on WhatsApp" className="inline-flex min-h-12 items-center justify-center border-2 border-white/35 bg-black/25 px-5 text-[#B7FF00] transition hover:border-[#B7FF00]">
+              <NgmsIcon name="fast-reply" index={1} className="h-6 w-6" />
+            </a>
           </div>
-        </div>
-
-        <div className="rounded-card border-2 border-[#C4560A] bg-graphite p-6 sm:p-8">
-          <h2 className="mb-6 font-heading text-3xl font-bold uppercase text-paper">General enquiries</h2>
-          <ContactForm />
+          <div className="mt-12 grid max-w-2xl grid-cols-3 border border-white/15 bg-black/25 backdrop-blur-sm">
+            <div className="border-r border-white/15 px-3 py-4 sm:px-5"><p className="font-heading text-xl font-bold uppercase sm:text-2xl">Local</p><p className="mt-1 text-[10px] uppercase tracking-wider text-white/55 sm:text-xs">Helderberg team</p></div>
+            <div className="border-r border-white/15 px-3 py-4 sm:px-5"><p className="font-heading text-xl font-bold uppercase sm:text-2xl">12+</p><p className="mt-1 text-[10px] uppercase tracking-wider text-white/55 sm:text-xs">Service categories</p></div>
+            <div className="px-3 py-4 sm:px-5"><p className="font-heading text-xl font-bold uppercase sm:text-2xl">One</p><p className="mt-1 text-[10px] uppercase tracking-wider text-white/55 sm:text-xs">Point of contact</p></div>
+          </div>
         </div>
       </section>
 
-      {/* Areas + map */}
-      <section className="border-t border-darkgrey bg-jet py-14">
-        <div className="mx-auto max-w-4xl px-4">
-          <p className="kicker mb-4 block text-center">Areas we serve</p>
-          <div className="mb-6 flex flex-wrap justify-center gap-3">
-            {AREAS.map((a) => (
-              <span key={a} className="rounded-full border border-darkgrey bg-cardgrey px-4 py-2 text-sm text-paper">
-                {a}
-              </span>
-            ))}
-          </div>
-          <div className="mb-10 rounded-card border-2 border-[#C4560A] bg-graphite px-5 py-4 text-center">
-            <p className="font-heading text-xl font-bold uppercase text-orange">R350 callout fee outside the Helderberg</p>
-            <p className="mt-1 text-sm text-mist">
-              Applies to the Overberg, Stellenbosch, Paarl, Worcester and Cape Town. No callout fee in Strand,
-              Gordon’s Bay or Somerset West.
+      {/* Warm editorial contact section */}
+      <section className="bg-[#F2EEE7] py-14 text-[#111214] sm:py-20 lg:py-24">
+        <div className="wrap">
+          <div className="mb-10 grid gap-6 lg:mb-14 lg:grid-cols-2 lg:items-end">
+            <div>
+              <p className="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-[#C4560A]">01 / Start a conversation</p>
+              <h2 className="font-heading text-5xl font-extrabold uppercase leading-[0.88] tracking-tight sm:text-7xl">Tell us what<br /><span className="text-transparent" style={{ WebkitTextStroke: '1px #8E8A83' }}>needs fixing.</span></h2>
+            </div>
+            <p className="max-w-lg text-base leading-relaxed text-[#56534E] lg:justify-self-end">
+              From a small repair to planned property maintenance, contact NextGen for a clear conversation about your project and the right next step.
             </p>
           </div>
-          <div className="overflow-hidden rounded-card border border-darkgrey">
-            <iframe
-              title="NextGen service area — Helderberg Basin"
-              src="https://maps.google.com/maps?q=Somerset+West,+Western+Cape&z=11&output=embed"
-              className="h-80 w-full"
-              loading="lazy"
-            />
+
+          <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12">
+            <div className="bg-[#111214] p-5 text-white sm:p-8">
+              <p className="mb-5 text-xs font-bold uppercase tracking-[0.2em] text-[#FF6A00]">Direct contact</p>
+              <div className="grid gap-3">
+                <ContactCard href="tel:+27631387945" label="Call our team" value="063 138 7945" icon={<NgmsIcon name="phone" index={0} className="h-7 w-7" />} />
+                <ContactCard href="https://wa.me/27631387945" label="WhatsApp" value="Message us directly" icon={<NgmsIcon name="fast-reply" index={1} className="h-7 w-7" />} external />
+                <ContactCard href="mailto:nextgensolarmaintenance@gmail.com" label="Email" value="nextgensolarmaintenance@gmail.com" icon={<NgmsIcon name="mail" index={3} className="h-7 w-7" />} />
+              </div>
+              <div className="mt-8 border-t border-white/15 pt-5">
+                <p className="text-xs uppercase tracking-[0.18em] text-white/45">Business hours</p>
+                <p className="mt-2 font-heading text-xl font-bold uppercase">Monday – Saturday</p>
+                <p className="text-sm text-white/65">07:00 – 17:00</p>
+              </div>
+            </div>
+
+            <div id="contact-form" className="scroll-mt-24 border border-[#D8D1C6] bg-white p-5 sm:p-8 lg:p-10">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#C4560A]">02 / Project enquiry</p>
+              <h2 className="mb-2 font-heading text-3xl font-extrabold uppercase sm:text-4xl">How can we help?</h2>
+              <p className="mb-7 max-w-lg text-sm leading-relaxed text-[#68645E]">Share a few details below. Our existing enquiry form will route your message through the current NGMS workflow.</p>
+              <ContactForm />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Big number strip */}
-      <section className="border-t border-darkgrey bg-graphite">
-        <div className="wrap grid gap-8 py-14 lg:grid-cols-2 lg:items-end">
+      {/* Service area */}
+      <section className="bg-[#0A0B0D] py-14 sm:py-20">
+        <div className="wrap">
+          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+            <div>
+              <p className="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-[#FF6A00]">03 / Where we work</p>
+              <h2 className="font-heading text-4xl font-extrabold uppercase leading-[0.9] sm:text-6xl">Local knowledge.<br /><span className="text-white/35">Reliable service.</span></h2>
+              <p className="mt-5 max-w-md leading-relaxed text-white/60">Based in the Helderberg Basin, serving homeowners, body corporates, security complexes and light commercial properties.</p>
+              <div className="mt-7 border-l-2 border-[#FF6A00] bg-white/[0.04] p-5">
+                <p className="font-heading text-xl font-bold uppercase text-[#FF6A00]">R350 callout outside Helderberg</p>
+                <p className="mt-2 text-sm leading-relaxed text-white/60">Applies to the Overberg, Stellenbosch, Paarl, Worcester and Cape Town. No callout fee in Strand, Gordon’s Bay or Somerset West.</p>
+              </div>
+            </div>
+            <div>
+              <div className="mb-5 flex flex-wrap gap-2">
+                {AREAS.map((area) => <span key={area} className="border border-white/15 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white/75">{area}</span>)}
+              </div>
+              <div className="overflow-hidden border border-white/15 bg-[#17191C]">
+                <iframe title="NextGen service area — Helderberg Basin" src="https://maps.google.com/maps?q=Somerset+West,+Western+Cape&z=11&output=embed" className="h-72 w-full grayscale sm:h-96" loading="lazy" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Strong close */}
+      <section className="border-t border-white/10 bg-[#F2EEE7] py-12 text-[#111214] sm:py-16">
+        <div className="wrap flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="kicker">Prefer to talk?</p>
-            <a
-              href="tel:+27631387945"
-              className="block font-heading text-6xl font-bold leading-none text-paper transition hover:text-orange sm:text-8xl"
-            >
-              063 138 7945
-            </a>
-            <a
-              href="mailto:nextgensolarmaintenance@gmail.com"
-              className="mt-4 block break-all font-heading text-xl font-bold text-paper transition hover:text-orange sm:text-3xl"
-            >
-              nextgensolarmaintenance@gmail.com
-            </a>
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#C4560A]">NextGen Maintenance Solutions</p>
+            <p className="font-heading text-4xl font-extrabold uppercase leading-[0.9] sm:text-6xl">One call.<br />All solutions.</p>
           </div>
-          <div className="lg:text-right">
-            <p className="mb-4 text-lg text-mist">
-              Serving Strand, Gordon’s Bay, Somerset West and the Helderberg Basin — plus the Overberg,
-              Stellenbosch, Paarl, Worcester and Cape Town
-            </p>
-            <a
-              href="/quote"
-              className="inline-block rounded-full btn-glow px-9 py-3 font-heading text-base font-bold uppercase tracking-wide transition"
-            >
-              Get a Free Quote
-            </a>
+          <div className="flex flex-wrap gap-3">
+            <a href="tel:+27631387945" className="inline-flex min-h-12 items-center border-2 border-[#111214] px-5 py-3 font-heading text-sm font-bold uppercase transition hover:bg-[#111214] hover:text-white">Call 063 138 7945</a>
+            <a href="/quote" className="inline-flex min-h-12 items-center gap-3 border-2 border-[#FF6A00] bg-[#FF6A00] px-5 py-3 font-heading text-sm font-bold uppercase text-black transition hover:bg-[#ff8126]">Request a quote <span aria-hidden="true">↗</span></a>
           </div>
         </div>
       </section>
