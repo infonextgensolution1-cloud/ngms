@@ -47,7 +47,6 @@ import {
 } from '@/lib/prompt-library'
 import { GENERATORS, GENERATORS_CHECKED } from '@/lib/image-generators'
 import { supabase } from '@/lib/supabaseClient'
-import { callAi } from '@/lib/ai/client'
 import './prompt-dashboard.css'
 
 /* ---------- Static lookups ---------- */
@@ -592,14 +591,8 @@ function PromptModal(p: ModalProps) {
 
   async function runHere() {
     setTab('answer')
-    setRun({ busy: true, text: '', error: '' })
-    p.onUsed(item.id, 'run_gpt')
-    try {
-      const { text } = await callAi<{ text: string }>('run-prompt', { prompt: output })
-      setRun({ busy: false, text, error: '' })
-    } catch (e) {
-      setRun({ busy: false, text: '', error: (e as Error).message })
-    }
+    setRun({ busy: false, text: 'NGMS does not call an AI API from this dashboard. Use “Open in ChatGPT” below to send the prepared prompt through your existing ChatGPT plan. You can then copy the result back here or into your NGMS workflow.', error: '' })
+    p.onUsed(item.id, 'prepare_chatgpt')
   }
 
   return (
@@ -662,7 +655,7 @@ function PromptModal(p: ModalProps) {
                 aria-controls="pd-panel-prompt"
                 onClick={() => setTab('answer')}
               >
-                GPT&apos;s answer
+                ChatGPT workflow
               </button>
             )}
           </div>
@@ -674,8 +667,7 @@ function PromptModal(p: ModalProps) {
             {tab === 'answer' && run ? (
               run.busy ? (
                 <p className="pd-run-wait" role="status">
-                  <Loader2 size={18} className="pd-spin" aria-hidden="true" /> GPT is working on it. Longer prompts
-                  can take a minute.
+                  <Loader2 size={18} className="pd-spin" aria-hidden="true" /> This dashboard uses your ChatGPT plan in a separate ChatGPT tab; it does not generate answers through an API.
                 </p>
               ) : run.error ? (
                 <p className="pd-run-error" role="alert">
@@ -688,7 +680,7 @@ function PromptModal(p: ModalProps) {
                     className="pd-editor pd-preview"
                     value={run.text}
                     readOnly
-                    aria-label="GPT's answer"
+                    aria-label="ChatGPT workflow instructions"
                   />
                   <button className="pd-btn pd-run-copy" onClick={() => copy.send(run.text, 'Answer copied')}>
                     <Copy size={16} aria-hidden="true" /> Copy answer
@@ -766,7 +758,7 @@ function PromptModal(p: ModalProps) {
         {!isImageCat(cat) && (
           <button className="pd-btn pd-btn-primary" disabled={run?.busy} onClick={runHere}>
             {run?.busy ? <Loader2 size={16} className="pd-spin" aria-hidden="true" /> : <Sparkles size={16} aria-hidden="true" />}
-            Run here
+            ChatGPT instructions
           </button>
         )}
         <a
