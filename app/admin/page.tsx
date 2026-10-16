@@ -99,6 +99,7 @@ const NAV_ITEMS: Array<{
     href: '/admin/media',
     icon: ImageIcon,
     title: 'Media',
+    desc: 'Manage admin-driven hero slides, promotions, before/after pairs & the gallery',
     desc: 'Manage homepage photos, hero slides, service images, before/after pairs and the gallery',
   },
   {
@@ -130,6 +131,12 @@ const NAV_ITEMS: Array<{
     icon: Sparkles,
     title: 'NGMS Prompt Library',
     desc: 'Client-getting, marketing & content prompts filled in for NGMS, English + Afrikaans',
+  },
+  {
+    href: '/admin/subcontractors',
+    icon: Users,
+    title: 'Subcontractors',
+    desc: 'Prepare invitations and define restricted subcontractor access — draft only',
   },
   {
     href: '/admin/vercel-projects',

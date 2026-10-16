@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, AlertTriangle, FileText, HardHat, Loader2, MessageCircle, Phone as PhoneIcon, Mail, Plus, Receipt, Save, Send } from 'lucide-react'
+import { ArrowLeft, AlertTriangle, FileText, HardHat, Loader2, MessageCircle, Phone as PhoneIcon, Mail, Plus, Receipt, Save, Send, ShieldCheck, Clock3, Ban } from 'lucide-react'
 import StaffGate from '@/components/admin/StaffGate'
 import { supabase } from '@/lib/supabaseClient'
 import { handlersA } from '@/lib/ngms-ops/handlers-a'
@@ -31,6 +31,12 @@ function ClientView() {
   const [msg, setMsg] = useState('')
   const [inviting, setInviting] = useState(false)
   const [inviteMsg, setInviteMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [portalAccessMode, setPortalAccessMode] = useState<'one_time' | 'temporary' | 'permanent'>('permanent')
+  const [portalExpiry, setPortalExpiry] = useState('')
+  const [portalRevoked, setPortalRevoked] = useState(true)
+  const [portalAccessReady, setPortalAccessReady] = useState(false)
+  const [portalAccessBusy, setPortalAccessBusy] = useState(false)
+  const [portalAccessMsg, setPortalAccessMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -50,6 +56,22 @@ function ClientView() {
       setQuotes((q.data ?? []) as QuoteRow[])
       setInvoices((i.data ?? []) as InvoiceRow[])
       setJobs((j.data ?? []) as JobRow[])
+      const token = (await supabase.auth.getSession()).data.session?.access_token
+      if (token) {
+        const accessRes = await fetch('/api/admin/client-portal-access?clientId=' + encodeURIComponent(id), { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' })
+        const accessJson = await accessRes.json().catch(() => ({})) as { access?: { access_mode?: 'one_time' | 'temporary' | 'permanent'; expires_at?: string | null; revoked_at?: string | null } | null; error?: string }
+        if (accessRes.ok) {
+          const access = accessJson.access
+          setPortalAccessMode(access?.access_mode ?? 'permanent')
+          if (access?.expires_at) { const expiry = new Date(access.expires_at); expiry.setMinutes(expiry.getMinutes() - expiry.getTimezoneOffset()); setPortalExpiry(expiry.toISOString().slice(0, 16)) } else setPortalExpiry('')
+          setPortalRevoked(!access || !!access.revoked_at)
+          setPortalAccessReady(true)
+          setPortalAccessMsg(access ? null : { ok: false, text: 'Access is not configured yet. Save a mode before sending an invite.' })
+        } else {
+          setPortalAccessReady(false)
+          setPortalAccessMsg({ ok: false, text: accessJson.error || 'Could not load portal access settings.' })
+        }
+      }
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -77,9 +99,62 @@ function ClientView() {
     }
   }
 
+  async function savePortalAccess() {
+    setPortalAccessBusy(true)
+    setPortalAccessMsg(null)
+    try {
+      const token = (await supabase.auth.getSession()).data.session?.access_token
+      if (!token) throw new Error('Admin session expired. Sign in again.')
+      if (portalAccessMode === 'temporary' && (!portalExpiry || new Date(portalExpiry).getTime() <= Date.now())) {
+        throw new Error('Temporary access must expire in the future.')
+      }
+      const response = await fetch('/api/admin/client-portal-access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ clientId: id, accessMode: portalAccessMode, expiresAt: portalAccessMode === 'temporary' ? new Date(portalExpiry).toISOString() : null }),
+      })
+      const json = await response.json().catch(() => ({})) as { ok?: boolean; error?: string }
+      if (!response.ok || !json.ok) throw new Error(json.error || 'Could not save portal access.')
+      setPortalRevoked(false)
+      setPortalAccessReady(true)
+      setPortalAccessMsg({ ok: true, text: 'Portal access saved. Existing one-time sessions have been reset.' })
+    } catch (e) {
+      setPortalAccessMsg({ ok: false, text: (e as Error).message })
+    } finally {
+      setPortalAccessBusy(false)
+    }
+  }
+
+  async function revokePortalAccess() {
+    if (!window.confirm('Revoke customer portal access for ' + (client?.name ?? 'this client') + '? Existing portal sessions will no longer pass database access checks.')) return
+    setPortalAccessBusy(true)
+    setPortalAccessMsg(null)
+    try {
+      const token = (await supabase.auth.getSession()).data.session?.access_token
+      if (!token) throw new Error('Admin session expired. Sign in again.')
+      const response = await fetch('/api/admin/client-portal-access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ clientId: id, action: 'revoke' }),
+      })
+      const json = await response.json().catch(() => ({})) as { ok?: boolean; error?: string }
+      if (!response.ok || !json.ok) throw new Error(json.error || 'Could not revoke portal access.')
+      setPortalRevoked(true)
+      setPortalAccessMsg({ ok: true, text: 'Portal access revoked.' })
+    } catch (e) {
+      setPortalAccessMsg({ ok: false, text: (e as Error).message })
+    } finally {
+      setPortalAccessBusy(false)
+    }
+  }
+
   async function invite() {
     if (!client?.email) return
-    if (!window.confirm(`Email ${client.name} (${client.email}) a sign-in link to the client portal?`)) return
+    if (!portalAccessReady || portalRevoked || (portalAccessMode === 'temporary' && (!portalExpiry || new Date(portalExpiry).getTime() <= Date.now()))) {
+      setInviteMsg({ ok: false, text: 'Configure active portal access first. Temporary access must expire in the future.' })
+      return
+    }
+    if (!window.confirm('Email ' + client.name + ' (' + client.email + ') a secure sign-in link for ' + portalAccessMode.replace('_', ' ') + ' portal access?')) return
     setInviting(true)
     setInviteMsg(null)
     try {
@@ -178,6 +253,46 @@ function ClientView() {
             {inviteMsg.text}
           </p>
         )}
+
+        <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-4">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div>
+              <h2 className="font-heading font-bold text-paper flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-blue" /> Customer portal access</h2>
+              <p className="mt-1 text-xs text-mist">Read-only quotations, invoices, job status and authorised photos. No financial-document editing.</p>
+            </div>
+            <span className={portalRevoked ? 'shrink-0 rounded border border-orange px-2 py-1 text-[10px] uppercase tracking-wide text-orange' : 'shrink-0 rounded border border-whatsapp px-2 py-1 text-[10px] uppercase tracking-wide text-whatsapp'}>{portalRevoked ? 'Disabled' : 'Active'}</span>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block text-xs text-mist">
+              Access mode
+              <select className={input + ' mt-1'} value={portalAccessMode} onChange={(e) => setPortalAccessMode(e.target.value as 'one_time' | 'temporary' | 'permanent')}>
+                <option value="one_time">One-time session</option>
+                <option value="temporary">Temporary — expiry set by admin</option>
+                <option value="permanent">Permanent account</option>
+              </select>
+            </label>
+            {portalAccessMode === 'temporary' ? (
+              <label className="block text-xs text-mist">
+                Access expires (South African local time)
+                <input className={input + ' mt-1'} type="datetime-local" value={portalExpiry} onChange={(e) => setPortalExpiry(e.target.value)} />
+              </label>
+            ) : (
+              <div className="rounded-btn border border-darkgrey bg-jet px-3 py-2.5 text-xs text-mist flex items-center gap-2">
+                {portalAccessMode === 'one_time' ? <Clock3 className="w-4 h-4 text-blue" /> : <ShieldCheck className="w-4 h-4 text-blue" />}
+                {portalAccessMode === 'one_time' ? 'Bound to one verified sign-in session. Save again to issue a fresh session.' : 'No access expiry. Secure email sign-in is still required.'}
+              </div>
+            )}
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" onClick={savePortalAccess} disabled={portalAccessBusy} className="inline-flex items-center gap-2 rounded-btn bg-blue-fill px-3.5 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
+              {portalAccessBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save access settings
+            </button>
+            <button type="button" onClick={revokePortalAccess} disabled={portalAccessBusy} className="inline-flex items-center gap-2 rounded-btn border border-darkgrey px-3.5 py-2.5 text-sm font-semibold text-paper hover:border-orange hover:text-orange disabled:opacity-60">
+              <Ban className="w-4 h-4" /> Revoke access
+            </button>
+          </div>
+          {portalAccessMsg && <p role="status" className={portalAccessMsg.ok ? 'mt-3 text-xs text-whatsapp' : 'mt-3 text-xs text-orange'}>{portalAccessMsg.text}</p>}
+        </section>
 
         <section className="bg-cardgrey border border-darkgrey rounded-card p-4 mb-4">
           <div className="flex items-center justify-between mb-3">

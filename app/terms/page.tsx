@@ -14,7 +14,7 @@ const SECTIONS: { title: string; points: React.ReactNode[] }[] = [
     title: 'Quotes and pricing',
     points: [
       'Quotes are free. For most jobs we do a site visit first and then send a written quote.',
-      'All prices are in South African Rand and exclude VAT.',
+      'A written quote confirms the agreed price and scope before work begins.',
       'A quote is valid until the date shown on it.',
       'Any work outside the scope of the quote is priced and agreed in writing before it starts.',
     ],

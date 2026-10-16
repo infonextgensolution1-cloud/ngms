@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { site, whatsappLink } from '@/lib/site'
+import { jobPhotoStoragePath } from '@/lib/job-photo-path'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
@@ -38,7 +39,14 @@ export default async function TrackPage({ params }: { params: Promise<{ token: s
         .select('id,photo_url,type,caption')
         .eq('job_id', job.id)
         .order('sort_order', { ascending: true })
-      photos = (ph as Photo[]) ?? []
+      const rows = (ph as Photo[]) ?? []
+      const signedPhotos = await Promise.all(rows.map(async (photo) => {
+        const path = jobPhotoStoragePath(photo.photo_url)
+        if (!path) return null
+        const { data: signed } = await db.storage.from('job-photos').createSignedUrl(path, 300)
+        return signed?.signedUrl ? { ...photo, photo_url: signed.signedUrl } : null
+      }))
+      photos = signedPhotos.filter((photo): photo is Photo => !!photo)
     }
   } catch {
     notFound()

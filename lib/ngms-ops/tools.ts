@@ -642,6 +642,8 @@ export const TOOLS = [
         amount: { type: 'number', minimum: 0 },
         purchase_date: { type: 'string', description: 'YYYY-MM-DD, default today.' },
         receipt_url: { type: 'string', maxLength: 2000 },
+        receipt_urls: { type: 'array', maxItems: 10, items: { type: 'string', maxLength: 2000 }, description: 'Storage paths for up to 10 receipts or photos.' },
+        paid_by: { type: 'string', enum: ['company', 'subcontractor'], default: 'company', description: 'Who paid for the materials.' },
         payment_status: { type: 'string', enum: [...PAYMENT_STATUSES], default: 'unpaid' },
         log_to_job: { type: 'boolean', default: false },
         notes: { type: 'string', maxLength: 2000 },
