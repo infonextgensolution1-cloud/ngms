@@ -84,9 +84,7 @@ export function ServicesOverview({
               <li key={s.slug} className={feature ? 'col-span-2 row-span-2' : wide ? 'col-span-2' : ''}>
                 <Link
                   href={`/services/${s.slug}`}
-                  className={`group forge-interactive ngms-service-tile relative flex h-full flex-col justify-end overflow-hidden rounded-panel border border-concrete bg-graphite shadow-[0_14px_36px_rgba(18,22,26,.12)] ${
-                    feature ? 'min-h-[340px] sm:min-h-[460px]' : 'min-h-[190px] sm:min-h-[220px]'
-                  }`}
+                  className={`group forge-interactive ngms-service-tile relative flex h-full flex-col justify-end overflow-hidden rounded-panel border border-concrete bg-graphite shadow-[0_14px_36_rgba(18,22,26,.12)] ${feature ? 'min-h-[340px] sm:min-h-[460px]' : 'min-h-[190px] sm:min-h-[220px]'}`}
                 >
                   {img && (
                     <>
@@ -429,7 +427,7 @@ export async function GoogleReviews() {
             <p className="text-xs uppercase tracking-[0.16em] text-slate font-semibold">Google rating</p>
             <div className="mt-3 flex items-center gap-3">
               <span className="font-heading text-5xl font-bold">{data.rating ? data.rating.toFixed(1) : '—'}</span>
-              <div><span className="text-orange tracking-[0.12em]" aria-hidden>★★★★★</span><p className="text-xs text-slate mt-1">{data.userRatingCount ? `${data.userRatingCount} reviews` : 'Live Google rating'}</p></div>
+              <div><span className="text-orange tracking-[0.12em]" aria-hidden>★★★★★</span><p className="text-xs text-slate mt-1">{data.userRatingCount ? `${data.userRatingCount} reviews` : 'Latest rating'}</p></div>
             </div>
             <p className="text-xs text-slate mt-6 leading-relaxed">Powered by Google. Reviews remain on Google.</p>
           </div>
@@ -440,7 +438,7 @@ export async function GoogleReviews() {
                 <div className="flex items-center justify-between gap-3"><p className="font-heading font-semibold">{review.authorName ?? 'Google customer'}</p><span className="text-orange tracking-[0.12em]" aria-hidden>★★★★★</span></div>
                 {review.relativePublishTimeDescription && <p className="text-xs text-slate mt-1">{review.relativePublishTimeDescription}</p>}
                 {review.text && <p className="text-sm leading-relaxed text-graphite/85 mt-4">{review.text}</p>}
-                {review.googleMapsUri && <a href={review.googleMapsUri} target="_blank" rel="noopener noreferrer" className="inline-block mt-4 text-xs font-semibold text-orange hover:underline">View on Google →</a>}
+                {review.googleMapsUri && <a href={review.googleMapsUri} target="_blank" rel="noopener noreferrer" className="inline-block mt-4 text-xs font-semibold text-orange hover:underline">View review →</a>}
               </article>
             )) : (
               <div className="md:col-span-2 rounded-panel border border-concrete bg-paper p-6">

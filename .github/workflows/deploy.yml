@@ -21,7 +21,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: 22
+  NODE_VERSION: 18
 
 jobs:
   build:
@@ -33,7 +33,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - name: Print node and npm versions
+        run: |
+          node -v
+          npm -v
+      - run: npm ci --legacy-peer-deps
       - run: npm run build
 
   # Kept under the same name so any branch-protection rule that requires
