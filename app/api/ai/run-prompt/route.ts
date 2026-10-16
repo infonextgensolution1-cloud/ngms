@@ -1,24 +1,10 @@
-import { ask, errorResponse, HttpError, requireStaff } from '@/lib/ai/openai'
-
-// Runs a finished prompt from the admin Prompt Dashboard and returns the GPT answer.
-
+// Retired: the admin prompt dashboard now uses the user's existing ChatGPT plan in a separate tab.
+// Keep a clear response for stale clients instead of making an AI API call.
 export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
-export const maxDuration = 300
 
-const MAX_PROMPT_CHARS = 40_000
-
-export async function POST(request: Request) {
-  try {
-    await requireStaff(request)
-    const body = (await request.json().catch(() => ({}))) as { prompt?: unknown }
-    const prompt = typeof body.prompt === 'string' ? body.prompt.trim() : ''
-    if (!prompt) throw new HttpError(400, 'The prompt is empty.')
-    if (prompt.length > MAX_PROMPT_CHARS) throw new HttpError(400, 'That prompt is too long to run here. Copy the prompt or open ChatGPT.')
-
-    const text = await ask({ prompt })
-    return Response.json({ text })
-  } catch (e) {
-    return errorResponse(e)
-  }
+export async function POST() {
+  return Response.json(
+    { error: 'This endpoint is retired. Copy the prompt and open ChatGPT using your existing plan.' },
+    { status: 410 },
+  )
 }
