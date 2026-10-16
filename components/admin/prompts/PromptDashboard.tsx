@@ -777,7 +777,7 @@ function PromptModal(p: ModalProps) {
           onClick={() => {
             copy.send(
               output,
-              output.length <= CLAUDE_URL_MAX
+              output.length <= CHATGPT_URL_MAX
                 ? 'Opening ChatGPT with the prompt filled in (also copied).'
                 : 'Prompt copied. Paste it into a new ChatGPT chat.',
             )
