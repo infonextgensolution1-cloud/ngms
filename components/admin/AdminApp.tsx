@@ -69,7 +69,7 @@ export default function AdminApp({ children }: { children: React.ReactNode }) {
       {showTabs && (
         <nav
           aria-label="Admin"
-          className="sm:hidden fixed inset-x-0 bottom-0 z-50 bg-jet/95 backdrop-blur border-t border-darkgrey grid grid-cols-5"
+          className="sm:hidden fixed inset-x-0 bottom-0 z-50 bg-jet/95 backdrop-blur border-t border-darkgrey grid grid-cols-6"
           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
           {TABS.map(({ href, label, icon: Icon, exact, primary }) => {
