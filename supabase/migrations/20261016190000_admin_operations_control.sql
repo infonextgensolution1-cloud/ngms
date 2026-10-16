@@ -44,7 +44,7 @@ create table if not exists public.subcontractor_labour_settlements (
   job_id uuid not null references public.jobs(id) on delete cascade,
   subcontractor_draft_id uuid references public.subcontractor_invitation_drafts(id) on delete set null,
   labour_amount_ex_vat numeric(12,2) not null check (labour_amount_ex_vat >= 0),
-  vat_rate numeric(5,4) not null default 0.15 check (vat_rate >= 0 and vat_rate <= 1),
+  vat_rate numeric(5,4) not null default 0.00 check (vat_rate >= 0 and vat_rate <= 1),
   split_percent numeric(5,2) not null default 50 check (split_percent = 50),
   payable_ex_vat numeric(12,2) not null default 0,
   payable_inc_vat numeric(12,2) not null default 0,
