@@ -105,7 +105,7 @@ export default function OperationsControlPage() {
     setUploading(true); setError(''); setMessage('')
     try {
       const form = new FormData()
-      form.set('file', file); form.set('jobId', selectedJob); form.set('documentType', documentType); form.set('linkedRecordType', linkedRecordType); form.set('linkedRecordId', linkedRecordId || selectedJob); form.set('notes', documentNotes)
+      form.set('file', file); form.set('jobId', selectedJob); form.set('documentType', documentType); form.set('linkedRecordType', linkedRecordType); form.set('linkedRecordId', linkedRecordId || (linkedRecordType === 'job' ? selectedJob : '')); form.set('notes', documentNotes)
       const result = await request('', { method: 'POST', body: form })
       setData((old) => ({ ...old, documents: [result.document, ...old.documents] }))
       setFile(null); setDocumentNotes(''); setLinkedRecordId('')
