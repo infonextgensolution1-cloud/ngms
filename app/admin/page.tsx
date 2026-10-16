@@ -65,7 +65,8 @@ const NAV_ITEMS: Array<{
     title: 'Jobs',
     desc: 'Schedule, cost & photograph jobs — client-ready completion reports',
   },
-  {
+
+  { href: '/admin/operations-control', icon: Wallet, title: 'Operations Control', desc: 'Auto-saved drafts, linked documents, approvals and labour-only subcontractor settlements' },  {
     href: '/admin/calendar',
     icon: CalendarDays,
     title: 'Job calendar',
