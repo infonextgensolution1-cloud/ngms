@@ -140,7 +140,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <nav aria-label="Services">
               <p className="font-heading font-semibold text-paper mb-4 uppercase tracking-wide text-xs">Services</p>
               <ul className="grid grid-cols-1 gap-x-3">
-                {services.map((s) => <li key={s.slug}><Link href={s.slug === 'solar-panel-cleaning' ? 'https://ngms-adlg0rhp6-ngms.vercel.app/services/solar-panel-cleaning' : `/services/${s.slug}`} className="hover:text-blue inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">{s.name}</Link></li>)}
+                {services.map((s) => <li key={s.slug}><Link href={s.slug === 'solar-panel-cleaning' ? '/services/solar-panel-cleaning' : `/services/${s.slug}`} className="hover:text-blue inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">{s.name}</Link></li>)}
               </ul>
             </nav>
             <nav aria-label="Quick links">
