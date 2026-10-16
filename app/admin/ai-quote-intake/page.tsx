@@ -5,7 +5,7 @@ import StaffGate from '@/components/admin/StaffGate'
 import { supabase } from '@/lib/supabaseClient'
 
 export default function AiQuoteIntakePage() {
-  return <StaffGate><AiQuoteIntake /></StaffGate>
+  return <StaffGate title="AI Quote Intake"><AiQuoteIntake /></StaffGate>
 }
 
 function AiQuoteIntake() {
