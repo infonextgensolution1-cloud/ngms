@@ -26,6 +26,8 @@ export default function OperationsControlPage() {
   const [draftState, setDraftState] = useState<'loading' | 'saved' | 'saving' | 'unsaved'>('loading')
   const [uploading, setUploading] = useState(false)
   const [selectedJob, setSelectedJob] = useState('')
+  const [linkedRecordType, setLinkedRecordType] = useState('job')
+  const [linkedRecordId, setLinkedRecordId] = useState('')
   const [documentType, setDocumentType] = useState('supplier_receipt')
   const [documentNotes, setDocumentNotes] = useState('')
   const [file, setFile] = useState<File | null>(null)
@@ -103,10 +105,10 @@ export default function OperationsControlPage() {
     setUploading(true); setError(''); setMessage('')
     try {
       const form = new FormData()
-      form.set('file', file); form.set('jobId', selectedJob); form.set('documentType', documentType); form.set('notes', documentNotes)
+      form.set('file', file); form.set('jobId', selectedJob); form.set('documentType', documentType); form.set('linkedRecordType', linkedRecordType); form.set('linkedRecordId', linkedRecordId || selectedJob); form.set('notes', documentNotes)
       const result = await request('', { method: 'POST', body: form })
       setData((old) => ({ ...old, documents: [result.document, ...old.documents] }))
-      setFile(null); setDocumentNotes('')
+      setFile(null); setDocumentNotes(''); setLinkedRecordId('')
       const fileInput = document.getElementById('operations-document-file') as HTMLInputElement | null
       if (fileInput) fileInput.value = ''
       setMessage('Document uploaded privately. Review status: pending.')
@@ -190,6 +192,8 @@ export default function OperationsControlPage() {
               <div className="grid gap-3 md:grid-cols-2">
                 <label className="text-xs text-mist">Link to job<select className={input + ' mt-1'} value={selectedJob} onChange={(e) => setSelectedJob(e.target.value)}><option value="">No job link</option>{data.jobs.map((job) => <option key={job.id} value={job.id}>{job.title || 'Untitled job'} · {job.status}</option>)}</select></label>
                 <label className="text-xs text-mist">Document type<select className={input + ' mt-1'} value={documentType} onChange={(e) => setDocumentType(e.target.value)}><option value="supplier_receipt">Supplier receipt</option><option value="invoice">Invoice</option><option value="materials_bulk_upload">Materials bulk upload (CSV / Excel)</option><option value="quote">Quote</option><option value="completion_report">Completion report</option><option value="contract">Contract</option><option value="other">Other</option></select></label>
+                <label className="text-xs text-mist">Link record type<select className={input + ' mt-1'} value={linkedRecordType} onChange={(e) => setLinkedRecordType(e.target.value)}><option value="job">Job</option><option value="quote">Quote</option><option value="invoice">Invoice</option><option value="purchase">Purchase</option><option value="client">Client</option><option value="supplier">Supplier</option><option value="subcontractor">Subcontractor</option></select></label>
+                <label className="text-xs text-mist">Linked record ID (optional)<input className={input + ' mt-1'} value={linkedRecordId} onChange={(e) => setLinkedRecordId(e.target.value)} placeholder="Paste record UUID, or leave blank to use selected job" /></label>
                 <label className="text-xs text-mist md:col-span-2">File (PDF, image, CSV or Excel; max 20 MB)<input id="operations-document-file" className={input + ' mt-1'} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.csv,.xls,.xlsx" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></label>
                 <label className="text-xs text-mist md:col-span-2">Notes<input className={input + ' mt-1'} value={documentNotes} onChange={(e) => setDocumentNotes(e.target.value)} placeholder="Supplier, invoice number, materials, job details…" /></label>
               </div>
