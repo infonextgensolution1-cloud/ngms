@@ -56,7 +56,7 @@ function Builder() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
-  // Claude draft from rough site notes
+  // GPT draft from rough site notes
   const [siteNotes, setSiteNotes] = useState('')
   const [drafting, setDrafting] = useState(false)
   const [draftMsg, setDraftMsg] = useState('')
