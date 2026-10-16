@@ -2,7 +2,7 @@
 //
 // Vercel has no public API for reading Web Analytics, so these numbers are
 // pulled by OpenAI (Vercel connector) and pasted in here. To refresh: ask
-// Claude to "update the site analytics snapshot".
+// GPT to "update the site analytics snapshot".
 //
 // Filter used for every figure: production only, excluding /admin pages and
 // visits referred from vercel.com (the owner opening previews), so the
