@@ -763,15 +763,13 @@ function PromptModal(p: ModalProps) {
         )}
         <a
           className="pd-btn pd-btn-primary"
-          href={output.length <= CHATGPT_URL_MAX ? CHATGPT_URL + encodeURIComponent(output) : 'https://chatgpt.com/'}
+          href="https://chatgpt.com/"
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => {
             copy.send(
               output,
-              output.length <= CHATGPT_URL_MAX
-                ? 'Opening ChatGPT with the prompt filled in (also copied).'
-                : 'Prompt copied. Paste it into a new ChatGPT chat.',
+              'Prompt copied. ChatGPT will open in a new tab; paste the prompt there.',
             )
             p.onUsed(item.id, 'open_chatgpt')
           }}
