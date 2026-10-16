@@ -319,7 +319,6 @@ export default function QuoteForm({
           className="field"
           onChange={(e) => {
             const f = e.target.files?.[0] ?? null;
-            if (photoPreview) URL.revokeObjectURL(photoPreview);\n            if (f && f.size > 15 * 1024 * 1024) {
             if (photoPreview) URL.revokeObjectURL(photoPreview);
             setPhotoUrl(null);
             setPhotoUploadState("idle");
