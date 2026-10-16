@@ -47,10 +47,6 @@ const config: Config = {
         //   dark     hover/pressed fill (5.43:1 under white)
         //   deep     blue TEXT on light bands (4.9:1 on Fog, 5.5:1 on Chalk)
         blue: {
-          DEFAULT: '#FF4B24',
-          fill: '#E84320',
-          dark: '#C93617',
-          deep: '#B83218',
           DEFAULT: '#FF6A00',
           fill: '#E65A00',
           dark: '#C94D00',
@@ -63,7 +59,6 @@ const config: Config = {
         },
         // Luminous Orange — "Get a quote" / CTA buttons (black text, Eco Green border)
         glow: {
-          DEFAULT: '#FF6A45',
           DEFAULT: '#FF6A00',
           bright: '#FF896B',
         },
@@ -75,12 +70,7 @@ const config: Config = {
           light: '#FF8063',
         },
         // Eco Green — CTA button border
-        ecogreen: '#FF4B24',
-          DEFAULT: '#FF6A00',
-          dark: '#C94D00',
-          light: '#FF8A3D',
-        },
-        // Solar Orange — legacy CTA border token
+        // Eco Green legacy token follows the approved Solar Orange accent.
         ecogreen: '#FF6A00',
         // Facebook Blue — Facebook icon and the "Book a site walk-through" button
         facebook: {
