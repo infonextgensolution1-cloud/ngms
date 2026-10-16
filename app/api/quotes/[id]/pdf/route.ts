@@ -29,10 +29,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const expired = quote.status === 'sent' && !!quote.valid_until && quote.valid_until < todaySast()
     const terms = QUOTE_TERMS.map(t => t.replace('{deposit}', String(money.deposit_percent)))
     const pdf = buildQuotePdf({ quote, client, items, settings, money, terms, expired })
-    const clientName = (client?.name || 'Client').trim().replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'Client'
+    const fullClientName = (client?.name || 'Client').trim()
+    const clientName = fullClientName.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'Client'
+    const clientInitials = fullClientName.split(/\\s+/).filter(Boolean).map(part => part[0]).join('').toUpperCase().slice(0, 5) || 'CL'
+    const locationLabel = (client?.suburb || client?.address || "Gordon's Bay").toLowerCase().includes('gordon') ? 'Gordons-Bay' : (client?.suburb || "Gordon's Bay").replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'Gordons-Bay'
     const { data: sentVersion } = await admin.from('quote_versions').select('sent_at,created_at').eq('quote_id', quote.id).eq('version_status', 'sent').not('sent_at', 'is', null).order('sent_at', { ascending: false }).limit(1).maybeSingle()
     const fileDate = (sentVersion?.sent_at || sentVersion?.created_at || quote.created_at || new Date().toISOString()).slice(0, 10).replace(/-/g, '')
-    const fileName = `${fileDate}_${quote.quote_number}_${clientName}.pdf`
+    const fileName = `${quote.quote_number || 'QUOTE'}_${clientInitials}_${clientName}_${locationLabel}_${fileDate}.pdf`
     const path = 'pdf/' + quote.id + '/' + fileName
     const upload = await admin.storage.from('quotes').upload(path, new Blob([pdf], { type: 'application/pdf' }), { contentType: 'application/pdf', upsert: true })
     if (upload.error) throw upload.error

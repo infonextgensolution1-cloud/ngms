@@ -64,7 +64,7 @@ export default function BodyCorporateSection({ photo }: { photo?: { src: string;
         <div className="lg:col-span-6 relative aspect-[4/3] overflow-hidden rounded-panel border border-darkgrey bg-cardgrey">
           {photo?.src ? (
             <>
-              <Image src={photo.src} alt={photo.caption} fill sizes="(max-width: 1024px) 100vw, 50vw" quality={70} className="object-cover" />
+              <Image src={photo.src} alt={photo.caption} fill sizes="(max-width: 1024px) 100vw, 50vw" quality={70} unoptimized className="object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-jet/70 via-transparent" />
               <div className="absolute left-4 right-4 bottom-4"><p className="text-xs uppercase tracking-[0.16em] text-orange font-semibold">Complex maintenance</p><p className="text-sm text-paper/90 mt-1">{photo.caption}</p></div>
             </>

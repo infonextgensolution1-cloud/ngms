@@ -162,6 +162,10 @@ export default async function MaintenancePackagesPage() {
           <div className="border border-white/15 bg-[#33333A] p-4 sm:p-6"><PlanSignupForm /></div>
         </div>
       </section>
+      <div className="ngms-mp2-packages">
+        <PlanSection id="recurring" index="01" eyebrow="RECURRING PLANS" title="CARE THAT COMES BACK." intro="Scheduled visits for solar cleaning and practical exterior maintenance." packages={RECURRING_PACKAGES} recurring />
+        <p className="ngms-mp2-note">Panel counts above 20 are quoted separately. Plan inclusions and final pricing are confirmed for your property before booking.</p>
+      </div>
 
       <section id="seasonal" className="scroll-mt-20 bg-[#E9E8ED] px-4 py-14 sm:px-7 sm:py-20 lg:px-10">
         <div className="mx-auto max-w-7xl">
@@ -196,6 +200,14 @@ export default async function MaintenancePackagesPage() {
         </div>
         <p className="mx-auto mt-5 max-w-7xl text-[11px] uppercase tracking-[.12em] text-[#85848D]">NextGen Maintenance Solutions · One Call. All Solutions. · Strand / Gordon’s Bay / Somerset West</p>
       </section>
+
+      <section className="ngms-mp2-final">
+        <div className="ngms-mp2-final__stamp">NGMS<br /><span>2026</span></div>
+        <p className="ngms-mp2-eyebrow">NEXTGEN MAINTENANCE SOLUTIONS / WESTERN CAPE</p>
+        <h2>YOUR PROPERTY.<br /><em>OUR NEXT PROJECT.</em></h2>
+        <div className="ngms-mp2-final__links"><Link href="#join-plan">START A PLAN ↗</Link><a href="https://wa.me/27631387945" target="_blank" rel="noopener noreferrer">WHATSAPP US ↗</a><Link href="/price-list">VIEW PRICE LIST ↗</Link></div>
+      </section>
+      <footer className="ngms-mp2-footer"><span>ONE CALL. ALL SOLUTIONS.</span><span>STRAND / GORDON’S BAY / SOMERSET WEST</span><Link href="/contact">CONTACT NGMS ↗</Link></footer>
     </main>
   )
 }

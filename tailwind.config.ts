@@ -38,8 +38,8 @@ const config: Config = {
         'ember-deep': '#B83E00',
         // Solar Orange — the conversion colour: primary "Get a quote" CTAs and rare attention marks only
         orange: {
-          DEFAULT: '#FF6A00',
-          dark: '#D94F00',
+          DEFAULT: '#FF4B24',
+          dark: '#D83A17',
         },
         // Legacy blue utility names map to the NGMS orange accent for backwards compatibility.
         //   DEFAULT  text/icons on dark (5.96:1 on Jet)
@@ -65,11 +65,12 @@ const config: Config = {
         // Legacy 'power' token (was purple) now follows NextGen Blue so older
         // components stay on-palette without edits.
         power: {
-          DEFAULT: '#FF6A00',
-          dark: '#C94D00',
-          light: '#FF8A3D',
+          DEFAULT: '#FF4B24',
+          dark: '#C93617',
+          light: '#FF8063',
         },
-        // Solar Orange — legacy CTA border token
+        // Eco Green — CTA button border
+        // Eco Green legacy token follows the approved Solar Orange accent.
         ecogreen: '#FF6A00',
         // Facebook Blue — Facebook icon and the "Book a site walk-through" button
         facebook: {
