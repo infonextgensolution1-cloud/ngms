@@ -19,6 +19,7 @@ import { rand, JOB_STATUSES, COST_CATEGORIES, PHOTO_TYPES } from '@/lib/ngms-ops
 import type { Job, Client } from '@/lib/ngms-ops/core'
 import { LOGO_DATA_URI } from '@/lib/logo'
 import { prepareJobPhoto, withJobPhotoTimeout } from '@/lib/job-photo-upload'
+import { signedJobPhotoUrl } from '@/lib/job-photo-url'
 
 const BRAND = { black: '#0A0A0A', purple: '#8B1BF5', orange: '#F57C1B', green: '#39D353', grey: '#5B5B5B', line: '#E4E4E4' }
 const input = 'w-full bg-jet border border-darkgrey text-paper rounded-btn px-3 py-2.5 text-sm focus:outline-none focus:border-blue'
