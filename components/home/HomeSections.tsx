@@ -84,7 +84,6 @@ export function ServicesOverview({
               <li key={s.slug} className={feature ? 'col-span-2 row-span-2' : wide ? 'col-span-2' : ''}>
                 <Link
                   href={`/services/${s.slug}`}
-                  className={`group forge-interactive relative flex h-full flex-col justify-end overflow-hidden rounded-panel border border-darkgrey bg-cardgrey ${
                   className={`group forge-interactive ngms-service-tile relative flex h-full flex-col justify-end overflow-hidden rounded-panel border border-concrete bg-graphite shadow-[0_14px_36px_rgba(18,22,26,.12)] ${
                     feature ? 'min-h-[340px] sm:min-h-[460px]' : 'min-h-[190px] sm:min-h-[220px]'
                   }`}
