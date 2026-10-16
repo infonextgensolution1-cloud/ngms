@@ -7,9 +7,8 @@ import HomeHero from '@/components/home/HomeHero'
 import HowItWorks from '@/components/HowItWorks'
 import BodyCorporateSection from '@/components/BodyCorporateSection'
 import HelderbergToday from '@/components/home/HelderbergToday'
-import { GoogleReviews, WhyNgms, AreasAndFaq } from '@/components/home/HomeSections'
-import { services } from '@/lib/services'
-import { SITE, whatsappLink } from '@/lib/site'
+import HomeHero from '@/components/home/HomeHero'
+import LocalPointOfContact from '@/components/home/LocalPointOfContact'
 import { getBusinessHours } from '@/lib/business-hours'
 import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages, getSlotPhotos } from '@/lib/queries'
 import './homepage-mason-editorial.css'
@@ -17,6 +16,9 @@ import './homepage-mason-editorial.css'
 export const revalidate = 300
 export const metadata: Metadata = { alternates: { canonical: '/' } }
 
+// Homepage flow: hero → local point-of-contact statement → services → solar offer →
+// proof, reviews, why NGMS, process, body corporates, local planning and final CTA.
+// Homepage imagery remains managed through Admin → Media.
 export default async function HomePage() {
   const [hours, slides, gallery, serviceImages, beforeAfter, slotPhotos] = await Promise.all([
     getBusinessHours(),
@@ -71,71 +73,25 @@ export default async function HomePage() {
         </ul>
       </section>
 
-      <section className="ngms-new-solar" aria-labelledby="ngms-solar-title">
-        <div className="ngms-new-solar__copy">
-          <p className="ngms-new-eyebrow">FLAGSHIP SERVICE · SOLAR</p>
-          <h2 id="ngms-solar-title">CLEAN PANELS.<br /><span>CLEAR RESULTS.</span></h2>
-          <p>Coastal salt, dust and pollen build up on solar panels. Our careful cleaning service helps keep your panels clear, with before-and-after photos so you can see the work.</p>
-          <div className="ngms-new-solar__actions">
-            <Link href="/solar-panel-cleaning/helderberg" className="ngms-new-button ngms-new-button--orange">SOLAR PANEL CLEANING <span aria-hidden="true">↗</span></Link>
-            <Link href="/roi-calculator" className="ngms-new-button ngms-new-button--outline">CHECK CLEANING ROI</Link>
-          </div>
-        </div>
-        <div className="ngms-new-solar__facts">
-          <div><strong>01</strong><span>Gentle cleaning method</span></div>
-          <div><strong>02</strong><span>Before-and-after photos</span></div>
-          <div><strong>03</strong><span>Local Helderberg service</span></div>
-        </div>
-      </section>
+  const slot = (key: string): Photo | undefined =>
+    slotPhotos[key] ? { src: slotPhotos[key].image_url, caption: slotPhotos[key].caption || 'Recent job' } : undefined
 
-      {projectPhotos.length > 0 && <section className="ngms-new-work" aria-labelledby="ngms-work-title">
-        <div className="ngms-new-section-head">
-          <div>
-            <p className="ngms-new-eyebrow">REAL WORK · REAL PROPERTIES</p>
-            <h2 id="ngms-work-title">WORK THAT<br /><span>SPEAKS FOR ITSELF.</span></h2>
-          </div>
-          <Link href="/portfolio" className="ngms-new-text-link ngms-new-text-link--light">VIEW PROJECTS <span aria-hidden="true">↗</span></Link>
-        </div>
-        <div className="ngms-new-work-grid">
-          {projectPhotos.map((photo, index) => <figure key={photo.image_url}>
-            <div className="ngms-new-work-photo">
-              <Image src={photo.image_url} alt={photo.caption || 'Completed NGMS maintenance project'} fill sizes="(max-width: 700px) 100vw, 33vw" quality={76} unoptimized={photo.image_url.includes('.supabase.co/storage/')} />
-            </div>
-            <figcaption><span>{String(index + 1).padStart(2, '0')}</span>{photo.caption || 'Completed NGMS project'}</figcaption>
-          </figure>)}
-        </div>
-      </section>}
+  const seen = new Set<string>()
+  const recent = [...afterPhotos, ...galleryPhotos, ...jobPhotos].filter((p) => {
+    if (!p.src || seen.has(p.src)) return false
+    seen.add(p.src)
+    return true
+  }).slice(0, 10)
 
-      {comparisonPhotos.length > 0 && <section className="bg-[#F2F2F2] text-[#0D0D0D] px-5 py-16 sm:px-8 sm:py-24" aria-labelledby="ngms-before-after-title">
-        <div className="mx-auto max-w-7xl">
-          <p className="mb-4 text-xs font-black uppercase tracking-[.16em] text-[#A43C00]">Visible proof</p>
-          <h2 id="ngms-before-after-title" className="mb-10 text-4xl leading-none sm:text-6xl">BEFORE.<br /><span className="text-[#A43C00]">AFTER.</span></h2>
-          <div className="grid gap-5 md:grid-cols-3">
-            {comparisonPhotos.map((photo, index) => <article key={photo.after_image_url} className="min-w-0 border border-[#D0D0D0] bg-white">
-              <div className="grid grid-cols-2">
-                <div>
-                  <div className="relative aspect-[4/3] bg-[#D8D8D8]">
-                    <Image src={photo.before_image_url} alt={`Before: ${photo.caption || photo.location || 'NGMS project'}`} fill sizes="(max-width: 768px) 50vw, 20vw" quality={72} unoptimized={photo.before_image_url.includes('.supabase.co/storage/')} className="object-cover" />
-                  </div>
-                  <p className="bg-[#0D0D0D] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-white">Before</p>
-                </div>
-                <div>
-                  <div className="relative aspect-[4/3] bg-[#D8D8D8]">
-                    <Image src={photo.after_image_url} alt={`After: ${photo.caption || photo.location || 'NGMS project'}`} fill sizes="(max-width: 768px) 50vw, 20vw" quality={72} unoptimized={photo.after_image_url.includes('.supabase.co/storage/')} className="object-cover" />
-                  </div>
-                  <p className="bg-[#FF5A00] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-[#0D0D0D]">After</p>
-                </div>
-              </div>
-              <div className="p-4">
-                <p className="text-sm font-bold">{photo.caption || 'Completed maintenance work'}</p>
-                <p className="mt-1 text-xs text-[#555]">{photo.location}</p>
-              </div>
-            </article>)}
-          </div>
-          <p className="mt-8"><Link href="/portfolio" className="inline-flex border-b-2 border-[#FF5A00] py-3 text-xs font-black uppercase tracking-wider">VIEW MORE PROJECTS ↗</Link></p>
-        </div>
-      </section>}
-
+  return (
+    <main className="bg-jet ngms-home-refresh" data-ngms-home-refresh>
+      <SeasonalBanner />
+      <DiscountPopup />
+      <HomeHero slides={slides} days={hours.days} open={hours.open} close={hours.close} />
+      <LocalPointOfContact />
+      <ServicesOverview services={services} images={serviceImages} />
+      <SolarFeature photo={slot('hero_solar') ?? solarPhotos[0] ?? pick(0)} />
+      <RecentWork photos={recent} />
       <GoogleReviews />
       <WhyNgms photo={slotPhotos.mission_left ? { src: slotPhotos.mission_left.image_url, caption: slotPhotos.mission_left.caption || 'Recent NGMS maintenance project' } : undefined} />
       <HowItWorks />

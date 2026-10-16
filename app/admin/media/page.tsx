@@ -8,7 +8,7 @@ import { services } from '@/lib/services'
 import { Trash2, Upload, Loader2, ArrowLeft } from 'lucide-react'
 import BeforeAfterUploader from '@/components/admin/BeforeAfterUploader'
 
-type Tab = 'hero' | 'homepage' | 'beforeafter' | 'gallery' | 'services'
+type Tab = 'hero' | 'homepage' | 'beforeafter' | 'gallery' | 'services' | 'maintenance'
 
 // --- helpers ---------------------------------------------------------------
 
@@ -479,6 +479,102 @@ function Gallery() {
   )
 }
 
+// --- Maintenance page project photos -------------------------------------------
+const MAINTENANCE_PHOTO_SLOTS = [
+  { slot: 'maintenance_high_pressure', label: 'High-pressure cleaning', help: 'Communal walkways, entrances, parking and exterior cleaning.' },
+  { slot: 'maintenance_painting', label: 'Painting & maintenance', help: 'Real completed painting, repairs and shared-property upkeep.' },
+  { slot: 'maintenance_paving', label: 'Paving & repairs', help: 'Real paving, paths, entrances and outdoor repair projects.' },
+]
+
+function MaintenanceProjectPhotos() {
+  const [rows, setRows] = useState<Record<string, any>>({})
+  const [busySlot, setBusySlot] = useState<string | null>(null)
+  const [msg, setMsg] = useState('')
+
+  const load = async () => {
+    const { data, error } = await supabase.from('gallery_photos').select('*').in('slot', MAINTENANCE_PHOTO_SLOTS.map((item) => item.slot))
+    if (error) { setMsg(error.message); return }
+    const next: Record<string, any> = {}
+    for (const row of data ?? []) next[row.slot] = row
+    setRows(next)
+  }
+  useEffect(() => { load() }, [])
+
+  const upload = async (slot: string, file: File) => {
+    setBusySlot(slot)
+    setMsg('')
+    try {
+      const url = await uploadToBucket('gallery-photos', file)
+      const existing = rows[slot]
+      const patch = {
+        image_url: url,
+        caption: file.name.replace(/\\.[^.]+$/, '').replace(/[-_]+/g, ' '),
+        service_slug: slot === 'maintenance_high_pressure' ? 'high-pressure-cleaning' : slot === 'maintenance_painting' ? 'painting' : 'paving',
+        slot,
+        is_active: true,
+        sort_order: existing?.sort_order ?? 0,
+      }
+      const result = existing
+        ? await supabase.from('gallery_photos').update(patch).eq('id', existing.id)
+        : await supabase.from('gallery_photos').insert(patch)
+      if (result.error) throw result.error
+      setMsg('Project photo saved. The maintenance page uses this image slot.')
+      await load()
+    } catch (e: any) {
+      setMsg(e.message ?? 'Upload failed.')
+    } finally {
+      setBusySlot(null)
+    }
+  }
+
+  const remove = async (slot: string) => {
+    const row = rows[slot]
+    if (!row || !confirm('Remove this maintenance-page photo? The uploaded file remains in storage.')) return
+    setBusySlot(slot)
+    try {
+      const { error } = await supabase.from('gallery_photos').delete().eq('id', row.id)
+      if (error) throw error
+      setMsg('Photo removed from the maintenance page.')
+      await load()
+    } catch (e: any) {
+      setMsg(e.message ?? 'Could not remove photo.')
+    } finally { setBusySlot(null) }
+  }
+
+  return (
+    <div>
+      <p className="mb-4 text-sm text-gray-300">Choose real completed NGMS project photos for the three image shapes on the Maintenance Packages page. Uploading a replacement updates that exact position; no stock photos are used.</p>
+      {msg && <p role="status" className="mb-4 text-sm text-gray-200">{msg}</p>}
+      <div className="space-y-4">
+        {MAINTENANCE_PHOTO_SLOTS.map((item) => {
+          const row = rows[item.slot]
+          const busy = busySlot === item.slot
+          return (
+            <section key={item.slot} className="rounded-xl border border-gray-700 bg-graphite p-4">
+              <div className="flex items-start gap-3">
+                {row?.image_url ? <img src={row.image_url} alt={row.caption ?? item.label} className="h-24 w-32 shrink-0 rounded object-cover" /> : <div className="flex h-24 w-32 shrink-0 items-center justify-center rounded border border-dashed border-gray-600 bg-jet px-2 text-center text-xs text-gray-500">No project photo</div>}
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-bold text-white">{item.label}</h3>
+                  <p className="mt-1 text-xs text-gray-400">{item.help}</p>
+                  {row?.caption && <p className="mt-2 truncate text-xs text-gray-300">{row.caption}</p>}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <label className="inline-flex cursor-pointer items-center gap-2 rounded bg-orange px-3 py-2 text-xs font-bold text-white">
+                      {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+                      {row?.image_url ? 'Replace photo' : 'Upload project photo'}
+                      <input type="file" accept="image/*" className="hidden" disabled={busy} onChange={(e) => { const file = e.target.files?.[0]; e.target.value = ''; if (file) upload(item.slot, file) }} />
+                    </label>
+                    {row?.image_url && <button type="button" onClick={() => remove(item.slot)} disabled={busy} className="inline-flex items-center gap-1 rounded border border-gray-600 px-3 py-2 text-xs font-semibold text-red-300 disabled:opacity-50"><Trash2 className="h-3 w-3" /> Remove</button>}
+                  </div>
+                </div>
+              </div>
+            </section>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // --- Service images ------------------------------------------------------------
 // One photo per service card on /services. Stored in services.hero_image.
 
@@ -634,6 +730,7 @@ export default function AdminMediaPage() {
     { key: 'beforeafter', label: 'Before / After' },
     { key: 'gallery', label: 'Gallery' },
     { key: 'services', label: 'Service images' },
+    { key: 'maintenance', label: 'Maintenance projects' },
   ]
 
   return (
@@ -668,6 +765,7 @@ export default function AdminMediaPage() {
       {tab === 'beforeafter' && <BeforeAfter />}
       {tab === 'gallery' && <Gallery />}
       {tab === 'services' && <ServiceImages />}
+      {tab === 'maintenance' && <MaintenanceProjectPhotos />}
     </main>
   )
 }

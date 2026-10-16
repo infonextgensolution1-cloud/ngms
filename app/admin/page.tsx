@@ -259,47 +259,58 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-[70vh] bg-jet px-4 py-16">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="font-heading text-2xl font-bold text-paper">Admin Dashboard</h1>
-            <p className="text-sm text-mist">{session.user.email}</p>
+    <main className="min-h-[70vh] bg-[#e9e8e4] text-[#111111] px-3 py-6 sm:px-6 sm:py-10">
+      <div className="max-w-7xl mx-auto border border-[#222222] bg-[#f4f3ef]">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_auto] border-b border-[#222222]">
+          <div className="p-5 sm:p-8">
+            <p className="text-xs font-bold tracking-[0.2em] text-[#e94b25] uppercase mb-3">NGMS / Control · 01</p>
+            <h1 className="font-heading text-4xl sm:text-6xl font-black tracking-tight text-[#111111]">CONTROL.<br /><span className="text-[#777773]">CONNECT. DELIVER.</span></h1>
+            <p className="text-sm text-[#454545] mt-4 max-w-xl">Admin command centre for leads, quotes, jobs, website content and business operations.</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="text-sm text-mist hover:text-orange inline-flex items-center gap-1"
-          >
-            <LogOut className="w-4 h-4" /> Sign out
-          </button>
+          <div className="border-t lg:border-t-0 lg:border-l border-[#222222] p-5 sm:p-8 flex flex-col justify-between gap-6">
+            <div>
+              <p className="text-xs uppercase tracking-widest text-[#555555]">Signed in as</p>
+              <p className="text-sm font-semibold break-all text-[#111111] mt-1">{session.user.email}</p>
+            </div>
+            <button onClick={handleLogout} className="self-start border border-[#222222] px-4 py-3 text-sm font-bold uppercase tracking-wide text-[#111111] hover:bg-[#111111] hover:text-white transition inline-flex items-center gap-2">
+              <LogOut className="w-4 h-4" /> Sign out
+            </button>
+          </div>
         </div>
 
-        <AdminSearch />
+        <div className="p-4 sm:p-6 border-b border-[#222222] space-y-4">
+          <AdminSearch />
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <MfaSetup />
+            <WeekAheadButton />
+          </div>
+          <BusinessSummary />
+          <LiveVisitors />
+        </div>
 
-        <MfaSetup />
-
-        <WeekAheadButton />
-
-        <BusinessSummary />
-
-        <LiveVisitors />
-
-        <div className="grid gap-4">
-          {NAV_ITEMS.map(({ href, icon: Icon, title, desc }) => (
-            <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-4 bg-cardgrey border border-darkgrey rounded-card p-6 hover:border-blue transition"
-            >
-              <div className="h-12 w-12 shrink-0 rounded-btn bg-jet flex items-center justify-center text-orange">
-                <Icon className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="font-heading font-bold text-paper">{title}</p>
-                <p className="text-sm text-mist">{desc}</p>
-              </div>
-            </Link>
-          ))}
+        <div className="p-4 sm:p-6">
+          <div className="flex items-end justify-between gap-3 mb-5">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-[#e94b25] font-bold">02 / Operations</p>
+              <h2 className="text-2xl sm:text-3xl font-heading font-black text-[#111111] mt-1">Business systems</h2>
+            </div>
+            <p className="hidden sm:block text-xs text-[#555555]">SELECT A MODULE ↗</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-0 border-l border-t border-[#999994]">
+            {NAV_ITEMS.map(({ href, icon: Icon, title, desc }, index) => (
+              <Link key={href} href={href} className="group min-w-0 border-r border-b border-[#999994] p-4 sm:p-5 bg-[#f4f3ef] hover:bg-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[#e94b25]">
+                <div className="flex items-start justify-between gap-3 mb-5">
+                  <span className="text-xs font-bold tracking-widest text-[#e94b25]">{String(index + 1).padStart(2, '0')}</span>
+                  <span className="h-9 w-9 flex items-center justify-center border border-[#999994] text-[#111111] group-hover:bg-[#e94b25] group-hover:border-[#e94b25] group-hover:text-white transition-colors">
+                    <Icon className="w-4 h-4" />
+                  </span>
+                </div>
+                <p className="font-heading font-bold text-lg leading-tight text-[#111111]">{title}</p>
+                <p className="text-sm leading-relaxed text-[#555555] mt-2">{desc}</p>
+                <div className="flex justify-end mt-4 text-[#e94b25] group-hover:translate-x-1 transition-transform" aria-hidden="true">↗</div>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </main>
