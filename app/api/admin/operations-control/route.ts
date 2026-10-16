@@ -86,7 +86,7 @@ export async function POST(request: Request) {
     const { data: doc, error } = await auth.db.from('job_documents').insert({
       job_id: jobId || null, document_type: documentType,
       linked_record_type: linkedRecordType || (jobId ? 'job' : null),
-      linked_record_id: linkedRecordId || jobId || null,
+      linked_record_id: linkedRecordId || (linkedRecordType === 'job' ? jobId : '') || null,
       original_filename: file.name.slice(0, 240), storage_path: path,
       content_type: file.type, byte_size: file.size, notes, uploaded_by: auth.userId,
     }).select('id,job_id,document_type,linked_record_type,linked_record_id,original_filename,content_type,byte_size,review_status,notes,created_at,updated_at').single()
