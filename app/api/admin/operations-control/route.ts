@@ -125,7 +125,7 @@ export async function POST(request: Request) {
   if (action === 'save-settlement') {
     const jobId = typeof body.jobId === 'string' ? body.jobId : ''
     const labour = Number(body.labourAmountExVat)
-    const vatRate = Number(body.vatRate ?? 0.15)
+    const vatRate = Number(body.vatRate ?? 0)
     if (!UUID.test(jobId) || !Number.isFinite(labour) || labour < 0 || labour > 100000000 || !Number.isFinite(vatRate) || vatRate < 0 || vatRate > 1) {
       return NextResponse.json({ error: 'Enter a valid job, labour-only amount (ex VAT) and VAT rate.' }, { status: 400 })
     }
@@ -134,6 +134,8 @@ export async function POST(request: Request) {
       auth.db.from('job_subcontractor_assignments').select('subcontractor_draft_id').eq('job_id', jobId).maybeSingle(),
     ])
     if (!job) return NextResponse.json({ error: 'Job not found.' }, { status: 404 })
+    const { data: existingSettlement } = await auth.db.from('subcontractor_labour_settlements').select('id,status').eq('job_id', jobId).maybeSingle()
+    if (existingSettlement?.status === 'paid') return NextResponse.json({ error: 'This settlement is already recorded as paid. Use an adjustment workflow instead of overwriting payment history.' }, { status: 409 })
     const payableEx = Math.round(labour * 0.5 * 100) / 100
     const payableInc = Math.round(payableEx * (1 + vatRate) * 100) / 100
     const status = job.status === 'completed' ? 'payable' : 'pending_completion'
