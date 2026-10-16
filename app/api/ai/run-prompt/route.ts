@@ -1,6 +1,6 @@
 import { ask, errorResponse, HttpError, requireStaff } from '@/lib/ai/openai'
 
-// Runs a finished prompt from the admin Prompt Dashboard and returns Claude's answer.
+// Runs a finished prompt from the admin Prompt Dashboard and returns the GPT answer.
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     const body = (await request.json().catch(() => ({}))) as { prompt?: unknown }
     const prompt = typeof body.prompt === 'string' ? body.prompt.trim() : ''
     if (!prompt) throw new HttpError(400, 'The prompt is empty.')
-    if (prompt.length > MAX_PROMPT_CHARS) throw new HttpError(400, 'That prompt is too long to run here. Use Open in Claude.')
+    if (prompt.length > MAX_PROMPT_CHARS) throw new HttpError(400, 'That prompt is too long to run here. Copy the prompt or open ChatGPT.')
 
     const text = await ask({ prompt })
     return Response.json({ text })
