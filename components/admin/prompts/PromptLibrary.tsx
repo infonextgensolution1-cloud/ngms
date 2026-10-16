@@ -65,7 +65,7 @@ export default function PromptLibrary() {
       </Link>
       <h1 className="font-heading text-2xl font-bold text-paper">NGMS Prompt Library</h1>
       <p className="text-sm text-mist mb-6">
-        Tap Copy and paste into Claude. Numbers match the original 50-prompt list (1-6 not included).
+        Tap Copy and paste into ChatGPT. Numbers match the original 50-prompt list (1-6 not included).
       </p>
 
       <div className="relative mb-3">
