@@ -169,9 +169,9 @@ async function logUse(id: string, action: string, values: Record<string, string>
   }
 }
 
-const CLAUDE_URL = 'https://claude.ai/new?q='
+const CHATGPT_URL = 'https://chatgpt.com/?q='
 // Long prompts can exceed what a URL carries; past this we copy and open a blank chat instead.
-const CLAUDE_URL_MAX = 6000
+const CHATGPT_URL_MAX = 6000
 
 type View = 'dashboard' | 'library' | 'saved' | 'combo'
 
@@ -593,7 +593,7 @@ function PromptModal(p: ModalProps) {
   async function runHere() {
     setTab('answer')
     setRun({ busy: true, text: '', error: '' })
-    p.onUsed(item.id, 'run_claude')
+    p.onUsed(item.id, 'run_gpt')
     try {
       const { text } = await callAi<{ text: string }>('run-prompt', { prompt: output })
       setRun({ busy: false, text, error: '' })
@@ -662,7 +662,7 @@ function PromptModal(p: ModalProps) {
                 aria-controls="pd-panel-prompt"
                 onClick={() => setTab('answer')}
               >
-                Claude&apos;s answer
+                GPT&apos;s answer
               </button>
             )}
           </div>
@@ -674,7 +674,7 @@ function PromptModal(p: ModalProps) {
             {tab === 'answer' && run ? (
               run.busy ? (
                 <p className="pd-run-wait" role="status">
-                  <Loader2 size={18} className="pd-spin" aria-hidden="true" /> Claude is working on it. Longer prompts
+                  <Loader2 size={18} className="pd-spin" aria-hidden="true" /> GPT is working on it. Longer prompts
                   can take a minute.
                 </p>
               ) : run.error ? (
@@ -688,7 +688,7 @@ function PromptModal(p: ModalProps) {
                     className="pd-editor pd-preview"
                     value={run.text}
                     readOnly
-                    aria-label="Claude's answer"
+                    aria-label="GPT's answer"
                   />
                   <button className="pd-btn pd-run-copy" onClick={() => copy.send(run.text, 'Answer copied')}>
                     <Copy size={16} aria-hidden="true" /> Copy answer
@@ -771,20 +771,20 @@ function PromptModal(p: ModalProps) {
         )}
         <a
           className="pd-btn pd-btn-primary"
-          href={output.length <= CLAUDE_URL_MAX ? CLAUDE_URL + encodeURIComponent(output) : 'https://claude.ai/new'}
+          href={output.length <= CHATGPT_URL_MAX ? CHATGPT_URL + encodeURIComponent(output) : 'https://chatgpt.com/'}
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => {
             copy.send(
               output,
               output.length <= CLAUDE_URL_MAX
-                ? 'Opening Claude with the prompt filled in (also copied).'
-                : 'Prompt copied. Paste it into the new Claude chat.',
+                ? 'Opening ChatGPT with the prompt filled in (also copied).'
+                : 'Prompt copied. Paste it into a new ChatGPT chat.',
             )
-            p.onUsed(item.id, 'open_claude')
+            p.onUsed(item.id, 'open_chatgpt')
           }}
         >
-          <Sparkles size={16} aria-hidden="true" /> Open in Claude
+          <Sparkles size={16} aria-hidden="true" /> Open in ChatGPT
           <span className="pd-sr">(opens in a new tab)</span>
         </a>
       </footer>
