@@ -5,7 +5,7 @@ export const metadata = {
   alternates: { canonical: '/faq' },
   title: 'FAQ | NextGen Solar Clean & Maintenance Solutions',
   description:
-    'Straight answers about NextGen Maintenance Solutions pricing, bookings, solar panel cleaning, maintenance packages and service areas.',
+    'Straight answers about NextGen Solar Clean & Maintenance Solutions pricing, bookings, solar panel cleaning, maintenance packages and service areas.',
 }
 
 export default function FaqPage() {
@@ -14,7 +14,7 @@ export default function FaqPage() {
       {/* Editorial hero: oversized type, restrained orange graphic and precise metadata. */}
       <section className="relative isolate mx-auto min-h-[590px] max-w-[1440px] overflow-hidden bg-[#F7F4EF] px-5 pb-10 pt-6 sm:px-10 lg:min-h-[650px] lg:px-16 lg:pt-8">
         <div className="flex items-center justify-between border-b border-[#D7D3CD] pb-4 text-[10px] font-bold uppercase tracking-[0.16em] sm:text-xs">
-          <Link href="/" aria-label="NextGen Maintenance Solutions home" className="text-base font-black tracking-[-0.08em] sm:text-lg">
+          <Link href="/" aria-label="NextGen Solar Clean & Maintenance Solutions home" className="text-base font-black tracking-[-0.08em] sm:text-lg">
             NGMS<span className="text-[#FF6A00]">.</span>
           </Link>
           <span className="hidden sm:inline">One call. All solutions.</span>
@@ -58,7 +58,7 @@ export default function FaqPage() {
         </div>
 
         <div className="flex items-center justify-between border-t border-[#D7D3CD] pt-4 font-mono text-[10px] uppercase tracking-[0.12em] text-[#77736D]">
-          <span>NextGen Maintenance Solutions</span>
+          <span>NextGen Solar Clean & Maintenance Solutions</span>
           <span>{String(FAQS.length).padStart(2, '0')} answers / scroll to explore</span>
         </div>
       </section>

@@ -14,7 +14,7 @@ const PROOF: [string, string][] = [
   ['Quality workmanship', 'One accountable contact'],
 ]
 
-export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', close = '17:00' }: { slides: LandingSlide[]; days?: string; open?: string; close?: string }) {
+export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', close = '19:00' }: { slides: LandingSlide[]; days?: string; open?: string; close?: string }) {
   const photos = slides.filter((slide) => Boolean(slide.image_url)).slice(0, MAX_SLIDES)
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)

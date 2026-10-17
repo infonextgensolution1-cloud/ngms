@@ -80,7 +80,7 @@ export default async function MaintenancePackagesPage() {
               <a className="transition-colors hover:text-[#F04427]" href="#commercial">Complexes</a>
               <a className="transition-colors hover:text-[#F04427]" href="#join">Contact</a>
             </nav>
-            <p className="pt-1 text-center text-[10px] font-semibold tracking-[.08em] text-[#4E4D55] sm:text-sm">NextGen Maintenance Solutions<span className="text-[#F04427]">.</span></p>
+            <p className="pt-1 text-center text-[10px] font-semibold tracking-[.08em] text-[#4E4D55] sm:text-sm">NextGen Solar Clean & Maintenance Solutions<span className="text-[#F04427]">.</span></p>
             <Link href="/quote" className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#29292F] px-4 py-2 text-[10px] font-bold uppercase tracking-wide text-white transition-transform hover:scale-[1.03] sm:px-5 sm:text-xs">
               Get a quote <span className="text-[#F04427]">●</span>
             </Link>
@@ -189,16 +189,16 @@ export default async function MaintenancePackagesPage() {
           <div><p className="text-xs font-bold uppercase tracking-[.18em] text-[#D94324]">Not sure where to start?</p><h2 className="mt-3 text-3xl font-black uppercase leading-tight tracking-[-.06em] text-[#111111] sm:text-5xl">Let’s plan your maintenance.</h2><p className="mt-3 max-w-2xl text-[#686770]">Request a quote or ask us about the right package for your home, complex or business.</p></div>
           <div className="flex flex-wrap items-center gap-3">
             <Link href="/quote" className="inline-flex min-h-12 items-center gap-3 bg-[#F04427] px-5 py-3 text-sm font-bold uppercase text-white hover:bg-[#D94324]">Request a quote <ArrowUpRight aria-hidden="true" className="h-5 w-5" /></Link>
-            <a href="https://wa.me/27631387945" aria-label="Contact NextGen Maintenance Solutions on WhatsApp" title="WhatsApp NextGen Maintenance Solutions" className="inline-flex h-12 w-12 items-center justify-center border border-[#29292F] text-[#29292F] transition-colors hover:border-[#25D366] hover:text-[#25D366]"><MessageCircle aria-hidden="true" className="h-6 w-6" /></a>
+            <a href="https://wa.me/27631387945" aria-label="Contact NextGen Solar Clean & Maintenance Solutions on WhatsApp" title="WhatsApp NextGen Solar Clean & Maintenance Solutions" className="inline-flex h-12 w-12 items-center justify-center border border-[#29292F] text-[#29292F] transition-colors hover:border-[#25D366] hover:text-[#25D366]"><MessageCircle aria-hidden="true" className="h-6 w-6" /></a>
             <Link href="/price-list" className="inline-flex min-h-12 items-center border border-[#B7B6BF] px-4 py-3 text-sm font-bold uppercase hover:border-[#F04427] hover:text-[#D94324]">Full price list</Link>
           </div>
         </div>
-        <p className="mx-auto mt-5 max-w-7xl text-[11px] uppercase tracking-[.12em] text-[#85848D]">NextGen Maintenance Solutions · One Call. All Solutions. · Strand / Gordon’s Bay / Somerset West</p>
+        <p className="mx-auto mt-5 max-w-7xl text-[11px] uppercase tracking-[.12em] text-[#85848D]">NextGen Solar Clean & Maintenance Solutions · One Call. All Solutions. · Strand / Gordon’s Bay / Somerset West</p>
       </section>
 
       <section className="ngms-mp2-final">
         <div className="ngms-mp2-final__stamp">NGMS<br /><span>2026</span></div>
-        <p className="ngms-mp2-eyebrow">NEXTGEN MAINTENANCE SOLUTIONS / WESTERN CAPE</p>
+        <p className="ngms-mp2-eyebrow">NEXTGEN SOLAR CLEAN & MAINTENANCE SOLUTIONS / WESTERN CAPE</p>
         <h2>YOUR PROPERTY.<br /><em>OUR NEXT PROJECT.</em></h2>
         <div className="ngms-mp2-final__links"><Link href="#join-plan">START A PLAN ↗</Link><a href="https://wa.me/27631387945" target="_blank" rel="noopener noreferrer">WHATSAPP US ↗</a><Link href="/price-list">VIEW PRICE LIST ↗</Link></div>
       </section>

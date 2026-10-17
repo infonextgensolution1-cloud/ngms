@@ -163,8 +163,9 @@ export function buildWeather(series: MetEntry[]): Weather | null {
 }
 
 // Can the crew work outside on this day? Rough rules of thumb for Cape weather.
-export function tradeConditions(d: WxDay): TradeCall[] {
-  const wet = d.rainMm >= 1
+export function tradeConditions(d: WxDay, opts?: { raining?: boolean }): TradeCall[] {
+  // `raining` = it is wet right now (only passed for today's card), even if the day's total is light.
+  const wet = d.rainMm >= 1 || !!opts?.raining
   const stormy = d.kind === 'storm'
 
   const paint: TradeCall = wet || stormy
@@ -185,7 +186,7 @@ export function tradeConditions(d: WxDay): TradeCall[] {
     ? { trade: 'Solar panel cleaning', go: false, note: 'Storm risk' }
     : d.windMax >= 40
       ? { trade: 'Solar panel cleaning', go: false, note: 'Too windy' }
-      : d.rainMm >= 3
+      : d.rainMm >= 3 || opts?.raining
         ? { trade: 'Solar panel cleaning', go: false, note: 'Wet roofs' }
         : { trade: 'Solar panel cleaning', go: true, note: 'Good conditions' }
 

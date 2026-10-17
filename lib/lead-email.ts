@@ -86,14 +86,14 @@ export async function sendCustomerCompletionEmail(opts: { to:string; name:string
   ].filter(Boolean).join(' &nbsp;|&nbsp; ')
   const html=`<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.55;color:#1a1a1a;max-width:600px">
 <p>Hi ${first},</p>
-<p>Thank you for choosing NextGen Maintenance Solutions. Your job <strong>${esc(opts.jobTitle)}</strong>${opts.completedDate?` was completed on ${esc(opts.completedDate)}`:''}.</p>
+<p>Thank you for choosing NextGen Solar Clean &amp; Maintenance Solutions. Your job <strong>${esc(opts.jobTitle)}</strong>${opts.completedDate?` was completed on ${esc(opts.completedDate)}`:''}.</p>
 <p><a href="${esc(opts.portalLink)}" style="display:inline-block;background:#F57C1B;color:#0A0A0A;font-weight:bold;text-decoration:none;padding:12px 22px;border-radius:4px">Open my Customer Portal</a></p>
 <p>${opts.balance>0?`Outstanding final balance: <strong>R ${opts.balance.toFixed(2)}</strong>.`:'Your account currently shows no outstanding balance.'}</p>
 <p>If you are happy with our work, we would really appreciate a review. ${review}</p>
 <p>If you know a homeowner, landlord, body corporate or business that could use our services, we would really appreciate a referral.</p>
-<p>ONE CALL. ALL SOLUTIONS.<br>NextGen Maintenance Solutions</p>
+<p>ONE CALL. ALL SOLUTIONS.<br>NextGen Solar Clean &amp; Maintenance Solutions</p>
 </div>`
-  const text=`Hi ${opts.name.trim().split(/\\s+/)[0]||'there'},\\n\\nThank you for choosing NextGen Maintenance Solutions. Your job "${opts.jobTitle}"${opts.completedDate?' was completed on '+opts.completedDate:''}.\\n\\nCustomer Portal: ${opts.portalLink}\\n\\n${opts.balance>0?'Outstanding final balance: R '+opts.balance.toFixed(2):'Your account currently shows no outstanding balance.'}\\n\\nIf you are happy with our work, we would really appreciate a review.\\n${opts.googleReviewUrl||''}\\n${opts.facebookReviewUrl||''}\\n\\nIf you know someone who could use our services, we would really appreciate a referral.\\n\\nONE CALL. ALL SOLUTIONS.\\nNextGen Maintenance Solutions`
+  const text=`Hi ${opts.name.trim().split(/\\s+/)[0]||'there'},\\n\\nThank you for choosing NextGen Solar Clean & Maintenance Solutions. Your job "${opts.jobTitle}"${opts.completedDate?' was completed on '+opts.completedDate:''}.\\n\\nCustomer Portal: ${opts.portalLink}\\n\\n${opts.balance>0?'Outstanding final balance: R '+opts.balance.toFixed(2):'Your account currently shows no outstanding balance.'}\\n\\nIf you are happy with our work, we would really appreciate a review.\\n${opts.googleReviewUrl||''}\\n${opts.facebookReviewUrl||''}\\n\\nIf you know someone who could use our services, we would really appreciate a referral.\\n\\nONE CALL. ALL SOLUTIONS.\\nNextGen Solar Clean & Maintenance Solutions`
   const resend=new Resend(process.env.RESEND_API_KEY)
   const {error}=await resend.emails.send({from:REPLY_FROM,to:opts.to,subject:`Job completed — ${opts.jobTitle}`,html,text,replyTo:NOTIFY_TO})
   if(error) throw new Error(error.message)

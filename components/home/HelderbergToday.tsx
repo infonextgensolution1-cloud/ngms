@@ -59,7 +59,7 @@ function dayName(date: string): string {
 
 function WeatherCard({ weather }: { weather: Weather }) {
   const { now, workDay, workDayIsToday, next } = weather
-  const calls = tradeConditions(workDay)
+  const calls = tradeConditions(workDay, { raining: workDayIsToday && (now.kind === 'rain' || now.kind === 'storm') })
 
   return (
     <div className="rounded-card border border-darkgrey bg-cardgrey p-6">

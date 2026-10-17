@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabaseClient'
 
 export const metadata = {
   alternates: { canonical: '/gallery' },
-  title: 'Gallery | NextGen Maintenance Solutions',
+  title: 'Gallery | NextGen Solar Clean & Maintenance Solutions',
   description:
     'A closer look at maintenance work by NextGen across Strand, Gordon’s Bay, Somerset West and the Helderberg Basin.',
 }
@@ -51,7 +51,7 @@ export default async function GalleryPage() {
       {/* Editorial cover inspired by the supplied gallery reference. */}
       <section className="relative isolate mx-auto flex min-h-[520px] max-w-[1440px] flex-col overflow-hidden bg-[#171717] px-5 pb-7 pt-6 text-white sm:min-h-[600px] sm:px-10 sm:pt-8 lg:min-h-[660px] lg:px-16">
         <header className="flex items-center justify-between border-b border-white/20 pb-4 text-[10px] font-bold uppercase tracking-[0.16em] sm:text-xs">
-          <Link href="/" aria-label="NextGen Maintenance Solutions home" className="text-base font-black tracking-[-0.08em] sm:text-lg">
+          <Link href="/" aria-label="NextGen Solar Clean & Maintenance Solutions home" className="text-base font-black tracking-[-0.08em] sm:text-lg">
             NGMS<span className="text-[#FF6A00]">.</span>
           </Link>
           <span className="hidden sm:inline text-white/55">One call. All solutions.</span>
@@ -81,7 +81,7 @@ export default async function GalleryPage() {
         </div>
 
         <div className="flex items-center justify-between border-t border-white/20 pt-4 font-mono text-[10px] uppercase tracking-[0.12em] text-[#96938D]">
-          <span>NextGen Maintenance Solutions</span>
+          <span>NextGen Solar Clean & Maintenance Solutions</span>
           <a href="#gallery-grid" className="transition-colors hover:text-[#FF6A00]">Explore archive ↓</a>
         </div>
         <span aria-hidden="true" className="pointer-events-none absolute right-[-0.06em] top-[20%] select-none text-[clamp(10rem,26vw,25rem)] font-semibold leading-none tracking-[-0.12em] text-white/[0.025]">NG</span>
@@ -106,7 +106,7 @@ export default async function GalleryPage() {
                 <div className="relative aspect-[4/3] overflow-hidden bg-[#C6C3BE] sm:aspect-[16/9] lg:aspect-[1.28/1]">
                   <Image
                     src={leadPhoto.image_url}
-                    alt={leadPhoto.caption || serviceLabel(leadPhoto.service_slug) + ' by NextGen Maintenance Solutions'}
+                    alt={leadPhoto.caption || serviceLabel(leadPhoto.service_slug) + ' by NextGen Solar Clean & Maintenance Solutions'}
                     fill
                     priority
                     sizes="(max-width: 1024px) 100vw, 65vw"
@@ -145,7 +145,7 @@ export default async function GalleryPage() {
                         <div className="relative aspect-[4/5] overflow-hidden bg-[#C6C3BE]">
                           <Image
                             src={photo.image_url}
-                            alt={photo.caption || serviceLabel(photo.service_slug) + ' by NextGen Maintenance Solutions'}
+                            alt={photo.caption || serviceLabel(photo.service_slug) + ' by NextGen Solar Clean & Maintenance Solutions'}
                             fill
                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                             quality={75}

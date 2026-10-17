@@ -29,7 +29,7 @@ export default async function MaintenancePlanPage({ params, searchParams }: {
     <main className="min-h-screen bg-jet px-4 py-8 text-paper">
       <div className="mx-auto max-w-2xl">
         <header className="mb-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-mist">NextGen Maintenance Solutions</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-mist">NextGen Solar Clean & Maintenance Solutions</p>
           <h1 className="mt-2 font-heading text-3xl font-bold">Maintenance Care Plan</h1>
           <p className="mt-1 text-sm text-mist">One call. All solutions. Ongoing property care.</p>
         </header>

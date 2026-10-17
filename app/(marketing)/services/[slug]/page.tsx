@@ -132,7 +132,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
           <div className="ngms-solar-editorial__contact-bottom">
             <div><p>ONE CALL. ALL SOLUTIONS.</p><a href={whatsappLink("Hi NextGen, I'd like a solar panel cleaning quote. I have ___ panels. Photo attached.")}>WHATSAPP FOR A QUOTE ↗</a></div>
             <div><p>STRAND · GORDON’S BAY<br />SOMERSET WEST · HELDERBERG</p><a href="mailto:info.nextgensolution1@gmail.com">INFO.NEXTGENSOLUTION1@GMAIL.COM</a></div>
-            <div><p>MON–SAT / 07:00–17:00</p><a href="tel:+27631387945">+27 63 138 7945</a></div>
+            <div><p>MON–SAT / 07:00–19:00</p><a href="tel:+27631387945">+27 63 138 7945</a></div>
           </div>
         </div>
         <div className="ngms-solar-editorial__details" id="solar-details">

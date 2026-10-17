@@ -186,7 +186,7 @@ export default async function PortfolioPage() {
 
           <footer className="grid border-t border-[#222222] sm:grid-cols-[1fr_auto]">
             <div className="p-5 sm:p-8">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ed4b26]">NextGen Maintenance Solutions</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ed4b26]">NextGen Solar Clean & Maintenance Solutions</p>
               <p className="mt-2 text-xl font-black uppercase tracking-[-0.04em] sm:text-2xl">Good work speaks for itself.</p>
               <p className="mt-2 text-sm text-[#555555]">Strand · Gordon’s Bay · Somerset West · Overberg</p>
             </div>
