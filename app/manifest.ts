@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "NextGen Maintenance Solutions",
+    name: "NextGen Solar Clean & Maintenance Solutions",
     short_name: "NextGen",
     description: "One Call. All Solutions. Property maintenance across the Helderberg Basin.",
     start_url: "/",

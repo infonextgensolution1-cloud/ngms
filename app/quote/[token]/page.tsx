@@ -50,7 +50,7 @@ export default async function CustomerQuotePage({ params }: Props) {
       <div className="mx-auto max-w-2xl">
         <header className="mb-6 flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-blue">Customer portal · NextGen Maintenance Solutions</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-blue">Customer portal · NextGen Solar Clean & Maintenance Solutions</p>
             <h1 className="mt-1 font-heading text-2xl font-bold">Quote {q?.quote_number ?? '—'}</h1>
             <p className="mt-1 text-xs text-mist">Version {version.version_number}</p>
           </div>

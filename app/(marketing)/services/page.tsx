@@ -10,7 +10,7 @@ import { getServiceImages } from "@/lib/queries";
 export const revalidate = 60;
 export const metadata: Metadata = {
   alternates: { canonical: "/services" },
-  title: "Services | NextGen Maintenance Solutions",
+  title: "Services | NextGen Solar Clean & Maintenance Solutions",
   description: "Solar panel cleaning and 11 more property maintenance trades coordinated by one local team across Strand, Gordon's Bay and Somerset West.",
 };
 

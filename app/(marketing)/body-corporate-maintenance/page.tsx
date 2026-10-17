@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   alternates: { canonical: '/body-corporate-maintenance' },
-  title: 'Body Corporate Maintenance | NextGen Maintenance Solutions',
+  title: 'Body Corporate Maintenance | NextGen Solar Clean & Maintenance Solutions',
   description: 'One maintenance contact for body corporate properties across Strand, Gordon’s Bay, Somerset West and the Helderberg Basin.',
 }
 
@@ -32,7 +32,7 @@ export default function Page() {
       <div className="mx-auto max-w-[1500px] px-3 py-3 sm:px-5 sm:py-5">
         <div className="overflow-hidden border border-[#292929] bg-white shadow-[0_20px_70px_rgba(0,0,0,.12)]">
           <header className="grid grid-cols-2 items-stretch bg-[#080909] text-white sm:grid-cols-[1fr_auto_auto_auto]">
-            <Link href="/" aria-label="NextGen Maintenance Solutions home" className="flex flex-col justify-center px-5 py-4 sm:px-8">
+            <Link href="/" aria-label="NextGen Solar Clean & Maintenance Solutions home" className="flex flex-col justify-center px-5 py-4 sm:px-8">
               <span className="text-2xl font-black leading-none tracking-[-0.06em] sm:text-3xl">NEXT<span className="text-[#ff4b1b]">GEN</span></span>
               <span className="mt-1 text-[9px] font-bold tracking-[0.18em]">MAINTENANCE SOLUTIONS</span>
             </Link>
@@ -99,7 +99,7 @@ export default function Page() {
               <p className="mt-4 text-xs uppercase leading-relaxed tracking-[.1em] text-white/55">Serving Strand · Gordon’s Bay · Somerset West · Helderberg Basin</p>
             </div>
           </section>
-          <footer className="flex flex-col justify-between gap-3 bg-[#f7f7f5] px-5 py-5 text-[10px] font-bold uppercase tracking-[.13em] text-[#555653] sm:flex-row sm:px-8"><span>NextGen Maintenance Solutions</span><span>ONE CALL. ALL SOLUTIONS.</span><Link href="/" className="hover:text-[#ff4b1b]">Back to home ↑</Link></footer>
+          <footer className="flex flex-col justify-between gap-3 bg-[#f7f7f5] px-5 py-5 text-[10px] font-bold uppercase tracking-[.13em] text-[#555653] sm:flex-row sm:px-8"><span>NextGen Solar Clean & Maintenance Solutions</span><span>ONE CALL. ALL SOLUTIONS.</span><Link href="/" className="hover:text-[#ff4b1b]">Back to home ↑</Link></footer>
         </div>
       </div>
     </main>

@@ -27,7 +27,7 @@ export default function AboutPage() {
       <section className="ngms-about-services" aria-labelledby="about-services-title">
         <div className="ngms-about-services-intro">
           <div>
-            <p className="ngms-about-eyebrow">NEXTGEN MAINTENANCE SOLUTIONS / 01</p>
+            <p className="ngms-about-eyebrow">NEXTGEN SOLAR CLEAN & MAINTENANCE SOLUTIONS / 01</p>
             <h1 id="about-services-title">ONE CALL.<br />ALL SOLUTIONS.</h1>
             <p className="ngms-about-smallcopy">Solar panel cleaning first. Multi-trade property maintenance, all under one point of contact.</p>
           </div>
@@ -119,7 +119,7 @@ export default function AboutPage() {
           <div className="ngms-about-footer-nav">
             <a href="/">HOME</a><a href="/about">ABOUT</a><a href="/services">SERVICES</a><a href="/contact">CONTACT</a>
           </div>
-          <small>© {new Date().getFullYear()} NEXTGEN MAINTENANCE SOLUTIONS</small>
+          <small>© {new Date().getFullYear()} NEXTGEN SOLAR CLEAN & MAINTENANCE SOLUTIONS</small>
         </div>
       </footer>
     </main>

@@ -132,7 +132,7 @@ export default function PriceListPage() {
     <main className="bg-[#F7F4EF] text-[#171717]">
       <section className="relative isolate mx-auto flex min-h-[500px] max-w-[1440px] flex-col overflow-hidden bg-[#171717] px-5 pb-7 pt-6 text-white sm:min-h-[570px] sm:px-10 sm:pt-8 lg:min-h-[620px] lg:px-16">
         <header className="flex items-center justify-between border-b border-white/20 pb-4 text-[10px] font-bold uppercase tracking-[0.16em] sm:text-xs">
-          <Link href="/" aria-label="NextGen Maintenance Solutions home" className="text-base font-black tracking-[-0.08em] sm:text-lg">
+          <Link href="/" aria-label="NextGen Solar Clean & Maintenance Solutions home" className="text-base font-black tracking-[-0.08em] sm:text-lg">
             NGMS<span className="text-[#FF6A00]">.</span>
           </Link>
           <span className="hidden sm:inline text-white/55">One call. All solutions.</span>
@@ -162,7 +162,7 @@ export default function PriceListPage() {
         </div>
 
         <div className="flex items-center justify-between border-t border-white/20 pt-4 font-mono text-[10px] uppercase tracking-[0.12em] text-[#96938D]">
-          <span>NextGen Maintenance Solutions</span>
+          <span>NextGen Solar Clean & Maintenance Solutions</span>
           <a href="#rate-card" className="transition-colors hover:text-[#FF6A00]">Explore rates ↓</a>
         </div>
         <span aria-hidden="true" className="pointer-events-none absolute right-[-0.06em] top-[20%] select-none text-[clamp(10rem,26vw,25rem)] font-semibold leading-none tracking-[-0.12em] text-white/[0.025]">R</span>

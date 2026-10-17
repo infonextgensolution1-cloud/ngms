@@ -425,10 +425,17 @@ export async function GoogleReviews() {
         <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
           <div className="rounded-panel border border-concrete bg-paper p-6">
             <p className="text-xs uppercase tracking-[0.16em] text-slate font-semibold">Google rating</p>
-            <div className="mt-3 flex items-center gap-3">
-              <span className="font-heading text-5xl font-bold">{data.rating ? data.rating.toFixed(1) : '—'}</span>
-              <div><span className="text-orange tracking-[0.12em]" aria-hidden>★★★★★</span><p className="text-xs text-slate mt-1">{data.userRatingCount ? `${data.userRatingCount} reviews` : 'Latest rating'}</p></div>
-            </div>
+            {data.rating ? (
+              <div className="mt-3 flex items-center gap-3">
+                <span className="font-heading text-5xl font-bold">{data.rating.toFixed(1)}</span>
+                <div><span className="text-orange tracking-[0.12em]" aria-hidden>★★★★★</span><p className="text-xs text-slate mt-1">{data.userRatingCount ? `${data.userRatingCount} reviews` : 'Latest rating'}</p></div>
+              </div>
+            ) : (
+              <div className="mt-3">
+                <p className="font-heading text-xl font-bold leading-tight">See what customers say on Google</p>
+                <a href={data.reviewsUri} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm font-semibold text-orange hover:underline">Open our Google reviews →</a>
+              </div>
+            )}
             <p className="text-xs text-slate mt-6 leading-relaxed">Powered by Google. Reviews remain on Google.</p>
           </div>
 

@@ -68,7 +68,7 @@ export default function ContactPage() {
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-[#08090B]/95 via-transparent to-black/25" />
         <div className="wrap w-full pb-14 pt-28 sm:pb-20 lg:pb-24">
           <p className="mb-5 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.24em] text-[#FF6A00]">
-            <span className="h-[2px] w-8 bg-[#FF6A00]" /> NextGen Maintenance Solutions · Helderberg
+            <span className="h-[2px] w-8 bg-[#FF6A00]" /> NextGen Solar Clean & Maintenance Solutions · Helderberg
           </p>
           <h1 className="max-w-4xl font-heading text-6xl font-extrabold uppercase leading-[0.82] tracking-[-0.055em] sm:text-8xl lg:text-[8.5rem]">
             One call.
@@ -115,12 +115,12 @@ export default function ContactPage() {
               <div className="grid gap-3">
                 <ContactCard href="tel:+27631387945" label="Call our team" value="063 138 7945" icon={<NgmsIcon name="phone" index={0} className="h-7 w-7" />} />
                 <ContactCard href="https://wa.me/27631387945" label="WhatsApp" value="Message us directly" icon={<NgmsIcon name="fast-reply" index={1} className="h-7 w-7" />} external />
-                <ContactCard href="mailto:nextgensolarmaintenance@gmail.com" label="Email" value="nextgensolarmaintenance@gmail.com" icon={<NgmsIcon name="mail" index={3} className="h-7 w-7" />} />
+                <ContactCard href="mailto:nextgensolarmaintenace@gmail.com" label="Email" value="nextgensolarmaintenace@gmail.com" icon={<NgmsIcon name="mail" index={3} className="h-7 w-7" />} />
               </div>
               <div className="mt-8 border-t border-white/15 pt-5">
                 <p className="text-xs uppercase tracking-[0.18em] text-white/45">Business hours</p>
                 <p className="mt-2 font-heading text-xl font-bold uppercase">Monday – Saturday</p>
-                <p className="text-sm text-white/65">07:00 – 17:00</p>
+                <p className="text-sm text-white/65">07:00 – 19:00</p>
               </div>
             </div>
 
@@ -163,7 +163,7 @@ export default function ContactPage() {
       <section className="border-t border-white/10 bg-[#F2EEE7] py-12 text-[#111214] sm:py-16">
         <div className="wrap flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#C4560A]">NextGen Maintenance Solutions</p>
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#C4560A]">NextGen Solar Clean & Maintenance Solutions</p>
             <p className="font-heading text-4xl font-extrabold uppercase leading-[0.9] sm:text-6xl">One call.<br />All solutions.</p>
           </div>
           <div className="flex flex-wrap gap-3">

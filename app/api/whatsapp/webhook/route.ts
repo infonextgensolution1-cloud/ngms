@@ -123,7 +123,7 @@ async function replyFor(message: IncomingMessage) {
 
   return {
     text:
-      "Thanks for contacting NextGen Maintenance Solutions. 👋 We cover solar cleaning, painting, waterproofing, paving, plumbing, electrical and more across the Helderberg.",
+      "Thanks for contacting NextGen Solar Clean & Maintenance Solutions. 👋 We cover solar cleaning, painting, waterproofing, paving, plumbing, electrical and more across the Helderberg.",
     buttons: [
       { id: "quote", title: "Get a quote" },
       { id: "photo", title: "Send a photo" },
