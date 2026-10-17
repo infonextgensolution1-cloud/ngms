@@ -47,7 +47,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const admin = db()
     const actor = await getActor(request, admin)
     const { data: document, error: docError } = await admin.from('ngms_document_records')
-      .select('id,document_number,document_type,review_status')
+      .select('id,document_number,document_type,review_status,customer_id,metadata')
       .eq('id', id).maybeSingle()
     if (docError) throw docError
     if (!document) return NextResponse.json({ error: 'Document not found.' }, { status: 404 })
@@ -110,13 +110,25 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       }).eq('id', extraction.id)
       if (updateExtractionError) throw updateExtractionError
     }
+    const documentMetadata = document.metadata && typeof document.metadata === 'object'
+      ? document.metadata as Record<string, unknown>
+      : {}
+    const customerSafeTypes = ['quote', 'customer_invoice', 'job_report', 'completion_report', 'job_photo']
+    const releaseToCustomer = documentMetadata.requestedCustomerRelease === true
+      && !!document.customer_id
+      && customerSafeTypes.includes(document.document_type)
     const { error: updateDocumentError } = await admin.from('ngms_document_records').update({
-      review_status: 'approved', reviewed_by: actor, reviewed_at: now, processing_status: 'complete', updated_at: now,
+      review_status: 'approved',
+      reviewed_by: actor,
+      reviewed_at: now,
+      processing_status: 'complete',
+      is_visible_to_customer: releaseToCustomer,
+      updated_at: now,
     }).eq('id', id)
     if (updateDocumentError) throw updateDocumentError
     await admin.from('ngms_audit_events').insert({
       actor, action: 'document.review_approved', entity_type: 'ngms_document_records', entity_id: id,
-      details: { document_number: document.document_number, document_type: document.document_type, financial_posting_approved: document.document_type === 'supplier_invoice', financial_posted: false },
+      details: { document_number: document.document_number, document_type: document.document_type, financial_posting_approved: document.document_type === 'supplier_invoice', financial_posted: false, released_to_customer: releaseToCustomer },
     })
     return NextResponse.json({
       ok: true,
