@@ -261,3 +261,46 @@
     animation-iteration-count: 1 !important;
   }
 }
+
+
+/* Visual regression correction: reset legacy .ngms-new-hero layout rules on current HomeHero markup.
+   Older mobile rules added 230–250px of top padding and a black background, shifting copy and controls. */
+.ngms-home-new .ngms-new-hero.ngms-editorial-hero {
+  align-items: stretch !important;
+  padding: 0 !important;
+  background: #f2f2ef !important;
+  color: #171717;
+}
+.ngms-home-new .ngms-new-hero.ngms-editorial-hero > div.max-w-6xl {
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+.ngms-home-new .ngms-new-hero.ngms-editorial-hero > div[aria-hidden="true"] {
+  inset: 0;
+  pointer-events: none;
+}
+@media (max-width: 760px) {
+  .ngms-home-new .ngms-new-hero.ngms-editorial-hero {
+    min-height: 0;
+    padding: 0 !important;
+  }
+  .ngms-home-new .ngms-new-hero.ngms-editorial-hero > div.max-w-6xl {
+    min-height: 0;
+    padding: 30px 16px 86px;
+  }
+  .ngms-home-new .ngms-new-hero.ngms-editorial-hero .ngms-hero-caption {
+    width: 100%;
+    max-width: 100%;
+  }
+  .ngms-home-new .ngms-new-hero.ngms-editorial-hero .ngms-new-hero__photo-controls {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    max-width: none;
+  }
+}
+@media (max-width: 420px) {
+  .ngms-home-new .ngms-new-hero.ngms-editorial-hero > div.max-w-6xl {
+    padding: 24px 14px 84px;
+  }
+}
