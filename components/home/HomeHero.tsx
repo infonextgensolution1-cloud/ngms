@@ -167,19 +167,7 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
                 </span>
                 <span className="block truncate text-graphite">{slide?.caption || slide?.alt_text || 'Completed NextGen job'}</span>
               </p>
-              {count > 1 && (
-                <div className="flex items-center gap-1 shrink-0">
-                  <HeroButton label="Previous photo" onClick={() => go(index - 1)}>
-                    <path d="M15 18l-6-6 6-6" />
-                  </HeroButton>
-                  <HeroButton label={paused ? 'Play slideshow' : 'Pause slideshow'} onClick={() => setPaused((p) => !p)}>
-                    {paused || reduce ? <path d="M8 5v14l11-7z" fill="currentColor" /> : <path d="M9 5v14M15 5v14" />}
-                  </HeroButton>
-                  <HeroButton label="Next photo" onClick={() => go(index + 1)}>
-                    <path d="M9 18l6-6-6-6" />
-                  </HeroButton>
-                </div>
-              )}
+
             </div>
           )}
         </div>
@@ -200,17 +188,3 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
   )
 }
 
-function HeroButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className="grid h-11 w-11 place-items-center rounded-btn text-graphite hover:bg-concrete/60 transition-colors"
-    >
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        {children}
-      </svg>
-    </button>
-  )
-}
