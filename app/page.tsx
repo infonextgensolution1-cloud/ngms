@@ -15,6 +15,7 @@ import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages, getS
 import './homepage-mason-editorial.css'
 import './homepage-editorial.css'
 import './homepage-fusion.css'
+import './ngms-public-fusion.css'
 
 export const revalidate = 300
 export const metadata: Metadata = { alternates: { canonical: '/' } }
