@@ -795,3 +795,12 @@
     aspect-ratio: 1.6;
   }
 }
+
+
+/* Zapier-pushed QA scope (steps 1–5):
+   1. Scope the fix to homepage Services and Solar sections.
+   2. Explicitly restore grid/display, visibility and card layout primitives.
+   3. Restore image/media, text contrast and CTA styling.
+   4. Apply tablet/mobile breakpoints to prevent overflow.
+   5. Deploy this branch to preview only; verify all 12 cards and solar feature before any production promotion.
+*/
