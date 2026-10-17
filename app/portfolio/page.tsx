@@ -30,7 +30,17 @@ async function getProjects(): Promise<BeforeAfter[]> {
   return (data as BeforeAfter[]) ?? []
 }
 
-function displayProjectTitle(project: BeforeAfter) {\n  const caption = project.caption?.trim()\n  // Some legacy rows stored an upload/object identifier in the caption field.\n  if (!caption || /^[0-9a-f]{8}-[0-9a-f-]{20,}$/i.test(caption) || /(?:^|[_-])all[_-]?\d+$/i.test(caption)) {\n    const service = project.service_slug?.replaceAll('-', ' ').trim()\n    return service ? `${service} project` : 'Completed maintenance project'\n  }\n  return caption\n}\n\nfunction projectImages(project: BeforeAfter, side: 'before' | 'after') {
+function displayProjectTitle(project: BeforeAfter) {
+  const caption = project.caption?.trim()
+  // Some legacy rows stored an upload/object identifier in the caption field.
+  if (!caption || /^[0-9a-f]{8}-[0-9a-f-]{20,}$/i.test(caption) || /(?:^|[_-])all[_-]?\d+$/i.test(caption)) {
+    const service = project.service_slug?.replaceAll('-', ' ').trim()
+    return service ? `${service} project` : 'Completed maintenance project'
+  }
+  return caption
+}
+
+function projectImages(project: BeforeAfter, side: 'before' | 'after') {
   const urls = side === 'before' ? project.before_image_urls : project.after_image_urls
   const fallback = side === 'before' ? project.before_image_url : project.after_image_url
   return Array.isArray(urls) && urls.length ? urls : [fallback]
