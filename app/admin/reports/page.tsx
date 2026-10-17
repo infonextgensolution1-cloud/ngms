@@ -27,6 +27,8 @@ function Reports() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [exporting, setExporting] = useState(false)
+  const [archiving, setArchiving] = useState(false)
+  const [archiveNotice, setArchiveNotice] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -66,6 +68,29 @@ function Reports() {
     }
   }
 
+  async function archiveReport() {
+    setArchiving(true)
+    setArchiveNotice('')
+    setError('')
+    try {
+      const { data } = await supabase.auth.getSession()
+      const token = data.session?.access_token
+      if (!token) throw new Error('Your staff session has expired. Sign in again.')
+      const response = await fetch('/api/admin/reports/archive', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ month }),
+      })
+      const result = await response.json() as { error?: string; warning?: string; document?: { document_number?: string; title?: string } }
+      if (!response.ok) throw new Error(result.error || 'Could not archive report.')
+      setArchiveNotice(result.warning || `${result.document?.document_number || 'Report'} saved to NGMS Document Control. Google Drive sync is queued, not yet confirmed.`)
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setArchiving(false)
+    }
+  }
+
   const margin = report && report.jobRevenue > 0 ? Math.round((report.jobProfit / report.jobRevenue) * 100) : null
 
   return (
@@ -89,20 +114,30 @@ function Reports() {
               className="block mt-1 bg-cardgrey border border-darkgrey text-paper rounded-btn px-3 py-2.5 text-sm"
             />
           </label>
-          <button
-            onClick={excel}
-            disabled={!report || exporting}
-            className="inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50"
-          >
-            {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileSpreadsheet className="w-4 h-4" />} Excel for bookkeeper
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={excel}
+              disabled={!report || exporting}
+              className="inline-flex items-center gap-2 bg-blue-fill hover:bg-blue-dark text-white font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50"
+            >
+              {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileSpreadsheet className="w-4 h-4" />} Excel export
+            </button>
+            <button
+              onClick={archiveReport}
+              disabled={!report || archiving}
+              className="inline-flex items-center gap-2 bg-orange hover:bg-orange/90 text-jet font-heading font-semibold px-4 py-2.5 rounded-btn disabled:opacity-50"
+            >
+              {archiving ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileSpreadsheet className="w-4 h-4" />} Save to archive
+            </button>
+          </div>
         </div>
 
         {error && (
-          <p className="text-sm text-orange flex items-center gap-2 mb-3">
+          <p role="alert" className="text-sm text-orange flex items-center gap-2 mb-3">
             <AlertTriangle className="w-4 h-4" /> {error}
           </p>
         )}
+        {archiveNotice && <p role="status" className="text-sm text-paper bg-cardgrey border border-darkgrey p-3 mb-3">{archiveNotice}</p>}
 
         {loading && !report ? (
           <div className="py-16 flex justify-center">
