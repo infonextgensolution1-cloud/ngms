@@ -11,12 +11,12 @@ const ALLOWED_TYPES = new Set([
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv',
 ])
 const DOCUMENT_TYPES = new Set([
   'supplier_invoice', 'customer_invoice', 'quote', 'receipt', 'job_report',
   'completion_report', 'job_photo', 'purchase_order', 'delivery_note',
-  'contract', 'tax_document', 'correspondence', 'other',
+  'contract', 'tax_document', 'correspondence', 'financial_report', 'management_report', 'other',
 ])
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const safePart = (value: string) =>
