@@ -12,6 +12,7 @@ import { getBusinessHours, hoursLabel, hoursDayNames, type BusinessHours } from 
 import AdminLink from '@/components/AdminLink'
 import VisitorPresence from '@/components/VisitorPresence'
 import ClickTracking from '@/components/ClickTracking'
+import { Phone } from 'lucide-react'
 import PWARegister from '@/components/PWARegister'
 import './globals.css'
 import './homepage-editorial.css'
@@ -174,10 +175,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <WhatsAppIcon className="h-10 w-10 text-[#B7FF00] drop-shadow-[0_0_8px_rgba(183,255,0,0.8)]" />
         </a>
         <div className="sm:hidden fixed inset-x-0 bottom-0 z-50 px-3 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] bg-jet/95 backdrop-blur-xl border-t border-darkgrey" data-site-marketing>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-[1fr_auto_auto] gap-2">
             <Link href="/quote" className="btn-quote !min-h-12 !py-2">Get a free quote</Link>
             <a data-site-marketing href={WHATSAPP_URL} aria-label="WhatsApp NextGen — send a photo or request a quote" target="_blank" rel="noopener noreferrer" className="relative flex min-h-12 items-center justify-center rounded-xl border border-orange bg-jet px-3 py-2 transition-transform duration-200 hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B7FF00]">
               <WhatsAppIcon className="h-8 w-8 text-[#B7FF00] drop-shadow-[0_0_8px_rgba(183,255,0,0.8)]" />
+            </a>
+            <a href={`tel:${SITE.phone}`} aria-label={`Call NextGen on ${SITE.phoneDisplay}`} className="flex min-h-12 min-w-12 items-center justify-center rounded-xl border border-darkgrey bg-jet px-3 py-2 text-paper focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B7FF00]">
+              <Phone className="h-6 w-6" aria-hidden="true" />
             </a>
           </div>
         </div>
