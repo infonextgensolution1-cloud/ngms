@@ -62,7 +62,22 @@ export async function GET(request: Request) {
 
     const { data, error } = await query
     if (error) throw error
-    return NextResponse.json({ documents: data ?? [] }, { headers: { 'Cache-Control': 'no-store' } })
+
+    let options: { customers: unknown[]; projects: unknown[]; suppliers: unknown[] } | undefined
+    if (url.searchParams.get('include') === 'options') {
+      const [customers, projects, suppliers] = await Promise.all([
+        admin.from('clients').select('id,name').order('name').limit(500),
+        admin.from('jobs').select('id,title,client_id,status').order('created_at', { ascending: false }).limit(500),
+        admin.from('suppliers').select('id,name').order('name').limit(500),
+      ])
+      for (const result of [customers, projects, suppliers]) if (result.error) throw result.error
+      options = {
+        customers: customers.data ?? [],
+        projects: projects.data ?? [],
+        suppliers: suppliers.data ?? [],
+      }
+    }
+    return NextResponse.json({ documents: data ?? [], ...(options ? { options } : {}) }, { headers: { 'Cache-Control': 'no-store' } })
   } catch (e) {
     return errorResponse(e)
   }
