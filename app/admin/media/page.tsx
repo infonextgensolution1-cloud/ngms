@@ -13,6 +13,22 @@ type Tab = 'hero' | 'homepage' | 'beforeafter' | 'gallery' | 'services' | 'maint
 // --- helpers ---------------------------------------------------------------
 
 async function uploadToBucket(bucket: string, file: File) {
+  const { data: authData, error: authError } = await supabase.auth.getSession()
+  if (authError || !authData.session) {
+    throw new Error(`Staff session check failed: ${authError?.message ?? 'no authenticated session'}. Sign in again and retry.`)
+  }
+  const { data: staff, error: staffError } = await supabase
+    .from('prompt_users')
+    .select('user_id, active')
+    .eq('user_id', authData.session.user.id)
+    .eq('active', true)
+    .maybeSingle()
+  if (staffError) {
+    throw new Error(`Could not verify this account in the NGMS staff registry: ${staffError.message} (code: ${staffError.code ?? 'unknown'}).`)
+  }
+  if (!staff) {
+    throw new Error('This signed-in account is not listed as an active NGMS staff user. Ask an administrator to verify its prompt_users record before uploading.')
+  }
   if (!file.type.startsWith('image/')) throw new Error(`"${file.name}" is not an image file.`)
   if (file.size > 15 * 1024 * 1024) throw new Error(`"${file.name}" exceeds the 15 MB upload limit.`)
   const rawExt = file.name.split('.').pop() ?? 'jpg'
