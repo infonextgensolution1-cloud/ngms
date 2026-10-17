@@ -29,8 +29,12 @@ function optionalUuid(value: FormDataEntryValue | null, label: string): string |
   return text
 }
 
-function actorFromRequest(request: Request) {
-  return (request.headers.get('x-ngms-staff-email') || '').trim().slice(0, 200) || null
+async function actorFromRequest(request: Request, admin: ReturnType<typeof db>) {
+  const token = request.headers.get('authorization')?.replace(/^Bearer\\s+/i, '').trim()
+  if (!token) return null
+  const { data, error } = await admin.auth.getUser(token)
+  if (error || !data.user) throw new Error('Could not verify the staff identity for this document action.')
+  return (data.user.email || data.user.id).slice(0, 200)
 }
 
 export async function GET(request: Request) {
@@ -92,6 +96,7 @@ export async function POST(request: Request) {
     if (visibleToCustomer && !customerId) return NextResponse.json({ error: 'A customer must be linked before a document can be visible in the customer portal.' }, { status: 400 })
 
     const admin = db()
+    const actor = await actorFromRequest(request, admin)
     if (customerId) {
       const { data, error } = await admin.from('clients').select('id').eq('id', customerId).maybeSingle()
       if (error) throw error
@@ -165,7 +170,7 @@ export async function POST(request: Request) {
       review_status: 'pending',
       is_visible_to_customer: visibleToCustomer,
       metadata: { uploadedAt: now.toISOString(), uploadChannel: 'admin' },
-      created_by: actorFromRequest(request),
+      created_by: actor,
     }).select('id,document_number,document_type,title,issued_on,customer_id,project_id,quote_id,invoice_id,supplier_id,supplier_purchase_id,storage_bucket,storage_path,original_filename,content_type,byte_size,processing_status,review_status,is_visible_to_customer,created_at').single()
 
     if (insertError) throw new Error(`Document record could not be saved: ${insertError.message}`)
@@ -178,7 +183,7 @@ export async function POST(request: Request) {
     }, { onConflict: 'document_id,provider', ignoreDuplicates: true })
 
     await admin.from('ngms_audit_events').insert({
-      actor: actorFromRequest(request),
+      actor,
       action: 'document.uploaded',
       entity_type: 'ngms_document_records',
       entity_id: id,
