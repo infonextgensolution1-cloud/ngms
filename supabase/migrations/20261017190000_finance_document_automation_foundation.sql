@@ -9,7 +9,7 @@ create table if not exists public.ngms_document_records (
   document_type text not null check (document_type in (
     'supplier_invoice','customer_invoice','quote','receipt','job_report',
     'completion_report','job_photo','purchase_order','delivery_note',
-    'contract','tax_document','correspondence','other'
+    'contract','tax_document','correspondence','financial_report','management_report','other'
   )),
   title text not null check (char_length(title) between 1 and 240),
   issued_on date,
@@ -181,7 +181,8 @@ values (
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'text/csv'
   ]
 )
 on conflict (id) do nothing;
