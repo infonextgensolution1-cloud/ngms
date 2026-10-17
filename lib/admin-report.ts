@@ -18,6 +18,10 @@ export type MonthReport = {
   wonValue: number
   wonCount: number
   jobsCompleted: number
+  jobsScheduled: number
+  jobsInProgress: number
+  jobsOnHold: number
+  overdueJobs: number
   jobRevenue: number
   jobCost: number
   jobProfit: number
@@ -47,18 +51,19 @@ const sastDay = (iso: string) => new Date(iso).toLocaleDateString('en-CA', { tim
 
 export async function monthReport(sb: SupabaseClient, month: string): Promise<MonthReport> {
   const b = bounds(month)
-  const [inv, allInv, quotes, jobs, costs, labour, purchases, leads, settings] = await Promise.all([
+  const [inv, allInv, quotes, jobs, activeJobs, costs, labour, purchases, leads, settings] = await Promise.all([
     sb.from('invoices').select('invoice_number,status,total_amount,paid_amount,created_at,clients(name)').gte('created_at', b.startTs).lt('created_at', b.endTs).order('created_at'),
     sb.from('invoices').select('invoice_number,status,total_amount,paid_amount,notes,clients(name)'),
     sb.from('quotes').select('quote_number,status,total_amount,created_at').gte('created_at', b.startTs).lt('created_at', b.endTs),
     sb.from('jobs').select('*').eq('status', 'completed').gte('completed_date', b.startDay).lte('completed_date', b.endDay),
+    sb.from('jobs').select('id,title,status,scheduled_date,completed_date').in('status', ['scheduled', 'in_progress', 'on_hold']),
     sb.from('job_costs').select('category,description,amount,created_at,jobs(title)').gte('created_at', b.startTs).lt('created_at', b.endTs),
     sb.from('labour_entries').select('employee_name,hours,rate_per_hour,date,jobs(title)').gte('date', b.startDay).lte('date', b.endDay),
     sb.from('supplier_purchases').select('purchase_date,description,category,amount,job_cost_id,suppliers(name)').gte('purchase_date', b.startDay).lte('purchase_date', b.endDay),
     sb.from('leads').select('status,source').gte('created_at', b.startTs).lt('created_at', b.endTs),
     getSettings(sb),
   ])
-  for (const r of [inv, allInv, quotes, jobs, costs, labour, purchases, leads]) if (r.error) throw new Error(`Could not build the report: ${r.error.message}`)
+  for (const r of [inv, allInv, quotes, jobs, activeJobs, costs, labour, purchases, leads]) if (r.error) throw new Error(`Could not build the report: ${r.error.message}`)
 
   // Invoices raised this month
   type InvRow = { invoice_number: string; status: string; total_amount: number | null; paid_amount: number | null; created_at: string; clients: unknown }
@@ -105,6 +110,13 @@ export async function monthReport(sb: SupabaseClient, month: string): Promise<Mo
   const spend = r2(spendRows.reduce((t, r) => t + r[4], 0))
 
   const leadRows = (leads.data ?? []) as { status: string; source: string | null }[]
+  type ActiveJob = { id: string; title: string | null; status: string; scheduled_date: string | null; completed_date: string | null }
+  const activeJobRows = (activeJobs.data ?? []) as ActiveJob[]
+  const jobsScheduled = activeJobRows.filter((j) => j.status === 'scheduled').length
+  const jobsInProgress = activeJobRows.filter((j) => j.status === 'in_progress').length
+  const jobsOnHold = activeJobRows.filter((j) => j.status === 'on_hold').length
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Johannesburg' })
+  const overdueJobs = activeJobRows.filter((j) => !!j.scheduled_date && j.scheduled_date < today && ['scheduled', 'in_progress', 'on_hold'].includes(j.status)).length
 
   const summary: Table = {
     title: 'Summary',
@@ -121,6 +133,10 @@ export async function monthReport(sb: SupabaseClient, month: string): Promise<Mo
       ['Spend (job costs, labour, purchases)', spend, spendRows.length],
       ['New leads', null, leadRows.length],
       ['Leads won', null, leadRows.filter((l) => l.status === 'won').length],
+      ['Active jobs: scheduled', null, jobsScheduled],
+      ['Active jobs: in progress', null, jobsInProgress],
+      ['Active jobs: on hold', null, jobsOnHold],
+      ['Active jobs: overdue scheduled date', null, overdueJobs],
     ],
   }
 
@@ -136,6 +152,10 @@ export async function monthReport(sb: SupabaseClient, month: string): Promise<Mo
     wonValue: r2(won.reduce((t, q) => t + n0(q.total_amount), 0)),
     wonCount: won.length,
     jobsCompleted: costed.length,
+    jobsScheduled,
+    jobsInProgress,
+    jobsOnHold,
+    overdueJobs,
     jobRevenue,
     jobCost,
     jobProfit: r2(jobRevenue - jobCost),
@@ -163,6 +183,11 @@ export async function monthReport(sb: SupabaseClient, month: string): Promise<Mo
         title: 'Spend',
         headers: ['Date', 'Category', 'Description', 'Job', 'Amount (R)'],
         rows: spendRows,
+      },
+      {
+        title: 'Operations',
+        headers: ['Job', 'Status', 'Scheduled date', 'Completed date', 'Overdue'],
+        rows: activeJobRows.map((j) => [j.title, j.status, j.scheduled_date, j.completed_date, !!j.scheduled_date && j.scheduled_date < today && ['scheduled', 'in_progress', 'on_hold'].includes(j.status) ? 'Yes' : 'No']),
       },
     ],
   }
