@@ -3,7 +3,6 @@
   "regions": [
     "dub1"
   ],
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':(exclude)docs' ':(exclude)*.md'",
   "redirects": [
     {
       "source": "/maintenance",
