@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { getGalleryPhotos } from '@/lib/queries'
 
 export const metadata: Metadata = {
   alternates: { canonical: '/body-corporate-maintenance' },
@@ -8,9 +9,9 @@ export const metadata: Metadata = {
 }
 
 const services = [
-  { n: '01', title: 'High-pressure cleaning', detail: 'Keep entrances, communal walkways and parking areas clean and well maintained.', image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=85' },
-  { n: '02', title: 'Painting & maintenance', detail: 'Protect façades, boundary walls and shared spaces with practical upkeep.', image: 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=900&q=85' },
-  { n: '03', title: 'Paving & repairs', detail: 'Maintain communal paving, entrances, paths and outdoor areas.', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=85' },
+  { n: '01', title: 'High-pressure cleaning', detail: 'Keep entrances, communal walkways and parking areas clean and well maintained.', image: '' },
+  { n: '02', title: 'Painting & maintenance', detail: 'Protect façades, boundary walls and shared spaces with practical upkeep.', image: '' },
+  { n: '03', title: 'Paving & repairs', detail: 'Maintain communal paving, entrances, paths and outdoor areas.', image: '' },
 ]
 const benefits = [
   ['01', 'ONE POINT OF CONTACT', 'All maintenance work coordinated for your property.'],
@@ -26,7 +27,10 @@ const steps = [
 ]
 const wa = 'https://wa.me/27631387945?text=Hi%20NextGen%2C%20I%27d%20like%20a%20quote%20for%20body%20corporate%20maintenance.%0AWhat%20I%20need%3A%20'
 
-export default function Page() {
+export default async function Page() {
+  const galleryPhotos = await getGalleryPhotos(24)
+  const projectPhotos = galleryPhotos.filter((photo) => photo.image_url).slice(0, 3)
+  const heroPhoto = projectPhotos[0]?.image_url || 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1800&q=90'
   return (
     <main className="bg-[#f2f1ed] text-[#101112]">
       <div className="mx-auto max-w-[1500px] px-3 py-3 sm:px-5 sm:py-5">
@@ -45,8 +49,8 @@ export default function Page() {
             <div className="flex flex-col justify-between px-5 py-9 sm:px-9 sm:py-12 lg:px-12 lg:py-14">
               <div>
                 <p className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#ff653b]"><span className="h-1.5 w-8 bg-[#ff4b1b]" /> Body corporate maintenance</p>
-                <h1 className="mt-7 max-w-[700px] text-[clamp(2.65rem,6.2vw,6.3rem)] font-black uppercase leading-[.86] tracking-[-.065em]">A single maintenance contact for <span className="text-[#ff4b1b]">body corporate properties.</span></h1>
-                <p className="mt-6 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">Coordinate property maintenance without managing a different contractor for every issue. NextGen provides a single point of contact for multi-trade work across the Helderberg Basin.</p>
+                <h1 className="mt-7 max-w-[700px] text-[clamp(1.8rem,4.1vw,4.2rem)] font-black uppercase leading-[.9] tracking-[-.045em]">A single maintenance contact for <span className="text-[#ff4b1b]">body corporate properties.</span></h1>
+                <p className="mt-6 max-w-xl text-sm leading-relaxed text-white/80 sm:text-base">Coordinate property maintenance without managing a different contractor for every issue. NextGen provides a single point of contact for multi-trade work across the Helderberg Basin.</p>
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <a href={wa} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-between gap-5 bg-[#ff4b1b] px-5 py-4 text-[11px] font-black uppercase tracking-[.06em] text-black transition hover:bg-white sm:min-w-[350px]">☏ WhatsApp: request a body corporate assessment <span>↗</span></a>
                   <Link href="/quote" className="inline-flex min-h-12 items-center justify-between gap-5 border border-white/70 px-5 py-4 text-[11px] font-bold uppercase tracking-[.08em] text-white transition hover:border-[#ff4b1b] hover:text-[#ff704d] sm:min-w-[230px]">Request online quote <span>→</span></Link>
@@ -58,7 +62,7 @@ export default function Page() {
               </div>
             </div>
             <div className="relative min-h-[360px] overflow-hidden border-t border-white/15 bg-[#292a2a] sm:min-h-[500px] lg:min-h-[680px] lg:border-l lg:border-t-0">
-              <div className="absolute inset-0 bg-cover bg-center" role="img" aria-label="Modern multi-unit residential complex with landscaped shared areas" style={{backgroundImage: "linear-gradient(90deg,rgba(8,9,9,.35),rgba(8,9,9,.03) 60%),linear-gradient(0deg,rgba(8,9,9,.58),transparent 52%),url('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1800&q=90')"}} />
+              <div className="absolute inset-0 bg-cover bg-center" role="img" aria-label="Modern multi-unit residential complex with landscaped shared areas" style={{backgroundImage: "linear-gradient(90deg,rgba(8,9,9,.35),rgba(8,9,9,.03) 60%),linear-gradient(0deg,rgba(8,9,9,.58),transparent 52%),url('${heroPhoto}')"}} />
               <div className="absolute left-5 top-5 border border-white/60 bg-black/25 px-3 py-2 text-[9px] font-bold uppercase tracking-[.16em] sm:left-8 sm:top-8">NGMS / Property care</div>
               <div className="absolute bottom-6 left-5 right-5 flex items-end justify-between gap-5 sm:bottom-9 sm:left-8 sm:right-8">
                 <div><p className="text-[10px] font-black uppercase tracking-[.18em] text-[#ff704d]">One trusted maintenance partner</p><p className="mt-2 text-3xl font-black uppercase leading-[.9] tracking-[-.055em] sm:text-5xl">Well maintained.<br/>Better managed.</p></div>
@@ -76,14 +80,14 @@ export default function Page() {
 
           <section id="selected-projects" className="px-5 py-10 sm:px-9 sm:py-14 lg:px-12">
             <div className="grid gap-6 md:grid-cols-[1fr_.55fr] md:items-end">
-              <div><p className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[.18em]"><span className="h-1.5 w-8 bg-[#ff4b1b]"/> 01 / Selected services</p><h2 className="mt-5 text-4xl font-black uppercase leading-[.85] tracking-[-.065em] sm:text-6xl">Good work.<br/>Clear results.</h2><p className="mt-4 max-w-xl text-sm leading-relaxed text-[#4f504e] sm:text-base">Every project is a chance to improve a property with care, clear communication and workmanship you can see.</p><Link href="/services" className="mt-5 inline-flex border-b-2 border-[#ff4b1b] pb-2 text-xs font-black uppercase tracking-[.1em] hover:text-[#e23c13]">Explore all services <span className="ml-4">→</span></Link></div>
+              <div><p className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[.18em]"><span className="h-1.5 w-8 bg-[#ff4b1b]"/> 01 / Selected services</p><h2 className="mt-5 text-4xl font-black uppercase leading-[.85] tracking-[-.065em] sm:text-6xl">Good work.<br/>Clear results.</h2><p className="mt-4 max-w-xl text-sm leading-relaxed text-[#4f504e] sm:text-base">Real NGMS project photography, uploaded through Admin → Media, can be featured here with its service category and project description.</p><Link href="/services" className="mt-5 inline-flex border-b-2 border-[#ff4b1b] pb-2 text-xs font-black uppercase tracking-[.1em] hover:text-[#e23c13]">Explore all services <span className="ml-4">→</span></Link></div>
               <p className="border-l-2 border-[#ff4b1b] pl-4 text-xs font-bold uppercase leading-relaxed tracking-[.08em] text-[#555653]">Well maintained properties.<br/>Happier residents.</p>
             </div>
             <div className="mt-8 grid gap-5 md:grid-cols-3">
-              {services.map((service) => <article key={service.n} className="group min-w-0">
-                <div className="relative aspect-[1.2/1] overflow-hidden bg-[#d4d3cf]"><div role="img" aria-label={service.title} className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-[1.04]" style={{backgroundImage: `url('${service.image}')`}}/><span className="absolute left-3 top-3 bg-[#ff4b1b] px-2 py-1 text-[10px] font-black text-black">{service.n}</span></div>
-                <h3 className="mt-4 border-l-[3px] border-[#ff4b1b] pl-3 text-base font-black uppercase leading-tight tracking-[-.025em]">{service.title}</h3><p className="mt-2 pl-4 text-sm leading-relaxed text-[#555653]">{service.detail}</p>
-              </article>)}
+              {services.map((service, index) => { const photo = projectPhotos[index]; const image = photo?.image_url || service.image; const title = photo?.caption?.trim() || service.title; return <article key={service.n} className="group min-w-0">
+                <div className="relative aspect-[1.2/1] overflow-hidden bg-[#d4d3cf]">{image ? <div role="img" aria-label={title} className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-[1.04]" style={{backgroundImage: `url('${image}')`}}/> : <div className="absolute inset-0 flex items-center justify-center bg-[#e2e0da] px-6 text-center text-xs font-bold uppercase tracking-widest text-[#77756f]">Upload project photo in Admin / Media</div>}<span className="absolute left-3 top-3 bg-[#ff4b1b] px-2 py-1 text-[10px] font-black text-black">{service.n}</span></div>
+                <h3 className="mt-4 border-l-[3px] border-[#ff4b1b] pl-3 text-base font-black uppercase leading-tight tracking-[-.025em]">{title}</h3><p className="mt-2 pl-4 text-sm leading-relaxed text-[#555653]">{photo?.service_slug ? `NGMS project · ${photo.service_slug.replace(/-/g, ' ')}` : service.detail}</p>
+              </article> })}
             </div>
           </section>
 
