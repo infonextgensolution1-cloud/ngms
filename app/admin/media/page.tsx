@@ -613,10 +613,10 @@ function MaintenanceProjectPhotos() {
     setBusySlot(slot)
     setMsg('')
     try {
-      const url = await uploadToBucket('gallery-photos', file)
+      const uploaded = await uploadToBucket('gallery-photos', file)
       const existing = rows[slot]
       const patch = {
-        image_url: url,
+        image_url: uploaded.url,
         caption: file.name.replace(/\\.[^.]+$/, '').replace(/[-_]+/g, ' '),
         service_slug: slot === 'maintenance_high_pressure' ? 'high-pressure-cleaning' : slot === 'maintenance_painting' ? 'painting' : 'paving',
         slot,
