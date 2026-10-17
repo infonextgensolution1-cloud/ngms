@@ -346,3 +346,461 @@
     padding: 24px 14px 84px;
   }
 }
+
+
+/* Homepage visual QA follow-up: readable proof points, separated audience cards,
+   and a non-obstructive discount offer on narrow screens. */
+.ngms-home-new .ngms-new-hero__proof {
+  gap: 12px 0;
+  color: #F7F7F4;
+}
+.ngms-home-new .ngms-new-hero__proof li {
+  min-width: 0;
+  padding: 10px 14px;
+  border-left: 1px solid rgba(255,255,255,.28);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.ngms-home-new .ngms-new-hero__proof li:nth-child(odd) {
+  padding-left: 0;
+  border-left: 0;
+}
+.ngms-home-new .ngms-new-hero__proof strong {
+  display: block;
+  color: #FF7A45;
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+.ngms-home-new .ngms-new-hero__proof li,
+.ngms-home-new .ngms-new-hero__proof li span,
+.ngms-home-new .ngms-new-hero__proof li small {
+  color: #F7F7F4;
+}
+.ngms-home-new .ngms-new-client-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+.ngms-home-new .ngms-new-client-grid > a {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: start;
+  align-items: start;
+  gap: 9px 12px;
+  min-width: 0;
+  min-height: 150px;
+  padding: clamp(16px, 2vw, 24px);
+  border: 1px solid #C9C9C4;
+  background: #FAFAF8;
+  color: #171717;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.ngms-home-new .ngms-new-client-grid > a > span {
+  grid-column: 1 / -1;
+  color: #A43C00;
+  font-size: .75rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+.ngms-home-new .ngms-new-client-grid > a > strong {
+  min-width: 0;
+  font-size: clamp(.95rem, 1.4vw, 1.15rem);
+  line-height: 1.25;
+}
+.ngms-home-new .ngms-new-client-grid > a > small {
+  grid-column: 1 / -1;
+  display: block;
+  color: #454545;
+  font-size: .9rem;
+  line-height: 1.55;
+}
+.ngms-home-new .ngms-new-client-grid > a > b {
+  color: #A43C00;
+}
+.ngms-home-new .ngms-new-client-grid > a:focus-visible {
+  outline: 3px solid #EC562E;
+  outline-offset: 3px;
+}
+.ngms-home-new aside[role="complementary"] {
+  box-sizing: border-box;
+  width: min(340px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  max-height: min(42vh, 320px);
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  z-index: 40;
+}
+@media (max-width: 760px) {
+  .ngms-home-new .ngms-new-hero__proof {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 22px;
+    gap: 8px 0;
+  }
+  .ngms-home-new .ngms-new-hero__proof li {
+    padding: 8px 10px;
+    font-size: .85rem;
+  }
+  .ngms-home-new .ngms-new-hero__proof li:nth-child(odd) {
+    padding-left: 0;
+  }
+  .ngms-home-new .ngms-new-client-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+  .ngms-home-new .ngms-new-client-grid > a {
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 0;
+    gap: 7px 12px;
+    padding: 16px;
+  }
+  .ngms-home-new .ngms-new-client-grid > a > span {
+    grid-column: 1 / -1;
+  }
+  .ngms-home-new aside[role="complementary"] {
+    right: 12px !important;
+    left: 12px !important;
+    bottom: calc(5.5rem + env(safe-area-inset-bottom)) !important;
+    width: auto !important;
+    max-width: none;
+    max-height: 30vh;
+    padding: 12px 48px 12px 14px;
+  }
+}
+@media (max-width: 380px) {
+  .ngms-home-new .ngms-new-hero__proof li {
+    font-size: .8rem;
+    padding-inline: 7px;
+  }
+  .ngms-home-new .ngms-new-hero__proof strong {
+    font-size: .95rem;
+  }
+}
+
+
+/* Critical rendering repair: explicitly define layout primitives for the current
+   app/page.tsx markup. Earlier rules set grid-template-columns without setting
+   display:grid, and left the service and solar sections inheriting the dark body.
+   Keep this scoped to the homepage and the exact current component classes. */
+.ngms-home-new > .ngms-new-services {
+  display: block;
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  box-sizing: border-box;
+  background: #F2F2EF !important;
+  color: #111111 !important;
+  padding: clamp(44px, 5.5vw, 84px) clamp(20px, 6vw, 96px);
+}
+.ngms-home-new > .ngms-new-services .ngms-new-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  max-width: 1440px;
+  margin: 0 auto 28px;
+}
+.ngms-home-new > .ngms-new-services .ngms-new-section-head > div {
+  min-width: 0;
+}
+.ngms-home-new > .ngms-new-services .ngms-new-section-head h2 {
+  margin: 0;
+  color: #111111 !important;
+  font-size: clamp(2.5rem, 5.5vw, 5.6rem);
+  line-height: .88;
+  letter-spacing: -.055em;
+}
+.ngms-home-new > .ngms-new-services .ngms-new-section-head h2 span {
+  color: #B83E13 !important;
+  -webkit-text-fill-color: #B83E13 !important;
+}
+.ngms-home-new > .ngms-new-services .ngms-new-eyebrow {
+  color: #A43C00 !important;
+  -webkit-text-fill-color: #A43C00 !important;
+}
+.ngms-home-new > .ngms-new-services .ngms-new-text-link {
+  flex: 0 0 auto;
+  color: #171717 !important;
+  border-bottom: 2px solid #EC562E;
+  padding: 10px 0;
+  font-size: .8rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+.ngms-home-new > .ngms-new-services .ngms-new-service-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 14px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+.ngms-home-new > .ngms-new-services .ngms-new-service-grid > li {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+.ngms-home-new > .ngms-new-services .ngms-new-service-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  background: #FFFFFF !important;
+  color: #171717 !important;
+  border: 1px solid #D0CCC5;
+  border-radius: 2px;
+  box-shadow: 0 6px 20px rgba(17,17,17,.07);
+  text-decoration: none;
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.ngms-home-new > .ngms-new-services .ngms-new-service-card:hover {
+  transform: translateY(-3px);
+  border-color: #EC562E;
+  box-shadow: 0 12px 26px rgba(17,17,17,.13);
+}
+.ngms-home-new > .ngms-new-services .ngms-new-service-card__media {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1.5;
+  overflow: hidden;
+  background: #D7D3CD;
+}
+.ngms-home-new > .ngms-new-services .ngms-new-service-card__media img {
+  object-fit: cover;
+  transition: transform .35s ease;
+}
+.ngms-home-new > .ngms-new-services .ngms-new-service-card:hover .ngms-new-service-card__media img {
+  transform: scale(1.035);
+}
+.ngms-home-new > .ngms-new-services .ngms-new-service-card__placeholder {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #D7D3CD, #ECE9E3);
+}
+.ngms-home-new > .ngms-new-services .ngms-new-service-card__number {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 32px;
+  padding: 4px 8px;
+  background: #111111;
+  color: #FFFFFF !important;
+  font-size: .8rem;
+  font-weight: 800;
+}
+.ngms-home-new > .ngms-new-services .ngms-new-service-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 18px;
+}
+.ngms-home-new > .ngms-new-services .ngms-new-service-card__body h3 {
+  margin: 0;
+  color: #111111 !important;
+  font-size: clamp(1rem, 1.25vw, 1.3rem);
+  line-height: 1.15;
+  letter-spacing: -.025em;
+  overflow-wrap: anywhere;
+}
+.ngms-home-new > .ngms-new-services .ngms-new-service-card__body p {
+  margin: 0;
+  color: #4D4A45 !important;
+  font-size: .9rem;
+  line-height: 1.5;
+}
+.ngms-home-new > .ngms-new-services .ngms-new-service-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 8px;
+  color: #A43C00 !important;
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .025em;
+}
+.ngms-home-new > .ngms-new-solar {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.3fr) minmax(260px, .7fr);
+  align-items: center;
+  gap: clamp(28px, 6vw, 88px);
+  box-sizing: border-box;
+  width: 100%;
+  padding: clamp(48px, 7vw, 100px) clamp(20px, 8vw, 120px);
+  background: #111111 !important;
+  color: #FFFFFF !important;
+}
+.ngms-home-new > .ngms-new-solar .ngms-new-solar__copy {
+  max-width: 780px;
+}
+.ngms-home-new > .ngms-new-solar .ngms-new-eyebrow {
+  color: #FF7A45 !important;
+  -webkit-text-fill-color: #FF7A45 !important;
+}
+.ngms-home-new > .ngms-new-solar h2 {
+  margin: 0;
+  color: #FFFFFF !important;
+  font-size: clamp(2.8rem, 6vw, 6.2rem);
+  line-height: .86;
+  letter-spacing: -.055em;
+}
+.ngms-home-new > .ngms-new-solar h2 span {
+  color: #FF6A00 !important;
+  -webkit-text-fill-color: #FF6A00 !important;
+}
+.ngms-home-new > .ngms-new-solar .ngms-new-solar__copy > p:not(.ngms-new-eyebrow) {
+  max-width: 680px;
+  margin-top: 22px;
+  color: #E4E1DC !important;
+  font-size: clamp(1rem, 1.35vw, 1.15rem);
+  line-height: 1.7;
+}
+.ngms-home-new > .ngms-new-solar .ngms-new-solar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+.ngms-home-new > .ngms-new-solar .ngms-new-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 2px solid #FF6A00;
+  border-radius: 2px;
+  font-size: .78rem;
+  font-weight: 900;
+  letter-spacing: .025em;
+  text-decoration: none;
+}
+.ngms-home-new > .ngms-new-solar .ngms-new-button--orange {
+  background: #FF6A00 !important;
+  border-color: #FF6A00 !important;
+  color: #111111 !important;
+}
+.ngms-home-new > .ngms-new-solar .ngms-new-button--outline {
+  background: transparent !important;
+  color: #FFFFFF !important;
+  border-color: #AAA59E !important;
+}
+.ngms-home-new > .ngms-new-solar .ngms-new-solar__facts {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid #484848;
+}
+.ngms-home-new > .ngms-new-solar .ngms-new-solar__facts > div {
+  display: grid;
+  grid-template-columns: 52px minmax(0,1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 22px 0;
+  border-bottom: 1px solid #484848;
+}
+.ngms-home-new > .ngms-new-solar .ngms-new-solar__facts strong {
+  color: #FF7A45 !important;
+  font-size: 1.4rem;
+}
+.ngms-home-new > .ngms-new-solar .ngms-new-solar__facts span {
+  color: #F2F0EC !important;
+  font-size: 1rem;
+  line-height: 1.45;
+}
+@media (max-width: 1000px) {
+  .ngms-home-new > .ngms-new-services .ngms-new-service-grid {
+    grid-template-columns: repeat(3, minmax(0,1fr));
+  }
+  .ngms-home-new > .ngms-new-solar {
+    grid-template-columns: minmax(0,1fr);
+  }
+  .ngms-home-new > .ngms-new-solar .ngms-new-solar__facts {
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    border-top: 0;
+    gap: 12px;
+  }
+  .ngms-home-new > .ngms-new-solar .ngms-new-solar__facts > div {
+    grid-template-columns: 1fr;
+    align-content: start;
+    gap: 8px;
+    padding: 16px;
+    border: 1px solid #484848;
+  }
+}
+@media (max-width: 700px) {
+  .ngms-home-new > .ngms-new-services {
+    padding: 42px 16px;
+  }
+  .ngms-home-new > .ngms-new-services .ngms-new-section-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .ngms-home-new > .ngms-new-services .ngms-new-section-head h2 {
+    font-size: clamp(2.6rem, 12vw, 4rem);
+  }
+  .ngms-home-new > .ngms-new-services .ngms-new-service-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 10px;
+  }
+  .ngms-home-new > .ngms-new-services .ngms-new-service-card__media {
+    aspect-ratio: 1.25;
+  }
+  .ngms-home-new > .ngms-new-services .ngms-new-service-card__body {
+    padding: 13px;
+  }
+  .ngms-home-new > .ngms-new-services .ngms-new-service-card__body h3 {
+    font-size: 1rem;
+  }
+  .ngms-home-new > .ngms-new-services .ngms-new-service-card__body p {
+    font-size: .82rem;
+  }
+  .ngms-home-new > .ngms-new-solar {
+    padding: 48px 20px;
+    gap: 28px;
+  }
+  .ngms-home-new > .ngms-new-solar h2 {
+    font-size: clamp(2.7rem, 12vw, 4.2rem);
+  }
+  .ngms-home-new > .ngms-new-solar .ngms-new-solar__facts {
+    grid-template-columns: minmax(0,1fr);
+  }
+  .ngms-home-new > .ngms-new-solar .ngms-new-solar__facts > div {
+    grid-template-columns: 42px minmax(0,1fr);
+    align-items: center;
+    padding: 14px 0;
+    border-left: 0;
+    border-right: 0;
+  }
+}
+@media (max-width: 380px) {
+  .ngms-home-new > .ngms-new-services .ngms-new-service-grid {
+    grid-template-columns: minmax(0,1fr);
+  }
+  .ngms-home-new > .ngms-new-services .ngms-new-service-card__media {
+    aspect-ratio: 1.6;
+  }
+}
+
+
+/* Zapier-pushed QA scope (steps 1–5):
+   1. Scope the fix to homepage Services and Solar sections.
+   2. Explicitly restore grid/display, visibility and card layout primitives.
+   3. Restore image/media, text contrast and CTA styling.
+   4. Apply tablet/mobile breakpoints to prevent overflow.
+   5. Deploy this branch to preview only; verify all 12 cards and solar feature before any production promotion.
+*/
