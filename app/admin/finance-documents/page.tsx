@@ -106,6 +106,7 @@ function FinanceDocuments() {
     () => projects.filter((project) => !customerId || !project.client_id || project.client_id === customerId),
     [projects, customerId],
   )
+  const canReleaseToCustomer = ['quote', 'customer_invoice', 'job_report', 'completion_report', 'job_photo'].includes(documentType)
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -215,7 +216,7 @@ function FinanceDocuments() {
               </label>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block text-xs font-bold uppercase tracking-wide">Document type
-                  <select value={documentType} onChange={(e) => setDocumentType(e.target.value)} className="mt-1 block w-full border border-[#888] bg-white px-3 py-2.5 text-sm font-normal normal-case">
+                  <select value={documentType} onChange={(e) => { setDocumentType(e.target.value); if (!['quote', 'customer_invoice', 'job_report', 'completion_report', 'job_photo'].includes(e.target.value)) setVisibleToCustomer(false) }} className="mt-1 block w-full border border-[#888] bg-white px-3 py-2.5 text-sm font-normal normal-case">
                     {TYPES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                   </select>
                 </label>
@@ -247,8 +248,8 @@ function FinanceDocuments() {
                 </label>
               </div>
               <label className="flex items-start gap-2 text-sm">
-                <input type="checkbox" checked={visibleToCustomer} onChange={(e) => setVisibleToCustomer(e.target.checked)} className="mt-1 accent-[#FF3D0A]" />
-                <span>Release to customer portal <span className="block text-xs text-[#555]">Only select this for approved, customer-safe documents.</span></span>
+                <input type="checkbox" checked={visibleToCustomer} disabled={!canReleaseToCustomer} onChange={(e) => setVisibleToCustomer(e.target.checked)} className="mt-1 accent-[#FF3D0A] disabled:opacity-40" />
+                <span>Release to customer portal <span className="block text-xs text-[#555]">{canReleaseToCustomer ? 'Only select this for approved, customer-safe documents.' : 'Internal document type — portal release is disabled.'}</span></span>
               </label>
               <label className="block text-xs font-bold uppercase tracking-wide">File (PDF, image, Word, Excel or text; max 15 MiB)
                 <input id="ngms-finance-document-file" type="file" required accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,.doc,.docx,.xls,.xlsx" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="mt-1 block w-full border border-[#888] bg-white p-2 text-sm font-normal normal-case file:mr-3 file:border-0 file:bg-[#171717] file:px-3 file:py-2 file:font-semibold file:text-white" />
