@@ -17,7 +17,8 @@ import './homepage-editorial.css'
 import './homepage-fusion.css'
 import './ngms-public-fusion.css'
 
-export const revalidate = 300
+// Admin-managed homepage media should become visible promptly after an edit.
+export const revalidate = 60
 export const metadata: Metadata = { alternates: { canonical: '/' } }
 
 export default async function HomePage() {

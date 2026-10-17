@@ -13,15 +13,36 @@ type Tab = 'hero' | 'homepage' | 'beforeafter' | 'gallery' | 'services' | 'maint
 // --- helpers ---------------------------------------------------------------
 
 async function uploadToBucket(bucket: string, file: File) {
-  const ext = file.name.split('.').pop() ?? 'jpg'
+  const { data: authData, error: authError } = await supabase.auth.getSession()
+  if (authError || !authData.session) {
+    throw new Error(`Staff session check failed: ${authError?.message ?? 'no authenticated session'}. Sign in again and retry.`)
+  }
+  const { data: staff, error: staffError } = await supabase
+    .from('prompt_users')
+    .select('user_id, active')
+    .eq('user_id', authData.session.user.id)
+    .eq('active', true)
+    .maybeSingle()
+  if (staffError) {
+    throw new Error(`Could not verify this account in the NGMS staff registry: ${staffError.message} (code: ${staffError.code ?? 'unknown'}).`)
+  }
+  if (!staff) {
+    throw new Error('This signed-in account is not listed as an active NGMS staff user. Ask an administrator to verify its prompt_users record before uploading.')
+  }
+  if (!file.type.startsWith('image/')) throw new Error(`"${file.name}" is not an image file.`)
+  if (file.size > 15 * 1024 * 1024) throw new Error(`"${file.name}" exceeds the 15 MB upload limit.`)
+  const rawExt = file.name.split('.').pop() ?? 'jpg'
+  const ext = rawExt.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg'
   const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
   const { error } = await supabase.storage.from(bucket).upload(path, file, {
     cacheControl: '3600',
     upsert: false,
+    contentType: file.type,
   })
-  if (error) throw error
+  if (error) throw new Error(`Storage upload failed (${bucket}): ${error.message}`)
   const { data } = supabase.storage.from(bucket).getPublicUrl(path)
-  return data.publicUrl
+  if (!data.publicUrl) throw new Error(`Storage upload succeeded but no public URL was returned for ${path}.`)
+  return { url: data.publicUrl, path }
 }
 
 function Field({
@@ -53,6 +74,9 @@ function HeroSlides() {
   const [files, setFiles] = useState<FileList | null>(null)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
+  const [storedFiles, setStoredFiles] = useState<any[]>([])
+  const [scanningStorage, setScanningStorage] = useState(false)
+  const [recoveringPath, setRecoveringPath] = useState<string | null>(null)
 
   const load = async () => {
     const { data, error } = await supabase
@@ -60,8 +84,55 @@ function HeroSlides() {
       .select('*')
       .order('sort_order', { ascending: true })
       .order('created_at', { ascending: true })
-    if (error) setMsg(error.message)
+    if (error) {
+      setMsg(`Could not load slideshow records: ${error.message} (code: ${error.code ?? 'unknown'}).`)
+      return
+    }
     setRows(data ?? [])
+  }
+
+  const scanStoredFiles = async () => {
+    setScanningStorage(true)
+    setMsg('')
+    try {
+      const { data, error } = await supabase.storage.from('hero-slides').list('', {
+        limit: 100,
+        sortBy: { column: 'created_at', order: 'desc' },
+      })
+      if (error) throw new Error(`Could not list hero-slides storage: ${error.message}`)
+      const files = (data ?? []).filter((item) => item.id && item.name && !item.name.startsWith('.'))
+      setStoredFiles(files)
+      setMsg(`Storage scan complete: ${files.length} stored file(s) found. Files are not published automatically.`)
+    } catch (e: any) {
+      setMsg(e?.message ?? 'Storage scan failed.')
+    } finally {
+      setScanningStorage(false)
+    }
+  }
+
+  const restoreAsHidden = async (file: any) => {
+    setRecoveringPath(file.name)
+    setMsg('')
+    try {
+      const publicUrl = supabase.storage.from('hero-slides').getPublicUrl(file.name).data.publicUrl
+      if (!publicUrl) throw new Error('Supabase did not return a public URL for this stored file.')
+      if (rows.some((row) => row.image_url === publicUrl)) throw new Error('This file is already linked to a slideshow record.')
+      const name = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ')
+      const { error } = await supabase.from('hero_slides').insert({
+        image_url: publicUrl,
+        alt_text: name || 'Recovered NGMS job photo',
+        caption: null,
+        sort_order: rows.reduce((max, row) => Math.max(max, row.sort_order ?? 0), -1) + 1,
+        is_active: false,
+      })
+      if (error) throw new Error(`File is stored, but its hidden slide record could not be created: ${error.message} (code: ${error.code ?? 'unknown'}).`)
+      setMsg(`Recovered "${file.name}" as a hidden slide. Review it and choose Live when ready.`)
+      await load()
+    } catch (e: any) {
+      setMsg(e?.message ?? 'Could not recover this stored photo.')
+    } finally {
+      setRecoveringPath(null)
+    }
   }
   useEffect(() => {
     load()
@@ -81,33 +152,34 @@ function HeroSlides() {
       const nextOrder = rows.reduce((m, r) => Math.max(m, r.sort_order ?? 0), -1) + 1
       for (const f of list) {
         setMsg(`Uploading ${done + 1} of ${list.length}...`)
-        const url = await uploadToBucket('hero-slides', f)
+        const uploaded = await uploadToBucket('hero-slides', f)
         const name = f.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ')
         const { error } = await supabase.from('hero_slides').insert({
-          image_url: url,
+          image_url: uploaded.url,
           alt_text: name || 'NextGen job',
           caption: null,
           sort_order: nextOrder + done,
           is_active: true,
         })
-        if (error) throw error
+        if (error) throw new Error(`Database insert failed for "${f.name}" after Storage upload (${uploaded.path}): ${error.message} (code: ${error.code ?? 'unknown'}). The stored file was retained for recovery.`)
         done++
       }
       const skipped = files.length - list.length
       setMsg(`${done} slide${done === 1 ? '' : 's'} added${skipped ? ` — ${skipped} skipped, slideshow is full` : ''}. Add captions below.`)
       setFiles(null)
     } catch (e: any) {
-      setMsg(e.message ?? 'Upload failed.')
+      setMsg(e?.message ?? 'Upload failed for an unknown reason.')
     } finally {
       setBusy(false)
-      load()
+      await load()
     }
   }
 
   const update = async (id: string, patch: Record<string, any>) => {
     const { error } = await supabase.from('hero_slides').update(patch).eq('id', id)
-    if (error) setMsg(error.message)
-    load()
+    if (error) setMsg(`Could not update slide: ${error.message} (code: ${error.code ?? 'unknown'}).`)
+    else setMsg('Slide updated.')
+    await load()
   }
 
   // Swap with the neighbour above/below, then renumber everything 0..n.
@@ -125,8 +197,10 @@ function HeroSlides() {
 
   const remove = async (id: string) => {
     if (!confirm('Delete this slide?')) return
-    await supabase.from('hero_slides').delete().eq('id', id)
-    load()
+    const { error } = await supabase.from('hero_slides').delete().eq('id', id)
+    if (error) setMsg(`Could not delete slide record: ${error.message} (code: ${error.code ?? 'unknown'}). The stored file was not deleted.`)
+    else setMsg('Slide record deleted. The stored file was retained.')
+    await load()
   }
 
   return (
@@ -170,6 +244,38 @@ function HeroSlides() {
         </button>
         {msg && <p className="text-sm mt-3 text-gray-300">{msg}</p>}
       </div>
+
+      <section className="mb-6 rounded-xl border border-gray-700 bg-graphite p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-bold text-white">Recover stored photos</h2>
+            <p className="mt-1 text-xs text-gray-400">Scan the existing hero-slides bucket for files left after slide records were deleted. Recovered slides start hidden and are never published automatically.</p>
+          </div>
+          <button type="button" onClick={scanStoredFiles} disabled={scanningStorage} className="rounded bg-gray-700 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">
+            {scanningStorage ? 'Scanning storage…' : 'Scan stored photos'}
+          </button>
+        </div>
+        {storedFiles.length > 0 && (
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {storedFiles.map((file) => {
+              const url = supabase.storage.from('hero-slides').getPublicUrl(file.name).data.publicUrl
+              const linked = rows.some((row) => row.image_url === url)
+              return (
+                <article key={file.id ?? file.name} className="flex min-w-0 gap-3 rounded border border-gray-700 p-2">
+                  <img src={url} alt="" loading="lazy" className="h-20 w-28 shrink-0 rounded object-cover bg-jet" />
+                  <div className="min-w-0 flex-1">
+                    <p className="break-all text-xs text-gray-200">{file.name}</p>
+                    <p className="mt-1 text-xs text-gray-500">{file.metadata?.size ? `${Math.round(file.metadata.size / 1024)} KB` : 'Stored file'}</p>
+                    <button type="button" disabled={linked || recoveringPath !== null} onClick={() => restoreAsHidden(file)} className="mt-2 rounded bg-gray-700 px-2 py-1 text-xs font-semibold text-white disabled:opacity-40">
+                      {recoveringPath === file.name ? 'Restoring…' : linked ? 'Already linked' : 'Restore as hidden'}
+                    </button>
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+        )}
+      </section>
 
       <div className="space-y-2">
         {rows.map((r, i) => (
@@ -242,11 +348,15 @@ function HomepagePhotos() {
   const [msg, setMsg] = useState('')
 
   const load = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('gallery_photos')
       .select('*')
       .eq('is_active', true)
       .in('slot', SLOTS.map((s) => s.key))
+    if (error) {
+      setMsg(`Could not load homepage photo slots: ${error.message} (code: ${error.code ?? 'unknown'}).`)
+      return
+    }
     const map: Record<string, any> = {}
     for (const r of data ?? []) map[r.slot] = r
     setCurrent(map)
@@ -259,21 +369,23 @@ function HomepagePhotos() {
     setBusy(slot)
     setMsg('')
     try {
-      const url = await uploadToBucket('gallery-photos', file)
-      // Retire the photo currently in this spot (only one live photo per slot).
-      await supabase.from('gallery_photos').update({ is_active: false }).eq('slot', slot).eq('is_active', true)
-      const { error } = await supabase.from('gallery_photos').insert({
-        image_url: url,
+      const uploaded = await uploadToBucket('gallery-photos', file)
+      // Save the replacement first so a failed insert never deactivates the current photo.
+      const { data: newRow, error } = await supabase.from('gallery_photos').insert({
+        image_url: uploaded.url,
         caption: captions[slot]?.trim() || null,
         service_slug: slot === 'hero_solar' ? 'solar-panel-cleaning' : null,
         slot,
         sort_order: 0,
         is_active: true,
-      })
-      if (error) throw error
+      }).select('id').single()
+      if (error) throw new Error(`Storage upload succeeded (${uploaded.path}), but the homepage photo record could not be saved: ${error.message} (code: ${error.code ?? 'unknown'}). The file was retained for recovery.`)
+      const retire = await supabase.from('gallery_photos').update({ is_active: false }).eq('slot', slot).eq('is_active', true).neq('id', newRow.id)
       setCaptions((c) => ({ ...c, [slot]: '' }))
-      setMsg('Photo is live on the homepage.')
-      load()
+      setMsg(retire.error
+        ? `New photo saved and active, but an older photo could not be retired: ${retire.error.message} (code: ${retire.error.code ?? 'unknown'}).`
+        : 'Photo is live on the homepage.')
+      await load()
     } catch (e: any) {
       setMsg(e.message ?? 'Upload failed.')
     } finally {
@@ -288,10 +400,17 @@ function HomepagePhotos() {
 
   const clear = async (slot: string) => {
     setBusy(slot)
-    await supabase.from('gallery_photos').update({ is_active: false }).eq('slot', slot).eq('is_active', true)
-    setBusy(null)
-    setMsg('Removed — that spot goes back to an auto-picked photo.')
-    load()
+    setMsg('')
+    try {
+      const { error } = await supabase.from('gallery_photos').update({ is_active: false }).eq('slot', slot).eq('is_active', true)
+      if (error) throw new Error(`Could not deactivate homepage photo: ${error.message} (code: ${error.code ?? 'unknown'}).`)
+      setMsg('Photo deactivated. The stored file was retained.')
+      await load()
+    } catch (e: any) {
+      setMsg(e?.message ?? 'Could not remove homepage photo.')
+    } finally {
+      setBusy(null)
+    }
   }
 
   return (
@@ -379,11 +498,15 @@ function Gallery() {
   const [progress, setProgress] = useState('')
 
   const load = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('gallery_photos')
       .select('*')
       .is('slot', null)
       .order('created_at', { ascending: false })
+    if (error) {
+      setProgress(`Could not load gallery records: ${error.message} (code: ${error.code ?? 'unknown'}).`)
+      return
+    }
     setRows(data ?? [])
   }
   useEffect(() => {
@@ -400,29 +523,32 @@ function Gallery() {
     for (const f of list) {
       setProgress(`Uploading ${done + failed + 1} of ${list.length}...`)
       try {
-        const url = await uploadToBucket('gallery-photos', f)
+        const uploaded = await uploadToBucket('gallery-photos', f)
         const { error } = await supabase.from('gallery_photos').insert({
-          image_url: url,
+          image_url: uploaded.url,
           caption: f.name.replace(/\.[^.]+$/, ''),
           service_slug: slug || null,
           sort_order: rows.length + done,
         })
         if (error) throw error
         done++
-      } catch {
+      } catch (e: any) {
         failed++
+        setProgress(`Upload ${done + failed} failed: ${e?.message ?? 'Unknown error'}`)
       }
     }
 
-    setProgress(`Done — ${done} uploaded${failed ? `, ${failed} failed` : ''}.`)
+    setProgress(`Done — ${done} uploaded${failed ? `, ${failed} failed (see last error above)` : ''}.`)
     setFiles(null)
     setBusy(false)
     load()
   }
 
   const remove = async (id: string) => {
-    await supabase.from('gallery_photos').delete().eq('id', id)
-    load()
+    const { error } = await supabase.from('gallery_photos').delete().eq('id', id)
+    if (error) setProgress(`Could not delete gallery record: ${error.message} (code: ${error.code ?? 'unknown'}).`)
+    else setProgress('Gallery record removed. Storage file retained.')
+    await load()
   }
 
   return (
@@ -504,10 +630,10 @@ function MaintenanceProjectPhotos() {
     setBusySlot(slot)
     setMsg('')
     try {
-      const url = await uploadToBucket('gallery-photos', file)
+      const uploaded = await uploadToBucket('gallery-photos', file)
       const existing = rows[slot]
       const patch = {
-        image_url: url,
+        image_url: uploaded.url,
         caption: file.name.replace(/\\.[^.]+$/, '').replace(/[-_]+/g, ' '),
         service_slug: slot === 'maintenance_high_pressure' ? 'high-pressure-cleaning' : slot === 'maintenance_painting' ? 'painting' : 'paving',
         slot,
