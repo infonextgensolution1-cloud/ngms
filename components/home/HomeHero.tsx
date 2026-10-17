@@ -52,7 +52,7 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
   return (
     <section
       aria-labelledby="hero-title"
-      className="ngms-editorial-hero relative isolate overflow-hidden bg-fog text-graphite"
+      className="ngms-editorial-hero ngms-new-hero relative isolate overflow-hidden bg-fog text-graphite"
       onMouseEnter={() => setHold(true)}
       onMouseLeave={() => setHold(false)}
       onFocusCapture={() => setHold(true)}
