@@ -3727,3 +3727,28 @@ body:has(.ngms-about-editorial) footer[data-site-marketing] { display:none !impo
  .ngms-service-reference .nsr-contact-word { font-size:18.7vw; margin-top:36px; }
 }
 @media(max-width:380px) { .ngms-service-reference .nsr-contact-word { font-size:18vw; } }
+
+
+/* Multi-page visual QA repair — 2026-10-17.
+   Keep component/page layouts intact; enforce safe wrapping and visible keyboard focus.
+   Explicitly avoid global text/background colour overrides that could break dark and light sections. */
+html { overflow-x: clip; }
+body { min-width: 320px; overflow-x: clip; }
+img, video, iframe, canvas, svg { max-width: 100%; }
+h1, h2, h3, h4, p, li, a, strong, span { overflow-wrap: anywhere; }
+button, a, input, select, textarea { max-width: 100%; }
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid #FF6A00;
+  outline-offset: 3px;
+}
+:where(main, section, article, aside, footer) {
+  min-width: 0;
+}
+@media (max-width: 760px) {
+  :where(main, section, article) {
+    max-width: 100%;
+  }
+  :where(img, video, iframe) {
+    height: auto;
+  }
+}
