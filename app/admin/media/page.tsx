@@ -101,7 +101,7 @@ function HeroSlides() {
       const publicUrl = supabase.storage.from('hero-slides').getPublicUrl(file.name).data.publicUrl
       if (!publicUrl) throw new Error('Supabase did not return a public URL for this stored file.')
       if (rows.some((row) => row.image_url === publicUrl)) throw new Error('This file is already linked to a slideshow record.')
-      const name = file.name.replace(/\\.[^.]+$/, '').replace(/[-_]+/g, ' ')
+      const name = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ')
       const { error } = await supabase.from('hero_slides').insert({
         image_url: publicUrl,
         alt_text: name || 'Recovered NGMS job photo',
