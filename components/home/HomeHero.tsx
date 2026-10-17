@@ -19,7 +19,7 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const [reducedMotion, setReducedMotion] = useState(false)
-  const next = useCallback(() => setIndex((current) => photos.length ? (current + 1) % photos.length : 0), [photos.length])
+  const next = useCallback(() => setIndex((current) => (photos.length ? (current + 1) % photos.length : 0)), [photos.length])
 
   useEffect(() => {
     const query = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -163,9 +163,9 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
             >
               <p className="flex-1 min-w-0 text-sm" aria-live={playing ? 'off' : 'polite'}>
                 <span className="block text-[11px] uppercase tracking-[0.18em] text-slate">
-                  Recent work {count > 1 && `· ${index + 1}/${count}`}
+                  Recent work {count > 1 && `· ${index + 1}/${count}`} 
                 </span>
-                <span className="block truncate text-graphite">{slide.caption || slide.alt_text || 'Completed NextGen job'}</span>
+                <span className="block truncate text-graphite">{slide?.caption || slide?.alt_text || 'Completed NextGen job'}</span>
               </p>
               {count > 1 && (
                 <div className="flex items-center gap-1 shrink-0">
