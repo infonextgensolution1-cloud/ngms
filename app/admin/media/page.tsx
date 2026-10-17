@@ -99,7 +99,7 @@ function HeroSlides() {
         limit: 100,
         sortBy: { column: 'created_at', order: 'desc' },
       })
-      if (error) throw new Error(`Could not list hero-slides storage: ${error.message} (status: ${error.statusCode ?? 'unknown'}).`)
+      if (error) throw new Error(`Could not list hero-slides storage: ${error.message}`)
       const files = (data ?? []).filter((item) => item.id && item.name && !item.name.startsWith('.'))
       setStoredFiles(files)
       setMsg(`Storage scan complete: ${files.length} stored file(s) found. Files are not published automatically.`)
