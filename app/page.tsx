@@ -35,6 +35,18 @@ export default async function HomePage() {
       <DiscountPopup />
       <HomeHero slides={slides} days={hours.days} open={hours.open} close={hours.close} />
 
+      <section className="ngms-new-clients" aria-labelledby="ngms-clients-title">
+        <div>
+          <p className="ngms-new-eyebrow ngms-new-eyebrow--dark">START HERE</p>
+          <h2 id="ngms-clients-title">WHO ARE WE<br /><span>HELPING TODAY?</span></h2>
+        </div>
+        <div className="ngms-new-client-grid">
+          <Link href="/quote?type=homeowner"><span>01</span><strong>HOMEOWNERS</strong><small>Keep your property in shape.</small><b aria-hidden="true">↗</b></Link>
+          <Link href="/body-corporate-maintenance"><span>02</span><strong>BODY CORPORATES</strong><small>Planned upkeep for shared spaces.</small><b aria-hidden="true">↗</b></Link>
+          <Link href="/quote?type=commercial"><span>03</span><strong>BUSINESSES</strong><small>One contact for ongoing maintenance.</small><b aria-hidden="true">↗</b></Link>
+        </div>
+      </section>
+
       <section className="ngms-new-intro" aria-labelledby="ngms-intro-title">
         <div>
           <p className="ngms-new-eyebrow ngms-new-eyebrow--dark">ONE LOCAL POINT OF CONTACT</p>
@@ -143,18 +155,6 @@ export default async function HomePage() {
       <HelderbergToday />
       <AreasAndFaq />
 
-      <section className="ngms-new-clients" aria-labelledby="ngms-clients-title">
-        <div>
-          <p className="ngms-new-eyebrow ngms-new-eyebrow--dark">WHO WE HELP</p>
-          <h2 id="ngms-clients-title">PROPERTY CARE<br /><span>WITHOUT THE RUNAROUND.</span></h2>
-        </div>
-        <div className="ngms-new-client-grid">
-          <Link href="/quote?type=homeowner"><span>01</span><strong>HOMEOWNERS</strong><small>Keep your property in shape.</small><b aria-hidden="true">↗</b></Link>
-          <Link href="/body-corporate-maintenance"><span>02</span><strong>BODY CORPORATES</strong><small>Planned upkeep for shared spaces.</small><b aria-hidden="true">↗</b></Link>
-          <Link href="/quote?type=commercial"><span>03</span><strong>BUSINESSES</strong><small>One contact for ongoing maintenance.</small><b aria-hidden="true">↗</b></Link>
-        </div>
-      </section>
-
       <section className="ngms-new-final" aria-labelledby="ngms-final-title">
         <p className="ngms-new-eyebrow">YOUR PROPERTY. ONE POINT OF CONTACT.</p>
         <h2 id="ngms-final-title">ONE CALL.<br /><span>ALL SOLUTIONS.</span></h2>
@@ -165,7 +165,7 @@ export default async function HomePage() {
         </div>
       </section>
       <footer className="ngms-new-footer">
-        <Link href="/" className="ngms-new-footer__brand">NEXTGEN <span>MAINTENANCE SOLUTIONS</span></Link>
+        <Link href="/" className="ngms-new-footer__brand">NEXTGEN <span>SOLAR CLEAN &amp; MAINTENANCE SOLUTIONS</span></Link>
         <p>ONE CALL. ALL SOLUTIONS.</p>
         <nav aria-label="Footer navigation"><Link href="/services">Services</Link><Link href="/portfolio">Projects</Link><Link href="/contact">Contact</Link><Link href="/privacy">Privacy</Link></nav>
       </footer>
