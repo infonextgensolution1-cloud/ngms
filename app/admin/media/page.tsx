@@ -8,7 +8,7 @@ import { services } from '@/lib/services'
 import { Trash2, Upload, Loader2, ArrowLeft } from 'lucide-react'
 import BeforeAfterUploader from '@/components/admin/BeforeAfterUploader'
 
-type Tab = 'hero' | 'homepage' | 'beforeafter' | 'gallery' | 'services' | 'maintenance'
+type Tab = 'hero' | 'homepage' | 'beforeafter' | 'gallery' | 'services' | 'branded' | 'maintenance'
 
 // --- helpers ---------------------------------------------------------------
 
@@ -605,6 +605,208 @@ function Gallery() {
   )
 }
 
+// --- Branded project publisher --------------------------------------------------
+// Creates a branded copy of the uploaded photo, then links it to the chosen service
+// card and public gallery. The original local file is not modified.
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image()
+    image.onload = () => resolve(image)
+    image.onerror = () => reject(new Error('Could not load the photo or NGMS logo for branding.'))
+    image.src = src
+  })
+}
+
+async function createBrandedPhoto(file: File, serviceName: string): Promise<File> {
+  const sourceUrl = URL.createObjectURL(file)
+  try {
+    const [photo, logo] = await Promise.all([loadImage(sourceUrl), loadImage('/logo.png')])
+    const canvas = document.createElement('canvas')
+    const maxDimension = 2400
+    const scale = Math.min(1, maxDimension / Math.max(photo.naturalWidth, photo.naturalHeight))
+    canvas.width = Math.max(1, Math.round(photo.naturalWidth * scale))
+    canvas.height = Math.max(1, Math.round(photo.naturalHeight * scale))
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('Your browser could not prepare the branded photo.')
+    ctx.drawImage(photo, 0, 0, canvas.width, canvas.height)
+
+    const minSide = Math.min(canvas.width, canvas.height)
+    const margin = Math.round(minSide * 0.035)
+    const panelHeight = Math.round(minSide * 0.13)
+    const logoWidth = Math.min(Math.round(canvas.width * 0.2), Math.round(panelHeight * 1.75))
+    const logoHeight = Math.round(panelHeight * 0.78)
+    const radius = Math.round(panelHeight * 0.18)
+
+    ctx.save()
+    ctx.fillStyle = 'rgba(12, 12, 12, 0.74)'
+    ctx.beginPath()
+    ctx.roundRect(margin, canvas.height - panelHeight - margin, logoWidth + margin, panelHeight, radius)
+    ctx.fill()
+    ctx.drawImage(
+      logo,
+      margin + Math.round(margin * 0.45),
+      canvas.height - panelHeight - margin + Math.round((panelHeight - logoHeight) / 2),
+      logoWidth,
+      logoHeight,
+    )
+    ctx.restore()
+
+    const label = ('NEXTGEN ' + serviceName).toLocaleUpperCase().slice(0, 48)
+    const fontSize = Math.max(14, Math.round(minSide * 0.035))
+    ctx.save()
+    ctx.font = '700 ' + fontSize + 'px Arial, sans-serif'
+    const textWidth = ctx.measureText(label).width
+    const tagPadX = Math.round(fontSize * 0.75)
+    const tagPadY = Math.round(fontSize * 0.55)
+    const tagWidth = Math.min(canvas.width - margin * 2, textWidth + tagPadX * 2 + fontSize * 0.8)
+    const tagHeight = fontSize + tagPadY * 2
+    const tagX = canvas.width - margin - tagWidth
+    const tagY = canvas.height - margin - tagHeight
+    ctx.fillStyle = 'rgba(12, 12, 12, 0.76)'
+    ctx.beginPath()
+    ctx.roundRect(tagX, tagY, tagWidth, tagHeight, Math.round(fontSize * 0.25))
+    ctx.fill()
+    ctx.fillStyle = '#FF6A00'
+    ctx.beginPath()
+    ctx.arc(tagX + tagPadX + fontSize * 0.25, tagY + tagHeight / 2, Math.max(3, fontSize * 0.16), 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#FFFFFF'
+    ctx.textBaseline = 'middle'
+    const maxTextWidth = tagWidth - tagPadX * 2 - fontSize * 0.6
+    let displayLabel = label
+    while (ctx.measureText(displayLabel).width > maxTextWidth && displayLabel.length > 10) {
+      displayLabel = displayLabel.slice(0, -4) + '…'
+    }
+    ctx.fillText(displayLabel, tagX + tagPadX + fontSize * 0.55, tagY + tagHeight / 2, maxTextWidth)
+    ctx.restore()
+
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((value) => value ? resolve(value) : reject(new Error('Could not export the branded photo.')), 'image/jpeg', 0.9)
+    })
+    const baseName = file.name.replace(/\.[^.]+$/, '').replace(/[^a-z0-9-_]+/gi, '-').slice(0, 70) || 'ngms-project'
+    return new File([blob], baseName + '-ngms-branded.jpg', { type: 'image/jpeg', lastModified: Date.now() })
+  } finally {
+    URL.revokeObjectURL(sourceUrl)
+  }
+}
+
+function BrandedProjectPublisher() {
+  const [slug, setSlug] = useState('plumbing')
+  const [description, setDescription] = useState('')
+  const [file, setFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState('')
+  const selectedService = services.find((service) => service.slug === slug)
+
+  useEffect(() => {
+    if (!file) {
+      setPreviewUrl('')
+      return
+    }
+    const url = URL.createObjectURL(file)
+    setPreviewUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [file])
+
+  const publish = async () => {
+    if (!selectedService) return setMsg('Choose a service before publishing.')
+    if (!file) return setMsg('Choose a project photo first.')
+    if (!description.trim()) return setMsg('Add a short, accurate project description before publishing.')
+    if (!file.type.startsWith('image/')) return setMsg('Choose a supported image file.')
+    if (file.size > 15 * 1024 * 1024) return setMsg('The original photo must be 15 MB or smaller.')
+    setBusy(true)
+    setMsg('Preparing your branded project photo…')
+    try {
+      const brandedFile = await createBrandedPhoto(file, selectedService.name)
+      const uploaded = await uploadToBucket('gallery-photos', brandedFile)
+      const { data: serviceRows, error: serviceReadError } = await supabase
+        .from('services').select('slug').eq('slug', selectedService.slug).limit(1)
+      if (serviceReadError) throw new Error('Could not verify the service record: ' + serviceReadError.message)
+      if (!serviceRows?.length) throw new Error('The service "' + selectedService.name + '" is not present in the services database. The branded photo was uploaded to Storage but has not been published; recover it from the gallery bucket.')
+
+      const { data: galleryRow, error: galleryError } = await supabase
+        .from('gallery_photos')
+        .insert({
+          image_url: uploaded.url,
+          caption: description.trim(),
+          service_slug: selectedService.slug,
+          slot: null,
+          is_active: true,
+          sort_order: 0,
+        })
+        .select('id')
+        .single()
+      if (galleryError) throw new Error('Photo uploaded to Storage (' + uploaded.path + '), but the gallery record could not be created: ' + galleryError.message + '. The file was retained for recovery.')
+
+      const { error: serviceUpdateError } = await supabase
+        .from('services').update({ hero_image: uploaded.url }).eq('slug', selectedService.slug)
+      if (serviceUpdateError) {
+        setMsg('Gallery photo is published (record ' + galleryRow.id + '), but the service-card image could not be updated: ' + serviceUpdateError.message + '. Retry the Service images tab.')
+        return
+      }
+
+      setMsg('Published: ' + selectedService.name + '. The branded photo is in the public gallery and is now the image for that service card. The description is saved as the photo caption.')
+      setFile(null)
+      setDescription('')
+      const picker = document.getElementById('ngms-branded-project-file') as HTMLInputElement | null
+      if (picker) picker.value = ''
+    } catch (e: any) {
+      setMsg(e?.message ?? 'Could not publish the branded project photo.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <section className="space-y-5">
+      <div>
+        <h2 className="text-lg font-black text-white">Publish a branded service photo</h2>
+        <p className="mt-1 text-sm leading-relaxed text-gray-400">Upload a real NGMS project photo, choose the service, and add a short description. NGMS logo and service label are embedded into the published image in the style of your reference photo.</p>
+      </div>
+      <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+        <div className="space-y-4 rounded-xl border border-gray-700 bg-graphite p-4">
+          <Field label="Service">
+            <select value={slug} onChange={(e) => setSlug(e.target.value)} className={inputCls}>
+              {services.map((service) => <option key={service.slug} value={service.slug}>{service.name}</option>)}
+            </select>
+          </Field>
+          <Field label="Project description (shown on the website)">
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} maxLength={400} required placeholder="e.g. Downpipe and drainage maintenance completed at a Helderberg property." className={inputCls} />
+          </Field>
+          <Field label="Upload project photo">
+            <input id="ngms-branded-project-file" type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="block w-full text-sm text-gray-300 file:mr-3 file:border-0 file:bg-orange file:px-3 file:py-2 file:font-bold file:text-white" />
+          </Field>
+          <p className="text-xs leading-relaxed text-gray-500">Original photo limit: 15 MB. A branded JPEG copy (max 2400px) is created for publishing. The original local file is not changed. Publishing updates the chosen service card image and adds the photo and description to the public gallery.</p>
+          <button type="button" onClick={publish} disabled={busy || !file || !description.trim()} className="inline-flex items-center gap-2 bg-orange px-4 py-3 text-sm font-black uppercase text-white disabled:cursor-not-allowed disabled:opacity-50">
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+            {busy ? 'Preparing & publishing…' : 'Brand & publish photo'}
+          </button>
+          {msg && <p role="status" aria-live="polite" className="text-sm leading-relaxed text-gray-200">{msg}</p>}
+        </div>
+        <div className="rounded-xl border border-gray-700 bg-graphite p-4">
+          <p className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-400">Photo preview</p>
+          {previewUrl ? (
+            <div className="relative overflow-hidden bg-jet">
+              <img src={previewUrl} alt={'Preview of ' + (selectedService?.name ?? 'service') + ' project photo'} className="block h-auto max-h-[480px] w-full object-contain" />
+              <div className="absolute bottom-3 left-3 flex max-w-[42%] items-center rounded-lg bg-black/75 p-2">
+                <img src="/logo.png" alt="NextGen Maintenance Solutions logo" className="max-h-12 max-w-full object-contain" />
+              </div>
+              <div className="absolute bottom-3 right-3 max-w-[54%] rounded bg-black/75 px-3 py-2 text-[10px] font-black uppercase text-white">
+                <span className="mr-1 text-orange">●</span>NEXTGEN {selectedService?.name}
+              </div>
+            </div>
+          ) : (
+            <div className="flex min-h-64 items-center justify-center border border-dashed border-gray-700 text-sm text-gray-500">Choose a photo to preview the layout.</div>
+          )}
+          <p className="mt-3 text-xs text-gray-500">Preview shows the proposed corner placements. The published JPEG contains the logo and label, so the branding remains visible when downloaded or shared.</p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // --- Maintenance page project photos -------------------------------------------
 const MAINTENANCE_PHOTO_SLOTS = [
   { slot: 'maintenance_high_pressure', label: 'High-pressure cleaning', help: 'Communal walkways, entrances, parking and exterior cleaning.' },
@@ -856,6 +1058,7 @@ export default function AdminMediaPage() {
     { key: 'beforeafter', label: 'Before / After' },
     { key: 'gallery', label: 'Gallery' },
     { key: 'services', label: 'Service images' },
+    { key: 'branded', label: 'Branded project upload' },
     { key: 'maintenance', label: 'Maintenance projects' },
   ]
 
@@ -891,6 +1094,7 @@ export default function AdminMediaPage() {
       {tab === 'beforeafter' && <BeforeAfter />}
       {tab === 'gallery' && <Gallery />}
       {tab === 'services' && <ServiceImages />}
+      {tab === 'branded' && <BrandedProjectPublisher />}
       {tab === 'maintenance' && <MaintenanceProjectPhotos />}
     </main>
   )
