@@ -74,7 +74,9 @@ function Reports() {
         <Link href="/admin" className="text-xs text-mist hover:text-paper inline-flex items-center gap-1 mb-3">
           <ArrowLeft className="w-3.5 h-3.5" /> Admin
         </Link>
-        <h1 className="font-heading text-2xl font-bold text-paper mb-4">Monthly report</h1>
+        <h1 className="font-heading text-2xl font-bold text-paper mb-2">Financial &amp; management reports</h1>
+        <p className="text-sm text-mist mb-4">Monthly finance summary, job profitability and operational workload. Export the workbook for your bookkeeper.</p>
+        <Link href="/admin/finance-documents" className="inline-flex items-center gap-2 border border-darkgrey bg-cardgrey px-3 py-2 text-xs font-semibold text-paper hover:border-orange mb-4">Open document archive ↗</Link>
 
         <div className="flex flex-wrap items-end gap-3 mb-4">
           <label className="text-xs text-mist">
@@ -118,9 +120,13 @@ function Reports() {
               <Tile title="Spend" value={rand(report.spend)} sub="job costs, labour, purchases" />
               <Tile title="New leads" value={String(report.leads)} sub={`${report.leadsWon} won`} />
               <Tile title="Won work" value={rand(report.wonValue)} sub="quotes from this month accepted" />
+              <Tile title="Scheduled jobs" value={String(report.jobsScheduled)} sub="open jobs awaiting work" />
+              <Tile title="In progress" value={String(report.jobsInProgress)} sub="jobs underway" />
+              <Tile title="On hold" value={String(report.jobsOnHold)} sub="jobs paused" warn={report.jobsOnHold > 0} />
+              <Tile title="Overdue jobs" value={String(report.overdueJobs)} sub="scheduled date has passed" warn={report.overdueJobs > 0} />
             </div>
             <p className="text-[11px] text-mist mt-3">
-              The Excel file has tabs for the summary, invoices, payments, job profit and spend. Collected counts payments recorded in admin with a date in this month.
+              The Excel file includes summary, invoices, payments, job profit, spend and operations tabs. Collected currently reads timestamped payment entries stored in invoice notes; reconcile it against bank records before using it as a formal cash receipt ledger. Job workload counts are current open-job statuses, while financial activity is filtered to the selected month.
             </p>
           </section>
         ) : null}
