@@ -146,7 +146,7 @@ function ReviewDocument() {
                 <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={1000} className="mt-1 block w-full border border-[#888] bg-white p-3 text-sm normal-case" />
               </label>
               <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                <button disabled={saving || !data.extraction || data.document.review_status === 'approved'} onClick={() => void review('approve')} className="inline-flex min-h-11 items-center justify-center gap-2 bg-[#FF3D0A] px-4 py-3 text-sm font-bold uppercase text-black hover:bg-[#E93305] disabled:opacity-50">
+                <button disabled={saving || (!data.extraction && data.document.document_type === 'supplier_invoice') || data.document.review_status === 'approved'} onClick={() => void review('approve')} className="inline-flex min-h-11 items-center justify-center gap-2 bg-[#FF3D0A] px-4 py-3 text-sm font-bold uppercase text-black hover:bg-[#E93305] disabled:opacity-50">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} Approve reviewed fields
                 </button>
                 <button disabled={saving || data.document.review_status === 'approved'} onClick={() => void review('reject')} className="inline-flex min-h-11 items-center justify-center gap-2 border border-[#777] px-4 py-3 text-sm font-bold uppercase hover:border-red-700 hover:text-red-800 disabled:opacity-50">
