@@ -50,7 +50,7 @@ export default async function CustomerQuotePage({ params }: Props) {
       <div className="mx-auto max-w-2xl">
         <header className="mb-6 flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-mist">NextGen Maintenance Solutions</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-blue">Customer portal · NextGen Maintenance Solutions</p>
             <h1 className="mt-1 font-heading text-2xl font-bold">Quote {q?.quote_number ?? '—'}</h1>
             <p className="mt-1 text-xs text-mist">Version {version.version_number}</p>
           </div>
@@ -107,7 +107,7 @@ export default async function CustomerQuotePage({ params }: Props) {
 
           {canAct && <CustomerActions token={token} />}
           {version.version_status === 'accepted' && (
-            <div className="mt-5 flex items-center gap-2 rounded-card border border-whatsapp bg-whatsapp/10 p-4 text-sm">
+            <div className="mt-5 flex items-center gap-2 rounded-card border border-whatsapp bg-whatsapp/10 p-4 text-sm forge-reveal">
               <CheckCircle2 className="h-5 w-5 text-whatsapp" /> This quote version has been accepted. We can now schedule the work.
             </div>
           )}

@@ -25,7 +25,7 @@ import { rand, type ToolResult } from '@/lib/ngms-ops/core'
 /**
  * /ops — mobile-first daily ops screen for NGSMS.
  * Runs the same handlers as the NGSMS Ops connector (lib/ngms-ops) with the
- * signed-in admin's Supabase session, so the numbers match what Claude reports.
+ * signed-in admin's Supabase session, so the numbers match what OpenAI reports.
  *
  * Shows: 5-day Strand weather (Open-Meteo, no API key), today's and next-7-day
  * jobs with one-tap Start / Hold / Done, rain warnings for paint, waterproofing
@@ -455,7 +455,7 @@ export default function OpsPage() {
         </Card>
 
         <p className="text-[11px] text-mist text-center mt-6">
-          Prices ex VAT · same data as the NGSMS Ops connector · rain flag at {RAIN_HOLD_PROB}%+ for paint, waterproofing &amp; paving
+          Same rate card as the NGSMS Ops connector · rain flag at {RAIN_HOLD_PROB}%+ for paint, waterproofing &amp; paving
         </p>
       </div>
     </main>

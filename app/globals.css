@@ -9,7 +9,7 @@ html {
 }
 
 body {
-  background-color: #0a0a0a;
+  background-color: #08090B;
   color: #ffffff;
   /* Mobile-first safety net: nothing may push the page wider than the screen.
      (clip, not hidden, so the sticky header keeps working.) */
@@ -32,7 +32,7 @@ h3 {
 
 /* One visible, consistent keyboard focus ring site-wide (NextGen Blue) */
 :focus-visible {
-  outline: 2px solid #3b8bff;
+  outline: 2px solid #FF6A00;
   outline-offset: 2px;
 }
 
@@ -42,7 +42,7 @@ h3 {
   left: 1rem;
   top: -4rem;
   z-index: 100;
-  background: #1f6feb;
+  background: #FF6A00;
   color: #fff;
   padding: 0.6rem 1rem;
   border-radius: 4px;
@@ -58,27 +58,27 @@ h3 {
 input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="color"]),
 select,
 textarea {
-  background-color: #161616 !important;
+  background-color: #111418 !important;
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff;
-  border: 1px solid #3a3a3a;
+  border: 1px solid #343B44;
   border-radius: 6px;
   padding: 0.55rem 0.75rem;
   font-size: 16px; /* stops iOS zoom-on-focus */
   line-height: 1.4;
-  caret-color: #3b8bff;
+  caret-color: #FF6A00;
 }
 
 select option,
 select optgroup {
-  background-color: #161616;
+  background-color: #111418;
   color: #ffffff;
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #8a8a8a !important;
-  -webkit-text-fill-color: #8a8a8a;
+  color: #AEB6C0 !important;
+  -webkit-text-fill-color: #AEB6C0;
   opacity: 1;
 }
 
@@ -86,8 +86,8 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: #3b8bff !important;
-  box-shadow: 0 0 0 3px rgba(59, 139, 255, 0.25);
+  border-color: #FF6A00 !important;
+  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.22);
 }
 
 /* Chrome/Android autofill paints a light-blue box - keep it dark */
@@ -97,8 +97,8 @@ input:-webkit-autofill:focus,
 textarea:-webkit-autofill,
 select:-webkit-autofill {
   -webkit-text-fill-color: #ffffff !important;
-  -webkit-box-shadow: 0 0 0 1000px #161616 inset !important;
-  box-shadow: 0 0 0 1000px #161616 inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #111418 inset !important;
+  box-shadow: 0 0 0 1000px #111418 inset !important;
   transition: background-color 9999s ease-in-out 0s;
 }
 
@@ -153,41 +153,51 @@ textarea:disabled {
     @apply bg-cardgrey border border-darkgrey rounded-panel shadow-panel;
   }
 
-  /* Buttons — one shared shape + interaction, colour only changes by role:
-     Solar Orange = primary "get a quote" CTA, WhatsApp Green = every WhatsApp CTA,
-     NextGen Blue = secondary actions, outline/dark = tertiary. */
+  /* Solar Forge buttons — one shared near-square shape; colour changes by role. */
+  /* Solar Forge physical-control button system */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 font-heading font-bold text-sm uppercase tracking-wide px-6 py-3 rounded-btn border-2 border-transparent transition-all duration-200 shadow-sm;
+    @apply inline-flex items-center justify-center gap-2 font-heading font-bold text-sm uppercase tracking-wide px-6 py-3 border-2 transition-[transform,box-shadow,border-color,background-color,color] duration-200;
+    border-radius: 2px; letter-spacing: .01em; min-height: 3rem;
+    position: relative; isolation: isolate; overflow: hidden;
+    box-shadow: 0 2px 0 rgba(0,0,0,.32), 0 4px 10px rgba(0,0,0,.12);
   }
-  .btn:hover {
-    @apply -translate-y-0.5 shadow-md;
-  }
-  .btn:active {
-    @apply translate-y-0 shadow-sm;
-  }
+  .btn::after { content:""; position:absolute; inset:0; transform:translateX(-120%); background:linear-gradient(100deg,transparent 38%,rgba(255,255,255,.12) 50%,transparent 62%); pointer-events:none; z-index:-1; }
+  .btn:focus-visible { outline:2px solid #FF6A00; outline-offset:3px; }
+  .btn:active { transform:translateY(0) scale(.99); box-shadow:0 1px 0 rgba(0,0,0,.28),0 2px 5px rgba(0,0,0,.12); }
+  .btn:disabled, .btn[aria-disabled="true"], .btn.is-disabled { opacity:.55; cursor:not-allowed; pointer-events:none; box-shadow:none; }
+  .btn svg, .btn .icon, .btn [data-icon] { transition:transform .18s cubic-bezier(.2,.8,.2,1),color .18s ease; flex:0 0 auto; }
+  .btn:hover svg, .btn:hover .icon, .btn:hover [data-icon] { transform:translateX(3px); }
 
-  /* Every WhatsApp button: solid WhatsApp green, white bold caps */
-  .btn-wa,
-  .btn-wa-price {
-    @apply btn bg-whatsapp text-white hover:bg-whatsapp-dark;
-  }
+  .btn-wa, .btn-wa-price { @apply btn bg-jet text-white border-orange hover:bg-cardgrey; box-shadow:0 2px 0 rgba(0,0,0,.25),0 4px 10px rgba(255,106,0,.08); }
+  .btn-wa:hover, .btn-wa-price:hover { transform:translateY(-2px); box-shadow:0 2px 0 rgba(0,0,0,.2),0 8px 16px rgba(255,106,0,.14); }
+  .btn-wa svg, .btn-wa .icon, .btn-wa [data-icon], .btn-wa-price svg { color:#B7FF00; filter:drop-shadow(0 0 5px rgba(183,255,0,.55)); }
 
-  /* Every "Get a quote" button: solid Solar Orange, jet text (7.3:1 contrast) */
-  .btn-glow,
-  .btn-quote {
-    @apply btn bg-orange text-jet hover:bg-orange-dark;
-  }
+  .btn-glow, .btn-quote { @apply btn text-jet border-[#B7FF00] bg-[#B7FF00] hover:bg-[#A5E600] hover:border-[#A5E600]; box-shadow:0 2px 0 rgba(0,0,0,.3),0 5px 12px rgba(183,255,0,.12); }
+  .btn-quote:hover, .btn-glow:hover { transform:translateY(-2px); box-shadow:0 2px 0 rgba(0,0,0,.26),0 9px 18px rgba(183,255,0,.18); }
+  .btn-quote:hover::after, .btn-glow:hover::after { animation:forge-btn-sweep .55s ease-out 1; }
+  .btn-popular { @apply inline-block bg-cardgrey text-orange font-heading font-bold uppercase tracking-wide border-2 border-orange px-3 py-1; border-radius:2px; }
+  .btn-touch { @apply btn bg-cardgrey text-white border-darkgrey hover:bg-graphite hover:border-orange; }
+  .btn-touch:hover { transform:translateY(-2px); }
+  .btn-touch:hover svg, .btn-touch:hover .icon, .btn-touch:hover [data-icon] { color:#FF6A00; }
+  .btn-facebook { @apply btn bg-facebook text-white border-facebook hover:bg-facebook-dark; }
+  .btn-facebook .forge-arrow { opacity:0; transform:translateX(-4px); transition:opacity .18s ease,transform .18s ease; }
+  .btn-facebook:hover .forge-arrow { opacity:1; transform:translateX(3px); }
+  .btn-outline { @apply btn bg-transparent border-mist/40 text-paper hover:border-orange; }
+  .btn-outline:hover { transform:translateY(-2px); }
+  .btn-dark { @apply btn bg-jet border-jet text-paper hover:bg-graphite hover:border-orange; }
+  .btn-dark:hover { transform:translateY(-2px); }
+  .btn-jet { @apply btn bg-jet text-paper border-jet hover:bg-graphite; }
+  .btn-outline-jet { @apply btn bg-transparent border-jet text-jet hover:bg-jet hover:text-paper; }
+  .btn-blue, .btn-power, .btn-quote-popup { @apply btn bg-blue-fill text-white border-blue-fill hover:bg-blue-dark hover:border-blue-dark; }
+  .btn-power:hover, .btn-quote-popup:hover { transform:translateY(-2px); animation:forge-power-edge .9s ease-out 1; }
+  .btn-quote-hero { @apply btn bg-hero-teal text-jet border-hero-teal hover:brightness-95; }
+  .btn-quote-hero:hover { transform:translateY(-2px); }
 
-  /* "Most popular" badge-button: dark grey fill, orange border + text */
-  .btn-popular {
-    @apply inline-block bg-cardgrey text-orange font-heading font-bold uppercase tracking-wide border-2 border-orange rounded-btn px-3 py-1;
-  }
-
-  /* "Get in touch" buttons: dark grey, white text */
-  .btn-touch {
-    @apply btn bg-cardgrey text-white border-darkgrey hover:bg-graphite hover:border-blue;
-  }
-
+  /* Opt-in states for asynchronous controls. */
+  .btn.is-loading, .btn[aria-busy="true"] { cursor:progress; pointer-events:none; }
+  .btn.is-loading::before, .btn[aria-busy="true"]::before { content:""; width:.9em; height:.9em; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:forge-spinner .7s linear infinite; }
+  .btn.is-success, .btn[data-state="success"] { border-color:#25D366; box-shadow:0 0 0 1px rgba(37,211,102,.22); }
+  .btn.is-success::after, .btn[data-state="success"]::after { content:none; }
   /* Before / After photo labels */
   .badge-glow {
     @apply border border-paper/70;
@@ -196,30 +206,7 @@ textarea:disabled {
     text-shadow: 0 0 6px rgba(255, 255, 255, 0.85), 0 0 14px rgba(255, 255, 255, 0.45);
   }
 
-  /* "Book a site walk-through": Facebook blue, same as the Facebook icon */
-  .btn-facebook {
-    @apply btn bg-facebook text-white hover:bg-facebook-dark;
-  }
-  .btn-outline {
-    @apply btn bg-transparent border-mist/40 text-paper hover:border-blue hover:text-blue;
-  }
-  .btn-dark {
-    @apply btn bg-cardgrey border-darkgrey text-paper hover:border-blue hover:text-blue;
-  }
-  /* Buttons for the orange panel: black fill, or black outline */
-  .btn-jet {
-    @apply btn bg-jet text-paper hover:bg-graphite;
-  }
-  .btn-outline-jet {
-    @apply btn bg-transparent border-jet text-jet hover:bg-jet hover:text-paper;
-  }
 
-  /* NextGen Blue secondary buttons (legacy names .btn-power / .btn-quote-popup kept) */
-  .btn-blue,
-  .btn-power,
-  .btn-quote-popup {
-    @apply btn bg-blue-fill text-white border-blue-fill hover:bg-blue-dark hover:border-blue-dark;
-  }
 }
 
 /* ---------- Solar Forge: light bands ----------
@@ -265,6 +252,24 @@ textarea:disabled {
 .band-light .panel .text-blue,
 .band-light .panel .kicker {
   color: theme('colors.blue.DEFAULT');
+}
+
+/* ---------- Quote wizard ---------- */
+form[data-quote-step="1"] [data-quote-step]:not([data-quote-step="1"]),
+form[data-quote-step="2"] [data-quote-step]:not([data-quote-step="2"]),
+form[data-quote-step="3"] [data-quote-step]:not([data-quote-step="3"]),
+form[data-quote-step="4"] [data-quote-step]:not([data-quote-step="4"]),
+form[data-quote-step="5"] [data-quote-step]:not([data-quote-step="5"]) {
+  display: none;
+}
+form[data-quote-step="1"] [data-quote-submit],
+form[data-quote-step="2"] [data-quote-submit],
+form[data-quote-step="3"] [data-quote-submit],
+form[data-quote-step="4"] [data-quote-submit] {
+  display: none;
+}
+form[data-quote-step="5"] [data-quote-navigation] {
+  display: none;
 }
 
 /* ---------- Phone touch + legibility ---------- */
@@ -337,6 +342,11 @@ textarea:disabled {
   animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Solar Forge button sweep */
+@keyframes forge-btn-sweep { from { transform: translateX(-120%); } to { transform: translateX(120%); } }
+@keyframes forge-power-edge { 0% { box-shadow:0 0 0 0 rgba(145,70,255,0); } 45% { box-shadow:0 0 0 2px rgba(145,70,255,.55),0 0 14px rgba(145,70,255,.24); } 100% { box-shadow:0 2px 0 rgba(0,0,0,.32),0 4px 10px rgba(0,0,0,.12); } }
+@keyframes forge-spinner { to { transform:rotate(360deg); } }
+
 /* Brand icons (components/NgmsIcon.tsx): hover gently while on the page,
    lift + tilt with an orange glow on hover, keyboard focus or tap. The float
    uses `translate` so it stacks with the hover `transform`. */
@@ -360,7 +370,7 @@ textarea:disabled {
 .group:focus-visible .ngms-icon,
 .group:active .ngms-icon {
   transform: scale(1.12) rotate(-6deg);
-  filter: drop-shadow(0 6px 12px rgba(59, 139, 255, 0.45));
+  filter: drop-shadow(0 6px 12px rgba(20, 123, 255, 0.45));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -376,5 +386,585 @@ textarea:disabled {
   }
   html {
     scroll-behavior: auto;
+  }
+}
+
+/* ---------- Solar Forge P2 motion system ---------- */
+.forge-interactive { transition: transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s ease, border-color .28s ease, background-color .28s ease; }
+.forge-interactive:hover { transform: translateY(-3px); box-shadow: 0 14px 34px rgba(0,0,0,.28); }
+.forge-interactive:active { transform: translateY(-1px) scale(.99); }
+.forge-reveal { animation: forge-reveal .65s cubic-bezier(.16,1,.3,1) both; }
+@keyframes forge-reveal { from { opacity:0; transform: translateY(18px); } to { opacity:1; transform:translateY(0); } }
+.forge-shimmer { position:relative; overflow:hidden; }
+.forge-shimmer::after { content:""; position:absolute; inset:0; transform:translateX(-120%); background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.10) 50%,transparent 65%); animation:forge-shimmer 5s ease-in-out infinite; pointer-events:none; }
+@keyframes forge-shimmer { 0%,60%,100% { transform:translateX(-120%); } 78% { transform:translateX(120%); } }
+@media (prefers-reduced-motion: reduce) { .forge-interactive,.forge-reveal,.forge-shimmer::after { animation:none!important; transition:none!important; transform:none!important; } }
+
+
+/* ---------- NGMS Pinterest visual direction (public UI styling only) ----------
+   Palette: carbon black, signal orange, warm off-white, concrete grey and white.
+   Channel colours are reserved: WhatsApp green and Facebook blue only. */
+:root {
+  --ngms-orange: #FF4B24;
+  --ngms-black: #0B0D0F;
+  --ngms-charcoal: #151719;
+  --ngms-offwhite: #F3F0E9;
+  --ngms-concrete: #D5D4D0;
+  --ngms-white: #FFFFFF;
+}
+html { color-scheme: dark; }
+body { background-color: var(--ngms-black); }
+:focus-visible { outline-color: var(--ngms-orange); }
+.skip-link { background: var(--ngms-orange); color: var(--ngms-black); }
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="color"]),
+select, textarea { caret-color: var(--ngms-orange); }
+input:focus, select:focus, textarea:focus {
+  border-color: var(--ngms-orange) !important;
+  box-shadow: 0 0 0 3px rgba(255,75,36,.22);
+}
+.btn:focus-visible { outline-color: var(--ngms-orange); }
+.btn-glow, .btn-quote {
+  box-shadow: 0 2px 0 rgba(0,0,0,.3), 0 5px 12px rgba(255,75,36,.16);
+}
+.btn-quote:hover, .btn-glow:hover {
+  box-shadow: 0 2px 0 rgba(0,0,0,.26), 0 9px 18px rgba(255,75,36,.22);
+}
+.btn-touch:hover svg, .btn-touch:hover .icon, .btn-touch:hover [data-icon] {
+  color: var(--ngms-orange);
+}
+.btn-outline:hover, .btn-dark:hover { border-color: var(--ngms-orange); color: var(--ngms-orange); }
+.band-light { background-color: var(--ngms-offwhite); }
+.band-light .text-blue, .band-light .kicker { color: #B83218; }
+.ngms-icon:hover, .group:hover .ngms-icon, .group:focus-visible .ngms-icon, .group:active .ngms-icon {
+  filter: drop-shadow(0 6px 12px rgba(255,75,36,.32));
+}
+@keyframes forge-power-edge {
+  0% { box-shadow:0 0 0 0 rgba(255,75,36,0); }
+  45% { box-shadow:0 0 0 2px rgba(255,75,36,.5),0 0 14px rgba(255,75,36,.2); }
+  100% { box-shadow:0 2px 0 rgba(0,0,0,.32),0 4px 10px rgba(0,0,0,.12); }
+}
+/* Keep the two approved social-channel colours functional and recognisable. */
+.btn-wa, .btn-wa-price { background-color:#25D366; border-color:#25D366; color:#FFFFFF; }
+.btn-facebook { background-color:#1877F2; border-color:#1877F2; color:#FFFFFF; }
+/* End NGMS Pinterest visual direction */
+
+
+/* Editorial architecture-inspired type and controls for the public site */
+h1, h2, h3 {
+  font-family: Impact, "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+  font-stretch: condensed;
+  letter-spacing: -.025em;
+}
+.kicker, .tag {
+  color: var(--ngms-orange);
+}
+[aria-labelledby="hero-title"] {
+  min-height: 680px;
+}
+[aria-labelledby="hero-title"] h1 {
+  font-size: clamp(3.4rem, 8.4vw, 7.2rem);
+  line-height: .84;
+  letter-spacing: -.045em;
+  max-width: 10ch;
+}
+[aria-labelledby="hero-title"] h1 span {
+  color: transparent !important;
+  -webkit-text-stroke: 1.3px rgba(255,255,255,.72);
+}
+[aria-labelledby="hero-title"] > div:first-of-type > p:first-child {
+  border-radius: 2px;
+  border-color: rgba(255,75,36,.45);
+}
+[aria-labelledby="hero-title"] > div:first-of-type > p:first-child span {
+  background-color: var(--ngms-orange);
+}
+[aria-labelledby="hero-title"] ul {
+  border-radius: 2px;
+}
+[data-site-marketing] h1, [data-site-marketing] h2, [data-site-marketing] h3 {
+  font-family: Impact, "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+}
+@media (max-width: 639px) {
+  [aria-labelledby="hero-title"] { min-height: 600px; }
+  [aria-labelledby="hero-title"] h1 { font-size: clamp(3.1rem, 14vw, 4.5rem); }
+}
+
+/* Success states use the brand accent; green is reserved for WhatsApp only. */
+.btn.is-success, .btn[data-state="success"] {
+  border-color: var(--ngms-orange);
+  box-shadow: 0 0 0 1px rgba(255,75,36,.22);
+}
+
+
+/* Pinterest-inspired NGMS public palette: orange, ink, warm paper and concrete.
+   Keep admin/print templates independent; these tokens style the public website. */
+:root {
+  --ngms-orange: #FF6A00;
+  --ngms-orange-deep: #D94F00;
+  --ngms-ink: #111111;
+  --ngms-paper: #F7F4EF;
+  --ngms-concrete: #D7D3CD;
+}
+html { color-scheme: dark; }
+body { background-color: #111111; }
+:focus-visible { outline-color: var(--ngms-orange); }
+.skip-link { background: var(--ngms-orange); color: #111111; }
+.band-light .text-blue,
+.band-light .kicker { color: var(--ngms-orange-deep); }
+.text-blue { color: var(--ngms-orange) !important; }
+.bg-blue { background-color: var(--ngms-orange) !important; }
+.border-blue { border-color: var(--ngms-orange) !important; }
+.hover\:text-blue:hover { color: var(--ngms-orange) !important; }
+.hover\:border-blue:hover { border-color: var(--ngms-orange) !important; }
+
+/* ---------- NGMS public design system: Pinterest orange + warm neutrals ----------
+   Public website only. Quote/invoice print templates retain their own palette.
+   Orange is the sole NGMS brand accent; channel colours remain functional. */
+:root {
+  color-scheme: dark;
+  --ngms-orange: #FF6A00;
+  --ngms-orange-hover: #D94F00;
+  --ngms-ink: #111111;
+  --ngms-charcoal: #1B1B1B;
+  --ngms-grey-900: #262626;
+  --ngms-grey-700: #555555;
+  --ngms-grey-500: #888782;
+  --ngms-concrete: #D7D3CD;
+  --ngms-paper: #F7F4EF;
+  --ngms-white: #FFFFFF;
+  --ngms-whatsapp: #25D366;
+  --ngms-facebook: #1877F2;
+  --ngms-border-dark: #383838;
+  --ngms-field: #171717;
+  --ngms-radius-card: 6px;
+  --ngms-radius-control: 4px;
+  --ngms-shadow-card: 0 12px 30px rgba(0,0,0,.18);
+}
+html { color-scheme: dark; }
+body {
+  background: var(--ngms-ink);
+  color: var(--ngms-white);
+  overflow-x: clip;
+}
+h1, h2, h3, h4 {
+  font-family: var(--font-heading), Poppins, system-ui, sans-serif;
+  text-wrap: balance;
+}
+:focus-visible {
+  outline: 2px solid var(--ngms-orange);
+  outline-offset: 3px;
+}
+.skip-link {
+  background: var(--ngms-orange);
+  color: var(--ngms-ink);
+  border-radius: var(--ngms-radius-control);
+}
+.kicker, .tag { color: var(--ngms-orange); }
+.text-blue { color: var(--ngms-orange) !important; }
+.bg-blue { background-color: var(--ngms-orange) !important; }
+.border-blue { border-color: var(--ngms-orange) !important; }
+
+/* Shared surfaces: a single neutral ramp, with no purple/teal/blue brand accents. */
+.card, .panel {
+  border-radius: var(--ngms-radius-card);
+  border-color: var(--ngms-border-dark);
+}
+.card { background: var(--ngms-charcoal); }
+.panel { background: #151515; box-shadow: var(--ngms-shadow-card); }
+.border-darkgrey, .border-line { border-color: var(--ngms-border-dark); }
+.bg-graphite { background-color: var(--ngms-charcoal); }
+.bg-cardgrey { background-color: #171717; }
+.text-mist { color: #C4C1BB; }
+.text-paper { color: var(--ngms-white); }
+
+/* Primary quote actions use lime; orange remains a restrained border accent. */
+.btn {
+  border-radius: 2px;
+  min-height: 3rem;
+  transition: transform .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.btn-glow, .btn-quote, .btn-quote-popup, .btn-quote-hero {
+  background: #B7FF00 !important;
+  border-color: #B7FF00 !important;
+  color: #101010 !important;
+}
+.btn-glow:hover, .btn-quote:hover, .btn-quote-popup:hover, .btn-quote-hero:hover {
+  background: #A5E600 !important;
+  border-color: #A5E600 !important;
+  color: #101010 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(183,255,0,.18);
+}
+.btn-touch, .btn-dark, .btn-jet {
+  background-color: #202020;
+  border-color: #484848;
+  color: var(--ngms-white);
+}
+.btn-touch:hover, .btn-dark:hover, .btn-jet:hover, .btn-outline:hover {
+  border-color: var(--ngms-orange);
+  color: var(--ngms-orange);
+}
+.btn-outline {
+  border-color: #77736D;
+  color: var(--ngms-paper);
+}
+.btn-wa, .btn-wa-price {
+  background: #101010 !important;
+  border-color: var(--ngms-orange) !important;
+  color: #FFFFFF !important;
+}
+.btn-wa:hover, .btn-wa-price:hover { background: #202020 !important; border-color: var(--ngms-orange) !important; color: #FFFFFF !important; }
+.btn-wa svg, .btn-wa .icon, .btn-wa [data-icon], .btn-wa-price svg { color: #B7FF00 !important; filter: drop-shadow(0 0 5px rgba(183,255,0,.55)); }
+.btn-facebook {
+  background: var(--ngms-facebook) !important;
+  border-color: var(--ngms-facebook) !important;
+  color: #FFFFFF !important;
+}
+.btn.is-success, .btn[data-state="success"] {
+  border-color: var(--ngms-orange);
+  box-shadow: 0 0 0 1px rgba(255,106,0,.22);
+}
+
+/* Form controls: legible on dark surfaces, consistent focus and mobile sizing. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="color"]),
+select, textarea {
+  background-color: var(--ngms-field) !important;
+  color: var(--ngms-white) !important;
+  -webkit-text-fill-color: var(--ngms-white);
+  border: 1px solid #484848;
+  border-radius: var(--ngms-radius-control);
+  font-size: 16px;
+  caret-color: var(--ngms-orange);
+}
+select option, select optgroup { background: var(--ngms-field); color: var(--ngms-white); }
+input::placeholder, textarea::placeholder {
+  color: #C4C1BB !important;
+  -webkit-text-fill-color: #C4C1BB;
+  opacity: 1;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--ngms-orange) !important;
+  box-shadow: 0 0 0 3px rgba(255,106,0,.2);
+}
+input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus,
+textarea:-webkit-autofill, select:-webkit-autofill {
+  -webkit-text-fill-color: var(--ngms-white) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--ngms-field) inset !important;
+  box-shadow: 0 0 0 1000px var(--ngms-field) inset !important;
+}
+input:disabled, select:disabled, textarea:disabled { opacity: .6; cursor: not-allowed; }
+
+/* Light editorial bands use warm paper and concrete; dark panels remain dark. */
+.band-light {
+  background-color: var(--ngms-paper);
+  color: #262626;
+}
+.band-light :is(h1,h2,h3,h4) { color: #262626; }
+.band-light .text-paper { color: #262626; }
+.band-light .text-mist, .band-light .tag { color: #57534E; }
+.band-light .text-orange, .band-light .text-blue, .band-light .kicker { color: #B83E00 !important; }
+.band-light .card { background: var(--ngms-white); border-color: var(--ngms-concrete); }
+.band-light .border-darkgrey, .band-light .border-line { border-color: var(--ngms-concrete); }
+.band-light .panel { background: #171717; color: var(--ngms-white); }
+.band-light .panel :is(h1,h2,h3,h4), .band-light .panel .text-paper { color: var(--ngms-white); }
+.band-light .panel .text-mist, .band-light .panel .tag { color: #C4C1BB; }
+
+/* Homepage hero: retain the admin-managed carousel, with readable type and imagery. */
+[aria-labelledby="hero-title"] { min-height: 680px; }
+[aria-labelledby="hero-title"] h1 {
+  font-size: clamp(3.4rem, 8.4vw, 7.2rem);
+  line-height: .9;
+  letter-spacing: -.045em;
+  max-width: 10ch;
+}
+[aria-labelledby="hero-title"] h1 span { color: var(--ngms-orange) !important; -webkit-text-stroke: 0; }
+[aria-labelledby="hero-title"] > div:first-of-type > p:first-child {
+  border-radius: 2px;
+  border-color: rgba(255,106,0,.5);
+}
+[aria-labelledby="hero-title"] > div:first-of-type > p:first-child span { background: var(--ngms-orange); }
+[aria-labelledby="hero-title"] ul { border-radius: 2px; }
+@media (max-width: 639px) {
+  [aria-labelledby="hero-title"] { min-height: 600px; }
+  [aria-labelledby="hero-title"] h1 { font-size: clamp(3rem, 13vw, 4.5rem); }
+  .card, .panel { min-width: 0; }
+}
+/* Brand icons remain subtle; orange is the only NGMS accent. */
+.ngms-icon:hover, .group:hover .ngms-icon, .group:focus-visible .ngms-icon, .group:active .ngms-icon {
+  filter: drop-shadow(0 6px 12px rgba(255,106,0,.28));
+}
+@keyframes forge-power-edge {
+  0% { box-shadow: 0 0 0 0 rgba(255,106,0,0); }
+  45% { box-shadow: 0 0 0 2px rgba(255,106,0,.45), 0 0 14px rgba(255,106,0,.18); }
+  100% { box-shadow: 0 2px 0 rgba(0,0,0,.32), 0 4px 10px rgba(0,0,0,.12); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn, .forge-interactive, .forge-reveal, .forge-shimmer::after { animation: none !important; transition: none !important; transform: none !important; }
+}
+
+
+/* ---------- NGMS editorial refresh: warm paper, engineered depth, restrained orange ---------- */
+.ngms-editorial-hero {
+  color: #24282d;
+  background-color: #f4f2ed;
+  isolation: isolate;
+}
+.ngms-editorial-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: min(68%, 880px);
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(244,242,237,.98) 0%, rgba(244,242,237,.94) 62%, rgba(244,242,237,0) 100%);
+}
+.ngms-editorial-hero #hero-title {
+  max-width: 10ch;
+  letter-spacing: -.055em;
+  line-height: .94;
+}
+.ngms-editorial-hero .ngms-proof-grid,
+.ngms-editorial-hero .ngms-hero-caption {
+  backdrop-filter: blur(14px);
+}
+.ngms-editorial-hero .ngms-proof-grid li {
+  transition: background-color .2s ease, transform .2s ease;
+}
+.ngms-editorial-hero .ngms-proof-grid li:hover {
+  background-color: #fff;
+}
+.ngms-services-editorial {
+  position: relative;
+  isolation: isolate;
+}
+.ngms-services-editorial::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 1rem;
+  right: 1rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #d6d2ca 18%, #d6d2ca 82%, transparent);
+}
+.ngms-service-tile {
+  transform: translateY(0);
+  transition: transform .28s cubic-bezier(.2,.75,.25,1), box-shadow .28s ease, border-color .28s ease;
+}
+.ngms-service-tile:hover,
+.ngms-service-tile:focus-visible {
+  transform: translateY(-5px);
+  border-color: #ff6a00;
+  box-shadow: 0 22px 44px rgba(18,22,26,.2);
+}
+@media (max-width: 640px) {
+  .ngms-editorial-hero::before {
+    width: 100%;
+    background: linear-gradient(90deg, rgba(244,242,237,.97), rgba(244,242,237,.84));
+  }
+  .ngms-editorial-hero #hero-title {
+    max-width: 9ch;
+  }
+  .ngms-editorial-hero .ngms-proof-grid {
+    border-radius: 10px;
+  }
+  .ngms-editorial-hero .ngms-proof-grid li {
+    padding: .7rem .55rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ngms-service-tile,
+  .ngms-editorial-hero .ngms-proof-grid li {
+    transition: none;
+  }
+  .ngms-service-tile:hover,
+  .ngms-service-tile:focus-visible {
+    transform: none;
+  }
+}
+
+
+/* NGMS admin command-centre: warm-paper modular grid, scoped to admin home. */
+.admin-app main:has(> div.max-w-4xl) {
+  background: #f1f0ec !important;
+  color: #151515 !important;
+  padding-top: clamp(2rem, 5vw, 4.5rem);
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+}
+.admin-app main:has(> div.max-w-4xl) > div.max-w-4xl {
+  max-width: 76rem;
+}
+.admin-app main:has(> div.max-w-4xl) h1,
+.admin-app main:has(> div.max-w-4xl) h2,
+.admin-app main:has(> div.max-w-4xl) h3 {
+  color: #111 !important;
+  letter-spacing: -.045em;
+}
+.admin-app main:has(> div.max-w-4xl) .text-mist,
+.admin-app main:has(> div.max-w-4xl) .text-paper,
+.admin-app main:has(> div.max-w-4xl) .text-white {
+  color: #222 !important;
+}
+.admin-app main:has(> div.max-w-4xl) .text-orange {
+  color: #e84a24 !important;
+}
+.admin-app main:has(> div.max-w-4xl) .bg-cardgrey,
+.admin-app main:has(> div.max-w-4xl) .bg-jet {
+  background-color: #f8f7f4 !important;
+}
+.admin-app main:has(> div.max-w-4xl) .border-darkgrey {
+  border-color: #bdbbb5 !important;
+}
+.admin-app main:has(> div.max-w-4xl) .rounded-card {
+  border-radius: 0 !important;
+}
+.admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a {
+  min-height: 8rem;
+  align-items: stretch;
+  padding: 1.35rem;
+  border: 1px solid #b8b6b0;
+  border-radius: 0;
+  background:
+    linear-gradient(90deg, transparent calc(100% - 3px), #e84a24 calc(100% - 3px)),
+    #f8f7f4;
+  box-shadow: 0 2px 0 rgba(20,20,20,.04);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a:hover {
+  transform: translateY(-3px);
+  border-color: #e84a24 !important;
+  box-shadow: 0 14px 28px rgba(25,25,25,.09);
+}
+.admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a > div:first-child {
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 1px solid #b8b6b0;
+  border-radius: 0;
+  background: #171717 !important;
+  color: #ff6a00 !important;
+}
+.admin-app main:has(> div.max-w-4xl) form {
+  background: #f8f7f4 !important;
+  border-color: #b8b6b0 !important;
+  border-radius: 0 !important;
+  box-shadow: 0 18px 48px rgba(20,20,20,.08);
+}
+.admin-app main:has(> div.max-w-4xl) button {
+  border-radius: 0 !important;
+}
+.admin-app main:has(> div.max-w-4xl) input {
+  background: #fff !important;
+  color: #111 !important;
+  -webkit-text-fill-color: #111 !important;
+  border-radius: 0 !important;
+  border-color: #aaa !important;
+}
+@media (max-width: 640px) {
+  .admin-app main:has(> div.max-w-4xl) {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a {
+    min-height: 6.5rem;
+    padding: 1rem;
+    gap: .85rem;
+  }
+  .admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a > div:first-child {
+    width: 2.8rem;
+    height: 2.8rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a { transition: none; }
+  .admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a:hover { transform: none; }
+}
+
+
+/* NGMS public homepage editorial refresh — scoped to the homepage only.
+   Keep image-led service/project cards cinematic; preserve all admin and quote UI. */
+.ngms-home-refresh {
+  --ngms-home-paper: #F3F2EF;
+  --ngms-home-white: #FCFCFA;
+  --ngms-home-silver: #E5E4E0;
+  --ngms-home-ink: #202124;
+  --ngms-home-muted: #5E6062;
+  --ngms-home-line: #D2D1CC;
+  background: var(--ngms-home-paper);
+  color: var(--ngms-home-ink);
+}
+.ngms-home-refresh > section:not([aria-labelledby="hero-title"]) {
+  border-color: var(--ngms-home-line);
+}
+.ngms-home-refresh > section:not([aria-labelledby="hero-title"]) .bg-jet:not(.forge-interactive) {
+  background-color: var(--ngms-home-paper);
+}
+.ngms-home-refresh > section:not([aria-labelledby="hero-title"]) .bg-cardgrey {
+  background-color: var(--ngms-home-white);
+  border-color: var(--ngms-home-line);
+}
+.ngms-home-refresh > section:not([aria-labelledby="hero-title"]) .border-darkgrey,
+.ngms-home-refresh > section:not([aria-labelledby="hero-title"]) .border-line {
+  border-color: var(--ngms-home-line);
+}
+.ngms-home-refresh > section:not([aria-labelledby="hero-title"]) :is(h1,h2,h3,h4) {
+  color: var(--ngms-home-ink);
+}
+.ngms-home-refresh > section:not([aria-labelledby="hero-title"]) .text-paper {
+  color: var(--ngms-home-ink);
+}
+.ngms-home-refresh > section:not([aria-labelledby="hero-title"]) .text-mist,
+.ngms-home-refresh > section:not([aria-labelledby="hero-title"]) .tag {
+  color: var(--ngms-home-muted);
+}
+.ngms-home-refresh > section:not([aria-labelledby="hero-title"]) .kicker,
+.ngms-home-refresh > section:not([aria-labelledby="hero-title"]) .text-orange,
+.ngms-home-refresh > section:not([aria-labelledby="hero-title"]) .text-blue {
+  color: #B9470B !important;
+}
+/* Keep image-led service and project cards on their dark cinematic overlays. */
+.ngms-home-refresh .forge-interactive,
+.ngms-home-refresh .forge-interactive :is(h1,h2,h3,h4,.text-paper,.text-mist) {
+  color: #FCFCFA;
+}
+.ngms-home-refresh .forge-interactive .text-orange,
+.ngms-home-refresh .forge-interactive .text-blue {
+  color: #FF6A00 !important;
+}
+.ngms-home-refresh .panel {
+  background: #242628;
+  border-color: #45474A;
+  color: #FCFCFA;
+}
+.ngms-home-refresh .panel :is(h1,h2,h3,h4,.text-paper) { color: #FCFCFA; }
+.ngms-home-refresh .panel .text-mist,
+.ngms-home-refresh .panel .tag { color: #D0D0CC; }
+.ngms-home-refresh .card {
+  background: var(--ngms-home-white);
+  border-color: var(--ngms-home-line);
+  color: var(--ngms-home-ink);
+}
+.ngms-home-refresh .btn-outline {
+  border-color: var(--ngms-home-line);
+  color: var(--ngms-home-ink);
+}
+.ngms-home-refresh .btn-outline:hover {
+  border-color: #FF6A00;
+  color: #B9470B;
+}
+.ngms-home-refresh :is(.card,.panel,.forge-interactive) {
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+.ngms-home-refresh .forge-interactive:hover {
+  box-shadow: 0 14px 34px rgba(24,24,24,.16);
+  border-color: rgba(255,106,0,.55);
+}
+@media (max-width: 639px) {
+  .ngms-home-refresh > section:not([aria-labelledby="hero-title"]) {
+    scroll-margin-top: 5rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ngms-home-refresh :is(.card,.panel,.forge-interactive) {
+    transition: none;
   }
 }

@@ -26,6 +26,13 @@ export async function GET(request: Request) {
   if (authError || !email || !auth.user.email_confirmed_at) {
     return NextResponse.json({ error: 'Not signed in.' }, { status: 401 })
   }
+  let sessionId: string | null = null
+  try {
+    const payload = token.split('.')[1]
+    const claims = payload ? JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as { session_id?: unknown } : {}
+    sessionId = typeof claims.session_id === 'string' ? claims.session_id : null
+  } catch { sessionId = null }
+  if (!sessionId) return NextResponse.json({ error: 'Could not verify sign-in session.' }, { status: 401 })
 
   const { data: clients, error: clientError } = await db.from('clients').select('id').ilike('email', email)
   if (clientError) return NextResponse.json({ error: 'Could not load quotes.' }, { status: 500 })
@@ -36,7 +43,18 @@ export async function GET(request: Request) {
   const ownIds = (exact ?? []).filter((c) => (c.email ?? '').trim().toLowerCase() === email).map((c) => c.id)
   if (!ownIds.length) return NextResponse.json({ links: {} })
 
-  const { data: quotes, error: quoteError } = await db.from('quotes').select('id').in('client_id', ownIds).eq('status', 'sent')
+  const { data: accessRows, error: accessError } = await db.from('client_portal_access')
+    .select('client_id,access_mode,expires_at,revoked_at,one_time_session_id').in('client_id', ownIds)
+  if (accessError) return NextResponse.json({ error: 'Could not verify portal access.' }, { status: 500 })
+  const accessibleClientIds = ownIds.filter((clientId) => {
+    const access = (accessRows ?? []).find((row) => row.client_id === clientId)
+    return !!access && !access.revoked_at &&
+      !(access.access_mode === 'temporary' && (!access.expires_at || new Date(access.expires_at).getTime() <= Date.now())) &&
+      !(access.access_mode === 'one_time' && access.one_time_session_id !== sessionId)
+  })
+  if (!accessibleClientIds.length) return NextResponse.json({ error: 'Portal access is inactive or expired.' }, { status: 403 })
+
+  const { data: quotes, error: quoteError } = await db.from('quotes').select('id').in('client_id', accessibleClientIds).eq('status', 'sent')
   if (quoteError) return NextResponse.json({ error: 'Could not load quotes.' }, { status: 500 })
   const quoteIds = (quotes ?? []).map((q) => q.id)
   if (!quoteIds.length) return NextResponse.json({ links: {} })

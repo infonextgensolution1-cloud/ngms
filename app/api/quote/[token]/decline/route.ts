@@ -16,6 +16,13 @@ export async function POST(_req: Request, { params }: { params: Promise<{ token:
   if (version.version_status === 'accepted') return NextResponse.json({ error: 'An accepted quote cannot be declined.' }, { status: 409 })
   if (version.version_status !== 'sent') return NextResponse.json({ error: 'This quote version is no longer available.' }, { status: 409 })
 
+  const { data: versionSnapshot } = await db.from('quote_versions').select('snapshot').eq('id', version.id).maybeSingle()
+  const snapshot = (versionSnapshot?.snapshot ?? {}) as { quote?: { valid_until?: string | null } }
+  if (snapshot.quote?.valid_until && snapshot.quote.valid_until < new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Johannesburg' })) {
+    await db.from('quote_versions').update({ version_status: 'superseded' }).eq('id', version.id)
+    return NextResponse.json({ error: 'This quote has expired. Please request an updated quote.' }, { status: 410 })
+  }
+
   const { data: quote } = await db.from('quotes').select('id,quote_number,status,lead_id').eq('id', version.quote_id).maybeSingle()
   if (!quote) return NextResponse.json({ error: 'Quote not found.' }, { status: 404 })
   if (quote.status === 'accepted') return NextResponse.json({ error: 'Another version of this quote has already been accepted.' }, { status: 409 })

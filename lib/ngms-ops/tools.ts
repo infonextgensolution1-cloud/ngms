@@ -160,6 +160,12 @@ export const TOOLS = [
     annotations: WRITE,
   },
   {
+    name: 'ngms_create_quote_revision', title: 'Create quote revision',
+    description: 'Create a new draft quote from an existing quote without mutating the original customer-facing record. Copies client, line items, VAT and deposit percentage, resets validity from today, and records the revision reason.',
+    inputSchema: { type: 'object', properties: { quote_id: { type: 'string' }, revision_reason: { type: 'string', maxLength: 500 }, valid_days: { type: 'integer', minimum: 1, maximum: 365 } }, required: ['quote_id', 'revision_reason'], additionalProperties: false },
+    outputSchema: obj, annotations: WRITE,
+  },
+  {
     name: 'ngms_update_quote',
     title: 'Update quote',
     description:
@@ -176,6 +182,7 @@ export const TOOLS = [
         valid_until: { type: 'string', description: 'YYYY-MM-DD' },
         apply_vat: { type: 'boolean' },
         notes: { type: 'string', maxLength: 4000, description: 'Replaces the quote notes.' },
+        revision_reason: { type: 'string', maxLength: 500, description: 'Required when changing customer-facing content on a quote that has already been sent.' },
       },
       required: ['quote_id'],
       additionalProperties: false,
@@ -635,6 +642,8 @@ export const TOOLS = [
         amount: { type: 'number', minimum: 0 },
         purchase_date: { type: 'string', description: 'YYYY-MM-DD, default today.' },
         receipt_url: { type: 'string', maxLength: 2000 },
+        receipt_urls: { type: 'array', maxItems: 10, items: { type: 'string', maxLength: 2000 }, description: 'Storage paths for up to 10 receipts or photos.' },
+        paid_by: { type: 'string', enum: ['company', 'subcontractor'], default: 'company', description: 'Who paid for the materials.' },
         payment_status: { type: 'string', enum: [...PAYMENT_STATUSES], default: 'unpaid' },
         log_to_job: { type: 'boolean', default: false },
         notes: { type: 'string', maxLength: 2000 },

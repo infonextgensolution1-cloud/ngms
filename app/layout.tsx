@@ -14,9 +14,13 @@ import VisitorPresence from '@/components/VisitorPresence'
 import ClickTracking from '@/components/ClickTracking'
 import PWARegister from '@/components/PWARegister'
 import './globals.css'
+import './homepage-editorial.css'
+import './ngms-public-fusion.css'
+import './ngms-industrial-editorial.css'
+import './homepage-fusion.css'
 
 // Solar Forge type system: Inter for body/UI, Poppins for display headings.
-// Exposed as CSS variables that tailwind.config.ts maps to font-body / font-heading.
+// Exposed as CSS variables that tailwind.config.js maps to font-body / font-heading.
 const bodyFont = Inter({ subsets: ['latin'], variable: '--font-body', display: 'swap' })
 const headingFont = Poppins({ subsets: ['latin'], weight: ['500', '600', '700', '800'], variable: '--font-heading', display: 'swap' })
 
@@ -136,13 +140,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <nav aria-label="Services">
               <p className="font-heading font-semibold text-paper mb-4 uppercase tracking-wide text-xs">Services</p>
               <ul className="grid grid-cols-1 gap-x-3">
-                {services.map((s) => <li key={s.slug}><Link href={`/services/${s.slug}`} className="hover:text-blue inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">{s.name}</Link></li>)}
+                {services.map((s) => <li key={s.slug}><Link href={s.slug === 'solar-panel-cleaning' ? '/services/solar-panel-cleaning' : `/services/${s.slug}`} className="hover:text-blue inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">{s.name}</Link></li>)}
               </ul>
             </nav>
             <nav aria-label="Quick links">
               <p className="font-heading font-semibold text-paper mb-4 uppercase tracking-wide text-xs">Company</p>
               <ul className="grid grid-cols-2 sm:grid-cols-1 gap-x-3">
-                {[['/portfolio', 'Projects'], ['/gallery', 'Gallery'], ['/price-list', 'Price list'], ['/maintenance-packages', 'Maintenance plans'], ['/areas', 'Areas we serve'], ['/body-corporate-maintenance', 'Body corporates'], ['/roi-calculator', 'Solar ROI calculator'], ['/about', 'About'], ['/faq', 'FAQ'], ['/contact', 'Contact'], ['/portal', 'Client portal']].map(([href, label]) => <li key={href}><Link href={href} className="hover:text-blue inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">{label}</Link></li>)}
+                { [['/portfolio', 'Projects'], ['/gallery', 'Gallery'], ['/price-list', 'Price list'], ['/maintenance-packages', 'Maintenance plans'], ['/areas', 'Areas we serve'], ['/body-corporate-maintenance', 'Body corporates'], ['/roi-calculator', 'Solar ROI calculator'], ['/about', 'About'], ['/faq', 'FAQ'], ['/contact', 'Contact'], ['/portal', 'Client portal']].map(([href, label]) => <li key={href}><Link href={href} className="hover:text-blue inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">{label}</Link></li>)}
               </ul>
             </nav>
             <div>
@@ -166,10 +170,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <AdminLink />
           </div>
         </footer>
-        <a data-site-marketing href={WHATSAPP_URL} aria-label="WhatsApp NextGen" target="_blank" rel="noopener noreferrer" className="fixed z-50 flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14" style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom))', right: 'calc(1rem + env(safe-area-inset-right))' }}>
-          <span aria-hidden className="absolute inset-0 rounded-full bg-whatsapp animate-wa-ping" />
-          <span className="relative flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-lg bg-whatsapp"><WhatsAppIcon className="h-6 w-6 sm:h-7 sm:w-7 text-white" /></span>
+        <a data-site-marketing href={WHATSAPP_URL} aria-label="WhatsApp NextGen — start a chat" target="_blank" rel="noopener noreferrer" className="hidden sm:flex fixed z-50 items-center justify-center h-16 w-16 sm:h-[5.5rem] sm:w-[5.5rem] rounded-full border border-orange bg-jet shadow-[0_0_0_1px_rgba(255,106,0,0.25),0_8px_28px_rgba(0,0,0,0.45)] transition-transform duration-200 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,106,0,0.18)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange" style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom))', right: 'calc(1rem + env(safe-area-inset-right))' }}>
+          <WhatsAppIcon className="h-10 w-10 text-[#B7FF00] drop-shadow-[0_0_8px_rgba(183,255,0,0.8)]" />
         </a>
+        <div className="sm:hidden fixed inset-x-0 bottom-0 z-50 px-3 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] bg-jet/95 backdrop-blur-xl border-t border-darkgrey" data-site-marketing>
+          <div className="grid grid-cols-2 gap-2">
+            <Link href="/quote" className="btn-quote !min-h-12 !py-2">Get a free quote</Link>
+            <a data-site-marketing href={WHATSAPP_URL} aria-label="WhatsApp NextGen — send a photo or request a quote" target="_blank" rel="noopener noreferrer" className="relative flex min-h-12 items-center justify-center rounded-xl border border-orange bg-jet px-3 py-2 transition-transform duration-200 hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B7FF00]">
+              <WhatsAppIcon className="h-8 w-8 text-[#B7FF00] drop-shadow-[0_0_8px_rgba(183,255,0,0.8)]" />
+            </a>
+          </div>
+        </div>
         <SpeedInsights />
         <Analytics />
       </body>

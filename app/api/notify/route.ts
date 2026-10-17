@@ -22,6 +22,7 @@ type LeadPayload = {
   estimate?: string
   photoUrl?: string
   preferredDate?: string
+  leadScore?: number
   notSaved?: boolean // the browser could not save the lead to Supabase; this email is the only copy
 }
 
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { name, phone, email, suburb, service, sizeDetails, preferredContact, firstBookingDiscount, message, website, estimate, photoUrl, preferredDate, notSaved } = body
+  const { name, phone, email, suburb, service, sizeDetails, preferredContact, firstBookingDiscount, message, website, estimate, photoUrl, preferredDate, leadScore, notSaved } = body
 
   // Honeypot: pretend success so bots don't retry.
   if (website) return NextResponse.json({ ok: true })
@@ -83,6 +84,7 @@ export async function POST(request: Request) {
     preferredContact ? `Preferred contact: ${preferredContact}` : null,
     firstBookingDiscount ? '10% first-booking discount requested' : null,
     preferredDate ? `Preferred date: ${preferredDate}` : null,
+    typeof leadScore === 'number' ? `Lead readiness score: ${Math.max(0, Math.min(100, Math.round(leadScore)))} / 100` : null,
     estimate ? `Instant estimate shown: ${estimate}` : null,
     photoLine,
     message ? `Details: ${message}` : null,

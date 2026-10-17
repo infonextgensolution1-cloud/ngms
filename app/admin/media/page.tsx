@@ -6,8 +6,9 @@ import { useAdminAuth } from '@/hooks/useAdminAuth'
 import { supabase } from '@/lib/supabaseClient'
 import { services } from '@/lib/services'
 import { Trash2, Upload, Loader2, ArrowLeft } from 'lucide-react'
+import BeforeAfterUploader from '@/components/admin/BeforeAfterUploader'
 
-type Tab = 'hero' | 'homepage' | 'beforeafter' | 'gallery' | 'services'
+type Tab = 'hero' | 'homepage' | 'beforeafter' | 'gallery' | 'services' | 'maintenance'
 
 // --- helpers ---------------------------------------------------------------
 
@@ -365,147 +366,7 @@ function HomepagePhotos() {
 // --- Before / After ----------------------------------------------------------
 
 function BeforeAfter() {
-  const [rows, setRows] = useState<any[]>([])
-  const [before, setBefore] = useState<File | null>(null)
-  const [after, setAfter] = useState<File | null>(null)
-  const [location, setLocation] = useState('')
-  const [slug, setSlug] = useState('solar-panel-cleaning')
-  const [caption, setCaption] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [msg, setMsg] = useState('')
-
-  const load = async () => {
-    const { data } = await supabase
-      .from('before_after_photos')
-      .select('*')
-      .order('created_at', { ascending: false })
-    setRows(data ?? [])
-  }
-  useEffect(() => {
-    load()
-  }, [])
-
-  const add = async () => {
-    if (!before || !after) return setMsg('Both a before and an after photo are required.')
-    if (!location.trim()) return setMsg('Location is required.')
-    setBusy(true)
-    setMsg('')
-    try {
-      const [bUrl, aUrl] = await Promise.all([
-        uploadToBucket('before-after-photos', before),
-        uploadToBucket('before-after-photos', after),
-      ])
-      const { error } = await supabase.from('before_after_photos').insert({
-        before_image_url: bUrl,
-        after_image_url: aUrl,
-        location: location.trim(),
-        service_slug: slug,
-        caption: caption || null,
-        sort_order: rows.length,
-      })
-      if (error) throw error
-      setBefore(null)
-      setAfter(null)
-      setLocation('')
-      setCaption('')
-      setMsg('Before/after pair added.')
-      load()
-    } catch (e: any) {
-      setMsg(e.message ?? 'Upload failed.')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const remove = async (id: string) => {
-    await supabase.from('before_after_photos').delete().eq('id', id)
-    load()
-  }
-
-  return (
-    <div>
-      <div className="border border-gray-700 rounded-xl p-4 mb-6 bg-graphite">
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Before photo">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setBefore(e.target.files?.[0] ?? null)}
-              className="text-sm text-gray-300"
-            />
-          </Field>
-          <Field label="After photo">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setAfter(e.target.files?.[0] ?? null)}
-              className="text-sm text-gray-300"
-            />
-          </Field>
-        </div>
-        <Field label="Location (required)">
-          <input
-            className={inputCls}
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="Somerset West"
-          />
-        </Field>
-        <Field label="Service">
-          <select
-            className={inputCls}
-            value={slug}
-            onChange={(e) => setSlug(e.target.value)}
-          >
-            {services.map((s) => (
-              <option key={s.slug} value={s.slug}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Description">
-          <textarea
-            className={inputCls}
-            rows={2}
-            value={caption}
-            onChange={(e) => setCaption(e.target.value)}
-            placeholder="24-panel system, heavy salt build-up removed"
-          />
-        </Field>
-        <button
-          onClick={add}
-          disabled={busy}
-          className="bg-orange text-white font-semibold px-5 py-2 rounded-full text-sm inline-flex items-center gap-2 disabled:opacity-50"
-        >
-          {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-          Add pair
-        </button>
-        {msg && <p className="text-sm mt-3 text-gray-300">{msg}</p>}
-      </div>
-
-      <div className="space-y-2">
-        {rows.map((r) => (
-          <div
-            key={r.id}
-            className="flex items-center gap-3 border border-gray-800 rounded-lg p-2 bg-graphite"
-          >
-            <div className="flex gap-1">
-              <img src={r.before_image_url} alt="" className="w-16 h-12 object-cover rounded" />
-              <img src={r.after_image_url} alt="" className="w-16 h-12 object-cover rounded" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-white truncate">{r.location}</p>
-              <p className="text-xs text-gray-500 truncate">{r.caption}</p>
-            </div>
-            <button onClick={() => remove(r.id)} className="text-red-400 p-2">
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+  return <BeforeAfterUploader />
 }
 
 // --- Gallery bulk import -------------------------------------------------------
@@ -613,6 +474,102 @@ function Gallery() {
             </button>
           </div>
         ))}
+      </div>
+    </div>
+  )
+}
+
+// --- Maintenance page project photos -------------------------------------------
+const MAINTENANCE_PHOTO_SLOTS = [
+  { slot: 'maintenance_high_pressure', label: 'High-pressure cleaning', help: 'Communal walkways, entrances, parking and exterior cleaning.' },
+  { slot: 'maintenance_painting', label: 'Painting & maintenance', help: 'Real completed painting, repairs and shared-property upkeep.' },
+  { slot: 'maintenance_paving', label: 'Paving & repairs', help: 'Real paving, paths, entrances and outdoor repair projects.' },
+]
+
+function MaintenanceProjectPhotos() {
+  const [rows, setRows] = useState<Record<string, any>>({})
+  const [busySlot, setBusySlot] = useState<string | null>(null)
+  const [msg, setMsg] = useState('')
+
+  const load = async () => {
+    const { data, error } = await supabase.from('gallery_photos').select('*').in('slot', MAINTENANCE_PHOTO_SLOTS.map((item) => item.slot))
+    if (error) { setMsg(error.message); return }
+    const next: Record<string, any> = {}
+    for (const row of data ?? []) next[row.slot] = row
+    setRows(next)
+  }
+  useEffect(() => { load() }, [])
+
+  const upload = async (slot: string, file: File) => {
+    setBusySlot(slot)
+    setMsg('')
+    try {
+      const url = await uploadToBucket('gallery-photos', file)
+      const existing = rows[slot]
+      const patch = {
+        image_url: url,
+        caption: file.name.replace(/\\.[^.]+$/, '').replace(/[-_]+/g, ' '),
+        service_slug: slot === 'maintenance_high_pressure' ? 'high-pressure-cleaning' : slot === 'maintenance_painting' ? 'painting' : 'paving',
+        slot,
+        is_active: true,
+        sort_order: existing?.sort_order ?? 0,
+      }
+      const result = existing
+        ? await supabase.from('gallery_photos').update(patch).eq('id', existing.id)
+        : await supabase.from('gallery_photos').insert(patch)
+      if (result.error) throw result.error
+      setMsg('Project photo saved. The maintenance page uses this image slot.')
+      await load()
+    } catch (e: any) {
+      setMsg(e.message ?? 'Upload failed.')
+    } finally {
+      setBusySlot(null)
+    }
+  }
+
+  const remove = async (slot: string) => {
+    const row = rows[slot]
+    if (!row || !confirm('Remove this maintenance-page photo? The uploaded file remains in storage.')) return
+    setBusySlot(slot)
+    try {
+      const { error } = await supabase.from('gallery_photos').delete().eq('id', row.id)
+      if (error) throw error
+      setMsg('Photo removed from the maintenance page.')
+      await load()
+    } catch (e: any) {
+      setMsg(e.message ?? 'Could not remove photo.')
+    } finally { setBusySlot(null) }
+  }
+
+  return (
+    <div>
+      <p className="mb-4 text-sm text-gray-300">Choose real completed NGMS project photos for the three image shapes on the Maintenance Packages page. Uploading a replacement updates that exact position; no stock photos are used.</p>
+      {msg && <p role="status" className="mb-4 text-sm text-gray-200">{msg}</p>}
+      <div className="space-y-4">
+        {MAINTENANCE_PHOTO_SLOTS.map((item) => {
+          const row = rows[item.slot]
+          const busy = busySlot === item.slot
+          return (
+            <section key={item.slot} className="rounded-xl border border-gray-700 bg-graphite p-4">
+              <div className="flex items-start gap-3">
+                {row?.image_url ? <img src={row.image_url} alt={row.caption ?? item.label} className="h-24 w-32 shrink-0 rounded object-cover" /> : <div className="flex h-24 w-32 shrink-0 items-center justify-center rounded border border-dashed border-gray-600 bg-jet px-2 text-center text-xs text-gray-500">No project photo</div>}
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-bold text-white">{item.label}</h3>
+                  <p className="mt-1 text-xs text-gray-400">{item.help}</p>
+                  {row?.caption && <p className="mt-2 truncate text-xs text-gray-300">{row.caption}</p>}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <label className="inline-flex cursor-pointer items-center gap-2 rounded bg-orange px-3 py-2 text-xs font-bold text-white">
+                      {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+                      {row?.image_url ? 'Replace photo' : 'Upload project photo'}
+                      <input type="file" accept="image/*" className="hidden" disabled={busy} onChange={(e) => { const file = e.target.files?.[0]; e.target.value = ''; if (file) upload(item.slot, file) }} />
+                    </label>
+                    {row?.image_url && <button type="button" onClick={() => remove(item.slot)} disabled={busy} className="inline-flex items-center gap-1 rounded border border-gray-600 px-3 py-2 text-xs font-semibold text-red-300 disabled:opacity-50"><Trash2 className="h-3 w-3" /> Remove</button>}
+                  </div>
+                </div>
+              </div>
+            </section>
+          )
+        })}
       </div>
     </div>
   )
@@ -773,6 +730,7 @@ export default function AdminMediaPage() {
     { key: 'beforeafter', label: 'Before / After' },
     { key: 'gallery', label: 'Gallery' },
     { key: 'services', label: 'Service images' },
+    { key: 'maintenance', label: 'Maintenance projects' },
   ]
 
   return (
@@ -807,6 +765,7 @@ export default function AdminMediaPage() {
       {tab === 'beforeafter' && <BeforeAfter />}
       {tab === 'gallery' && <Gallery />}
       {tab === 'services' && <ServiceImages />}
+      {tab === 'maintenance' && <MaintenanceProjectPhotos />}
     </main>
   )
 }

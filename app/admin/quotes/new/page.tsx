@@ -51,7 +51,7 @@ function Builder() {
   const [bundleId, setBundleId] = useState(BUNDLES[0].id)
   const [bundleSize, setBundleSize] = useState('')
   const [depositPct, setDepositPct] = useState(String(DEFAULT_DEPOSIT_PERCENT))
-  const [validDays, setValidDays] = useState('30')
+  const [validDays, setValidDays] = useState('7')
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')

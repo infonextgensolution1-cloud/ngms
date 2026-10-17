@@ -63,8 +63,9 @@ export default function TrustStrip({ beforeAfter }: { beforeAfter: BeforeAfter[]
         )}
 
         <div className="text-center">
-          <p className="kicker">Reviews</p>
-          <h2 className="text-3xl md:text-4xl">What clients say</h2>
+          <p className="kicker">Trust & proof</p>
+          <h2 className="text-3xl md:text-4xl">Real work. Real clients. Clear proof.</h2>
+          <div className="mt-5 flex flex-wrap justify-center gap-2 text-xs font-semibold"><span className="rounded-full border border-concrete bg-paper px-3 py-1.5 text-graphite">Before &amp; after</span><span className="rounded-full border border-concrete bg-paper px-3 py-1.5 text-graphite">Local Helderberg work</span><span className="rounded-full border border-concrete bg-paper px-3 py-1.5 text-graphite">Written quotes</span><span className="rounded-full border border-concrete bg-paper px-3 py-1.5 text-graphite">One accountable team</span></div>
           <Reviews />
         </div>
       </div>

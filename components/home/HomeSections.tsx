@@ -14,7 +14,7 @@ export type Photo = { src: string; caption: string }
 
 function PhotoFill({ photo, sizes, className = '' }: { photo?: Photo; sizes: string; className?: string }) {
   if (!photo?.src) return <div className={`absolute inset-0 bg-graphite ${className}`} />
-  return <Image src={photo.src} alt={photo.caption} fill sizes={sizes} quality={70} className={`object-cover ${className}`} />
+  return <Image src={photo.src} alt={photo.caption} fill sizes={sizes} quality={70} unoptimized className={`object-cover ${className}`} />
 }
 
 function SectionHead({ kicker, title, intro, action }: { kicker: string; title: ReactNode; intro?: ReactNode; action?: ReactNode }) {
@@ -32,7 +32,7 @@ function SectionHead({ kicker, title, intro, action }: { kicker: string; title: 
 
 function Check() {
   return (
-    <svg viewBox="0 0 20 20" className="h-5 w-5 shrink-0 text-blue mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+    <svg viewBox="0 0 20 20" className="h-5 w-5 shrink-0 text-orange mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
       <path d="M4 10.5l4 4 8-9" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
@@ -48,7 +48,7 @@ export function ServicesOverview({
   images: Record<string, string>
 }) {
   return (
-    <section className="bg-jet text-paper py-16 sm:py-24 px-4" aria-labelledby="services-title">
+    <section className="band-light bg-fog text-graphite py-16 sm:py-24 px-4 ngms-services-editorial" aria-labelledby="services-title">
       <div className="max-w-6xl mx-auto">
         <SectionHead
           kicker="What we do"
@@ -60,6 +60,19 @@ export function ServicesOverview({
             </Link>
           }
         />
+        <div className="mb-7 grid grid-cols-2 sm:grid-cols-4 gap-2" aria-label="Service categories">
+          {[
+            ['Property', 'Solar, plumbing, electrical'],
+            ['Exterior', 'Painting, paving, waterproofing'],
+            ['Cleaning', 'Solar, pressure washing, gutters'],
+            ['Repairs', 'Steelwork, handyman, rubble removal'],
+          ].map(([label, sub]) => (
+            <div key={label} className="rounded-panel border border-concrete bg-paper px-3 py-3 shadow-[0_8px_24px_rgba(18,22,26,.045)]">
+              <span className="block font-heading font-semibold text-sm text-graphite">{label}</span>
+              <span className="block mt-1 text-[11px] leading-snug text-slate">{sub}</span>
+            </div>
+          ))}
+        </div>
         <ul className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {services.map((s, i) => {
             const img = images[s.slug]
@@ -71,9 +84,7 @@ export function ServicesOverview({
               <li key={s.slug} className={feature ? 'col-span-2 row-span-2' : wide ? 'col-span-2' : ''}>
                 <Link
                   href={`/services/${s.slug}`}
-                  className={`group relative flex h-full flex-col justify-end overflow-hidden rounded-panel border border-darkgrey bg-cardgrey ${
-                    feature ? 'min-h-[300px] sm:min-h-[420px]' : 'min-h-[170px] sm:min-h-[210px]'
-                  }`}
+                  className={`group forge-interactive ngms-service-tile relative flex h-full flex-col justify-end overflow-hidden rounded-panel border border-concrete bg-graphite shadow-[0_14px_36_rgba(18,22,26,.12)] ${feature ? 'min-h-[340px] sm:min-h-[460px]' : 'min-h-[190px] sm:min-h-[220px]'}`}
                 >
                   {img && (
                     <>
@@ -95,7 +106,8 @@ export function ServicesOverview({
                       {s.name}
                     </span>
                     <span className={`mt-1 text-paper/70 text-xs sm:text-sm ${feature ? 'block' : 'hidden sm:block'}`}>{s.tagline}</span>
-                    <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-blue">
+                    {feature && <span className="mt-2 inline-flex rounded-full bg-orange px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-jet">Flagship</span>}
+                    <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-orange">
                       View service
                       <span aria-hidden className="transition-transform group-hover:translate-x-1">&rarr;</span>
                     </span>
@@ -117,16 +129,16 @@ export function SolarFeature({ photo }: { photo?: Photo }) {
     <section className="band-light bg-fog py-16 sm:py-24 px-4" aria-labelledby="solar-title">
       <div className="max-w-6xl mx-auto grid gap-10 lg:grid-cols-12 lg:items-start">
         <div className="lg:col-span-7 min-w-0">
-          <p className="kicker">Flagship service</p>
+          <p className="kicker">Flagship service · Solar</p>
           <h2 id="solar-title" className="text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1.05]">
-            Solar panel cleaning, done carefully.
+            The Solar Forge flagship: clean panels. Clear proof. A measurable next step.
           </h2>
           <p className="text-slate mt-4 text-base sm:text-lg leading-relaxed max-w-xl">
             Salt spray, dust, pollen and bird droppings build up on Helderberg roofs. We clean panels with a gentle soft
             wash — no abrasive pads and no high pressure on the glass — and check the array while we&rsquo;re up there.
           </p>
 
-          <div className="relative mt-8 aspect-[16/9] overflow-hidden rounded-panel bg-graphite">
+          <div className="relative mt-8 aspect-[16/9] overflow-hidden rounded-panel bg-graphite forge-shimmer">
             <PhotoFill photo={photo} sizes="(max-width: 1024px) 100vw, 55vw" />
             {photo?.caption && (
               <p className="absolute left-3 bottom-3 rounded-btn bg-jet/75 backdrop-blur px-3 py-1.5 text-xs text-paper">{photo.caption}</p>
@@ -171,14 +183,14 @@ export function SolarFeature({ photo }: { photo?: Photo }) {
             <Link href="/quote?service=Solar%20Panel%20Cleaning" className="btn-quote">
               Get a solar cleaning quote
             </Link>
-            <Link href="/services/solar-panel-cleaning" className="btn bg-jet text-paper hover:bg-graphite">
-              How we clean
+            <Link href="/roi-calculator" className="btn bg-paper border border-concrete text-graphite hover:bg-fog">
+              Calculate your cleaning ROI
             </Link>
           </div>
         </div>
 
         <div className="lg:col-span-5 min-w-0 lg:sticky lg:top-24">
-          <SolarRoiCalculator />
+          <div className="forge-reveal"><SolarRoiCalculator /></div>
         </div>
       </div>
     </section>
@@ -231,7 +243,7 @@ export function WhyNgms({ photo }: { photo?: Photo }) {
           <ul className="mt-10 grid sm:grid-cols-2 gap-px bg-darkgrey rounded-panel overflow-hidden border border-darkgrey">
             {REASONS.map((r, i) => (
               <li key={r.title} className="bg-cardgrey p-5">
-                <p className="font-heading text-xs text-blue font-semibold tracking-[0.18em]">{String(i + 1).padStart(2, '0')}</p>
+                <p className="font-heading text-xs text-orange font-semibold tracking-[0.18em]">{String(i + 1).padStart(2, '0')}</p>
                 <h3 className="text-base mt-2 normal-case tracking-normal font-heading font-semibold">{r.title}</h3>
                 <p className="text-mist text-sm mt-1.5 leading-relaxed">{r.body}</p>
               </li>
@@ -305,7 +317,7 @@ export function AreasAndFaq() {
             <p className="text-xs uppercase tracking-[0.16em] text-mist font-semibold">No callout fee</p>
             <ul className="mt-3 flex flex-wrap gap-2">
               {CORE_AREAS.map((a) => (
-                <li key={a} className="rounded-btn border border-blue/40 bg-blue/10 px-3 py-1.5 text-sm font-medium">{a}</li>
+                <li key={a} className="rounded-btn border border-orange/40 bg-orange/10 px-3 py-1.5 text-sm font-medium">{a}</li>
               ))}
             </ul>
             <p className="text-xs uppercase tracking-[0.16em] text-mist font-semibold mt-6">R350 callout</p>
@@ -322,7 +334,7 @@ export function AreasAndFaq() {
               ['/property-maintenance/gordons-bay', "Property maintenance in Gordon's Bay"],
             ].map(([href, label]) => (
               <li key={href}>
-                <Link href={href} className="text-mist hover:text-blue">
+                <Link href={href} className="text-mist hover:text-orange">
                   {label} &rarr;
                 </Link>
               </li>
@@ -338,15 +350,15 @@ export function AreasAndFaq() {
           <div className="mt-8 divide-y divide-darkgrey border-y border-darkgrey">
             {faqs.map((f) => (
               <details key={f.q} className="group">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 font-medium text-paper hover:text-blue [&::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 font-medium text-paper hover:text-orange [&::-webkit-details-marker]:hidden">
                   {f.q}
-                  <span aria-hidden className="text-blue text-xl leading-none transition-transform group-open:rotate-45">+</span>
+                  <span aria-hidden className="text-orange text-xl leading-none transition-transform group-open:rotate-45">+</span>
                 </summary>
                 <p className="pb-5 -mt-1 text-mist leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
-          <Link href="/faq" className="inline-block mt-5 text-sm font-semibold text-blue hover:underline">
+          <Link href="/faq" className="inline-block mt-5 text-sm font-semibold text-orange hover:underline">
             All questions &rarr;
           </Link>
         </div>
@@ -361,7 +373,7 @@ export function FinalCta({ photo }: { photo?: Photo }) {
   return (
     <section className="relative isolate overflow-hidden bg-jet text-paper px-4 py-20 sm:py-28" aria-labelledby="cta-title">
       <div className="absolute inset-0 -z-10" aria-hidden>
-        {photo?.src && <Image src={photo.src} alt="" fill sizes="100vw" quality={60} className="object-cover opacity-35" />}
+        {photo?.src && <Image src={photo.src} alt="" fill sizes="100vw" quality={60} unoptimized className="object-cover opacity-35" />}
         <div className="absolute inset-0 bg-gradient-to-r from-jet via-jet/85 to-jet/50" />
       </div>
       <div className="max-w-6xl mx-auto">
@@ -379,9 +391,63 @@ export function FinalCta({ photo }: { photo?: Photo }) {
           <a href={whatsappLink("Hi NextGen, I'd like a quote please.")} target="_blank" rel="noopener noreferrer" className="btn-wa !px-7 !py-3.5">
             WhatsApp {SITE.phoneDisplay}
           </a>
-          <Link href="/body-corporate-maintenance" className="text-sm text-paper/80 hover:text-blue px-2 py-3">
+          <Link href="/body-corporate-maintenance" className="text-sm text-paper/80 hover:text-orange px-2 py-3">
             Body corporate? Book a site walk-through &rarr;
           </Link>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+
+/* ---------- GOOGLE REVIEWS ---------- */
+
+export async function GoogleReviews() {
+  const { getGoogleReviews } = await import('@/lib/google-reviews')
+  const data = await getGoogleReviews()
+
+  return (
+    <section id="reviews" className="bg-fog text-graphite py-16 sm:py-24 px-4" aria-labelledby="google-reviews-title">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex flex-wrap items-end justify-between gap-6 mb-10">
+          <div className="max-w-2xl">
+            <p className="kicker">Google reviews</p>
+            <h2 id="google-reviews-title" className="text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1.05]">Real feedback from NextGen customers.</h2>
+            <p className="text-slate mt-4 text-base sm:text-lg leading-relaxed">Live reviews from our Google Business Profile, with a direct option for customers to leave their own review.</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <a href={data.writeAReviewUri} target="_blank" rel="noopener noreferrer" className="btn-quote">★ Leave a Google review</a>
+            <a href={data.reviewsUri} target="_blank" rel="noopener noreferrer" className="btn bg-paper border border-concrete text-graphite hover:bg-white">Read all Google reviews</a>
+          </div>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+          <div className="rounded-panel border border-concrete bg-paper p-6">
+            <p className="text-xs uppercase tracking-[0.16em] text-slate font-semibold">Google rating</p>
+            <div className="mt-3 flex items-center gap-3">
+              <span className="font-heading text-5xl font-bold">{data.rating ? data.rating.toFixed(1) : '—'}</span>
+              <div><span className="text-orange tracking-[0.12em]" aria-hidden>★★★★★</span><p className="text-xs text-slate mt-1">{data.userRatingCount ? `${data.userRatingCount} reviews` : 'Latest rating'}</p></div>
+            </div>
+            <p className="text-xs text-slate mt-6 leading-relaxed">Powered by Google. Reviews remain on Google.</p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {data.reviews.length > 0 ? data.reviews.slice(0, 4).map((review, index) => (
+              <article key={review.googleMapsUri ?? `google-review-${index}`} className="rounded-panel border border-concrete bg-paper p-5">
+                <div className="flex items-center justify-between gap-3"><p className="font-heading font-semibold">{review.authorName ?? 'Google customer'}</p><span className="text-orange tracking-[0.12em]" aria-hidden>★★★★★</span></div>
+                {review.relativePublishTimeDescription && <p className="text-xs text-slate mt-1">{review.relativePublishTimeDescription}</p>}
+                {review.text && <p className="text-sm leading-relaxed text-graphite/85 mt-4">{review.text}</p>}
+                {review.googleMapsUri && <a href={review.googleMapsUri} target="_blank" rel="noopener noreferrer" className="inline-block mt-4 text-xs font-semibold text-orange hover:underline">View review →</a>}
+              </article>
+            )) : (
+              <div className="md:col-span-2 rounded-panel border border-concrete bg-paper p-6">
+                <p className="font-heading font-semibold">See our latest Google reviews</p>
+                <p className="text-sm text-slate mt-2">Open our Google profile to see the newest customer feedback.</p>
+                <a href={data.reviewsUri} target="_blank" rel="noopener noreferrer" className="inline-block mt-4 text-sm font-semibold text-orange hover:underline">Open Google reviews →</a>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>
