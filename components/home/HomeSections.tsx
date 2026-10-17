@@ -13,7 +13,7 @@ import SolarRoiCalculator from '@/components/SolarRoiCalculator'
 export type Photo = { src: string; caption: string }
 
 function PhotoFill({ photo, sizes, className = '' }: { photo?: Photo; sizes: string; className?: string }) {
-  if (!photo?.src) return <div className={`absolute inset-0 bg-graphite ${className}`} />
+  if (!photo?.src) return <div className={`absolute inset-0 flex flex-col justify-end bg-[linear-gradient(135deg,#34383e_0%,#171a1f_55%,#0b0c0e_100%)] p-5 sm:p-7 ${className}`}><span className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange">NextGen · Helderberg Basin</span><span className="mt-2 max-w-[14ch] font-heading text-xl font-bold uppercase leading-tight text-paper">Real work. Clear results.</span><span className="mt-2 text-sm text-paper/80">Project photography is being updated.</span></div>
   return <Image src={photo.src} alt={photo.caption} fill sizes={sizes} quality={70} unoptimized className={`object-cover ${className}`} />
 }
 
