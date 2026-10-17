@@ -506,9 +506,9 @@ function Gallery() {
     for (const f of list) {
       setProgress(`Uploading ${done + failed + 1} of ${list.length}...`)
       try {
-        const url = await uploadToBucket('gallery-photos', f)
+        const uploaded = await uploadToBucket('gallery-photos', f)
         const { error } = await supabase.from('gallery_photos').insert({
-          image_url: url,
+          image_url: uploaded.url,
           caption: f.name.replace(/\.[^.]+$/, ''),
           service_slug: slug || null,
           sort_order: rows.length + done,
