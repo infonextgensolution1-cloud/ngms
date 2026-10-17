@@ -370,21 +370,22 @@ function HomepagePhotos() {
     setMsg('')
     try {
       const uploaded = await uploadToBucket('gallery-photos', file)
-      // Retire the photo currently in this spot (only one live photo per slot).
-      const retire = await supabase.from('gallery_photos').update({ is_active: false }).eq('slot', slot).eq('is_active', true)
-      if (retire.error) throw new Error(`Storage upload succeeded (${uploaded.path}), but the previous slot could not be retired: ${retire.error.message} (code: ${retire.error.code ?? 'unknown'}).`)
-      const { error } = await supabase.from('gallery_photos').insert({
+      // Save the replacement first so a failed insert never deactivates the current photo.
+      const { data: newRow, error } = await supabase.from('gallery_photos').insert({
         image_url: uploaded.url,
         caption: captions[slot]?.trim() || null,
         service_slug: slot === 'hero_solar' ? 'solar-panel-cleaning' : null,
         slot,
         sort_order: 0,
         is_active: true,
-      })
+      }).select('id').single()
       if (error) throw new Error(`Storage upload succeeded (${uploaded.path}), but the homepage photo record could not be saved: ${error.message} (code: ${error.code ?? 'unknown'}). The file was retained for recovery.`)
+      const retire = await supabase.from('gallery_photos').update({ is_active: false }).eq('slot', slot).eq('is_active', true).neq('id', newRow.id)
       setCaptions((c) => ({ ...c, [slot]: '' }))
-      setMsg('Photo is live on the homepage.')
-      load()
+      setMsg(retire.error
+        ? `New photo saved and active, but an older photo could not be retired: ${retire.error.message} (code: ${retire.error.code ?? 'unknown'}).`
+        : 'Photo is live on the homepage.')
+      await load()
     } catch (e: any) {
       setMsg(e.message ?? 'Upload failed.')
     } finally {
