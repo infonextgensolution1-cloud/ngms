@@ -79,10 +79,12 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       return NextResponse.json({ ok: true, review_status: 'rejected', posted: false })
     }
 
-    if (!extraction) return NextResponse.json({ error: 'Run extraction or attach verified fields before approval.' }, { status: 409 })
+    if (!extraction && document.document_type === 'supplier_invoice') {
+      return NextResponse.json({ error: 'Run extraction or attach verified fields before approving a supplier invoice.' }, { status: 409 })
+    }
     const fields = body.fields && typeof body.fields === 'object' && !Array.isArray(body.fields)
       ? body.fields as Record<string, unknown>
-      : extraction.extracted_fields as Record<string, unknown>
+      : (extraction?.extracted_fields as Record<string, unknown> | undefined) ?? {}
     if (document.document_type === 'supplier_invoice') {
       const amount = fields.total_amount
       if (typeof amount !== 'number' || !Number.isFinite(amount) || amount < 0) return NextResponse.json({ error: 'A verified non-negative total amount is required.' }, { status: 400 })
