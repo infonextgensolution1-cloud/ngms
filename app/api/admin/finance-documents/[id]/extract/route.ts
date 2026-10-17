@@ -12,7 +12,7 @@ const EXTRACT_SCHEMA = {
   additionalProperties: false,
   required: ['document_type', 'supplier_name', 'customer_name', 'project_name', 'invoice_number', 'issue_date', 'due_date', 'currency', 'subtotal', 'tax_amount', 'total_amount', 'line_items', 'notes', 'confidence'],
   properties: {
-    document_type: { type: 'string', enum: ['supplier_invoice', 'customer_invoice', 'quote', 'receipt', 'job_report', 'completion_report', 'job_photo', 'purchase_order', 'delivery_note', 'contract', 'tax_document', 'correspondence', 'other'] },
+    document_type: { type: 'string', enum: ['supplier_invoice', 'customer_invoice', 'quote', 'receipt', 'job_report', 'completion_report', 'job_photo', 'purchase_order', 'delivery_note', 'contract', 'tax_document', 'correspondence', 'financial_report', 'management_report', 'other'] },
     supplier_name: { type: ['string', 'null'] },
     customer_name: { type: ['string', 'null'] },
     project_name: { type: ['string', 'null'] },
