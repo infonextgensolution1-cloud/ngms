@@ -154,3 +154,40 @@ body main :is(section, article)[class*="bg-fog"] a:not(.btn):not(.btn-quote):not
 body main .band-light a:not(.btn):not(.btn-quote):not(.btn-wa):hover {
   color: #ffb17f;
 }
+
+
+/* Visual QA step 1: enforce readable contrast in editorial light/dark sections.
+   Keep text colours scoped to known surface utilities; do not globally recolour every paragraph. */
+body main :is(section, article).bg-fog,
+body main :is(section, article).bg-paper,
+body main :is(section, article).bg-white,
+body main .band-light {
+  background-color: #171a1f !important;
+  color: #f5f6f7 !important;
+}
+body main :is(section, article).bg-fog :is(h1,h2,h3,h4,p,li,label,dt,dd,blockquote,summary),
+body main :is(section, article).bg-paper :is(h1,h2,h3,h4,p,li,label,dt,dd,blockquote,summary),
+body main :is(section, article).bg-white :is(h1,h2,h3,h4,p,li,label,dt,dd,blockquote,summary),
+body main .band-light :is(h1,h2,h3,h4,p,li,label,dt,dd,blockquote,summary) {
+  color: #f1f3f5 !important;
+}
+body main :is(section, article).bg-fog :is(.text-slate,.text-mist,.text-graphite,.text-gray-900,.text-gray-800,.text-gray-700),
+body main :is(section, article).bg-paper :is(.text-slate,.text-mist,.text-graphite,.text-gray-900,.text-gray-800,.text-gray-700),
+body main :is(section, article).bg-white :is(.text-slate,.text-mist,.text-graphite,.text-gray-900,.text-gray-800,.text-gray-700),
+body main .band-light :is(.text-slate,.text-mist,.text-graphite,.text-gray-900,.text-gray-800,.text-gray-700) {
+  color: #c7cdd4 !important;
+}
+body main :is(section, article).bg-fog :is(.card,.panel,[class*="rounded-panel"]),
+body main :is(section, article).bg-paper :is(.card,.panel,[class*="rounded-panel"]),
+body main :is(section, article).bg-white :is(.card,.panel,[class*="rounded-panel"]),
+body main .band-light :is(.card,.panel,[class*="rounded-panel"]) {
+  background-color: #111418 !important;
+  color: #f1f3f5 !important;
+  border-color: #343b44 !important;
+}
+body main :is(section, article).bg-fog a:not(.btn):not(.btn-quote):not(.btn-wa),
+body main :is(section, article).bg-paper a:not(.btn):not(.btn-quote):not(.btn-wa),
+body main :is(section, article).bg-white a:not(.btn):not(.btn-quote):not(.btn-wa),
+body main .band-light a:not(.btn):not(.btn-quote):not(.btn-wa) {
+  color: #ff8a3d !important;
+}
