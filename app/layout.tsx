@@ -15,7 +15,6 @@ import ClickTracking from '@/components/ClickTracking'
 import { Phone } from 'lucide-react'
 import PWARegister from '@/components/PWARegister'
 import './globals.css'
-import './ngms-public-fusion.css'
 import './ngms-industrial-editorial.css'
 
 // Solar Forge type system: Inter for body/UI, Poppins for display headings.
