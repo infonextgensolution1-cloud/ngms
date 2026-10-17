@@ -74,8 +74,14 @@ const NAV_ITEMS: Array<{
   {
     href: '/admin/reports',
     icon: BarChart3,
-    title: 'Monthly report',
-    desc: 'Invoiced, collected, profit and spend by month, with Excel for the bookkeeper',
+    title: 'Financial & Management Reports',
+    desc: 'Monthly invoicing, collections, job profitability, spend and lead performance with export for the bookkeeper',
+  },
+  {
+    href: '/admin/finance-documents',
+    icon: Cloud,
+    title: 'Document Control',
+    desc: 'Private document register, supplier invoice extraction, approval queue and project-linked records',
   },
   {
     href: '/admin/analytics',
