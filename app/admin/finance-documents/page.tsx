@@ -25,9 +25,11 @@ type DocumentRecord = {
   created_at: string
 }
 type ApiResult = {
+  document?: DocumentRecord
   documents?: DocumentRecord[]
   options?: { customers: Customer[]; projects: Project[]; suppliers: Supplier[] }
   error?: string
+  warning?: string | null
 }
 
 const TYPES = [
@@ -137,9 +139,26 @@ function FinanceDocuments() {
         headers: { Authorization: `Bearer ${token}` },
         body,
       })
-      const result = await response.json() as ApiResult & { warning?: string; extraction?: string }
+      const result = await response.json() as ApiResult
       if (!response.ok) throw new Error(result.error || 'Upload failed.')
-      setNotice(result.warning || 'Document saved securely. Financial posting remains locked until review and approval.')
+      let statusMessage = result.warning || 'Document saved securely.'
+      if (result.document?.id) {
+        try {
+          const extractResponse = await fetch(`/api/admin/finance-documents/${result.document.id}/extract`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          const extractResult = await extractResponse.json() as { error?: string; validation_warnings?: string[] }
+          if (extractResponse.ok) {
+            statusMessage = `Document saved and extracted. ${extractResult.validation_warnings?.length ? 'Validation warnings require review.' : 'Verify the extracted fields before approval.'} No financial transaction has been posted.`
+          } else {
+            statusMessage = `Document saved securely, but automatic extraction did not run: ${extractResult.error || 'provider unavailable'}. It remains available for manual review.`
+          }
+        } catch {
+          statusMessage = 'Document saved securely, but extraction could not be reached. It remains available for manual review.'
+        }
+      }
+      setNotice(statusMessage)
       setTitle('')
       setFile(null)
       setSupplierPurchaseId('')
@@ -264,9 +283,12 @@ function FinanceDocuments() {
                         <h3 className="mt-1 break-words font-semibold">{doc.title}</h3>
                         <p className="mt-1 break-words text-xs text-[#555]">{doc.original_filename} · {sizeLabel(doc.byte_size)} · {dateLabel(doc.created_at)}</p>
                       </div>
-                      <button onClick={() => void openDocument(doc.id)} disabled={openingId === doc.id} aria-label={`Open ${doc.title}`} className="shrink-0 border border-[#777] p-2 hover:border-[#FF3D0A] disabled:opacity-50">
-                        {openingId === doc.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-                      </button>
+                      <div className="flex shrink-0 items-center gap-1">
+                        <Link href={`/admin/finance-documents/${doc.id}`} aria-label={`Review ${doc.title}`} className="border border-[#777] px-2 py-2 text-[10px] font-bold uppercase hover:border-[#FF3D0A]">Review</Link>
+                        <button onClick={() => void openDocument(doc.id)} disabled={openingId === doc.id} aria-label={`Open ${doc.title}`} className="border border-[#777] p-2 hover:border-[#FF3D0A] disabled:opacity-50">
+                          {openingId === doc.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+                        </button>
+                      </div>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <span className="bg-[#E5E5E0] px-2 py-1 text-[10px] font-bold uppercase">{doc.document_type.replaceAll('_', ' ')}</span>
