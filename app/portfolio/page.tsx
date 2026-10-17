@@ -30,6 +30,16 @@ async function getProjects(): Promise<BeforeAfter[]> {
   return (data as BeforeAfter[]) ?? []
 }
 
+function displayProjectTitle(project: BeforeAfter) {
+  const caption = project.caption?.trim()
+  // Some legacy rows stored an upload/object identifier in the caption field.
+  if (!caption || /^[0-9a-f]{8}-[0-9a-f-]{20,}$/i.test(caption) || /(?:^|[_-])all[_-]?\d+$/i.test(caption)) {
+    const service = project.service_slug?.replaceAll('-', ' ').trim()
+    return service ? `${service} project` : 'Completed maintenance project'
+  }
+  return caption
+}
+
 function projectImages(project: BeforeAfter, side: 'before' | 'after') {
   const urls = side === 'before' ? project.before_image_urls : project.after_image_urls
   const fallback = side === 'before' ? project.before_image_url : project.after_image_url
@@ -82,7 +92,7 @@ export default async function PortfolioPage() {
 
             <div className="relative min-h-[360px] overflow-hidden border-t border-[#222222] bg-[#d7d5cf] lg:min-h-[620px] lg:border-l lg:border-t-0">
               {featuredImage ? (
-                <Image src={featuredImage} alt={featured?.caption || 'Featured completed NextGen maintenance project'} fill priority sizes="(max-width: 1024px) 100vw, 55vw" quality={82} className="object-cover grayscale-[22%]" />
+                <Image src={featuredImage} alt={displayProjectTitle(featured ?? { id: 'fallback', service_slug: null, location: '', caption: null, before_image_url: '', after_image_url: '' })} fill priority sizes="(max-width: 1024px) 100vw, 55vw" quality={82} className="object-cover grayscale-[22%]" />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(135deg,#deddd8_0%,#b8b7b1_48%,#292929_48%,#111111_100%)]">
                   <div className="absolute inset-y-0 left-[58%] w-[22%] bg-[#ed4b26]" />
@@ -94,7 +104,7 @@ export default async function PortfolioPage() {
               <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-4 p-5 text-white sm:p-8">
                 <div className="max-w-lg">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff714e]">{featured?.service_slug?.replaceAll('-', ' ') || 'Maintenance projects'}</p>
-                  <h2 className="mt-2 text-3xl font-black uppercase leading-[0.9] tracking-[-0.05em] sm:text-5xl">{featured?.caption || 'Property care. Proven.'}</h2>
+                  <h2 className="mt-2 text-3xl font-black uppercase leading-[0.9] tracking-[-0.05em] sm:text-5xl">{featured ? displayProjectTitle(featured) : 'Property care. Proven.'}</h2>
                   <p className="mt-3 text-xs text-white/80">{featured?.location || 'Strand · Somerset West · Gordon’s Bay'}</p>
                 </div>
                 {featured && <span className="hidden h-12 w-12 shrink-0 items-center justify-center border border-white/70 text-xl sm:flex" aria-hidden="true">↗</span>}
@@ -146,7 +156,7 @@ export default async function PortfolioPage() {
                       {(['before', 'after'] as const).map((side) => (
                         <div key={side} className="relative aspect-[4/3] overflow-hidden bg-[#d4d2cc]">
                           {projectImages(project, side).slice(0, 1).map((url) => (
-                            <Image key={url} src={url} alt={`${side === 'before' ? 'Before' : 'After'} — ${project.caption || 'maintenance project'}`} fill sizes="(max-width: 768px) 50vw, (max-width: 1280px) 45vw, 30vw" quality={76} className="object-cover transition duration-500 group-hover:scale-[1.03]" />
+                            <Image key={url} src={url} alt={`${side === 'before' ? 'Before' : 'After'} — ${displayProjectTitle(project)}`} fill sizes="(max-width: 768px) 50vw, (max-width: 1280px) 45vw, 30vw" quality={76} className="object-cover transition duration-500 group-hover:scale-[1.03]" />
                           ))}
                           <span className={`absolute left-2 top-2 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.14em] ${side === 'after' ? 'bg-[#ed4b26] text-white' : 'bg-[#111111]/85 text-white'}`}>{side}</span>
                         </div>
@@ -157,7 +167,7 @@ export default async function PortfolioPage() {
                         <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#ed4b26]">{project.service_slug?.replaceAll('-', ' ') || 'Project'}</p>
                         <span className="text-xs text-[#777773]">{String(index + 1).padStart(2, '0')}</span>
                       </div>
-                      <h3 className="mt-2 text-lg font-black uppercase leading-tight tracking-[-0.035em]">{project.caption || 'Completed project'}</h3>
+                      <h3 className="mt-2 text-lg font-black uppercase leading-tight tracking-[-0.035em]">{displayProjectTitle(project)}</h3>
                       <p className="mt-auto pt-3 text-xs text-[#555555]">⌖ {project.location}</p>
                     </div>
                   </article>

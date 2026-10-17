@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   const { data: clients, error: clientsError } = await db.from('clients').select('id,email').ilike('email', email)
   if (clientsError) return NextResponse.json({ error: 'Could not verify portal access.' }, { status: 500 })
   const ownClients = (clients ?? []).filter((c) => (c.email ?? '').trim().toLowerCase() === email)
-  if (!ownClients.length) return NextResponse.json({ error: 'No NGMS client record is linked to this email.' }, { status: 403 })
+  if (!ownClients.length) return NextResponse.json({ error: 'We could not match this verified email to an NGMS customer record. Please use the email address supplied with your quote, or contact NGMS on WhatsApp 063 138 7945 so the office can verify and update the customer record. For security, portal access cannot be linked automatically.' }, { status: 403 })
 
   const { data: accessRows, error: accessError } = await db.from('client_portal_access')
     .select('client_id,access_mode,expires_at,revoked_at,one_time_session_id')
