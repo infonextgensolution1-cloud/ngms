@@ -19,13 +19,15 @@ const DOCUMENT_TYPES = new Set([
   'contract', 'tax_document', 'correspondence', 'financial_report', 'management_report', 'other',
 ])
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const CUSTOMER_VISIBLE_TYPES = new Set(['quote', 'customer_invoice', 'job_report', 'completion_report', 'job_photo'])
+class InputError extends Error {}
 const safePart = (value: string) =>
   value.normalize('NFKD').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 100) || 'document'
 
 function optionalUuid(value: FormDataEntryValue | null, label: string): string | null {
   const text = String(value ?? '').trim()
   if (!text) return null
-  if (!UUID.test(text)) throw new Error(`${label} must be a valid ID.`)
+  if (!UUID.test(text)) throw new InputError(`${label} must be a valid ID.`)
   return text
 }
 
@@ -109,6 +111,7 @@ export async function POST(request: Request) {
     if (!ALLOWED_TYPES.has(file.type)) return NextResponse.json({ error: 'Unsupported file type. Upload PDF, JPEG, PNG, WebP, text, Word or Excel.' }, { status: 415 })
     if (issuedOn && !/^\d{4}-\d{2}-\d{2}$/.test(issuedOn)) return NextResponse.json({ error: 'Issue date must use YYYY-MM-DD.' }, { status: 400 })
     if (visibleToCustomer && !customerId) return NextResponse.json({ error: 'A customer must be linked before a document can be visible in the customer portal.' }, { status: 400 })
+    if (visibleToCustomer && !CUSTOMER_VISIBLE_TYPES.has(documentType)) return NextResponse.json({ error: 'This document type is internal-only and cannot be released to the customer portal.' }, { status: 400 })
 
     const admin = db()
     const actor = await actorFromRequest(request, admin)
@@ -215,6 +218,7 @@ export async function POST(request: Request) {
     if (uploadedPath) {
       try { await db().storage.from('ngms-admin-documents').remove([uploadedPath]) } catch { /* retain the original error */ }
     }
+    if (e instanceof InputError) return NextResponse.json({ error: e.message }, { status: 400 })
     return errorResponse(e)
   }
 }
