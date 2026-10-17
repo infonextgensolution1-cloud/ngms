@@ -186,8 +186,8 @@ export async function POST(request: Request) {
       byte_size: file.size,
       processing_status: 'queued',
       review_status: 'pending',
-      is_visible_to_customer: visibleToCustomer,
-      metadata: { uploadedAt: now.toISOString(), uploadChannel: 'admin' },
+      is_visible_to_customer: false,
+      metadata: { uploadedAt: now.toISOString(), uploadChannel: 'admin', requestedCustomerRelease: visibleToCustomer },
       created_by: actor,
     }).select('id,document_number,document_type,title,issued_on,customer_id,project_id,quote_id,invoice_id,supplier_id,supplier_purchase_id,storage_bucket,storage_path,original_filename,content_type,byte_size,processing_status,review_status,is_visible_to_customer,created_at').single()
 
