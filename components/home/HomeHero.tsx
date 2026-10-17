@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { SITE, whatsappLink } from '@/lib/site'
@@ -8,6 +8,11 @@ import { SITE, whatsappLink } from '@/lib/site'
 export type LandingSlide = { image_url: string; alt_text: string; caption: string | null }
 
 const MAX_SLIDES = 12
+const PROOF: [string, string][] = [
+  ['Local team', 'Helderberg Basin'],
+  ['Written quotes', 'Clear scope & price'],
+  ['Quality workmanship', 'One accountable contact'],
+]
 
 export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', close = '17:00' }: { slides: LandingSlide[]; days?: string; open?: string; close?: string }) {
   const photos = slides.filter((slide) => Boolean(slide.image_url)).slice(0, MAX_SLIDES)
@@ -31,6 +36,18 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
   }, [photos.length, paused, reducedMotion, next])
 
   const photo = photos[index]
+  const count = photos.length
+  const usable = photos
+  const near = (_slideIndex: number) => true
+  const slide = photo
+  const playing = !paused
+  const reduce = reducedMotion
+  const setHold = setPaused
+  const touchX = useRef<number | null>(null)
+  const go = (nextIndex: number) => {
+    if (!photos.length) return
+    setIndex((nextIndex + photos.length) % photos.length)
+  }
 
   return (
     <section
@@ -66,7 +83,7 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
                 sizes="100vw"
                 quality={70}
                 priority={i === 0}
-                unoptimized={s.image_url.includes(".supabase.co/storage/")}
+                unoptimized={s.image_url.includes('.supabase.co/storage/')}
                 className={`object-cover transition-[opacity,transform] duration-[1200ms] ease-out ${
                   i === index ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.03]'
                 }`}
