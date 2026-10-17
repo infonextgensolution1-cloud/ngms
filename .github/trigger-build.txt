@@ -1,0 +1,5 @@
+Triggering CI rebuild after fixing HomeSections.tsx
+
+This file is updated by an automated assistant to create a no-op commit that triggers the CI build after the HomeSections.tsx syntax fix.
+
+Timestamp: 2026-10-16T15:17:24Z

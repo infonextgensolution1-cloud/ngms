@@ -27,9 +27,9 @@ export const metadata: Metadata = {
 // them back here — anything global belongs in the root layout only.
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
+    <div className="ngms-public-page" data-ngms-public-page>
       <SeasonalBanner />
       {children}
-    </>
+    </div>
   );
 }

@@ -258,15 +258,17 @@ textarea:disabled {
 form[data-quote-step="1"] [data-quote-step]:not([data-quote-step="1"]),
 form[data-quote-step="2"] [data-quote-step]:not([data-quote-step="2"]),
 form[data-quote-step="3"] [data-quote-step]:not([data-quote-step="3"]),
-form[data-quote-step="4"] [data-quote-step]:not([data-quote-step="4"]) {
+form[data-quote-step="4"] [data-quote-step]:not([data-quote-step="4"]),
+form[data-quote-step="5"] [data-quote-step]:not([data-quote-step="5"]) {
   display: none;
 }
 form[data-quote-step="1"] [data-quote-submit],
 form[data-quote-step="2"] [data-quote-submit],
-form[data-quote-step="3"] [data-quote-submit] {
+form[data-quote-step="3"] [data-quote-submit],
+form[data-quote-step="4"] [data-quote-submit] {
   display: none;
 }
-form[data-quote-step="4"] [data-quote-navigation] {
+form[data-quote-step="5"] [data-quote-navigation] {
   display: none;
 }
 
@@ -399,6 +401,121 @@ form[data-quote-step="4"] [data-quote-navigation] {
 @media (prefers-reduced-motion: reduce) { .forge-interactive,.forge-reveal,.forge-shimmer::after { animation:none!important; transition:none!important; transform:none!important; } }
 
 
+/* ---------- NGMS Pinterest visual direction (public UI styling only) ----------
+   Palette: carbon black, signal orange, warm off-white, concrete grey and white.
+   Channel colours are reserved: WhatsApp green and Facebook blue only. */
+:root {
+  --ngms-orange: #FF4B24;
+  --ngms-black: #0B0D0F;
+  --ngms-charcoal: #151719;
+  --ngms-offwhite: #F3F0E9;
+  --ngms-concrete: #D5D4D0;
+  --ngms-white: #FFFFFF;
+}
+html { color-scheme: dark; }
+body { background-color: var(--ngms-black); }
+:focus-visible { outline-color: var(--ngms-orange); }
+.skip-link { background: var(--ngms-orange); color: var(--ngms-black); }
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="color"]),
+select, textarea { caret-color: var(--ngms-orange); }
+input:focus, select:focus, textarea:focus {
+  border-color: var(--ngms-orange) !important;
+  box-shadow: 0 0 0 3px rgba(255,75,36,.22);
+}
+.btn:focus-visible { outline-color: var(--ngms-orange); }
+.btn-glow, .btn-quote {
+  box-shadow: 0 2px 0 rgba(0,0,0,.3), 0 5px 12px rgba(255,75,36,.16);
+}
+.btn-quote:hover, .btn-glow:hover {
+  box-shadow: 0 2px 0 rgba(0,0,0,.26), 0 9px 18px rgba(255,75,36,.22);
+}
+.btn-touch:hover svg, .btn-touch:hover .icon, .btn-touch:hover [data-icon] {
+  color: var(--ngms-orange);
+}
+.btn-outline:hover, .btn-dark:hover { border-color: var(--ngms-orange); color: var(--ngms-orange); }
+.band-light { background-color: var(--ngms-offwhite); }
+.band-light .text-blue, .band-light .kicker { color: #B83218; }
+.ngms-icon:hover, .group:hover .ngms-icon, .group:focus-visible .ngms-icon, .group:active .ngms-icon {
+  filter: drop-shadow(0 6px 12px rgba(255,75,36,.32));
+}
+@keyframes forge-power-edge {
+  0% { box-shadow:0 0 0 0 rgba(255,75,36,0); }
+  45% { box-shadow:0 0 0 2px rgba(255,75,36,.5),0 0 14px rgba(255,75,36,.2); }
+  100% { box-shadow:0 2px 0 rgba(0,0,0,.32),0 4px 10px rgba(0,0,0,.12); }
+}
+/* Keep the two approved social-channel colours functional and recognisable. */
+.btn-wa, .btn-wa-price { background-color:#25D366; border-color:#25D366; color:#FFFFFF; }
+.btn-facebook { background-color:#1877F2; border-color:#1877F2; color:#FFFFFF; }
+/* End NGMS Pinterest visual direction */
+
+
+/* Editorial architecture-inspired type and controls for the public site */
+h1, h2, h3 {
+  font-family: Impact, "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+  font-stretch: condensed;
+  letter-spacing: -.025em;
+}
+.kicker, .tag {
+  color: var(--ngms-orange);
+}
+[aria-labelledby="hero-title"] {
+  min-height: 680px;
+}
+[aria-labelledby="hero-title"] h1 {
+  font-size: clamp(3.4rem, 8.4vw, 7.2rem);
+  line-height: .84;
+  letter-spacing: -.045em;
+  max-width: 10ch;
+}
+[aria-labelledby="hero-title"] h1 span {
+  color: transparent !important;
+  -webkit-text-stroke: 1.3px rgba(255,255,255,.72);
+}
+[aria-labelledby="hero-title"] > div:first-of-type > p:first-child {
+  border-radius: 2px;
+  border-color: rgba(255,75,36,.45);
+}
+[aria-labelledby="hero-title"] > div:first-of-type > p:first-child span {
+  background-color: var(--ngms-orange);
+}
+[aria-labelledby="hero-title"] ul {
+  border-radius: 2px;
+}
+[data-site-marketing] h1, [data-site-marketing] h2, [data-site-marketing] h3 {
+  font-family: Impact, "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+}
+@media (max-width: 639px) {
+  [aria-labelledby="hero-title"] { min-height: 600px; }
+  [aria-labelledby="hero-title"] h1 { font-size: clamp(3.1rem, 14vw, 4.5rem); }
+}
+
+/* Success states use the brand accent; green is reserved for WhatsApp only. */
+.btn.is-success, .btn[data-state="success"] {
+  border-color: var(--ngms-orange);
+  box-shadow: 0 0 0 1px rgba(255,75,36,.22);
+}
+
+
+/* Pinterest-inspired NGMS public palette: orange, ink, warm paper and concrete.
+   Keep admin/print templates independent; these tokens style the public website. */
+:root {
+  --ngms-orange: #FF6A00;
+  --ngms-orange-deep: #D94F00;
+  --ngms-ink: #111111;
+  --ngms-paper: #F7F4EF;
+  --ngms-concrete: #D7D3CD;
+}
+html { color-scheme: dark; }
+body { background-color: #111111; }
+:focus-visible { outline-color: var(--ngms-orange); }
+.skip-link { background: var(--ngms-orange); color: #111111; }
+.band-light .text-blue,
+.band-light .kicker { color: var(--ngms-orange-deep); }
+.text-blue { color: var(--ngms-orange) !important; }
+.bg-blue { background-color: var(--ngms-orange) !important; }
+.border-blue { border-color: var(--ngms-orange) !important; }
+.hover\:text-blue:hover { color: var(--ngms-orange) !important; }
+.hover\:border-blue:hover { border-color: var(--ngms-orange) !important; }
 
 /* ---------- NGMS public design system: Pinterest orange + warm neutrals ----------
    Public website only. Quote/invoice print templates retain their own palette.
@@ -587,8 +704,184 @@ input:disabled, select:disabled, textarea:disabled { opacity: .6; cursor: not-al
 }
 
 
+/* ---------- NGMS editorial refresh: warm paper, engineered depth, restrained orange ---------- */
+.ngms-editorial-hero {
+  color: #24282d;
+  background-color: #f4f2ed;
+  isolation: isolate;
+}
+.ngms-editorial-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: min(68%, 880px);
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(244,242,237,.98) 0%, rgba(244,242,237,.94) 62%, rgba(244,242,237,0) 100%);
+}
+.ngms-editorial-hero #hero-title {
+  max-width: 10ch;
+  letter-spacing: -.055em;
+  line-height: .94;
+}
+.ngms-editorial-hero .ngms-proof-grid,
+.ngms-editorial-hero .ngms-hero-caption {
+  backdrop-filter: blur(14px);
+}
+.ngms-editorial-hero .ngms-proof-grid li {
+  transition: background-color .2s ease, transform .2s ease;
+}
+.ngms-editorial-hero .ngms-proof-grid li:hover {
+  background-color: #fff;
+}
+.ngms-services-editorial {
+  position: relative;
+  isolation: isolate;
+}
+.ngms-services-editorial::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 1rem;
+  right: 1rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #d6d2ca 18%, #d6d2ca 82%, transparent);
+}
+.ngms-service-tile {
+  transform: translateY(0);
+  transition: transform .28s cubic-bezier(.2,.75,.25,1), box-shadow .28s ease, border-color .28s ease;
+}
+.ngms-service-tile:hover,
+.ngms-service-tile:focus-visible {
+  transform: translateY(-5px);
+  border-color: #ff6a00;
+  box-shadow: 0 22px 44px rgba(18,22,26,.2);
+}
+@media (max-width: 640px) {
+  .ngms-editorial-hero::before {
+    width: 100%;
+    background: linear-gradient(90deg, rgba(244,242,237,.97), rgba(244,242,237,.84));
+  }
+  .ngms-editorial-hero #hero-title {
+    max-width: 9ch;
+  }
+  .ngms-editorial-hero .ngms-proof-grid {
+    border-radius: 10px;
+  }
+  .ngms-editorial-hero .ngms-proof-grid li {
+    padding: .7rem .55rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ngms-service-tile,
+  .ngms-editorial-hero .ngms-proof-grid li {
+    transition: none;
+  }
+  .ngms-service-tile:hover,
+  .ngms-service-tile:focus-visible {
+    transform: none;
+  }
+}
+
+
+/* NGMS admin command-centre: warm-paper modular grid, scoped to admin home. */
+.admin-app main:has(> div.max-w-4xl) {
+  background: #f1f0ec !important;
+  color: #151515 !important;
+  padding-top: clamp(2rem, 5vw, 4.5rem);
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+}
+.admin-app main:has(> div.max-w-4xl) > div.max-w-4xl {
+  max-width: 76rem;
+}
+.admin-app main:has(> div.max-w-4xl) h1,
+.admin-app main:has(> div.max-w-4xl) h2,
+.admin-app main:has(> div.max-w-4xl) h3 {
+  color: #111 !important;
+  letter-spacing: -.045em;
+}
+.admin-app main:has(> div.max-w-4xl) .text-mist,
+.admin-app main:has(> div.max-w-4xl) .text-paper,
+.admin-app main:has(> div.max-w-4xl) .text-white {
+  color: #222 !important;
+}
+.admin-app main:has(> div.max-w-4xl) .text-orange {
+  color: #e84a24 !important;
+}
+.admin-app main:has(> div.max-w-4xl) .bg-cardgrey,
+.admin-app main:has(> div.max-w-4xl) .bg-jet {
+  background-color: #f8f7f4 !important;
+}
+.admin-app main:has(> div.max-w-4xl) .border-darkgrey {
+  border-color: #bdbbb5 !important;
+}
+.admin-app main:has(> div.max-w-4xl) .rounded-card {
+  border-radius: 0 !important;
+}
+.admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a {
+  min-height: 8rem;
+  align-items: stretch;
+  padding: 1.35rem;
+  border: 1px solid #b8b6b0;
+  border-radius: 0;
+  background:
+    linear-gradient(90deg, transparent calc(100% - 3px), #e84a24 calc(100% - 3px)),
+    #f8f7f4;
+  box-shadow: 0 2px 0 rgba(20,20,20,.04);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a:hover {
+  transform: translateY(-3px);
+  border-color: #e84a24 !important;
+  box-shadow: 0 14px 28px rgba(25,25,25,.09);
+}
+.admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a > div:first-child {
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 1px solid #b8b6b0;
+  border-radius: 0;
+  background: #171717 !important;
+  color: #ff6a00 !important;
+}
+.admin-app main:has(> div.max-w-4xl) form {
+  background: #f8f7f4 !important;
+  border-color: #b8b6b0 !important;
+  border-radius: 0 !important;
+  box-shadow: 0 18px 48px rgba(20,20,20,.08);
+}
+.admin-app main:has(> div.max-w-4xl) button {
+  border-radius: 0 !important;
+}
+.admin-app main:has(> div.max-w-4xl) input {
+  background: #fff !important;
+  color: #111 !important;
+  -webkit-text-fill-color: #111 !important;
+  border-radius: 0 !important;
+  border-color: #aaa !important;
+}
+@media (max-width: 640px) {
+  .admin-app main:has(> div.max-w-4xl) {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a {
+    min-height: 6.5rem;
+    padding: 1rem;
+    gap: .85rem;
+  }
+  .admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a > div:first-child {
+    width: 2.8rem;
+    height: 2.8rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a { transition: none; }
+  .admin-app main:has(> div.max-w-4xl) .grid.gap-4 > a:hover { transform: none; }
+}
+
+
 /* NGMS public homepage editorial refresh — scoped to the homepage only.
-   The admin, customer portal, quotes and invoices retain their existing UI. */
+   Keep image-led service/project cards cinematic; preserve all admin and quote UI. */
 .ngms-home-refresh {
   --ngms-home-paper: #F3F2EF;
   --ngms-home-white: #FCFCFA;
@@ -628,7 +921,7 @@ input:disabled, select:disabled, textarea:disabled { opacity: .6; cursor: not-al
 .ngms-home-refresh > section:not([aria-labelledby="hero-title"]) .text-blue {
   color: #B9470B !important;
 }
-/* Image-led service and project cards retain their dark cinematic overlays. */
+/* Keep image-led service and project cards on their dark cinematic overlays. */
 .ngms-home-refresh .forge-interactive,
 .ngms-home-refresh .forge-interactive :is(h1,h2,h3,h4,.text-paper,.text-mist) {
   color: #FCFCFA;

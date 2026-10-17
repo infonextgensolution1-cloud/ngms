@@ -14,9 +14,13 @@ import VisitorPresence from '@/components/VisitorPresence'
 import ClickTracking from '@/components/ClickTracking'
 import PWARegister from '@/components/PWARegister'
 import './globals.css'
+import './homepage-editorial.css'
+import './ngms-public-fusion.css'
+import './ngms-industrial-editorial.css'
+import './homepage-fusion.css'
 
 // Solar Forge type system: Inter for body/UI, Poppins for display headings.
-// Exposed as CSS variables that tailwind.config.ts maps to font-body / font-heading.
+// Exposed as CSS variables that tailwind.config.js maps to font-body / font-heading.
 const bodyFont = Inter({ subsets: ['latin'], variable: '--font-body', display: 'swap' })
 const headingFont = Poppins({ subsets: ['latin'], weight: ['500', '600', '700', '800'], variable: '--font-heading', display: 'swap' })
 
@@ -136,13 +140,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <nav aria-label="Services">
               <p className="font-heading font-semibold text-paper mb-4 uppercase tracking-wide text-xs">Services</p>
               <ul className="grid grid-cols-1 gap-x-3">
-                {services.map((s) => <li key={s.slug}><Link href={`/services/${s.slug}`} className="hover:text-blue inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">{s.name}</Link></li>)}
+                {services.map((s) => <li key={s.slug}><Link href={s.slug === 'solar-panel-cleaning' ? '/services/solar-panel-cleaning' : `/services/${s.slug}`} className="hover:text-blue inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">{s.name}</Link></li>)}
               </ul>
             </nav>
             <nav aria-label="Quick links">
               <p className="font-heading font-semibold text-paper mb-4 uppercase tracking-wide text-xs">Company</p>
               <ul className="grid grid-cols-2 sm:grid-cols-1 gap-x-3">
-                {[['/portfolio', 'Projects'], ['/gallery', 'Gallery'], ['/price-list', 'Price list'], ['/maintenance-packages', 'Maintenance plans'], ['/areas', 'Areas we serve'], ['/body-corporate-maintenance', 'Body corporates'], ['/roi-calculator', 'Solar ROI calculator'], ['/about', 'About'], ['/faq', 'FAQ'], ['/contact', 'Contact'], ['/portal', 'Client portal']].map(([href, label]) => <li key={href}><Link href={href} className="hover:text-blue inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">{label}</Link></li>)}
+                { [['/portfolio', 'Projects'], ['/gallery', 'Gallery'], ['/price-list', 'Price list'], ['/maintenance-packages', 'Maintenance plans'], ['/areas', 'Areas we serve'], ['/body-corporate-maintenance', 'Body corporates'], ['/roi-calculator', 'Solar ROI calculator'], ['/about', 'About'], ['/faq', 'FAQ'], ['/contact', 'Contact'], ['/portal', 'Client portal']].map(([href, label]) => <li key={href}><Link href={href} className="hover:text-blue inline-flex items-center min-h-10 sm:min-h-0 sm:py-1">{label}</Link></li>)}
               </ul>
             </nav>
             <div>

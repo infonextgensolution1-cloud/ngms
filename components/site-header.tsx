@@ -13,7 +13,7 @@ const WHATSAPP_URL = whatsappLink()
 // (gallery, FAQ, ROI calculator, about) live in the footer and the mobile menu.
 const LINKS = [
   { href: '/services', label: 'Services' },
-  { href: '/solar-panel-cleaning/helderberg', label: 'Solar cleaning' },
+  { href: '/services/solar-panel-cleaning', label: 'Solar cleaning' },
   { href: '/maintenance-packages', label: 'Maintenance plans' },
   { href: '/body-corporate-maintenance', label: 'Body corporates' },
   { href: '/portfolio', label: 'Projects' },
