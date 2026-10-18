@@ -63,46 +63,19 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
         if (Math.abs(delta) > 50) go(index + (delta < 0 ? 1 : -1))
       }}
     >
-      <div className="absolute inset-0 -z-10 bg-[#171717]" aria-hidden="true">
-        {photos.map((slide, slideIndex) => (
-          <Image
-            key={slide.image_url}
-            src={slide.image_url}
-            alt=""
-            fill
-            sizes="100vw"
-            quality={78}
-            priority={slideIndex === 0}
-            unoptimized={slide.image_url.includes('.supabase.co/storage/')}
-            className={`object-cover object-center transition-opacity duration-700 ${slideIndex === index ? 'opacity-50' : 'opacity-0'}`}
-          />
-        ))}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#171717] via-[#171717]/90 to-[#171717]/50" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#171717] via-transparent to-[#171717]/25" />
-        <div
-          className="absolute inset-0 opacity-[0.13]"
-          style={{
-            backgroundImage: 'linear-gradient(rgba(244,242,237,.22) 1px, transparent 1px), linear-gradient(90deg, rgba(244,242,237,.22) 1px, transparent 1px)',
-            backgroundSize: '72px 72px',
-            maskImage: 'linear-gradient(to right, black, transparent 90%)',
-            WebkitMaskImage: 'linear-gradient(to right, black, transparent 90%)',
-          }}
-        />
-      </div>
-
-      <div className="mx-auto flex min-h-[650px] max-w-[1600px] flex-col px-5 pb-7 pt-16 sm:px-8 sm:pt-20 lg:min-h-[760px] lg:px-16 lg:pb-9 lg:pt-24">
-        <div className="grid flex-1 gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,.8fr)] lg:items-center lg:gap-12">
-          <div className="max-w-5xl">
+      <div className="mx-auto flex min-h-[540px] max-w-[1600px] flex-col px-5 pb-7 pt-16 sm:px-8 sm:pt-20 lg:min-h-[620px] lg:px-16 lg:pb-9 lg:pt-24">
+        <div className="grid flex-1 gap-7 lg:grid-cols-[minmax(0,1.08fr)_minmax(280px,.92fr)] lg:items-center lg:gap-8">
+          <div className="max-w-4xl">
             <p className="inline-flex items-center gap-3 border border-white/30 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#F4F2ED]">
               <span className="h-2 w-2 bg-[#FF4B18]" aria-hidden="true" />
               Helderberg Basin / Western Cape
             </p>
-            <h1 id="hero-title" className="mt-8 font-heading text-[clamp(3.3rem,9.3vw,9.4rem)] font-extrabold uppercase leading-[0.79] tracking-[-0.065em] text-[#F4F2ED]">
+            <h1 id="hero-title" className="mt-8 font-heading text-[clamp(2.65rem,6.4vw,6.6rem)] font-extrabold uppercase leading-[0.86] tracking-[-0.055em] [text-wrap:balance] text-[#F4F2ED]">
               One call.
               <span className="mt-3 block text-[#A6A6A6]">All</span>
               <span className="block text-[#FF4B18]">solutions.</span>
             </h1>
-            <p className="mt-8 max-w-2xl border-l-2 border-[#FF4B18] pl-5 text-base font-medium leading-relaxed text-[#F4F2ED] sm:text-lg lg:text-xl">
+            <p className="mt-5 max-w-xl border-l-2 border-[#FF4B18] pl-4 text-sm font-medium leading-relaxed text-[#F4F2ED] sm:text-base lg:text-lg">
               One accountable team for solar panel cleaning, painting, waterproofing, paving, plumbing, electrical and more — serving homes, body corporates and businesses across the Helderberg Basin.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -118,24 +91,26 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
             </div>
           </div>
 
-          <div className="relative hidden min-h-[360px] border border-white/25 bg-black/25 p-5 lg:flex lg:flex-col lg:justify-between xl:min-h-[460px]" aria-label="Featured NGMS project">
-            <div className="flex items-start justify-between gap-4">
+          <div className="relative hidden min-h-[320px] overflow-hidden border border-white/25 bg-black/25 p-5 lg:flex lg:flex-col lg:justify-between xl:min-h-[400px]" aria-label="Featured NGMS project">
+            {photo?.image_url && <Image src={photo.image_url} alt={photo.alt_text || photo.caption || 'NGMS project photo'} fill sizes="(min-width: 1024px) 42vw, 0px" quality={78} unoptimized={photo.image_url.includes('.supabase.co/storage/')} className="absolute inset-0 object-cover object-center opacity-65" />}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#171717] via-[#171717]/45 to-[#171717]/10" aria-hidden="true" />
+            <div className="relative z-10 flex items-start justify-between gap-4">
               <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#FF4B18]">Field notes / NGMS</span>
               <span className="font-heading text-3xl font-bold text-white/60">{String(index + 1).padStart(2, '0')}</span>
             </div>
-            <div>
+            <div className="relative z-10">
               <div className="mb-4 h-px w-full bg-white/25" />
               <p className="font-heading text-3xl font-bold uppercase leading-tight text-white xl:text-4xl">{photo?.caption || photo?.alt_text || 'Maintenance. Managed.'}</p>
               <p className="mt-3 max-w-sm text-sm leading-relaxed text-[#E0DEDA]">Local service. Clear communication. One point of contact from quote to completion.</p>
             </div>
-            <div className="flex items-center justify-between border-t border-white/25 pt-4 text-xs font-semibold uppercase tracking-[0.12em] text-[#E0DEDA]">
+            <div className="relative z-10 flex items-center justify-between border-t border-white/25 pt-4 text-xs font-semibold uppercase tracking-[0.12em] text-[#E0DEDA]">
               <span>Project / {String(count).padStart(2, '0')} slides</span>
               <span>Strand · Gordon’s Bay · Somerset West</span>
             </div>
           </div>
         </div>
 
-        <div className="mt-12 grid grid-cols-2 border border-white/25 sm:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 border border-white/25 sm:grid-cols-4">
           {PROOF.map(([title, detail], proofIndex) => (
             <div key={title} className="border-b border-r border-white/20 px-4 py-4 last:border-r-0 sm:border-b-0 sm:px-5">
               <span className="block font-heading text-xl font-bold text-[#FF4B18]">{String(proofIndex + 1).padStart(2, '0')}</span>
