@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getGalleryPhotos } from '@/lib/queries'
+import { getSlotPhotos } from '@/lib/queries'
 
 export const metadata: Metadata = {
   alternates: { canonical: '/body-corporate-maintenance' },
@@ -28,9 +28,9 @@ const steps = [
 const wa = 'https://wa.me/27631387945?text=Hi%20NextGen%2C%20I%27d%20like%20a%20quote%20for%20body%20corporate%20maintenance.%0AWhat%20I%20need%3A%20'
 
 export default async function Page() {
-  const galleryPhotos = await getGalleryPhotos(24)
-  const projectPhotos = galleryPhotos.filter((photo) => photo.image_url).slice(0, 3)
-  const heroPhoto = projectPhotos[0]?.image_url || 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1800&q=90'
+  const assignedPhotos = await getSlotPhotos(['body_corporate_hero', 'body_corporate_cleaning', 'body_corporate_painting', 'body_corporate_paving'])
+  const heroPhoto = assignedPhotos.body_corporate_hero?.image_url ?? ''
+  const projectPhotos = [assignedPhotos.body_corporate_cleaning, assignedPhotos.body_corporate_painting, assignedPhotos.body_corporate_paving]
   return (
     <main className="bg-[#f2f1ed] text-[#101112]">
       <div className="mx-auto max-w-[1500px] px-3 py-3 sm:px-5 sm:py-5">
@@ -62,7 +62,8 @@ export default async function Page() {
               </div>
             </div>
             <div className="relative min-h-[360px] overflow-hidden border-t border-white/15 bg-[#292a2a] sm:min-h-[500px] lg:min-h-[680px] lg:border-l lg:border-t-0">
-              <div className="absolute inset-0 bg-cover bg-center" role="img" aria-label="Modern multi-unit residential complex with landscaped shared areas" style={{backgroundImage: "linear-gradient(90deg,rgba(8,9,9,.35),rgba(8,9,9,.03) 60%),linear-gradient(0deg,rgba(8,9,9,.58),transparent 52%),url('${heroPhoto}')"}} />
+              <div className="absolute inset-0 bg-cover bg-center" role="img" aria-label="Modern multi-unit residential complex with landscaped shared areas" style={{backgroundImage: heroPhoto ? 'linear-gradient(90deg,rgba(8,9,9,.35),rgba(8,9,9,.03) 60%),linear-gradient(0deg,rgba(8,9,9,.58),transparent 52%),url("' + heroPhoto + '")' : 'linear-gradient(135deg,#292a2a,#111313)'}} />
+              {!heroPhoto && <div className="absolute inset-0 flex items-center justify-center p-6"><span className="border border-white/50 bg-black/45 px-4 py-3 text-center text-xs font-bold uppercase tracking-[.12em] text-white">Choose hero photo in Admin → Media → Maintenance projects</span></div>}
               <div className="absolute left-5 top-5 border border-white/60 bg-black/25 px-3 py-2 text-[9px] font-bold uppercase tracking-[.16em] sm:left-8 sm:top-8">NGMS / Property care</div>
               <div className="absolute bottom-6 left-5 right-5 flex items-end justify-between gap-5 sm:bottom-9 sm:left-8 sm:right-8">
                 <div><p className="text-[10px] font-black uppercase tracking-[.18em] text-[#ff704d]">One trusted maintenance partner</p><p className="mt-2 text-3xl font-black uppercase leading-[.9] tracking-[-.055em] sm:text-5xl">Well maintained.<br/>Better managed.</p></div>
@@ -84,8 +85,8 @@ export default async function Page() {
               <p className="border-l-2 border-[#ff4b1b] pl-4 text-xs font-bold uppercase leading-relaxed tracking-[.08em] text-[#555653]">Well maintained properties.<br/>Happier residents.</p>
             </div>
             <div className="mt-8 grid gap-5 md:grid-cols-3">
-              {services.map((service, index) => { const photo = projectPhotos[index]; const image = photo?.image_url || service.image; const title = photo?.caption?.trim() || service.title; return <article key={service.n} className="group min-w-0">
-                <div className="relative aspect-[1.2/1] overflow-hidden bg-[#d4d3cf]">{image ? <div role="img" aria-label={title} className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-[1.04]" style={{backgroundImage: `url('${image}')`}}/> : <div className="absolute inset-0 flex items-center justify-center bg-[#e2e0da] px-6 text-center text-xs font-bold uppercase tracking-widest text-[#77756f]">Upload project photo in Admin / Media</div>}<span className="absolute left-3 top-3 bg-[#ff4b1b] px-2 py-1 text-[10px] font-black text-black">{service.n}</span></div>
+              {services.map((service, index) => { const photo = projectPhotos[index]; const image = photo?.image_url || ''; const title = photo?.caption?.trim() || service.title; return <article key={service.n} className="group min-w-0">
+                <div className="relative aspect-[1.2/1] overflow-hidden bg-[#d4d3cf]">{image ? <div role="img" aria-label={title} className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-[1.04]" style={{backgroundImage: `url('${image}')`}}/> : <div className="absolute inset-0 flex items-center justify-center bg-[#e2e0da] px-6 text-center text-xs font-bold uppercase tracking-widest text-[#77756f]">Upload this position in Admin → Media → Maintenance projects</div>}<span className="absolute left-3 top-3 bg-[#ff4b1b] px-2 py-1 text-[10px] font-black text-black">{service.n}</span></div>
                 <h3 className="mt-4 border-l-[3px] border-[#ff4b1b] pl-3 text-base font-black uppercase leading-tight tracking-[-.025em]">{title}</h3><p className="mt-2 pl-4 text-sm leading-relaxed text-[#555653]">{photo?.service_slug ? `NGMS project · ${photo.service_slug.replace(/-/g, ' ')}` : service.detail}</p>
               </article> })}
             </div>
