@@ -813,9 +813,13 @@ function BrandedProjectPublisher() {
 
 // --- Maintenance page project photos -------------------------------------------
 const MAINTENANCE_PHOTO_SLOTS = [
-  { slot: 'maintenance_high_pressure', label: 'High-pressure cleaning', help: 'Communal walkways, entrances, parking and exterior cleaning.' },
-  { slot: 'maintenance_painting', label: 'Painting & maintenance', help: 'Real completed painting, repairs and shared-property upkeep.' },
-  { slot: 'maintenance_paving', label: 'Paving & repairs', help: 'Real paving, paths, entrances and outdoor repair projects.' },
+  { slot: 'maintenance_high_pressure', label: 'Maintenance Packages — High-pressure cleaning', help: 'Used only on the Maintenance Packages page.' },
+  { slot: 'maintenance_painting', label: 'Maintenance Packages — Painting & maintenance', help: 'Used only on the Maintenance Packages page.' },
+  { slot: 'maintenance_paving', label: 'Maintenance Packages — Paving & repairs', help: 'Used only on the Maintenance Packages page.' },
+  { slot: 'body_corporate_hero', label: 'Body Corporate — Hero photo (large right panel)', help: 'Large hero image on /body-corporate-maintenance. Use a wide property or complex photo.' },
+  { slot: 'body_corporate_cleaning', label: 'Body Corporate — Project photo 01: High-pressure cleaning', help: 'First project card under “Good work. Clear results.” on /body-corporate-maintenance.' },
+  { slot: 'body_corporate_painting', label: 'Body Corporate — Project photo 02: Painting & maintenance', help: 'Second project card under “Good work. Clear results.” on /body-corporate-maintenance.' },
+  { slot: 'body_corporate_paving', label: 'Body Corporate — Project photo 03: Paving & repairs', help: 'Third project card under “Good work. Clear results.” on /body-corporate-maintenance.' },
 ]
 
 function MaintenanceProjectPhotos() {
@@ -850,7 +854,7 @@ function MaintenanceProjectPhotos() {
         ? await supabase.from('gallery_photos').update(patch).eq('id', existing.id)
         : await supabase.from('gallery_photos').insert(patch)
       if (result.error) throw result.error
-      setMsg('Project photo saved. The maintenance page uses this image slot.')
+      setMsg('Project photo saved. The assigned page section uses this exact image slot.')
       await load()
     } catch (e: any) {
       setMsg(e.message ?? 'Upload failed.')
@@ -875,7 +879,7 @@ function MaintenanceProjectPhotos() {
 
   return (
     <div>
-      <p className="mb-4 text-sm text-gray-300">Choose real completed NGMS project photos for the three image shapes on the Maintenance Packages page. Uploading a replacement updates that exact position; no stock photos are used.</p>
+      <p className="mb-4 text-sm text-gray-300">Upload photos into a named page slot. Each photo appears only in that exact position; Maintenance Packages and Body Corporate use separate slots.</p>
       {msg && <p role="status" className="mb-4 text-sm text-gray-200">{msg}</p>}
       <div className="space-y-4">
         {MAINTENANCE_PHOTO_SLOTS.map((item) => {
