@@ -56,6 +56,7 @@ async function getRefs(): Promise<RefRow[]> {
   for (const row of results[2].data ?? []) {
     for (const field of ['before_image_url', 'after_image_url'] as const) {
       const url = row[field]
+      if (typeof url !== 'string' || !url.trim()) continue
       for (const bucket of BUCKETS) {
         const path = getPath(url, bucket)
         if (path) refs.push({ table: 'before_after_photos', id: String(row.id), url, label: (row.location || row.caption || 'Before/after') + ' — ' + field, bucket, path })
