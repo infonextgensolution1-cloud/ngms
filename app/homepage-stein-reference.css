@@ -119,3 +119,28 @@
 @media (prefers-reduced-motion:reduce) {
   .ngms-stein-hero *, .ngms-stein-hero *::before, .ngms-stein-hero *::after { transition-duration:.01ms!important; animation-duration:.01ms!important; scroll-behavior:auto!important; }
 }
+
+
+/* Solar service page: the Admin → Media slot owns only this bordered feature block. */
+.ngms-solar-editorial__service-image { isolation:isolate; }
+.ngms-solar-editorial__service-photo { position:absolute !important; inset:0; z-index:0; width:100%; height:100%; object-fit:cover; object-position:center; }
+.ngms-solar-editorial__service-image-overlay { position:absolute; z-index:1; inset:0; pointer-events:none; background:linear-gradient(120deg,rgba(0,0,0,.28),rgba(0,0,0,.82)); }
+.ngms-solar-editorial__service-image > span,
+.ngms-solar-editorial__service-image > strong,
+.ngms-solar-editorial__service-image > a { position:relative; z-index:2; }
+
+/* Keep landing hero slides clipped to the right-hand media frame, never page-wide. */
+.ngms-stein-hero { position:relative; isolation:isolate; overflow:hidden; }
+.ngms-stein-hero__inner { position:relative; z-index:1; }
+.ngms-stein-hero__media { position:relative !important; grid-area:media !important; align-self:stretch; width:100%; height:clamp(340px,40vw,620px); min-height:0 !important; max-height:620px; overflow:hidden; isolation:isolate; contain:layout paint; }
+.ngms-stein-hero__media > .ngms-stein-hero__image,
+.ngms-stein-hero__media > .ngms-stein-hero__empty { position:absolute !important; inset:0 !important; width:100%; height:100%; }
+.ngms-stein-hero__media > .ngms-stein-hero__image { z-index:0; display:block; object-fit:cover; object-position:center; }
+.ngms-stein-hero__media-top,
+.ngms-stein-hero__media-bottom,
+.ngms-stein-hero__arrows { z-index:2; }
+.ngms-new-solar__photo { position:relative; width:100%; min-height:240px; aspect-ratio:16/10; margin-bottom:18px; overflow:hidden; border:1px solid #454545; background:#222; }
+.ngms-new-solar__photo p { position:absolute; z-index:2; inset:auto 0 0; margin:0; padding:10px 12px; color:#fff; background:rgba(0,0,0,.76); font-size:.75rem; font-weight:700; }
+@media (max-width: 1023px) {
+  .ngms-stein-hero__media { height:auto; min-height:0 !important; max-height:none; aspect-ratio:16/10; }
+}
