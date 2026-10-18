@@ -1113,3 +1113,12 @@ body:has(main.ngms-home-refresh) header:has(nav[aria-label="Main"]) a {
   }
 }
 
+
+
+/* Dedicated Admin → Media photo for the Solar Panel Cleaning service feature block. */
+.ngms-solar-editorial__service-image { isolation:isolate; }
+.ngms-solar-editorial__service-photo { position:absolute !important; inset:0; z-index:0; width:100%; height:100%; object-fit:cover; object-position:center; }
+.ngms-solar-editorial__service-image-overlay { position:absolute; z-index:1; inset:0; pointer-events:none; background:linear-gradient(120deg,rgba(0,0,0,.28),rgba(0,0,0,.82)); }
+.ngms-solar-editorial__service-image > span,
+.ngms-solar-editorial__service-image > strong,
+.ngms-solar-editorial__service-image > a { position:relative; z-index:2; }
