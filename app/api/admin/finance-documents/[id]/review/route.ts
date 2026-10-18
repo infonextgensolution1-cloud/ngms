@@ -106,7 +106,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       if (postingError) throw postingError
     }
 
-    if (extraction.id) {
+    if (extraction?.id) {
       const { error: updateExtractionError } = await admin.from('ngms_document_extractions').update({
         extracted_fields: fields, status: 'succeeded', validation_errors: [], reviewed_by: actor, reviewed_at: now,
       }).eq('id', extraction.id)

@@ -159,20 +159,6 @@ export default async function HomePage() {
       <HelderbergToday />
       <AreasAndFaq />
 
-      <section className="ngms-new-final" aria-labelledby="ngms-final-title">
-        <p className="ngms-new-eyebrow">YOUR PROPERTY. ONE POINT OF CONTACT.</p>
-        <h2 id="ngms-final-title">ONE CALL.<br /><span>ALL SOLUTIONS.</span></h2>
-        <p>Tell us what needs doing. We’ll help you plan the next step.</p>
-        <div className="ngms-new-final__actions">
-          <Link href="/quote" className="ngms-new-button ngms-new-button--black">REQUEST A QUOTE <span aria-hidden="true">↗</span></Link>
-          <a href={whatsappLink("Hi NextGen, I'd like to discuss a property maintenance quote.")} target="_blank" rel="noopener noreferrer" className="ngms-new-button ngms-new-button--black-outline">CHAT ON WHATSAPP <span aria-hidden="true">↗</span></a>
-        </div>
-      </section>
-      <footer className="ngms-new-footer">
-        <Link href="/" className="ngms-new-footer__brand">NEXTGEN <span>SOLAR CLEAN &amp; MAINTENANCE SOLUTIONS</span></Link>
-        <p>ONE CALL. ALL SOLUTIONS.</p>
-        <nav aria-label="Footer navigation"><Link href="/services">Services</Link><Link href="/portfolio">Projects</Link><Link href="/contact">Contact</Link><Link href="/privacy">Privacy</Link></nav>
-      </footer>
     </main>
   )
 }
