@@ -7,6 +7,7 @@ alter table public.gallery_photos
     slot is null
     or slot = any (array[
       'hero_solar',
+      'solar_service_feature',
       'hero_feature',
       'mission_left',
       'mission_right',
