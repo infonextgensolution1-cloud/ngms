@@ -804,3 +804,56 @@
    4. Apply tablet/mobile breakpoints to prevent overflow.
    5. Deploy this branch to preview only; verify all 12 cards and solar feature before any production promotion.
 */
+
+/* Approved homepage contrast correction: light concrete-grey surfaces with dark,
+   high-contrast typography. Scoped to the public homepage hero; CTA button text
+   and dark navigation retain their intentional contrast treatment. */
+.ngms-home-new .ngms-editorial-hero,
+.ngms-home-new .ngms-new-hero {
+  background-color: #e5e5e3 !important;
+  color: #171717 !important;
+}
+.ngms-home-new .ngms-editorial-hero .bg-gradient-to-r {
+  background-image: linear-gradient(90deg, rgba(229,229,227,.99) 0%, rgba(229,229,227,.96) 46%, rgba(229,229,227,.58) 74%, rgba(229,229,227,.12) 100%) !important;
+}
+.ngms-home-new .ngms-editorial-hero .bg-gradient-to-t {
+  background-image: linear-gradient(0deg, rgba(229,229,227,.72) 0%, rgba(229,229,227,.08) 55%, rgba(229,229,227,.12) 100%) !important;
+}
+.ngms-home-new .ngms-editorial-hero :is(h1,h2,h3,p,li,small,strong,span:not(.bg-orange):not(.bg-ember)) {
+  color: #171717;
+  -webkit-text-fill-color: currentColor;
+}
+.ngms-home-new .ngms-editorial-hero h1 {
+  color: #171717 !important;
+  font-weight: 850 !important;
+  text-shadow: none !important;
+}
+.ngms-home-new .ngms-editorial-hero h1 span {
+  color: #e84f20 !important;
+  -webkit-text-fill-color: #e84f20 !important;
+}
+.ngms-home-new .ngms-editorial-hero :is(.text-graphite,.text-graphite\/90,.text-graphite\/80) {
+  color: #171717 !important;
+  -webkit-text-fill-color: #171717 !important;
+}
+.ngms-home-new .ngms-editorial-hero .ngms-new-hero__proof li,
+.ngms-home-new .ngms-editorial-hero .ngms-hero-caption {
+  background: rgba(245,245,243,.96) !important;
+  color: #171717 !important;
+  border-color: #b9b9b5 !important;
+}
+.ngms-home-new .ngms-editorial-hero .ngms-hero-caption :is(p,span) {
+  color: #171717 !important;
+}
+.ngms-home-new .ngms-editorial-hero .ngms-new-hero__proof li small {
+  color: #424242 !important;
+}
+@media (max-width: 767px) {
+  .ngms-home-new .ngms-editorial-hero .bg-gradient-to-r {
+    background-image: linear-gradient(90deg, rgba(229,229,227,.96), rgba(229,229,227,.76)) !important;
+  }
+  .ngms-home-new .ngms-editorial-hero .bg-gradient-to-t {
+    background-image: linear-gradient(0deg, rgba(229,229,227,.9), rgba(229,229,227,.08) 72%) !important;
+  }
+}
+
