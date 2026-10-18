@@ -7,8 +7,9 @@ import { supabase } from '@/lib/supabaseClient'
 import { services } from '@/lib/services'
 import { Trash2, Upload, Loader2, ArrowLeft } from 'lucide-react'
 import BeforeAfterUploader from '@/components/admin/BeforeAfterUploader'
+import MediaStorageCleanup from '@/components/admin/MediaStorageCleanup'
 
-type Tab = 'hero' | 'homepage' | 'bodycorporate' | 'beforeafter' | 'gallery' | 'services' | 'branded' | 'maintenance'
+type Tab = 'hero' | 'homepage' | 'bodycorporate' | 'beforeafter' | 'gallery' | 'services' | 'branded' | 'maintenance' | 'cleanup'
 
 // --- helpers ---------------------------------------------------------------
 
@@ -1256,6 +1257,7 @@ export default function AdminMediaPage() {
     { key: 'services', label: 'Service images' },
     { key: 'branded', label: 'Branded project upload' },
     { key: 'maintenance', label: 'Maintenance projects' },
+    { key: 'cleanup', label: 'Storage cleanup' },
   ]
 
   return (
@@ -1303,6 +1305,7 @@ export default function AdminMediaPage() {
       {tab === 'services' && <ServiceImages />}
       {tab === 'branded' && <BrandedProjectPublisher />}
       {tab === 'maintenance' && <MaintenanceProjectPhotos />}
+      {tab === 'cleanup' && <MediaStorageCleanup />}
     </main>
   )
 }
