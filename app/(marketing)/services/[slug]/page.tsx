@@ -6,7 +6,7 @@ import { SERVICES, getService } from "@/lib/services";
 import { SUBURBS } from "@/lib/suburbs";
 import { SOLAR_TIERS, SOLAR_SUBURB_TO_LOCATION } from "@/lib/solar-pricing";
 import { whatsappLink } from "@/lib/site";
-import { getServiceImages } from "@/lib/queries";
+import { getServiceImages, getSlotPhotos } from "@/lib/queries";
 import TrustBadges from "@/components/TrustBadges";
 import NgmsIcon from "@/components/NgmsIcon";
 import { GoogleReviews } from "@/components/home/HomeSections";
@@ -31,11 +31,14 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
   const { slug } = await params;
   const s = getService(slug);
   if (!s) return notFound();
-  const serviceImages = await getServiceImages();
+  const isSolar = s.slug === "solar-panel-cleaning";
+  const [serviceImages, solarSlotPhotos] = await Promise.all([
+    getServiceImages(),
+    isSolar ? getSlotPhotos(["solar_service_feature"]) : Promise.resolve({}),
+  ]);
   const image = serviceImages[s.slug] || (s.slug === "solar-panel-cleaning"
     ? "https://dfwwpqtsbaytfqptancj.supabase.co/storage/v1/object/public/gallery-photos/1788906733722-ig0pgfcjwv.jpg"
     : null);
-  const isSolar = s.slug === "solar-panel-cleaning";
   const relatedServices = SERVICES.filter((item) => item.slug !== s.slug).slice(0, 5);
   const areaHref = (sub: string) =>
     isSolar && SOLAR_SUBURB_TO_LOCATION[sub]
@@ -78,7 +81,19 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                 </Link>
               ))}
             </div>
-            <div className="ngms-solar-editorial__service-image" role="img" aria-label="Monochrome solar panel cleaning and rooftop maintenance visual">
+            <div className="ngms-solar-editorial__service-image" aria-label="Solar panel cleaning feature photo">
+              {solarSlotPhotos.solar_service_feature?.image_url ? (
+                <Image
+                  src={solarSlotPhotos.solar_service_feature.image_url}
+                  alt={solarSlotPhotos.solar_service_feature.caption || "NGMS solar panel cleaning project in the Helderberg Basin"}
+                  fill
+                  sizes="(max-width: 760px) 100vw, 52vw"
+                  quality={82}
+                  unoptimized={solarSlotPhotos.solar_service_feature.image_url.includes(".supabase.co/storage/")}
+                  className="ngms-solar-editorial__service-photo"
+                />
+              ) : null}
+              <div className="ngms-solar-editorial__service-image-overlay" aria-hidden="true" />
               <span>HELDERBERG BASIN / WESTERN CAPE</span>
               <strong>CLEAN ENERGY.<br />CLEAR RESULTS.</strong>
               <Link href="/quote?service=Solar%20Panel%20Cleaning" aria-label="Request a solar panel cleaning quote">↗</Link>
