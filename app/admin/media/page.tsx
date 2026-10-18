@@ -8,7 +8,7 @@ import { services } from '@/lib/services'
 import { Trash2, Upload, Loader2, ArrowLeft } from 'lucide-react'
 import BeforeAfterUploader from '@/components/admin/BeforeAfterUploader'
 
-type Tab = 'hero' | 'homepage' | 'beforeafter' | 'gallery' | 'services' | 'branded' | 'maintenance'
+type Tab = 'hero' | 'homepage' | 'bodycorporate' | 'beforeafter' | 'gallery' | 'services' | 'branded' | 'maintenance'
 
 // --- helpers ---------------------------------------------------------------
 
@@ -329,6 +329,121 @@ function HeroSlides() {
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  )
+}
+
+// --- Body corporate page photos (dedicated fixed positions) --------------------
+const BODY_CORPORATE_PHOTO_SLOTS: { key: string; label: string; hint: string }[] = [
+  { key: 'body_corporate_hero', label: 'Body Corporate — right-hand hero image', hint: 'Displayed only in the large image block beside the body corporate headline. Landscape photo recommended.' },
+  { key: 'body_corporate_project_1', label: 'Body Corporate — project photo 01 / High-pressure cleaning', hint: 'First card under “Good work. Clear results.” Use a landscape photo of communal cleaning.' },
+  { key: 'body_corporate_project_2', label: 'Body Corporate — project photo 02 / Painting & maintenance', hint: 'Second project card. Use a landscape photo of painting or property maintenance.' },
+  { key: 'body_corporate_project_3', label: 'Body Corporate — project photo 03 / Paving & repairs', hint: 'Third project card. Use a landscape photo of paving, paths or exterior repairs.' },
+]
+
+function BodyCorporatePhotos() {
+  const [current, setCurrent] = useState<Record<string, any>>({})
+  const [captions, setCaptions] = useState<Record<string, string>>({})
+  const [busy, setBusy] = useState<string | null>(null)
+  const [msg, setMsg] = useState('')
+
+  const load = async () => {
+    const { data, error } = await supabase
+      .from('gallery_photos')
+      .select('*')
+      .eq('is_active', true)
+      .in('slot', BODY_CORPORATE_PHOTO_SLOTS.map((slot) => slot.key))
+    if (error) {
+      setMsg(`Could not load body corporate photo slots: ${error.message} (code: ${error.code ?? 'unknown'}).`)
+      return
+    }
+    const map: Record<string, any> = {}
+    for (const row of data ?? []) map[row.slot] = row
+    setCurrent(map)
+  }
+
+  useEffect(() => { load() }, [])
+
+  const upload = async (slot: string, file: File) => {
+    setBusy(slot)
+    setMsg('')
+    try {
+      const uploaded = await uploadToBucket('gallery-photos', file)
+      const { data: newRow, error } = await supabase.from('gallery_photos').insert({
+        image_url: uploaded.url,
+        caption: captions[slot]?.trim() || null,
+        service_slug: null,
+        slot,
+        sort_order: 0,
+        is_active: true,
+      }).select('id').single()
+      if (error) throw new Error(`Storage upload succeeded (${uploaded.path}), but the body corporate photo record failed to save: ${error.message} (code: ${error.code ?? 'unknown'}). The stored file was retained for recovery.`)
+      const { error: retireError } = await supabase.from('gallery_photos')
+        .update({ is_active: false }).eq('slot', slot).eq('is_active', true).neq('id', newRow.id)
+      setCaptions((prev) => ({ ...prev, [slot]: '' }))
+      setMsg(retireError
+        ? `Photo saved, but an older active photo could not be retired: ${retireError.message} (code: ${retireError.code ?? 'unknown'}).`
+        : 'Photo saved to its designated Body Corporate page position.')
+      await load()
+    } catch (error: any) {
+      setMsg(error?.message ?? 'Body corporate photo upload failed.')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const clear = async (slot: string) => {
+    setBusy(slot)
+    setMsg('')
+    try {
+      const { error } = await supabase.from('gallery_photos')
+        .update({ is_active: false }).eq('slot', slot).eq('is_active', true)
+      if (error) throw new Error(`Could not clear photo slot: ${error.message} (code: ${error.code ?? 'unknown'}).`)
+      setMsg('Photo removed from this page position.')
+      await load()
+    } catch (error: any) {
+      setMsg(error?.message ?? 'Could not clear photo slot.')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return (
+    <div>
+      <p className="mb-4 text-sm text-gray-300">These four upload slots control only the matching image positions on /body-corporate-maintenance. They never feed the homepage hero, solar service feature, general gallery or maintenance packages.</p>
+      {msg && <p role="status" className="mb-4 text-sm text-gray-200">{msg}</p>}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {BODY_CORPORATE_PHOTO_SLOTS.map((slot) => {
+          const row = current[slot.key]
+          const isBusy = busy === slot.key
+          return (
+            <section key={slot.key} className="min-w-0 rounded-xl border border-gray-700 bg-graphite p-4">
+              <h2 className="text-sm font-bold text-white">{slot.label}</h2>
+              <p className="mt-1 min-h-10 text-xs leading-relaxed text-gray-400">{slot.hint}</p>
+              {row?.image_url
+                ? <img src={row.image_url} alt={row.caption || slot.label} className="mt-3 h-44 w-full rounded border border-gray-700 object-cover" />
+                : <div className="mt-3 flex h-44 items-center justify-center rounded border border-dashed border-gray-700 bg-jet px-4 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">No photo assigned to this position</div>}
+              <input
+                value={captions[slot.key] ?? row?.caption ?? ''}
+                onChange={(event) => setCaptions((prev) => ({ ...prev, [slot.key]: event.target.value }))}
+                placeholder="Caption (optional)"
+                aria-label={`Caption for ${slot.label}`}
+                className={`${inputCls} mt-3`}
+              />
+              <label className={`mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-orange px-4 py-3 text-sm font-bold text-white ${isBusy ? 'pointer-events-none opacity-50' : ''}`}>
+                {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                {row ? 'Replace photo' : 'Upload photo'}
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="hidden" disabled={isBusy} onChange={(event) => {
+                  const file = event.target.files?.[0]
+                  event.target.value = ''
+                  if (file) upload(slot.key, file)
+                }} />
+              </label>
+              {row && <button type="button" onClick={() => clear(slot.key)} disabled={isBusy} className="mt-2 w-full border border-red-500/50 px-3 py-2 text-xs font-bold text-red-300 disabled:opacity-50">Remove photo from this position</button>}
+            </section>
+          )
+        })}
       </div>
     </div>
   )
@@ -1060,6 +1175,7 @@ export default function AdminMediaPage() {
   const tabs: { key: Tab; label: string }[] = [
     { key: 'hero', label: 'Hero block photos (12 slides)' },
     { key: 'homepage', label: 'Homepage photos' },
+    { key: 'bodycorporate', label: 'Body Corporate page' },
     { key: 'beforeafter', label: 'Before / After' },
     { key: 'gallery', label: 'Gallery' },
     { key: 'services', label: 'Service images' },
@@ -1096,6 +1212,7 @@ export default function AdminMediaPage() {
 
       {tab === 'hero' && <HeroSlides />}
       {tab === 'homepage' && <HomepagePhotos />}
+      {tab === 'bodycorporate' && <BodyCorporatePhotos />}
       {tab === 'beforeafter' && <BeforeAfter />}
       {tab === 'gallery' && <Gallery />}
       {tab === 'services' && <ServiceImages />}
