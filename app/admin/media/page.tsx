@@ -340,7 +340,7 @@ function HeroSlides() {
 
 const SLOTS: { key: string; label: string; hint: string }[] = [
   { key: 'hero_solar', label: 'Homepage solar section photo', hint: 'Shown only in the solar feature section on the homepage. Landscape job photo recommended.' },
-  { key: 'solar_service_feature', label: 'Solar service page — right feature block', hint: 'Shown only inside the bordered photo block beside “CLEAN ENERGY. CLEAR RESULTS.” on Services → Solar Panel Cleaning. Landscape image recommended.' },
+  { key: 'solar_service_feature', label: 'Solar service photo — right-hand feature block', hint: 'Upload the photo shown only in the right-hand block on Services → Solar Panel Cleaning. The page overlays “HELDERBERG BASIN / WESTERN CAPE” and “CLEAN ENERGY. CLEAR RESULTS.” on this photo. Use a sharp landscape image; this slot never feeds the homepage hero or general gallery.' },
   { key: 'hero_feature', label: 'Body corporate section photo', hint: 'Beside “One contractor for the whole complex”. Landscape (4:3) works best.' },
   { key: 'mission_left', label: 'Why NextGen photo', hint: 'Beside “Maintenance you don’t have to chase”. Portrait works best.' },
   { key: 'mission_right', label: 'Closing call-to-action background', hint: 'Behind “Tell us what needs doing” at the bottom of the homepage. Landscape; it is darkened.' },
