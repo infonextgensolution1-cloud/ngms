@@ -53,6 +53,9 @@ export async function getGalleryPhotos(limit = 24): Promise<GalleryPhoto[]> {
     .from("gallery_photos")
     .select("image_url, caption, service_slug")
     .eq("is_active", true)
+    // Images assigned to a fixed page slot belong only to that slot.
+    // Keep them out of the general project/gallery feed to prevent cross-placement.
+    .is("slot", null)
     .order("sort_order", { ascending: true })
     .limit(limit);
   if (error || !data) return [];
