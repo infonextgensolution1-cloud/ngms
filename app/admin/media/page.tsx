@@ -1124,15 +1124,21 @@ function ServiceImages() {
     setBusySlug(slug)
     setMsg('')
     try {
-      const ext = file.name.split('.').pop() ?? 'jpg'
+      const { file: uploadFile, savedBytes } = await optimiseImageForStorage(file)
+      if (uploadFile.size > MAX_STORED_IMAGE_BYTES) {
+        throw new Error(`"${file.name}" is still ${formatBytes(uploadFile.size)} after optimisation. The storage limit is 15 MB.`)
+      }
+      const ext = uploadFile.name.split('.').pop() ?? 'webp'
       const path = `services/${slug}-${Date.now()}.${ext}`
       const { error } = await supabase.storage
         .from('site-media')
-        .upload(path, file, { cacheControl: '3600', upsert: false })
+        .upload(path, uploadFile, { cacheControl: '3600', upsert: false, contentType: uploadFile.type })
       if (error) throw error
       const { data } = supabase.storage.from('site-media').getPublicUrl(path)
       await setImage(slug, data.publicUrl)
-      setMsg('Image updated — live on the Services page within a minute.')
+      setMsg(savedBytes > 0
+        ? `Image updated — optimised from ${formatBytes(file.size)} to ${formatBytes(uploadFile.size)} (saved ${formatBytes(savedBytes)}).`
+        : 'Image updated — live on the Services page within a minute.')
       load()
     } catch (e: any) {
       setMsg(e.message ?? 'Upload failed.')
