@@ -857,3 +857,106 @@
   }
 }
 
+
+
+/* Hero carousel regression fix (2026-10-18): keep the admin-managed slide image in a
+   bounded right-hand media panel, never in document flow over the heading. */
+.ngms-home-new .ngms-new-hero.ngms-editorial-hero {
+  position: relative;
+  isolation: isolate;
+  min-height: clamp(560px, 48vw, 700px);
+  padding: 0 !important;
+  align-items: stretch !important;
+  background: #111111 !important;
+  color: #F7F4EF;
+}
+.ngms-home-new .ngms-new-hero.ngms-editorial-hero > div[aria-hidden="true"] {
+  position: absolute;
+  z-index: 0 !important;
+  inset: 7% 5% 16% 54%;
+  width: auto;
+  height: auto;
+  overflow: hidden;
+  pointer-events: none;
+  border: 1px solid rgba(255,255,255,.24);
+  background: #222222;
+}
+.ngms-home-new .ngms-new-hero.ngms-editorial-hero > div[aria-hidden="true"] > img {
+  object-fit: cover;
+  object-position: center;
+}
+.ngms-home-new .ngms-new-hero.ngms-editorial-hero > div[aria-hidden="true"] > div:nth-child(2) {
+  background: linear-gradient(90deg, rgba(17,17,17,.2), transparent 38%) !important;
+}
+.ngms-home-new .ngms-new-hero.ngms-editorial-hero > div[aria-hidden="true"] > div:nth-child(3) {
+  background: linear-gradient(0deg, rgba(17,17,17,.5), transparent 45%) !important;
+}
+.ngms-home-new .ngms-new-hero.ngms-editorial-hero > div.mx-auto {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1600px;
+  min-height: inherit;
+  box-sizing: border-box;
+  padding: clamp(34px, 5vw, 72px) clamp(22px, 6vw, 88px) 28px;
+}
+.ngms-home-new .ngms-new-hero.ngms-editorial-hero h1 {
+  max-width: 8.5ch;
+  font-size: clamp(3.1rem, 6.3vw, 6.8rem);
+  line-height: .9;
+  letter-spacing: -.055em;
+  text-wrap: balance;
+}
+.ngms-home-new .ngms-new-hero.ngms-editorial-hero > div.mx-auto > div.grid.flex-1 {
+  position: relative;
+  z-index: 2;
+  align-items: center;
+}
+.ngms-home-new .ngms-new-hero.ngms-editorial-hero > div.mx-auto > div.grid.flex-1 > div:first-child {
+  max-width: 54rem;
+  padding-right: clamp(16px, 3vw, 42px);
+}
+.ngms-home-new .ngms-new-hero.ngms-editorial-hero .ngms-new-hero__photo-controls {
+  z-index: 4;
+}
+@media (max-width: 760px) {
+  .ngms-home-new .ngms-new-hero.ngms-editorial-hero {
+    min-height: 0;
+    padding: 0 !important;
+  }
+  .ngms-home-new .ngms-new-hero.ngms-editorial-hero > div[aria-hidden="true"] {
+    inset: 0 0 auto;
+    width: 100%;
+    height: clamp(210px, 56vw, 320px);
+    border-left: 0;
+    border-right: 0;
+    border-top: 0;
+  }
+  .ngms-home-new .ngms-new-hero.ngms-editorial-hero > div[aria-hidden="true"] > div:nth-child(2) {
+    background: linear-gradient(0deg, #111111 0%, rgba(17,17,17,.6) 28%, rgba(17,17,17,.08) 100%) !important;
+  }
+  .ngms-home-new .ngms-new-hero.ngms-editorial-hero > div[aria-hidden="true"] > div:nth-child(3) {
+    background: linear-gradient(0deg, rgba(17,17,17,.55), transparent 55%) !important;
+  }
+  .ngms-home-new .ngms-new-hero.ngms-editorial-hero > div.mx-auto {
+    min-height: 0;
+    padding: clamp(230px, 60vw, 340px) 18px 88px;
+  }
+  .ngms-home-new .ngms-new-hero.ngms-editorial-hero > div.mx-auto > div.grid.flex-1 {
+    display: block;
+  }
+  .ngms-home-new .ngms-new-hero.ngms-editorial-hero > div.mx-auto > div.grid.flex-1 > div:first-child {
+    max-width: 100%;
+    padding-right: 0;
+  }
+  .ngms-home-new .ngms-new-hero.ngms-editorial-hero h1 {
+    font-size: clamp(2.65rem, 12.5vw, 4.6rem);
+    line-height: .92;
+  }
+  .ngms-home-new .ngms-new-hero.ngms-editorial-hero .ngms-new-hero__photo-controls {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    max-width: none;
+  }
+}
