@@ -845,7 +845,7 @@ function MaintenanceProjectPhotos() {
       const patch = {
         image_url: uploaded.url,
         caption: file.name.replace(/\\.[^.]+$/, '').replace(/[-_]+/g, ' '),
-        service_slug: slot === 'maintenance_high_pressure' ? 'high-pressure-cleaning' : slot === 'maintenance_painting' ? 'painting' : 'paving',
+        service_slug: slot.includes('cleaning') || slot === 'maintenance_high_pressure' ? 'high-pressure-cleaning' : slot.includes('painting') ? 'painting' : slot.includes('paving') ? 'paving' : null,
         slot,
         is_active: true,
         sort_order: existing?.sort_order ?? 0,
