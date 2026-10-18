@@ -12,6 +12,73 @@ type Tab = 'hero' | 'homepage' | 'bodycorporate' | 'beforeafter' | 'gallery' | '
 
 // --- helpers ---------------------------------------------------------------
 
+const MAX_STORED_IMAGE_BYTES = 15 * 1024 * 1024
+const MAX_SOURCE_IMAGE_BYTES = 40 * 1024 * 1024
+const IMAGE_MAX_EDGE = 2400
+const IMAGE_WEBP_QUALITY = 0.84
+
+/**
+ * Optimise photographic uploads in the browser before they consume Supabase
+ * Storage. WebP retains good visual quality and transparency. SVG and GIF are
+ * left untouched (SVG is vector and GIF may be animated). If the browser
+ * cannot decode/encode a source or the result is not smaller, keep the source.
+ */
+async function optimiseImageForStorage(source: File): Promise<{ file: File; savedBytes: number }> {
+  if (!source.type.startsWith('image/')) throw new Error(`"${source.name}" is not an image file.`)
+  if (source.size > MAX_SOURCE_IMAGE_BYTES) {
+    throw new Error(`"${source.name}" exceeds the 40 MB source limit. Resize it before uploading.`)
+  }
+  if (source.type === 'image/svg+xml' || source.type === 'image/gif') {
+    if (source.size > MAX_STORED_IMAGE_BYTES) {
+      throw new Error(`"${source.name}" is too large to upload without conversion. For animated GIFs or SVGs, optimise the file separately first.`)
+    }
+    return { file: source, savedBytes: 0 }
+  }
+
+  try {
+    const bitmap = await createImageBitmap(source)
+    try {
+      const scale = Math.min(1, IMAGE_MAX_EDGE / Math.max(bitmap.width, bitmap.height))
+      const width = Math.max(1, Math.round(bitmap.width * scale))
+      const height = Math.max(1, Math.round(bitmap.height * scale))
+      const shouldOptimise = source.size > 350 * 1024 || scale < 1
+      if (!shouldOptimise) return { file: source, savedBytes: 0 }
+
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const context = canvas.getContext('2d', { alpha: true })
+      if (!context) return { file: source, savedBytes: 0 }
+      context.drawImage(bitmap, 0, 0, width, height)
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, 'image/webp', IMAGE_WEBP_QUALITY)
+      )
+      if (!blob || blob.size >= source.size) return { file: source, savedBytes: 0 }
+
+      const baseName = source.name.replace(/\.[^.]+$/, '') || 'ngms-photo'
+      const optimised = new File([blob], `${baseName}.webp`, {
+        type: 'image/webp',
+        lastModified: source.lastModified || Date.now(),
+      })
+      return { file: optimised, savedBytes: source.size - optimised.size }
+    } finally {
+      bitmap.close()
+    }
+  } catch {
+    // Preserve compatibility with browser formats the canvas cannot decode.
+    if (source.size > MAX_STORED_IMAGE_BYTES) {
+      throw new Error(`Could not optimise "${source.name}" in this browser and it exceeds the 15 MB storage limit. Use a JPEG/WebP copy or compress it before uploading.`)
+    }
+    return { file: source, savedBytes: 0 }
+  }
+}
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
+}
+
 async function uploadToBucket(bucket: string, file: File) {
   const { data: authData, error: authError } = await supabase.auth.getSession()
   if (authError || !authData.session) {
@@ -29,20 +96,22 @@ async function uploadToBucket(bucket: string, file: File) {
   if (!staff) {
     throw new Error('This signed-in account is not listed as an active NGMS staff user. Ask an administrator to verify its prompt_users record before uploading.')
   }
-  if (!file.type.startsWith('image/')) throw new Error(`"${file.name}" is not an image file.`)
-  if (file.size > 15 * 1024 * 1024) throw new Error(`"${file.name}" exceeds the 15 MB upload limit.`)
-  const rawExt = file.name.split('.').pop() ?? 'jpg'
+  const { file: uploadFile, savedBytes } = await optimiseImageForStorage(file)
+  if (uploadFile.size > MAX_STORED_IMAGE_BYTES) {
+    throw new Error(`"${file.name}" is still ${formatBytes(uploadFile.size)} after optimisation. The storage limit is 15 MB; resize/compress this image further before uploading.`)
+  }
+  const rawExt = uploadFile.name.split('.').pop() ?? 'jpg'
   const ext = rawExt.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg'
   const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-  const { error } = await supabase.storage.from(bucket).upload(path, file, {
+  const { error } = await supabase.storage.from(bucket).upload(path, uploadFile, {
     cacheControl: '3600',
     upsert: false,
-    contentType: file.type,
+    contentType: uploadFile.type,
   })
   if (error) throw new Error(`Storage upload failed (${bucket}): ${error.message}`)
   const { data } = supabase.storage.from(bucket).getPublicUrl(path)
   if (!data.publicUrl) throw new Error(`Storage upload succeeded but no public URL was returned for ${path}.`)
-  return { url: data.publicUrl, path }
+  return { url: data.publicUrl, path, originalBytes: file.size, uploadedBytes: uploadFile.size, savedBytes, optimised: savedBytes > 0 }
 }
 
 function Field({
@@ -835,7 +904,7 @@ function BrandedProjectPublisher() {
     if (!file) return setMsg('Choose a project photo first.')
     if (!description.trim()) return setMsg('Add a short, accurate project description before publishing.')
     if (!file.type.startsWith('image/')) return setMsg('Choose a supported image file.')
-    if (file.size > 15 * 1024 * 1024) return setMsg('The original photo must be 15 MB or smaller.')
+    if (file.size > MAX_SOURCE_IMAGE_BYTES) return setMsg('The original photo must be 40 MB or smaller; it will be optimised before storage.')
     setBusy(true)
     setMsg('Preparing your branded project photo…')
     try {
@@ -1192,7 +1261,17 @@ export default function AdminMediaPage() {
         <ArrowLeft className="w-4 h-4" /> Dashboard
       </Link>
 
-      <h1 className="text-2xl font-black mb-6 text-white">Media</h1>
+      <h1 className="text-2xl font-black mb-3 text-white">Media</h1>
+      <section className="mb-6 rounded-xl border border-orange/40 bg-graphite p-4" aria-label="Automatic image compression">
+        <div className="flex items-start gap-3">
+          <div className="rounded-lg bg-orange/15 p-2 text-orange"><Upload className="h-5 w-5" /></div>
+          <div>
+            <h2 className="font-bold text-white">Automatic photo compression is enabled</h2>
+            <p className="mt-1 text-sm leading-relaxed text-gray-300">New photo uploads are optimised in your browser before reaching Storage: WebP at 84% quality, maximum 2,400 px on the longest edge. The original is kept when optimisation would make it larger; SVG and animated GIF files are not converted. Uploads are limited to 15 MB after optimisation.</p>
+            <p className="mt-2 text-xs text-gray-400">This reduces storage use for new uploads only. It does not compress or delete photos already stored.</p>
+          </div>
+        </div>
+      </section>
 
       <div className="flex gap-2 mb-6 border-b border-gray-800 overflow-x-auto">
         {tabs.map((t) => (
