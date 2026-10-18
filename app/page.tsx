@@ -101,16 +101,19 @@ export default async function HomePage() {
         <div className="ngms-new-solar__facts">
           {slotPhotos.hero_solar?.image_url && (
             <div className="relative mb-6 min-h-[240px] overflow-hidden border border-white/20 bg-[#222] sm:min-h-[320px]">
+            <div className="ngms-new-solar__photo">
               <Image
                 src={slotPhotos.hero_solar.image_url}
                 alt={slotPhotos.hero_solar.caption || 'NGMS solar panel cleaning project'}
                 fill
                 sizes="(max-width: 1024px) 100vw, 38vw"
+                sizes="(max-width: 900px) 100vw, 40vw"
                 quality={80}
                 unoptimized={slotPhotos.hero_solar.image_url.includes('.supabase.co/storage/')}
                 className="object-cover"
               />
               {slotPhotos.hero_solar.caption && <p className="absolute inset-x-0 bottom-0 bg-black/75 px-3 py-2 text-xs font-semibold text-white">{slotPhotos.hero_solar.caption}</p>}
+              {slotPhotos.hero_solar.caption && <p>{slotPhotos.hero_solar.caption}</p>}
             </div>
           )}
           <div><strong>01</strong><span>Gentle cleaning method</span></div>

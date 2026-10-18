@@ -207,7 +207,7 @@ function HeroSlides() {
     <div>
       <div className="mb-4 border-l-2 border-[#FF5A00] bg-[#202020] px-4 py-3">
         <p className="text-sm font-bold text-white">Main landing-page hero background</p>
-        <p className="mt-1 text-xs leading-relaxed text-gray-300">Photos uploaded here appear behind the large homepage hero block. Add up to 12 real NGMS project photos; active slides rotate automatically. Use bright, landscape images for the best result. Changes affect the homepage only after the deployment/cache refresh.</p>
+        <p className="mt-1 text-xs leading-relaxed text-gray-300">Photos uploaded here appear only inside the framed image panel on the right side of the homepage hero. They do not become full-page backgrounds or populate other sections. Add up to 12 real NGMS project photos; active slides rotate inside that panel.</p>
       </div>
       <div className="flex items-center justify-between mb-2">
         <p className="text-sm text-gray-300">
@@ -339,7 +339,8 @@ function HeroSlides() {
 // gallery_photos.slot; uploading a new photo retires the old one.
 
 const SLOTS: { key: string; label: string; hint: string }[] = [
-  { key: 'hero_solar', label: 'Solar section photo', hint: 'Wide photo in the “Solar panel cleaning, done carefully” section. Use a solar job photo (landscape).' },
+  { key: 'hero_solar', label: 'Homepage solar section photo', hint: 'Shown only in the solar feature section on the homepage. Landscape job photo recommended.' },
+  { key: 'solar_service_feature', label: 'Solar service page — right feature block', hint: 'Shown only inside the bordered photo block beside “CLEAN ENERGY. CLEAR RESULTS.” on Services → Solar Panel Cleaning. Landscape image recommended.' },
   { key: 'hero_feature', label: 'Body corporate section photo', hint: 'Beside “One contractor for the whole complex”. Landscape (4:3) works best.' },
   { key: 'mission_left', label: 'Why NextGen photo', hint: 'Beside “Maintenance you don’t have to chase”. Portrait works best.' },
   { key: 'mission_right', label: 'Closing call-to-action background', hint: 'Behind “Tell us what needs doing” at the bottom of the homepage. Landscape; it is darkened.' },
@@ -378,7 +379,7 @@ function HomepagePhotos() {
       const { data: newRow, error } = await supabase.from('gallery_photos').insert({
         image_url: uploaded.url,
         caption: captions[slot]?.trim() || null,
-        service_slug: slot === 'hero_solar' ? 'solar-panel-cleaning' : null,
+        service_slug: slot === 'hero_solar' || slot === 'solar_service_feature' ? 'solar-panel-cleaning' : null,
         slot,
         sort_order: 0,
         is_active: true,
@@ -388,7 +389,7 @@ function HomepagePhotos() {
       setCaptions((c) => ({ ...c, [slot]: '' }))
       setMsg(retire.error
         ? `New photo saved and active, but an older photo could not be retired: ${retire.error.message} (code: ${retire.error.code ?? 'unknown'}).`
-        : 'Photo is live on the homepage.')
+        : 'Photo saved to its designated section.')
       await load()
     } catch (e: any) {
       setMsg(e.message ?? 'Upload failed.')
@@ -420,7 +421,7 @@ function HomepagePhotos() {
   return (
     <div>
       <p className="text-sm text-gray-400 mb-4">
-        Pin your own photo to each spot. Empty spots use an auto-picked job photo.
+        Assign one photo to each specific section. Empty slots stay empty; photos are never auto-borrowed from the general gallery or hero slideshow.
       </p>
       {msg && <p className="text-sm mb-4 text-gray-300">{msg}</p>}
       <div className="grid sm:grid-cols-2 gap-3">
