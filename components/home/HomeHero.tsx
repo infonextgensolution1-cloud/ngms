@@ -91,7 +91,7 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
             </div>
           </div>
 
-          <div className="relative hidden min-h-[320px] overflow-hidden border border-white/25 bg-black/25 p-5 lg:flex lg:flex-col lg:justify-between xl:min-h-[400px]" aria-label="Featured NGMS project">
+          <div className="relative flex min-h-[220px] flex-col justify-between overflow-hidden border border-white/25 bg-black/25 p-4 sm:min-h-[280px] sm:p-5 lg:min-h-[320px] xl:min-h-[400px]" aria-label="Featured NGMS project">
             {photo?.image_url && <Image src={photo.image_url} alt={photo.alt_text || photo.caption || 'NGMS project photo'} fill sizes="(min-width: 1024px) 42vw, 0px" quality={78} unoptimized={photo.image_url.includes('.supabase.co/storage/')} className="absolute inset-0 object-cover object-center opacity-65" />}
             <div className="absolute inset-0 bg-gradient-to-t from-[#171717] via-[#171717]/45 to-[#171717]/10" aria-hidden="true" />
             <div className="relative z-10 flex items-start justify-between gap-4">
