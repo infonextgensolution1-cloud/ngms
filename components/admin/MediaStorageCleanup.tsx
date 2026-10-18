@@ -54,7 +54,7 @@ async function getRefs(): Promise<RefRow[]> {
     if (path) refs.push({ table: 'gallery_photos', id: String(row.id), url: row.image_url, label: row.caption || row.slot || 'Gallery photo', bucket: 'gallery-photos', path })
   }
   for (const row of results[2].data ?? []) {
-    for (const field of ['before_image_url', 'after_image_url']) {
+    for (const field of ['before_image_url', 'after_image_url'] as const) {
       const url = row[field]
       for (const bucket of BUCKETS) {
         const path = getPath(url, bucket)
