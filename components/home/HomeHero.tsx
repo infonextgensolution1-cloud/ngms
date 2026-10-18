@@ -91,22 +91,23 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
             </div>
           </div>
 
-          <div className="relative flex min-h-[220px] flex-col justify-between overflow-hidden border border-white/25 bg-black/25 p-4 sm:min-h-[280px] sm:p-5 lg:min-h-[320px] xl:min-h-[400px]" aria-label="Featured NGMS project">
-            {photo?.image_url && <Image src={photo.image_url} alt={photo.alt_text || photo.caption || 'NGMS project photo'} fill sizes="(min-width: 1024px) 42vw, 0px" quality={78} unoptimized={photo.image_url.includes('.supabase.co/storage/')} className="absolute inset-0 object-cover object-center opacity-65" />}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#171717] via-[#171717]/45 to-[#171717]/10" aria-hidden="true" />
-            <div className="relative z-10 flex items-start justify-between gap-4">
-              <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#FF4B18]">Field notes / NGMS</span>
-              <span className="font-heading text-3xl font-bold text-white/60">{String(index + 1).padStart(2, '0')}</span>
-            </div>
-            <div className="relative z-10">
-              <div className="mb-4 h-px w-full bg-white/25" />
-              <p className="font-heading text-3xl font-bold uppercase leading-tight text-white xl:text-4xl">{photo?.caption || photo?.alt_text || 'Maintenance. Managed.'}</p>
-              <p className="mt-3 max-w-sm text-sm leading-relaxed text-[#E0DEDA]">Local service. Clear communication. One point of contact from quote to completion.</p>
-            </div>
-            <div className="relative z-10 flex items-center justify-between border-t border-white/25 pt-4 text-xs font-semibold uppercase tracking-[0.12em] text-[#E0DEDA]">
-              <span>Project / {String(count).padStart(2, '0')} slides</span>
-              <span>Strand · Gordon’s Bay · Somerset West</span>
-            </div>
+          <div className="relative min-h-[220px] overflow-hidden bg-[#E5E3DE] sm:min-h-[280px] lg:min-h-[320px] xl:min-h-[400px]" aria-label="Selected homepage hero slide image">
+            {photo?.image_url ? (
+              <Image
+                src={photo.image_url}
+                alt={photo.alt_text || photo.caption || 'NGMS project photo'}
+                fill
+                sizes="(min-width: 1024px) 42vw, 100vw"
+                quality={85}
+                unoptimized={photo.image_url.includes('.supabase.co/storage/')}
+                priority={index === 0}
+                className="absolute inset-0 h-full w-full object-cover object-center"
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-[#E5E3DE] p-6 text-center text-sm font-semibold uppercase tracking-[0.12em] text-[#55534F]">
+                Select a photo in Admin → Media → Hero Slides
+              </div>
+            )}
           </div>
         </div>
 
