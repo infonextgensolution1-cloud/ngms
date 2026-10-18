@@ -205,9 +205,13 @@ function HeroSlides() {
 
   return (
     <div>
+      <div className="mb-4 border-l-2 border-[#FF5A00] bg-[#202020] px-4 py-3">
+        <p className="text-sm font-bold text-white">Main landing-page hero background</p>
+        <p className="mt-1 text-xs leading-relaxed text-gray-300">Photos uploaded here appear behind the large homepage hero block. Add up to 12 real NGMS project photos; active slides rotate automatically. Use bright, landscape images for the best result. Changes affect the homepage only after the deployment/cache refresh.</p>
+      </div>
       <div className="flex items-center justify-between mb-2">
         <p className="text-sm text-gray-300">
-          <span className="font-bold text-white">{active.length} of 12</span> slides live on the homepage
+          <span className="font-bold text-white">{active.length} of 12</span> hero background slides live on the homepage
         </p>
         <a href="/" target="_blank" rel="noreferrer" className="text-xs text-orange font-semibold">
           View site &rarr;
@@ -1053,7 +1057,7 @@ export default function AdminMediaPage() {
   }
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: 'hero', label: 'Landing slides' },
+    { key: 'hero', label: 'Hero block photos (12 slides)' },
     { key: 'homepage', label: 'Homepage photos' },
     { key: 'beforeafter', label: 'Before / After' },
     { key: 'gallery', label: 'Gallery' },
