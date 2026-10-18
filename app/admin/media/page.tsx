@@ -8,9 +8,76 @@ import { services } from '@/lib/services'
 import { Trash2, Upload, Loader2, ArrowLeft } from 'lucide-react'
 import BeforeAfterUploader from '@/components/admin/BeforeAfterUploader'
 
-type Tab = 'hero' | 'homepage' | 'beforeafter' | 'gallery' | 'services' | 'branded' | 'maintenance'
+type Tab = 'hero' | 'homepage' | 'bodycorporate' | 'beforeafter' | 'gallery' | 'services' | 'branded' | 'maintenance'
 
 // --- helpers ---------------------------------------------------------------
+
+const MAX_STORED_IMAGE_BYTES = 15 * 1024 * 1024
+const MAX_SOURCE_IMAGE_BYTES = 40 * 1024 * 1024
+const IMAGE_MAX_EDGE = 2400
+const IMAGE_WEBP_QUALITY = 0.84
+
+/**
+ * Optimise photographic uploads in the browser before they consume Supabase
+ * Storage. WebP retains good visual quality and transparency. SVG and GIF are
+ * left untouched (SVG is vector and GIF may be animated). If the browser
+ * cannot decode/encode a source or the result is not smaller, keep the source.
+ */
+async function optimiseImageForStorage(source: File): Promise<{ file: File; savedBytes: number }> {
+  if (!source.type.startsWith('image/')) throw new Error(`"${source.name}" is not an image file.`)
+  if (source.size > MAX_SOURCE_IMAGE_BYTES) {
+    throw new Error(`"${source.name}" exceeds the 40 MB source limit. Resize it before uploading.`)
+  }
+  if (source.type === 'image/svg+xml' || source.type === 'image/gif') {
+    if (source.size > MAX_STORED_IMAGE_BYTES) {
+      throw new Error(`"${source.name}" is too large to upload without conversion. For animated GIFs or SVGs, optimise the file separately first.`)
+    }
+    return { file: source, savedBytes: 0 }
+  }
+
+  try {
+    const bitmap = await createImageBitmap(source)
+    try {
+      const scale = Math.min(1, IMAGE_MAX_EDGE / Math.max(bitmap.width, bitmap.height))
+      const width = Math.max(1, Math.round(bitmap.width * scale))
+      const height = Math.max(1, Math.round(bitmap.height * scale))
+      const shouldOptimise = source.size > 350 * 1024 || scale < 1
+      if (!shouldOptimise) return { file: source, savedBytes: 0 }
+
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const context = canvas.getContext('2d', { alpha: true })
+      if (!context) return { file: source, savedBytes: 0 }
+      context.drawImage(bitmap, 0, 0, width, height)
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, 'image/webp', IMAGE_WEBP_QUALITY)
+      )
+      if (!blob || blob.size >= source.size) return { file: source, savedBytes: 0 }
+
+      const baseName = source.name.replace(/\.[^.]+$/, '') || 'ngms-photo'
+      const optimised = new File([blob], `${baseName}.webp`, {
+        type: 'image/webp',
+        lastModified: source.lastModified || Date.now(),
+      })
+      return { file: optimised, savedBytes: source.size - optimised.size }
+    } finally {
+      bitmap.close()
+    }
+  } catch {
+    // Preserve compatibility with browser formats the canvas cannot decode.
+    if (source.size > MAX_STORED_IMAGE_BYTES) {
+      throw new Error(`Could not optimise "${source.name}" in this browser and it exceeds the 15 MB storage limit. Use a JPEG/WebP copy or compress it before uploading.`)
+    }
+    return { file: source, savedBytes: 0 }
+  }
+}
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
+}
 
 async function uploadToBucket(bucket: string, file: File) {
   const { data: authData, error: authError } = await supabase.auth.getSession()
@@ -29,20 +96,22 @@ async function uploadToBucket(bucket: string, file: File) {
   if (!staff) {
     throw new Error('This signed-in account is not listed as an active NGMS staff user. Ask an administrator to verify its prompt_users record before uploading.')
   }
-  if (!file.type.startsWith('image/')) throw new Error(`"${file.name}" is not an image file.`)
-  if (file.size > 15 * 1024 * 1024) throw new Error(`"${file.name}" exceeds the 15 MB upload limit.`)
-  const rawExt = file.name.split('.').pop() ?? 'jpg'
+  const { file: uploadFile, savedBytes } = await optimiseImageForStorage(file)
+  if (uploadFile.size > MAX_STORED_IMAGE_BYTES) {
+    throw new Error(`"${file.name}" is still ${formatBytes(uploadFile.size)} after optimisation. The storage limit is 15 MB; resize/compress this image further before uploading.`)
+  }
+  const rawExt = uploadFile.name.split('.').pop() ?? 'jpg'
   const ext = rawExt.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg'
   const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-  const { error } = await supabase.storage.from(bucket).upload(path, file, {
+  const { error } = await supabase.storage.from(bucket).upload(path, uploadFile, {
     cacheControl: '3600',
     upsert: false,
-    contentType: file.type,
+    contentType: uploadFile.type,
   })
   if (error) throw new Error(`Storage upload failed (${bucket}): ${error.message}`)
   const { data } = supabase.storage.from(bucket).getPublicUrl(path)
   if (!data.publicUrl) throw new Error(`Storage upload succeeded but no public URL was returned for ${path}.`)
-  return { url: data.publicUrl, path }
+  return { url: data.publicUrl, path, originalBytes: file.size, uploadedBytes: uploadFile.size, savedBytes, optimised: savedBytes > 0 }
 }
 
 function Field({
@@ -207,7 +276,7 @@ function HeroSlides() {
     <div>
       <div className="mb-4 border-l-2 border-[#FF5A00] bg-[#202020] px-4 py-3">
         <p className="text-sm font-bold text-white">Main landing-page hero background</p>
-        <p className="mt-1 text-xs leading-relaxed text-gray-300">Photos uploaded here appear behind the large homepage hero block. Add up to 12 real NGMS project photos; active slides rotate automatically. Use bright, landscape images for the best result. Changes affect the homepage only after the deployment/cache refresh.</p>
+        <p className="mt-1 text-xs leading-relaxed text-gray-300">Photos uploaded here appear only inside the framed image panel on the right side of the homepage hero. They do not become full-page backgrounds or populate other sections. Add up to 12 real NGMS project photos; active slides rotate inside that panel.</p>
       </div>
       <div className="flex items-center justify-between mb-2">
         <p className="text-sm text-gray-300">
@@ -334,12 +403,128 @@ function HeroSlides() {
   )
 }
 
+// --- Body corporate page photos (dedicated fixed positions) --------------------
+const BODY_CORPORATE_PHOTO_SLOTS: { key: string; label: string; hint: string }[] = [
+  { key: 'body_corporate_hero', label: 'Body Corporate — right-hand hero image', hint: 'Displayed only in the large image block beside the body corporate headline. Landscape photo recommended.' },
+  { key: 'body_corporate_project_1', label: 'Body Corporate — project photo 01 / High-pressure cleaning', hint: 'First card under “Good work. Clear results.” Use a landscape photo of communal cleaning.' },
+  { key: 'body_corporate_project_2', label: 'Body Corporate — project photo 02 / Painting & maintenance', hint: 'Second project card. Use a landscape photo of painting or property maintenance.' },
+  { key: 'body_corporate_project_3', label: 'Body Corporate — project photo 03 / Paving & repairs', hint: 'Third project card. Use a landscape photo of paving, paths or exterior repairs.' },
+]
+
+function BodyCorporatePhotos() {
+  const [current, setCurrent] = useState<Record<string, any>>({})
+  const [captions, setCaptions] = useState<Record<string, string>>({})
+  const [busy, setBusy] = useState<string | null>(null)
+  const [msg, setMsg] = useState('')
+
+  const load = async () => {
+    const { data, error } = await supabase
+      .from('gallery_photos')
+      .select('*')
+      .eq('is_active', true)
+      .in('slot', BODY_CORPORATE_PHOTO_SLOTS.map((slot) => slot.key))
+    if (error) {
+      setMsg(`Could not load body corporate photo slots: ${error.message} (code: ${error.code ?? 'unknown'}).`)
+      return
+    }
+    const map: Record<string, any> = {}
+    for (const row of data ?? []) map[row.slot] = row
+    setCurrent(map)
+  }
+
+  useEffect(() => { load() }, [])
+
+  const upload = async (slot: string, file: File) => {
+    setBusy(slot)
+    setMsg('')
+    try {
+      const uploaded = await uploadToBucket('gallery-photos', file)
+      const { data: newRow, error } = await supabase.from('gallery_photos').insert({
+        image_url: uploaded.url,
+        caption: captions[slot]?.trim() || null,
+        service_slug: null,
+        slot,
+        sort_order: 0,
+        is_active: true,
+      }).select('id').single()
+      if (error) throw new Error(`Storage upload succeeded (${uploaded.path}), but the body corporate photo record failed to save: ${error.message} (code: ${error.code ?? 'unknown'}). The stored file was retained for recovery.`)
+      const { error: retireError } = await supabase.from('gallery_photos')
+        .update({ is_active: false }).eq('slot', slot).eq('is_active', true).neq('id', newRow.id)
+      setCaptions((prev) => ({ ...prev, [slot]: '' }))
+      setMsg(retireError
+        ? `Photo saved, but an older active photo could not be retired: ${retireError.message} (code: ${retireError.code ?? 'unknown'}).`
+        : 'Photo saved to its designated Body Corporate page position.')
+      await load()
+    } catch (error: any) {
+      setMsg(error?.message ?? 'Body corporate photo upload failed.')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const clear = async (slot: string) => {
+    setBusy(slot)
+    setMsg('')
+    try {
+      const { error } = await supabase.from('gallery_photos')
+        .update({ is_active: false }).eq('slot', slot).eq('is_active', true)
+      if (error) throw new Error(`Could not clear photo slot: ${error.message} (code: ${error.code ?? 'unknown'}).`)
+      setMsg('Photo removed from this page position.')
+      await load()
+    } catch (error: any) {
+      setMsg(error?.message ?? 'Could not clear photo slot.')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return (
+    <div>
+      <p className="mb-4 text-sm text-gray-300">These four upload slots control only the matching image positions on /body-corporate-maintenance. They never feed the homepage hero, solar service feature, general gallery or maintenance packages.</p>
+      {msg && <p role="status" className="mb-4 text-sm text-gray-200">{msg}</p>}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {BODY_CORPORATE_PHOTO_SLOTS.map((slot) => {
+          const row = current[slot.key]
+          const isBusy = busy === slot.key
+          return (
+            <section key={slot.key} className="min-w-0 rounded-xl border border-gray-700 bg-graphite p-4">
+              <h2 className="text-sm font-bold text-white">{slot.label}</h2>
+              <p className="mt-1 min-h-10 text-xs leading-relaxed text-gray-400">{slot.hint}</p>
+              {row?.image_url
+                ? <img src={row.image_url} alt={row.caption || slot.label} className="mt-3 h-44 w-full rounded border border-gray-700 object-cover" />
+                : <div className="mt-3 flex h-44 items-center justify-center rounded border border-dashed border-gray-700 bg-jet px-4 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">No photo assigned to this position</div>}
+              <input
+                value={captions[slot.key] ?? row?.caption ?? ''}
+                onChange={(event) => setCaptions((prev) => ({ ...prev, [slot.key]: event.target.value }))}
+                placeholder="Caption (optional)"
+                aria-label={`Caption for ${slot.label}`}
+                className={`${inputCls} mt-3`}
+              />
+              <label className={`mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-orange px-4 py-3 text-sm font-bold text-white ${isBusy ? 'pointer-events-none opacity-50' : ''}`}>
+                {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                {row ? 'Replace photo' : 'Upload photo'}
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="hidden" disabled={isBusy} onChange={(event) => {
+                  const file = event.target.files?.[0]
+                  event.target.value = ''
+                  if (file) upload(slot.key, file)
+                }} />
+              </label>
+              {row && <button type="button" onClick={() => clear(slot.key)} disabled={isBusy} className="mt-2 w-full border border-red-500/50 px-3 py-2 text-xs font-bold text-red-300 disabled:opacity-50">Remove photo from this position</button>}
+            </section>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // --- Homepage photos (fixed spots) --------------------------------------------
 // Each slot pins one photo to a fixed spot on the homepage. Stored in
 // gallery_photos.slot; uploading a new photo retires the old one.
 
 const SLOTS: { key: string; label: string; hint: string }[] = [
-  { key: 'hero_solar', label: 'Solar section photo', hint: 'Wide photo in the “Solar panel cleaning, done carefully” section. Use a solar job photo (landscape).' },
+  { key: 'hero_solar', label: 'Homepage solar section photo', hint: 'Shown only in the solar feature section on the homepage. Landscape job photo recommended.' },
+  { key: 'solar_service_feature', label: 'Solar service photo — right-hand feature block', hint: 'Upload the photo shown only in the right-hand block on Services → Solar Panel Cleaning. The page overlays “HELDERBERG BASIN / WESTERN CAPE” and “CLEAN ENERGY. CLEAR RESULTS.” on this photo. Use a sharp landscape image; this slot never feeds the homepage hero or general gallery.' },
   { key: 'hero_feature', label: 'Body corporate section photo', hint: 'Beside “One contractor for the whole complex”. Landscape (4:3) works best.' },
   { key: 'mission_left', label: 'Why NextGen photo', hint: 'Beside “Maintenance you don’t have to chase”. Portrait works best.' },
   { key: 'mission_right', label: 'Closing call-to-action background', hint: 'Behind “Tell us what needs doing” at the bottom of the homepage. Landscape; it is darkened.' },
@@ -378,7 +563,7 @@ function HomepagePhotos() {
       const { data: newRow, error } = await supabase.from('gallery_photos').insert({
         image_url: uploaded.url,
         caption: captions[slot]?.trim() || null,
-        service_slug: slot === 'hero_solar' ? 'solar-panel-cleaning' : null,
+        service_slug: slot === 'hero_solar' || slot === 'solar_service_feature' ? 'solar-panel-cleaning' : null,
         slot,
         sort_order: 0,
         is_active: true,
@@ -388,7 +573,7 @@ function HomepagePhotos() {
       setCaptions((c) => ({ ...c, [slot]: '' }))
       setMsg(retire.error
         ? `New photo saved and active, but an older photo could not be retired: ${retire.error.message} (code: ${retire.error.code ?? 'unknown'}).`
-        : 'Photo is live on the homepage.')
+        : 'Photo saved to its designated section.')
       await load()
     } catch (e: any) {
       setMsg(e.message ?? 'Upload failed.')
@@ -420,7 +605,7 @@ function HomepagePhotos() {
   return (
     <div>
       <p className="text-sm text-gray-400 mb-4">
-        Pin your own photo to each spot. Empty spots use an auto-picked job photo.
+        Assign one photo to each specific section. Empty slots stay empty; photos are never auto-borrowed from the general gallery or hero slideshow.
       </p>
       {msg && <p className="text-sm mb-4 text-gray-300">{msg}</p>}
       <div className="grid sm:grid-cols-2 gap-3">
@@ -719,7 +904,7 @@ function BrandedProjectPublisher() {
     if (!file) return setMsg('Choose a project photo first.')
     if (!description.trim()) return setMsg('Add a short, accurate project description before publishing.')
     if (!file.type.startsWith('image/')) return setMsg('Choose a supported image file.')
-    if (file.size > 15 * 1024 * 1024) return setMsg('The original photo must be 15 MB or smaller.')
+    if (file.size > MAX_SOURCE_IMAGE_BYTES) return setMsg('The original photo must be 40 MB or smaller; it will be optimised before storage.')
     setBusy(true)
     setMsg('Preparing your branded project photo…')
     try {
@@ -943,15 +1128,21 @@ function ServiceImages() {
     setBusySlug(slug)
     setMsg('')
     try {
-      const ext = file.name.split('.').pop() ?? 'jpg'
+      const { file: uploadFile, savedBytes } = await optimiseImageForStorage(file)
+      if (uploadFile.size > MAX_STORED_IMAGE_BYTES) {
+        throw new Error(`"${file.name}" is still ${formatBytes(uploadFile.size)} after optimisation. The storage limit is 15 MB.`)
+      }
+      const ext = uploadFile.name.split('.').pop() ?? 'webp'
       const path = `services/${slug}-${Date.now()}.${ext}`
       const { error } = await supabase.storage
         .from('site-media')
-        .upload(path, file, { cacheControl: '3600', upsert: false })
+        .upload(path, uploadFile, { cacheControl: '3600', upsert: false, contentType: uploadFile.type })
       if (error) throw error
       const { data } = supabase.storage.from('site-media').getPublicUrl(path)
       await setImage(slug, data.publicUrl)
-      setMsg('Image updated — live on the Services page within a minute.')
+      setMsg(savedBytes > 0
+        ? `Image updated — optimised from ${formatBytes(file.size)} to ${formatBytes(uploadFile.size)} (saved ${formatBytes(savedBytes)}).`
+        : 'Image updated — live on the Services page within a minute.')
       load()
     } catch (e: any) {
       setMsg(e.message ?? 'Upload failed.')
@@ -1063,6 +1254,7 @@ export default function AdminMediaPage() {
   const tabs: { key: Tab; label: string }[] = [
     { key: 'hero', label: 'Hero block photos (12 slides)' },
     { key: 'homepage', label: 'Homepage photos' },
+    { key: 'bodycorporate', label: 'Body Corporate page' },
     { key: 'beforeafter', label: 'Before / After' },
     { key: 'gallery', label: 'Gallery' },
     { key: 'services', label: 'Service images' },
@@ -1079,7 +1271,17 @@ export default function AdminMediaPage() {
         <ArrowLeft className="w-4 h-4" /> Dashboard
       </Link>
 
-      <h1 className="text-2xl font-black mb-6 text-white">Media</h1>
+      <h1 className="text-2xl font-black mb-3 text-white">Media</h1>
+      <section className="mb-6 rounded-xl border border-orange/40 bg-graphite p-4" aria-label="Automatic image compression">
+        <div className="flex items-start gap-3">
+          <div className="rounded-lg bg-orange/15 p-2 text-orange"><Upload className="h-5 w-5" /></div>
+          <div>
+            <h2 className="font-bold text-white">Automatic photo compression is enabled</h2>
+            <p className="mt-1 text-sm leading-relaxed text-gray-300">New photo uploads are optimised in your browser before reaching Storage: WebP at 84% quality, maximum 2,400 px on the longest edge. The original is kept when optimisation would make it larger; SVG and animated GIF files are not converted. Uploads are limited to 15 MB after optimisation.</p>
+            <p className="mt-2 text-xs text-gray-400">This reduces storage use for new uploads only. It does not compress or delete photos already stored.</p>
+          </div>
+        </div>
+      </section>
 
       <div className="flex gap-2 mb-6 border-b border-gray-800 overflow-x-auto">
         {tabs.map((t) => (
@@ -1099,6 +1301,7 @@ export default function AdminMediaPage() {
 
       {tab === 'hero' && <HeroSlides />}
       {tab === 'homepage' && <HomepagePhotos />}
+      {tab === 'bodycorporate' && <BodyCorporatePhotos />}
       {tab === 'beforeafter' && <BeforeAfter />}
       {tab === 'gallery' && <Gallery />}
       {tab === 'services' && <ServiceImages />}

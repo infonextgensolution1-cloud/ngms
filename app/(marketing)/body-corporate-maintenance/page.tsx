@@ -9,9 +9,9 @@ export const metadata: Metadata = {
 }
 
 const services = [
-  { n: '01', title: 'High-pressure cleaning', detail: 'Keep entrances, communal walkways and parking areas clean and well maintained.', image: '' },
-  { n: '02', title: 'Painting & maintenance', detail: 'Protect façades, boundary walls and shared spaces with practical upkeep.', image: '' },
-  { n: '03', title: 'Paving & repairs', detail: 'Maintain communal paving, entrances, paths and outdoor areas.', image: '' },
+  { n: '01', title: 'High-pressure cleaning', detail: 'Keep entrances, communal walkways and parking areas clean and well maintained.', slot: 'body_corporate_project_1' },
+  { n: '02', title: 'Painting & maintenance', detail: 'Protect façades, boundary walls and shared spaces with practical upkeep.', slot: 'body_corporate_project_2' },
+  { n: '03', title: 'Paving & repairs', detail: 'Maintain communal paving, entrances, paths and outdoor areas.', slot: 'body_corporate_project_3' },
 ]
 const benefits = [
   ['01', 'ONE POINT OF CONTACT', 'All maintenance work coordinated for your property.'],
