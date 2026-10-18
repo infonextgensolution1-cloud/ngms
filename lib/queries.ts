@@ -62,9 +62,9 @@ export async function getGalleryPhotos(limit = 24): Promise<GalleryPhoto[]> {
   return data as GalleryPhoto[];
 }
 
-// Photos pinned to a fixed homepage spot from Admin → Media (e.g. the two Mission
-// section tiles), keyed by slot. Falls back to {} so the caller can use its usual
-// auto-picked photo when nothing has been pinned yet.
+// Photos pinned to fixed homepage positions in Admin → Media → Homepage photos.
+// This function intentionally returns only explicitly assigned slots. It must not
+// select or substitute photos from the general gallery, jobs, or hero slideshow.
 export async function getSlotPhotos(slots: string[]): Promise<Record<string, GalleryPhoto>> {
   const { data, error } = await supabase
     .from("gallery_photos")
