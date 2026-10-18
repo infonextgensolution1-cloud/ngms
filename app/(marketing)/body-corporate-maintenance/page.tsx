@@ -46,10 +46,10 @@ export default async function Page() {
           </header>
 
           <section className="grid bg-[#080909] text-white lg:grid-cols-[.92fr_1.08fr]">
-            <div className="flex flex-col justify-between px-5 py-9 sm:px-9 sm:py-12 lg:px-12 lg:py-14">
+            <div className="flex flex-col justify-center px-5 py-8 sm:px-9 sm:py-10 lg:px-12 lg:py-12">
               <div>
                 <p className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#ff653b]"><span className="h-1.5 w-8 bg-[#ff4b1b]" /> Body corporate maintenance</p>
-                <h1 className="mt-7 max-w-[700px] text-[clamp(1.8rem,4.1vw,4.2rem)] font-black uppercase leading-[.9] tracking-[-.045em]">A single maintenance contact for <span className="text-[#ff4b1b]">body corporate properties.</span></h1>
+                <h1 className="mt-5 max-w-[560px] text-[clamp(1.45rem,2.7vw,2.8rem)] font-black uppercase leading-[.98] tracking-[-.035em] [text-wrap:balance] break-normal">A single maintenance contact for <span className="text-[#ff4b1b]">body corporate properties.</span></h1>
                 <p className="mt-6 max-w-xl text-sm leading-relaxed text-white/80 sm:text-base">Coordinate property maintenance without managing a different contractor for every issue. NextGen provides a single point of contact for multi-trade work across the Helderberg Basin.</p>
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <a href={wa} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-between gap-5 bg-[#ff4b1b] px-5 py-4 text-[11px] font-black uppercase tracking-[.06em] text-black transition hover:bg-white sm:min-w-[350px]">☏ WhatsApp: request a body corporate assessment <span>↗</span></a>
