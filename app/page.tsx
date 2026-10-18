@@ -7,7 +7,7 @@ import HomeHero from '@/components/home/HomeHero'
 import HowItWorks from '@/components/HowItWorks'
 import BodyCorporateSection from '@/components/BodyCorporateSection'
 import HelderbergToday from '@/components/home/HelderbergToday'
-import { GoogleReviews, WhyNgms, AreasAndFaq } from '@/components/home/HomeSections'
+import { GoogleReviews, WhyNgms, AreasAndFaq, FinalCta } from '@/components/home/HomeSections'
 import { services } from '@/lib/services'
 import { SITE, whatsappLink } from '@/lib/site'
 import { getBusinessHours } from '@/lib/business-hours'
@@ -110,7 +110,11 @@ export default async function HomePage() {
                 unoptimized={slotPhotos.hero_solar.image_url.includes('.supabase.co/storage/')}
                 className="object-cover"
               />
-              {slotPhotos.hero_solar.caption && <p>{slotPhotos.hero_solar.caption}</p>}
+              {slotPhotos.hero_solar.caption && (
+                <p className="absolute inset-x-0 bottom-0 bg-black/75 px-3 py-2 text-xs font-semibold text-white">
+                  {slotPhotos.hero_solar.caption}
+                </p>
+              )}
             </div>
           )}
           <div><strong>01</strong><span>Gentle cleaning method</span></div>
@@ -173,6 +177,7 @@ export default async function HomePage() {
       <BodyCorporateSection photo={slotPhotos.hero_feature ? { src: slotPhotos.hero_feature.image_url, caption: slotPhotos.hero_feature.caption || 'Complex maintenance' } : undefined} />
       <HelderbergToday />
       <AreasAndFaq />
+      <FinalCta photo={slotPhotos.mission_right ? { src: slotPhotos.mission_right.image_url, caption: slotPhotos.mission_right.caption || 'NextGen maintenance project' } : undefined} />
 
     </main>
   )
