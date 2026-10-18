@@ -16,6 +16,7 @@ import './homepage-mason-editorial.css'
 import './homepage-editorial.css'
 import './homepage-fusion.css'
 import './ngms-public-fusion.css'
+import './homepage-stein-reference.css'
 
 // Admin-managed homepage media should become visible promptly after an edit.
 export const revalidate = 60
