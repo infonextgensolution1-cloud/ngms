@@ -44,7 +44,10 @@ async function getRefs(): Promise<RefRow[]> {
     supabase.from('services').select('slug,name,hero_image')
   ])
   const names = ['hero_slides', 'gallery_photos', 'before_after_photos', 'services']
-  for (let i = 0; i < results.length; i++) if (results[i].error) throw new Error('Reference scan failed for ' + names[i] + ': ' + results[i].error.message)
+  for (let i = 0; i < results.length; i++) {
+    const error = results[i].error
+    if (error) throw new Error('Reference scan failed for ' + names[i] + ': ' + error.message)
+  }
   for (const row of results[0].data ?? []) {
     const path = getPath(row.image_url, 'hero-slides')
     if (path) refs.push({ table: 'hero_slides', id: String(row.id), url: row.image_url, label: row.caption || row.alt_text || 'Hero slide', bucket: 'hero-slides', path })
