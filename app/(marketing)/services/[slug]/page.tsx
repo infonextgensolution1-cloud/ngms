@@ -34,7 +34,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
   const isSolar = s.slug === "solar-panel-cleaning";
   const [serviceImages, solarSlotPhotos] = await Promise.all([
     getServiceImages(),
-    isSolar ? getSlotPhotos(["solar_service_feature"]) : Promise.resolve({}),
+    getSlotPhotos(isSolar ? ["solar_service_feature"] : []),
   ]);
   const image = serviceImages[s.slug] || (s.slug === "solar-panel-cleaning"
     ? "https://dfwwpqtsbaytfqptancj.supabase.co/storage/v1/object/public/gallery-photos/1788906733722-ig0pgfcjwv.jpg"
