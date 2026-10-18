@@ -1064,3 +1064,52 @@ body:has(main.ngms-home-refresh) header:has(nav[aria-label="Main"]) a {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Media placement isolation + hero image containment (2026-10-18).
+   This stylesheet is imported after the other homepage themes so these scoped
+   layout corrections take precedence over legacy hero rules. */
+.ngms-home-new .ngms-editorial-hero {
+  display: block;
+  min-height: 0;
+  margin-bottom: clamp(28px, 4vw, 56px);
+  padding: 0;
+  overflow: clip;
+}
+.ngms-home-new .ngms-editorial-hero > div.mx-auto {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1600px;
+  min-height: 0;
+  box-sizing: border-box;
+}
+.ngms-home-new .ngms-editorial-hero > div.mx-auto > div.grid,
+.ngms-home-new .ngms-editorial-hero > div.mx-auto > div.grid > div {
+  min-width: 0;
+}
+.ngms-home-new .ngms-editorial-hero > div.mx-auto > div.grid > div[aria-label="Featured NGMS project"] {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  contain: layout paint;
+}
+.ngms-home-new .ngms-editorial-hero [aria-label="Featured NGMS project"] > img {
+  object-fit: cover;
+  object-position: center;
+}
+@media (max-width: 1023px) {
+  .ngms-home-new .ngms-editorial-hero > div.mx-auto {
+    padding-top: clamp(36px, 8vw, 64px);
+  }
+  .ngms-home-new .ngms-editorial-hero > div.mx-auto > div.grid > div[aria-label="Featured NGMS project"] {
+    min-height: clamp(220px, 58vw, 380px);
+  }
+}
+@media (min-width: 1024px) {
+  .ngms-home-new .ngms-editorial-hero > div.mx-auto > div.grid > div[aria-label="Featured NGMS project"] {
+    min-height: clamp(320px, 34vw, 460px);
+  }
+}
+
