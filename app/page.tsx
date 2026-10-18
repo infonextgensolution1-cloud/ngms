@@ -29,7 +29,7 @@ export default async function HomePage() {
     getGalleryPhotos(18),
     getServiceImages(),
     getBeforeAfter(),
-    getSlotPhotos(['hero_feature', 'mission_left']),
+    getSlotPhotos(['hero_solar', 'hero_feature', 'mission_left', 'mission_right']),
   ])
   const projectPhotos = gallery.filter((photo) => photo.image_url).slice(0, 6)
   const comparisonPhotos = beforeAfter.filter((photo) => photo.before_image_url && photo.after_image_url).slice(0, 3)
@@ -99,6 +99,20 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="ngms-new-solar__facts">
+          {slotPhotos.hero_solar?.image_url && (
+            <div className="ngms-new-solar__photo">
+              <Image
+                src={slotPhotos.hero_solar.image_url}
+                alt={slotPhotos.hero_solar.caption || 'NGMS solar panel cleaning project'}
+                fill
+                sizes="(max-width: 900px) 100vw, 40vw"
+                quality={80}
+                unoptimized={slotPhotos.hero_solar.image_url.includes('.supabase.co/storage/')}
+                className="object-cover"
+              />
+              {slotPhotos.hero_solar.caption && <p>{slotPhotos.hero_solar.caption}</p>}
+            </div>
+          )}
           <div><strong>01</strong><span>Gentle cleaning method</span></div>
           <div><strong>02</strong><span>Before-and-after photos</span></div>
           <div><strong>03</strong><span>Local Helderberg service</span></div>
