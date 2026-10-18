@@ -12,6 +12,10 @@ alter table public.gallery_photos
       'mission_right',
       'maintenance_high_pressure',
       'maintenance_painting',
-      'maintenance_paving'
+      'maintenance_paving',
+      'body_corporate_hero',
+      'body_corporate_cleaning',
+      'body_corporate_painting',
+      'body_corporate_paving'
     ]::text[])
   );
