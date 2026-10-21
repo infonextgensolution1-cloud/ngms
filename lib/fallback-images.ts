@@ -76,6 +76,48 @@ export const FALLBACK_SLOT_PHOTOS: Record<string, StockGalleryPhoto> = {
     service_slug: "solar-panel-cleaning",
     is_stock: true,
   },
+  maintenance_high_pressure: {
+    image_url: FALLBACK_SERVICE_IMAGES["high-pressure-cleaning"],
+    caption: STOCK_PHOTO_NOTICE,
+    service_slug: "high-pressure-cleaning",
+    is_stock: true,
+  },
+  maintenance_painting: {
+    image_url: FALLBACK_SERVICE_IMAGES.painting,
+    caption: STOCK_PHOTO_NOTICE,
+    service_slug: "painting",
+    is_stock: true,
+  },
+  maintenance_paving: {
+    image_url: FALLBACK_SERVICE_IMAGES.paving,
+    caption: STOCK_PHOTO_NOTICE,
+    service_slug: "paving",
+    is_stock: true,
+  },
+  body_corporate_hero: {
+    image_url: FALLBACK_SERVICE_IMAGES.waterproofing,
+    caption: STOCK_PHOTO_NOTICE,
+    service_slug: "waterproofing",
+    is_stock: true,
+  },
+  body_corporate_cleaning: {
+    image_url: FALLBACK_SERVICE_IMAGES["high-pressure-cleaning"],
+    caption: STOCK_PHOTO_NOTICE,
+    service_slug: "high-pressure-cleaning",
+    is_stock: true,
+  },
+  body_corporate_painting: {
+    image_url: FALLBACK_SERVICE_IMAGES.painting,
+    caption: STOCK_PHOTO_NOTICE,
+    service_slug: "painting",
+    is_stock: true,
+  },
+  body_corporate_paving: {
+    image_url: FALLBACK_SERVICE_IMAGES.paving,
+    caption: STOCK_PHOTO_NOTICE,
+    service_slug: "paving",
+    is_stock: true,
+  },
 };
 
 const galleryServices = [
