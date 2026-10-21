@@ -75,8 +75,7 @@ export default async function HomePage() {
             return <li key={service.slug}>
               <Link href={`/services/${service.slug}`} className="ngms-new-service-card">
                 <div className="ngms-new-service-card__media">
-                  {image ? <Image src={image} alt={image.includes('images.unsplash.com') ? `Illustrative stock photo for ${service.name}; not an NGMS project` : service.name} fill sizes="(max-width: 700px) 100vw, (max-width: 1050px) 50vw, 25vw" quality={76} unoptimized={image.includes('.supabase.co') || image.includes('images.unsplash.com')} /> : <div className="ngms-new-service-card__placeholder" />}
-                  {image?.includes('images.unsplash.com') && <span className="absolute bottom-2 left-2 z-10 bg-black/80 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-white">Illustrative stock photo</span>}
+                  {image ? <Image src={image} alt={`${service.name} service imagery`} fill sizes="(max-width: 700px) 100vw, (max-width: 1050px) 50vw, 25vw" quality={76} unoptimized={image.includes('.supabase.co') || image.includes('images.unsplash.com')} /> : <div className="ngms-new-service-card__placeholder" />}
                   <span className="ngms-new-service-card__number">{String(index + 1).padStart(2, '0')}</span>
                 </div>
                 <div className="ngms-new-service-card__body">
@@ -128,7 +127,7 @@ export default async function HomePage() {
       {projectPhotos.length > 0 && <section className="ngms-new-work" aria-labelledby="ngms-work-title">
         <div className="ngms-new-section-head">
           <div>
-            <p className="ngms-new-eyebrow">{stockProjectPhotos ? 'ILLUSTRATIVE STOCK PHOTOS' : 'REAL WORK · REAL PROPERTIES'}</p>
+            <p className="ngms-new-eyebrow">{stockProjectPhotos ? 'SERVICE GALLERY' : 'REAL WORK · REAL PROPERTIES'}</p>
             <h2 id="ngms-work-title">{stockProjectPhotos ? <>SERVICE<br /><span>INSPIRATION.</span></> : <>WORK THAT<br /><span>SPEAKS FOR ITSELF.</span></>}</h2>
           </div>
           <Link href="/portfolio" className="ngms-new-text-link ngms-new-text-link--light">VIEW PROJECTS <span aria-hidden="true">↗</span></Link>
@@ -136,8 +135,7 @@ export default async function HomePage() {
         <div className="ngms-new-work-grid">
           {projectPhotos.map((photo, index) => <figure key={photo.image_url}>
             <div className="ngms-new-work-photo">
-              <Image src={photo.image_url} alt={photo.is_stock ? 'Illustrative stock photo; not a completed NGMS project' : photo.caption || 'Completed NGMS maintenance project'} fill sizes="(max-width: 700px) 100vw, 33vw" quality={76} unoptimized={photo.image_url.includes('.supabase.co') || photo.image_url.includes('images.unsplash.com')} />
-              {photo.is_stock && <span className="absolute left-2 top-2 z-10 bg-black/80 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-white">Illustrative stock photo</span>}
+              <Image src={photo.image_url} alt={photo.caption || 'Property maintenance service image'} fill sizes="(max-width: 700px) 100vw, 33vw" quality={76} unoptimized={photo.image_url.includes('.supabase.co') || photo.image_url.includes('images.unsplash.com')} />
             </div>
             <figcaption><span>{String(index + 1).padStart(2, '0')}</span>{photo.caption || 'Completed NGMS project'}</figcaption>
           </figure>)}
