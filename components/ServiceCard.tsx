@@ -23,14 +23,13 @@ export default function ServiceCard({
         <div className="relative aspect-[16/10] overflow-hidden bg-graphite">
           <Image
             src={image}
-            alt={image?.includes("images.unsplash.com") ? `Illustrative stock photo for ${s.name}; not a completed NGMS project` : s.name}
+            alt={`${s.name} service image`}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
             quality={70}
             unoptimized
             className="object-cover group-hover:scale-105 transition duration-300"
           />
-          {image?.includes("images.unsplash.com") && <span className="absolute bottom-2 left-2 bg-black/80 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-white">Illustrative stock photo</span>}
         </div>
       )}
       <div className="p-5">
