@@ -109,7 +109,7 @@ export default async function HomePage() {
                 fill
                 sizes="(max-width: 900px) 100vw, 40vw"
                 quality={80}
-                unoptimized={slotPhotos.hero_solar.image_url.includes('.supabase.co/storage/')}
+                unoptimized={slotPhotos.hero_solar.image_url.includes('.supabase.co/storage/') || slotPhotos.hero_solar.image_url.includes('images.unsplash.com')}
                 className="object-cover"
               />
               {slotPhotos.hero_solar.caption && (
