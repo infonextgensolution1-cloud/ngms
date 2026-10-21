@@ -11,7 +11,7 @@ import { GoogleReviews, WhyNgms, AreasAndFaq, FinalCta } from '@/components/home
 import { services } from '@/lib/services'
 import { SITE, whatsappLink } from '@/lib/site'
 import { getBusinessHours } from '@/lib/business-hours'
-import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages, getSlotPhotos } from '@/lib/queries'
+import { getBeforeAfter, getHeroSlides, getServiceImages, getSlotPhotos } from '@/lib/queries'
 import './homepage-mason-editorial.css'
 import './homepage-editorial.css'
 import './homepage-fusion.css'
@@ -23,17 +23,14 @@ export const revalidate = 60
 export const metadata: Metadata = { alternates: { canonical: '/' } }
 
 export default async function HomePage() {
-  const [hours, slides, gallery, serviceImages, beforeAfter, slotPhotos] = await Promise.all([
+  const [hours, slides, serviceImages, beforeAfter, slotPhotos] = await Promise.all([
     getBusinessHours(),
     getHeroSlides(),
-    getGalleryPhotos(18),
     getServiceImages(),
     getBeforeAfter(),
     getSlotPhotos(['hero_solar', 'hero_feature', 'mission_left', 'mission_right']),
   ])
-  const projectPhotos = gallery.filter((photo) => photo.image_url).slice(0, 6)
   const comparisonPhotos = beforeAfter.filter((photo) => photo.before_image_url && photo.after_image_url).slice(0, 3)
-  const stockProjectPhotos = projectPhotos.some((photo) => photo.is_stock)
 
   return (
     <main className="ngms-home-new">
@@ -123,24 +120,6 @@ export default async function HomePage() {
           <div><strong>03</strong><span>Local Helderberg service</span></div>
         </div>
       </section>
-
-      {projectPhotos.length > 0 && <section className="ngms-new-work" aria-labelledby="ngms-work-title">
-        <div className="ngms-new-section-head">
-          <div>
-            <p className="ngms-new-eyebrow">{stockProjectPhotos ? 'SERVICE GALLERY' : 'REAL WORK · REAL PROPERTIES'}</p>
-            <h2 id="ngms-work-title">{stockProjectPhotos ? <>SERVICE<br /><span>INSPIRATION.</span></> : <>WORK THAT<br /><span>SPEAKS FOR ITSELF.</span></>}</h2>
-          </div>
-          <Link href="/portfolio" className="ngms-new-text-link ngms-new-text-link--light">VIEW PROJECTS <span aria-hidden="true">↗</span></Link>
-        </div>
-        <div className="ngms-new-work-grid">
-          {projectPhotos.map((photo, index) => <figure key={photo.image_url}>
-            <div className="ngms-new-work-photo">
-              <Image src={photo.image_url} alt={photo.caption || 'Property maintenance service image'} fill sizes="(max-width: 700px) 100vw, 33vw" quality={76} unoptimized={photo.image_url.includes('.supabase.co') || photo.image_url.includes('images.unsplash.com')} />
-            </div>
-            <figcaption><span>{String(index + 1).padStart(2, '0')}</span>{photo.caption || 'Completed NGMS project'}</figcaption>
-          </figure>)}
-        </div>
-      </section>}
 
       {comparisonPhotos.length > 0 && <section className="bg-[#F2F2F2] text-[#0D0D0D] px-5 py-16 sm:px-8 sm:py-24" aria-labelledby="ngms-before-after-title">
         <div className="mx-auto max-w-7xl">
