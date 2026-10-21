@@ -68,7 +68,6 @@ export default async function FormulaSolarLandingPage() {
             <div aria-hidden="true" className="absolute inset-0 bg-[#b9b9b9]" />
           )}
           <div className="absolute left-5 right-5 top-5 flex justify-between font-mono text-[10px] uppercase tracking-widest text-white drop-shadow"><span>FIELD NOTES / 001</span><span>NGMS</span></div>
-          {solarPhoto?.is_stock && <span className="absolute left-5 top-12 z-20 bg-black/80 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-white">Illustrative stock photo</span>}
           <div aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 select-none font-mono text-[10rem] font-black leading-none tracking-[-0.12em] text-[#F47721]/85 drop-shadow-[0_2px_12px_rgba(0,0,0,0.25)] sm:text-[16rem] lg:text-[20rem]">{solarPhoto?.image_url ? "01" : "NG"}</div>
           <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4 border-t border-white/50 pt-4 text-white">
             <div><p className="text-xs font-bold uppercase tracking-wide drop-shadow">SOLAR PANEL CLEANING</p><p className="mt-1 text-[10px] uppercase tracking-widest text-white/90 drop-shadow">Strand · Gordon’s Bay · Somerset West</p></div>
