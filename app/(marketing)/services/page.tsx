@@ -6,6 +6,7 @@ import TrustBadges from "@/components/TrustBadges";
 import HowItWorks from "@/components/HowItWorks";
 import { SERVICES } from "@/lib/services";
 import { getServiceImages } from "@/lib/queries";
+import { FALLBACK_SERVICE_IMAGES } from "@/lib/fallback-images";
 
 export const revalidate = 60;
 export const metadata: Metadata = {
@@ -21,9 +22,7 @@ const PRICING: Record<string, string> = {
   "rubble-removal": "From R1 800/load", "steelwork-welding": "From R650/hour",
   handyman: "From R380/hour", "subcontractor-work": "Custom quote",
 };
-const FALLBACK_IMAGES: Record<string, string> = {
-  "solar-panel-cleaning": "https://dfwwpqtsbaytfqptancj.supabase.co/storage/v1/object/public/gallery-photos/1788906733722-ig0pgfcjwv.jpg",
-};
+const FALLBACK_IMAGES = FALLBACK_SERVICE_IMAGES;
 const HERO_IMAGE = FALLBACK_IMAGES["solar-panel-cleaning"];
 
 export default async function ServicesPage() {
@@ -66,7 +65,8 @@ export default async function ServicesPage() {
           <div className="mb-6 flex flex-wrap items-end justify-between gap-4 border-b border-black/25 pb-4"><div><p className="font-mono text-xs font-bold uppercase tracking-[.2em]">02 / Service directory</p><h2 className="mt-2 text-3xl font-black uppercase leading-none tracking-[-.045em] sm:text-5xl">Find the service you need.</h2></div><span className="font-mono text-xs uppercase">12 services / 01 team</span></div>
           <article className="ngms-services-featured mb-4 grid overflow-hidden border border-black/20 bg-[#FFFFFF] text-black md:grid-cols-[1.05fr_.95fr]">
             <div className="relative min-h-[260px] bg-[#292929]">
-              <Image src={images["solar-panel-cleaning"] || HERO_IMAGE} alt="Solar panel cleaning service" fill sizes="(max-width: 768px) 100vw, 50vw" unoptimized className="object-cover" />
+              <Image src={images["solar-panel-cleaning"] || HERO_IMAGE} alt="Illustrative solar panel cleaning stock photo; not a completed NGMS project" fill sizes="(max-width: 768px) 100vw, 50vw" unoptimized className="object-cover" />
+              {(images["solar-panel-cleaning"] || HERO_IMAGE).includes("images.unsplash.com") && <span className="absolute bottom-3 left-3 bg-black/80 px-2 py-1 font-mono text-[9px] font-bold uppercase text-white">Illustrative stock photo</span>}
               <span className="absolute left-4 top-4 bg-[#FF6A00] px-3 py-2 font-mono text-[10px] font-bold uppercase text-black">Featured / 01</span>
             </div>
             <div className="flex flex-col justify-between p-6 sm:p-9"><div><p className="font-mono text-xs font-bold uppercase tracking-[.18em] text-[#C94F00]">Solar panel cleaning</p><h3 className="mt-4 text-4xl font-black uppercase leading-[.9] tracking-[-.05em] sm:text-6xl">Let the sun<br/>do its job.</h3><p className="mt-4 max-w-lg text-sm leading-relaxed text-black/70">Professional solar panel cleaning to remove dust and seasonal pollen, with repeat visits planned around your property.</p></div><div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-black/20 pt-4"><strong className="text-lg">{PRICING["solar-panel-cleaning"]}</strong><Link href="/services/solar-panel-cleaning" className="inline-flex items-center gap-3 bg-[#FF6A00] px-4 py-3 text-xs font-extrabold uppercase text-black hover:bg-[#FF6A00]">Explore service ↗</Link></div></div>
