@@ -144,3 +144,130 @@
 @media (max-width: 1023px) {
   .ngms-stein-hero__media { height:auto; min-height:0 !important; max-height:none; aspect-ratio:16/10; }
 }
+
+
+/* Hard containment repair for the homepage hero carousel.
+   Keep each image clipped to the designated right-hand media frame, independent
+   of image component defaults or legacy homepage CSS from other redesign passes. */
+.ngms-home-new .ngms-stein-hero {
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+}
+.ngms-home-new .ngms-stein-hero .ngms-stein-hero__inner {
+  display: grid !important;
+  grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr) !important;
+  grid-template-areas: "copy media" "proof proof" "picker hours" !important;
+  align-items: stretch;
+  position: relative !important;
+  z-index: 1 !important;
+  width: min(100%, 1720px) !important;
+  min-height: 0 !important;
+  margin-inline: auto !important;
+  box-sizing: border-box !important;
+}
+.ngms-home-new .ngms-stein-hero .ngms-stein-hero__copy {
+  grid-area: copy !important;
+  position: relative !important;
+  z-index: 2 !important;
+  min-width: 0 !important;
+}
+.ngms-home-new .ngms-stein-hero .ngms-stein-hero__media {
+  grid-area: media !important;
+  position: relative !important;
+  display: block !important;
+  align-self: stretch !important;
+  justify-self: stretch !important;
+  width: 100% !important;
+  height: clamp(340px, 40vw, 620px) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-height: 620px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+  contain: layout paint !important;
+  box-sizing: border-box !important;
+}
+.ngms-home-new .ngms-stein-hero .ngms-stein-hero__image-frame {
+  position: absolute !important;
+  z-index: 0 !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+  contain: layout paint !important;
+}
+.ngms-home-new .ngms-stein-hero .ngms-stein-hero__image-frame > .ngms-stein-hero__image {
+  position: absolute !important;
+  z-index: 0 !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+.ngms-home-new .ngms-stein-hero .ngms-stein-hero__empty {
+  position: absolute !important;
+  z-index: 0 !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+.ngms-home-new .ngms-stein-hero .ngms-stein-hero__media-top,
+.ngms-home-new .ngms-stein-hero .ngms-stein-hero__media-bottom,
+.ngms-home-new .ngms-stein-hero .ngms-stein-hero__arrows {
+  position: absolute !important;
+  z-index: 2 !important;
+}
+.ngms-home-new .ngms-stein-hero .ngms-stein-hero__proof {
+  grid-area: proof !important;
+  position: relative !important;
+  z-index: 1 !important;
+  min-width: 0 !important;
+}
+.ngms-home-new .ngms-stein-hero .ngms-stein-hero__slide-picker {
+  grid-area: picker !important;
+  min-width: 0 !important;
+}
+.ngms-home-new .ngms-stein-hero .ngms-stein-hero__hours {
+  grid-area: hours !important;
+  min-width: 0 !important;
+}
+@media (max-width: 900px) {
+  .ngms-home-new .ngms-stein-hero .ngms-stein-hero__inner {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 0 22px !important;
+    padding-inline: 24px !important;
+  }
+  .ngms-home-new .ngms-stein-hero .ngms-stein-hero__media {
+    height: clamp(340px, 44vw, 500px) !important;
+    max-height: 500px !important;
+  }
+}
+@media (max-width: 640px) {
+  .ngms-home-new .ngms-stein-hero .ngms-stein-hero__inner {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas: "media" "copy" "proof" "picker" "hours" !important;
+    gap: 0 !important;
+    padding: 0 16px 17px !important;
+  }
+  .ngms-home-new .ngms-stein-hero .ngms-stein-hero__media {
+    width: calc(100% + 32px) !important;
+    height: auto !important;
+    max-height: none !important;
+    aspect-ratio: 16 / 10 !important;
+    margin-inline: -16px !important;
+  }
+}
