@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
-import { FALLBACK_GALLERY_PHOTOS, FALLBACK_SERVICE_IMAGES, STOCK_PHOTO_NOTICE } from '@/lib/fallback-images'
+import { FALLBACK_GALLERY_PHOTOS, FALLBACK_SERVICE_IMAGES } from '@/lib/fallback-images'
 
 export const metadata = {
   alternates: { canonical: '/portfolio' },
@@ -75,11 +75,11 @@ export default async function PortfolioPage() {
                 <h1 className="mt-8 text-[clamp(4.5rem,12vw,9rem)] font-black leading-[0.78] tracking-[-0.09em]">WORK<span className="text-[#ed4b26]">.</span></h1>
                 <h2 className="mt-4 max-w-[10ch] text-[clamp(2.5rem,6vw,5rem)] font-black uppercase leading-[0.86] tracking-[-0.065em] text-[#777773]">Built to last.</h2>
                 <p className="mt-7 max-w-md text-sm leading-relaxed text-[#454545] sm:text-base">
-                  {stockHero ? 'Illustrative service photography while verified NGMS project photos are being added. Stock images are not presented as completed customer jobs.' : 'Real maintenance. Visible results. Explore completed work across Strand, Gordon’s Bay, Somerset West and the Overberg.'}
+                  {stockHero ? 'Representative service images are shown while verified NGMS project photos are being added. These examples are not presented as completed customer jobs.' : 'Real maintenance. Visible results. Explore completed work across Strand, Gordon’s Bay, Somerset West and the Overberg.'}
                 </p>
                 <div className="mt-6 flex flex-wrap gap-2 text-[9px] font-bold uppercase tracking-[0.12em] text-[#333333]">
-                  <span className="border border-[#bdbbb5] px-3 py-2">{stockHero ? '01 / Illustrative imagery' : '01 / Real projects'}</span>
-                  <span className="border border-[#bdbbb5] px-3 py-2">{stockHero ? '02 / Stock is labelled' : '02 / Before & after'}</span>
+                  <span className="border border-[#bdbbb5] px-3 py-2">{stockHero ? '01 / Service imagery' : '01 / Real projects'}</span>
+                  <span className="border border-[#bdbbb5] px-3 py-2">{stockHero ? '02 / Service examples' : '02 / Before & after'}</span>
                   <span className="border border-[#bdbbb5] px-3 py-2">03 / Local expertise</span>
                 </div>
               </div>
@@ -94,7 +94,7 @@ export default async function PortfolioPage() {
 
             <div className="relative min-h-[360px] overflow-hidden border-t border-[#222222] bg-[#d7d5cf] lg:min-h-[620px] lg:border-l lg:border-t-0">
               {featuredImage ? (
-                <Image src={featuredImage} alt={stockHero ? 'Illustrative stock photo of solar panels; not a completed NGMS project' : displayProjectTitle(featured!)} fill priority sizes="(max-width: 1024px) 100vw, 55vw" quality={82} unoptimized={stockHero || featuredImage.includes('.supabase.co')} className="object-cover grayscale-[22%]" />
+                <Image src={featuredImage} alt={stockHero ? 'Solar panel service image' : displayProjectTitle(featured!)} fill priority sizes="(max-width: 1024px) 100vw, 55vw" quality={82} unoptimized={stockHero || featuredImage.includes('.supabase.co')} className="object-cover grayscale-[22%]" />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(135deg,#deddd8_0%,#b8b7b1_48%,#292929_48%,#111111_100%)]">
                   <div className="absolute inset-y-0 left-[58%] w-[22%] bg-[#ed4b26]" />
@@ -102,12 +102,12 @@ export default async function PortfolioPage() {
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/5 to-black/10" />
-              <div className="absolute left-5 top-5 border border-white/60 px-3 py-2 text-[9px] font-bold uppercase tracking-[0.2em] text-white sm:left-8 sm:top-8">{stockHero ? 'Illustrative stock photo' : 'Portfolio / Helderberg Basin'}</div>
+              <div className="absolute left-5 top-5 border border-white/60 px-3 py-2 text-[9px] font-bold uppercase tracking-[0.2em] text-white sm:left-8 sm:top-8">{stockHero ? 'Solar service' : 'Portfolio / Helderberg Basin'}</div>
               <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-4 p-5 text-white sm:p-8">
                 <div className="max-w-lg">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff714e]">{featured?.service_slug?.replaceAll('-', ' ') || 'Illustrative service imagery'}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff714e]">{featured?.service_slug?.replaceAll('-', ' ') || 'Service imagery'}</p>
                   <h2 className="mt-2 text-3xl font-black uppercase leading-[0.9] tracking-[-0.05em] sm:text-5xl">{featured ? displayProjectTitle(featured) : 'Property care. Practical solutions.'}</h2>
-                  <p className="mt-3 text-xs text-white/80">{featured?.location || STOCK_PHOTO_NOTICE}</p>
+                  <p className="mt-3 text-xs text-white/80">{featured?.location || 'Service image examples'}</p>
                 </div>
                 {featured && <span className="hidden h-12 w-12 shrink-0 items-center justify-center border border-white/70 text-xl sm:flex" aria-hidden="true">↗</span>}
               </div>
@@ -127,7 +127,7 @@ export default async function PortfolioPage() {
 
             <div className="mt-8 grid grid-cols-2 border-l border-t border-[#aaa9a3] sm:grid-cols-4">
               {[
-                ['01', 'Completed work', 'Real jobs, not stock claims'],
+                ['01', 'Completed work', 'Verified project photographs'],
                 ['02', 'Before / after', 'Visible progress'],
                 ['03', 'Helderberg local', 'Western Cape service area'],
                 ['04', 'Multi-trade', 'One point of contact'],
@@ -178,20 +178,19 @@ export default async function PortfolioPage() {
             ) : (
               <div>
                 <div className="mb-6 border border-[#b4b2ab] bg-[#f8f7f3] p-5 sm:p-7">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ed4b26]">Illustrative service imagery</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ed4b26]">Service image examples</p>
                   <h3 className="mt-3 text-2xl font-black uppercase leading-tight tracking-[-0.05em] sm:text-3xl">Examples of the services we coordinate.</h3>
-                  <p className="mt-3 max-w-3xl text-sm text-[#555555]">{STOCK_PHOTO_NOTICE}. These photographs are not evidence of work completed by NGMS. Verified project and before-and-after images will appear here when published.</p>
+                  <p className="mt-3 max-w-3xl text-sm text-[#555555]">These examples show the types of services NGMS coordinates and are not records of completed customer jobs. Verified project and before-and-after images will appear here when published.</p>
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {FALLBACK_GALLERY_PHOTOS.map((photo, index) => (
                     <article key={photo.service_slug} className="min-w-0 border border-[#b4b2ab] bg-[#f8f7f3]">
                       <div className="relative aspect-[4/3] overflow-hidden bg-[#d4d2cc]">
-                        <Image src={photo.image_url} alt={STOCK_PHOTO_NOTICE} fill sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw" quality={76} unoptimized className="object-cover" />
-                        <span className="absolute left-2 top-2 bg-[#111111]/85 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-white">Stock photo</span>
-                      </div>
+                        <Image src={photo.image_url} alt={`${photo.service_slug.replaceAll('-', ' ')} service image`} fill sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw" quality={76} unoptimized className="object-cover" />
+                                              </div>
                       <div className="p-4">
                         <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#ed4b26]">{photo.service_slug.replaceAll('-', ' ')}</p>
-                        <p className="mt-2 text-sm text-[#555555]">{STOCK_PHOTO_NOTICE}</p>
+                        <p className="mt-2 text-sm text-[#555555]">Service image example.</p>
                         <span className="mt-3 inline-flex border-b-2 border-[#ed4b26] py-2 text-xs font-bold uppercase tracking-wide"><Link href={`/services/${photo.service_slug}`}>Explore service ↗</Link></span>
                       </div>
                     </article>
