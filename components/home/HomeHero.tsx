@@ -87,7 +87,7 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
               fill
               sizes="(min-width: 1024px) 52vw, 100vw"
               quality={85}
-              unoptimized={photo.image_url.includes('.supabase.co/storage/')}
+              unoptimized={photo.image_url.includes('.supabase.co/storage/') || photo.image_url.includes('images.unsplash.com')}
               priority={index === 0}
               className="ngms-stein-hero__image"
             />
