@@ -7,6 +7,7 @@ import { SUBURBS } from "@/lib/suburbs";
 import { SOLAR_TIERS, SOLAR_SUBURB_TO_LOCATION } from "@/lib/solar-pricing";
 import { whatsappLink } from "@/lib/site";
 import { getServiceImages, getSlotPhotos } from "@/lib/queries";
+import { FALLBACK_SERVICE_IMAGES } from "@/lib/fallback-images";
 import TrustBadges from "@/components/TrustBadges";
 import NgmsIcon from "@/components/NgmsIcon";
 import { GoogleReviews } from "@/components/home/HomeSections";
@@ -36,9 +37,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
     getServiceImages(),
     getSlotPhotos(isSolar ? ["solar_service_feature"] : []),
   ]);
-  const image = serviceImages[s.slug] || (s.slug === "solar-panel-cleaning"
-    ? "https://dfwwpqtsbaytfqptancj.supabase.co/storage/v1/object/public/gallery-photos/1788906733722-ig0pgfcjwv.jpg"
-    : null);
+  const image = serviceImages[s.slug] || FALLBACK_SERVICE_IMAGES[s.slug] || null;
   const relatedServices = SERVICES.filter((item) => item.slug !== s.slug).slice(0, 5);
   const areaHref = (sub: string) =>
     isSolar && SOLAR_SUBURB_TO_LOCATION[sub]
@@ -92,6 +91,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                 className="ngms-solar-editorial__service-photo"
               />
               <div className="ngms-solar-editorial__service-image-overlay" aria-hidden="true" />
+              {solarSlotPhotos.solar_service_feature?.is_stock && <span className="absolute left-3 top-3 z-20 bg-black/80 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-white">Illustrative stock photo</span>}
               <span>HELDERBERG BASIN / WESTERN CAPE</span>
               <strong>CLEAN ENERGY.<br />CLEAR RESULTS.</strong>
               <Link href="/quote?service=Solar%20Panel%20Cleaning" aria-label="Request a solar panel cleaning quote">↗</Link>
@@ -182,7 +182,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
   return (
     <main className="ngms-service-detail-reference">
       <section className="ngms-sd-hero">
-        {image ? <div className="ngms-sd-hero__image" aria-hidden="true"><Image src={image} alt="" fill priority sizes="(max-width: 768px) 100vw, 100vw" unoptimized /></div> : null}
+        {image ? <div className="ngms-sd-hero__image" aria-hidden="true"><Image src={image} alt="" fill priority sizes="(max-width: 768px) 100vw, 100vw" unoptimized /><span className="absolute right-4 top-4 z-20 bg-black/75 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-white">Illustrative stock photo</span></div> : null}
         <div className="ngms-sd-hero__veil" aria-hidden="true" />
         <div className="ngms-sd-hero__inner">
           <div className="ngms-sd-hero__copy">
