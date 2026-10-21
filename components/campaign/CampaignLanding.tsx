@@ -30,7 +30,7 @@ export default function CampaignLanding({
         {heroImage ? (
           <Image
             src={heroImage}
-            alt={stockHero ? `Illustrative stock photo for ${service.name}; not a completed NGMS project` : `${service.name} by NextGen in the Helderberg Basin`}
+            alt={`${service.name} service image`}
             fill
             priority
             sizes="100vw"
@@ -38,7 +38,6 @@ export default function CampaignLanding({
             className="object-cover opacity-55"
           />
         ) : null}
-        {stockHero && <span className="absolute right-5 top-5 z-20 bg-black/80 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-white">Illustrative stock photo</span>}
         <div className="absolute inset-0 bg-gradient-to-t from-jet via-jet/80 to-jet/25" />
         <div className="relative z-10 wrap w-full py-14 md:py-20">
           <div className="max-w-4xl">
@@ -113,8 +112,8 @@ export default function CampaignLanding({
           <div className="wrap py-14">
             <div className="flex items-end justify-between gap-4 mb-7">
               <div>
-                <p className="kicker">{stockProofPhotos ? 'Illustrative stock photos' : 'Proof of work'}</p>
-                <h2 className="text-3xl md:text-4xl">{stockProofPhotos ? `Service imagery for ${service.name.toLowerCase()}.` : `Recent ${service.name.toLowerCase()} work.`}</h2>
+                <p className="kicker">Service gallery</p>
+                <h2 className="text-3xl md:text-4xl">Service images for {service.name.toLowerCase()}.</h2>
               </div>
               <Link href="/projects" className="btn-outline hidden sm:inline-flex">View projects</Link>
             </div>
@@ -122,8 +121,7 @@ export default function CampaignLanding({
               {proofPhotos.slice(0, 6).map((photo, index) => (
                 <figure key={`${photo.image_url}-${index}`} className="group overflow-hidden rounded-card border border-darkgrey bg-cardgrey">
                   <div className="relative aspect-[4/3]">
-                    <Image src={photo.image_url} alt={photo.is_stock ? 'Illustrative stock photo; not a completed NGMS project' : photo.caption || `${service.name} completed work`} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" unoptimized={photo.image_url.includes("images.unsplash.com") || photo.image_url.includes(".supabase.co")} className="object-cover transition-transform duration-500 group-hover:scale-105" />
-                    {photo.is_stock && <span className="absolute left-2 top-2 bg-black/80 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-white">Stock photo</span>}
+                    <Image src={photo.image_url} alt={photo.caption || `${service.name} service image`} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" unoptimized={photo.image_url.includes("images.unsplash.com") || photo.image_url.includes(".supabase.co")} className="object-cover transition-transform duration-500 group-hover:scale-105" />
                   </div>
                   {photo.caption ? <figcaption className="p-3 text-sm text-mist">{photo.caption}</figcaption> : null}
                 </figure>
