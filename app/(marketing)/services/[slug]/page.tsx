@@ -83,7 +83,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
             <div className="ngms-solar-editorial__service-image" aria-label="Solar panel cleaning feature photo">
               <Image
                 src={solarSlotPhotos.solar_service_feature?.image_url || "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=1600&q=85"}
-                alt={solarSlotPhotos.solar_service_feature?.caption || "Solar panels in bright sunlight — illustrative stock photo"}
+                alt={solarSlotPhotos.solar_service_feature?.caption || "Solar panels in bright sunlight"}
                 fill
                 sizes="(max-width: 760px) 100vw, 52vw"
                 quality={82}
@@ -91,7 +91,6 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                 className="ngms-solar-editorial__service-photo"
               />
               <div className="ngms-solar-editorial__service-image-overlay" aria-hidden="true" />
-              {solarSlotPhotos.solar_service_feature?.is_stock && <span className="absolute left-3 top-3 z-20 bg-black/80 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-white">Illustrative stock photo</span>}
               <span>HELDERBERG BASIN / WESTERN CAPE</span>
               <strong>CLEAN ENERGY.<br />CLEAR RESULTS.</strong>
               <Link href="/quote?service=Solar%20Panel%20Cleaning" aria-label="Request a solar panel cleaning quote">↗</Link>
@@ -182,7 +181,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
   return (
     <main className="ngms-service-detail-reference">
       <section className="ngms-sd-hero">
-        {image ? <div className="ngms-sd-hero__image" aria-hidden="true"><Image src={image} alt="" fill priority sizes="(max-width: 768px) 100vw, 100vw" unoptimized /><span className="absolute right-4 top-4 z-20 bg-black/75 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-white">Illustrative stock photo</span></div> : null}
+        {image ? <div className="ngms-sd-hero__image" aria-hidden="true"><Image src={image} alt="" fill priority sizes="(max-width: 768px) 100vw, 100vw" unoptimized /></div> : null}
         <div className="ngms-sd-hero__veil" aria-hidden="true" />
         <div className="ngms-sd-hero__inner">
           <div className="ngms-sd-hero__copy">
