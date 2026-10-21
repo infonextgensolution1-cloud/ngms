@@ -87,7 +87,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                 fill
                 sizes="(max-width: 760px) 100vw, 52vw"
                 quality={82}
-                unoptimized={(solarSlotPhotos.solar_service_feature?.image_url || "").includes(".supabase.co/storage/")}
+                unoptimized={(solarSlotPhotos.solar_service_feature?.image_url || "").includes(".supabase.co/storage/") || (solarSlotPhotos.solar_service_feature?.image_url || "").includes("images.unsplash.com")}
                 className="ngms-solar-editorial__service-photo"
               />
               <div className="ngms-solar-editorial__service-image-overlay" aria-hidden="true" />
