@@ -80,17 +80,19 @@ export default function HomeHero({ slides, days = 'Mon–Sat', open = '07:00', c
 
         <div className="ngms-stein-hero__media" aria-label="Selected homepage hero slide image">
           {photo?.image_url ? (
-            <Image
-              key={photo.image_url}
-              src={photo.image_url}
-              alt={photo.alt_text || photo.caption || 'NGMS project photo'}
-              fill
-              sizes="(min-width: 1024px) 52vw, 100vw"
-              quality={85}
-              unoptimized={photo.image_url.includes('.supabase.co/storage/') || photo.image_url.includes('images.unsplash.com')}
-              priority={index === 0}
-              className="ngms-stein-hero__image"
-            />
+            <div className="ngms-stein-hero__image-frame">
+              <Image
+                key={photo.image_url}
+                src={photo.image_url}
+                alt={photo.alt_text || photo.caption || 'NGMS project photo'}
+                fill
+                sizes="(min-width: 1024px) 52vw, 100vw"
+                quality={85}
+                unoptimized={photo.image_url.includes('.supabase.co/storage/') || photo.image_url.includes('images.unsplash.com')}
+                priority={index === 0}
+                className="ngms-stein-hero__image"
+              />
+            </div>
           ) : (
             <div className="ngms-stein-hero__empty">SELECT A PHOTO IN ADMIN → MEDIA → HERO SLIDES</div>
           )}
