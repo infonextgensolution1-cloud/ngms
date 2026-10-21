@@ -82,17 +82,15 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
               ))}
             </div>
             <div className="ngms-solar-editorial__service-image" aria-label="Solar panel cleaning feature photo">
-              {solarSlotPhotos.solar_service_feature?.image_url ? (
-                <Image
-                  src={solarSlotPhotos.solar_service_feature.image_url}
-                  alt={solarSlotPhotos.solar_service_feature.caption || "NGMS solar panel cleaning project in the Helderberg Basin"}
-                  fill
-                  sizes="(max-width: 760px) 100vw, 52vw"
-                  quality={82}
-                  unoptimized={solarSlotPhotos.solar_service_feature.image_url.includes(".supabase.co/storage/")}
-                  className="ngms-solar-editorial__service-photo"
-                />
-              ) : null}
+              <Image
+                src={solarSlotPhotos.solar_service_feature?.image_url || "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=1600&q=85"}
+                alt={solarSlotPhotos.solar_service_feature?.caption || "Solar panels in bright sunlight — illustrative stock photo"}
+                fill
+                sizes="(max-width: 760px) 100vw, 52vw"
+                quality={82}
+                unoptimized={(solarSlotPhotos.solar_service_feature?.image_url || "").includes(".supabase.co/storage/")}
+                className="ngms-solar-editorial__service-photo"
+              />
               <div className="ngms-solar-editorial__service-image-overlay" aria-hidden="true" />
               <span>HELDERBERG BASIN / WESTERN CAPE</span>
               <strong>CLEAN ENERGY.<br />CLEAR RESULTS.</strong>
