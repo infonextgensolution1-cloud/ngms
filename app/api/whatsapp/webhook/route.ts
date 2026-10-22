@@ -21,13 +21,17 @@ type IncomingMessage = {
 
 function verifySignature(rawBody: string, signature: string | null): boolean {
   const secret = process.env.WHATSAPP_APP_SECRET;
-  if (!secret) return true;
-  if (!signature?.startsWith("sha256=")) return false;
-  const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
+
+  // Fail closed: never accept webhook payloads when signature verification is unavailable.
+  if (!secret || !signature?.startsWith("sha256=")) return false;
+
   const provided = signature.slice(7);
-  const a = Buffer.from(expected, "utf8");
-  const b = Buffer.from(provided, "utf8");
-  return a.length === b.length && timingSafeEqual(a, b);
+  if (!/^[a-fA-F0-9]{64}$/.test(provided)) return false;
+
+  const expected = createHmac("sha256", secret).update(rawBody).digest();
+  const actual = Buffer.from(provided, "hex");
+
+  return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
 
 async function sendWhatsApp(to: string, text: string, buttons?: Array<{ id: string; title: string }>) {
