@@ -10,7 +10,7 @@
 - Preview API: `https://ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev`
 - Preview database: `ngms-admin-preview`
 - Preview media bucket: `ngmsmedia-preview`
-- Preview writes: disabled by default (`NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=false))
+- Preview writes: disabled by default (`NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=false)
 
 The Cloudflare Workers Build for commit `fc8a5f00c70761ddbf14d1571e9a58f4b430c114` completed successfully on 29 October 2026. A successful build does not by itself prove that the site works in a real browser; browser, Access authentication, CORS and application-flow checks are still required.
 
