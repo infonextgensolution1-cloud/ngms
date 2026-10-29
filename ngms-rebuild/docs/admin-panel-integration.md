@@ -1,11 +1,15 @@
 # NGMS V4 admin-panel integration
 
-**Status:** admin integration code updated; current CI and Cloudflare preview build are being verified  
+**Status:** admin integration code deployed to preview; authenticated browser verification pending  
 **Application:** `ngms-rebuild/`  
 **Admin preview:** https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev/admin  
 **Preview API:** https://ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev  
 **Preview D1:** `ngms-admin-preview`  
-**Preview media bucket:** `ngmsmedia-preview`
+**Preview media bucket:** `ngmsmedia-preview`  
+**Latest build:** `a1887958-1a6d-4256-98a4-4f8bb7e71bfd` — success  
+**Deployment:** `02fe4141-9afb-443b-a1d9-f5deb671127d`  
+**Active preview version:** `cce817ca-43a9-4872-b72f-80db57bd610e` (100% of preview traffic)  
+**V4 CI run #95:** [passed](https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40938100852)
 
 ## What is connected in the code
 
