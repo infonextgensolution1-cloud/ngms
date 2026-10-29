@@ -15,7 +15,9 @@ Use [v4-acceptance-matrix.md](v4-acceptance-matrix.md) as the requirement-to-evi
 - Homepage, all 12 service category cards and detail templates, service directory, Helderberg solar page, Strand/Gordon's Bay/Somerset West area pages, and templates for contact, about, maintenance plans, body corporates, portfolio, gallery, pricing, FAQ, privacy, terms and solar ROI.
 - Imported the verified NGMS logo and two existing solar marketing images into the isolated app. Images are used as general brand/service imagery, not represented as verified customer project evidence.
 - Admin navigation and responsive visual shell matching the public brand.
-- Read-only admin collection client for currently verified endpoints: enquiries, jobs, documents (quotations/invoices), media and content. The dashboard reads counts/recent records from the API only when configured and reachable; the UI distinguishes a confirmed empty collection from configuration, network, Access, CORS and response errors.
+- Admin collection client for currently documented endpoints: enquiries, jobs, documents (quotations/invoices), media and content. The dashboard reads counts/recent records only after all required collection calls succeed; it distinguishes confirmed empty collections from configuration, network, Access, CORS and response errors.
+- The browser-side API client is pinned to the dedicated HTTPS preview API hostname; it blocks blank, malformed or alternative (including production) API targets before sending a request. Overview and module screens provide an API health/sign-in link to help the administrator complete Cloudflare Access before refreshing.
+- Media rows include a Worker-based authenticated open/download link; website-content JSON values are rendered readably. Media listing/download still requires real-browser Access/CORS testing. Upload, replace, deletion, creation and status updates remain disabled.
 - No false live metrics, customer names, quotation amounts, invoice balances or record writes are simulated. Calendar, reporting and settings remain marked unavailable until their contracts are implemented.
 - Compatibility screens for existing quote/maintenance/job-tracking token routes; they do not display tokens or read or mutate private records.
 - Next.js 16.4.3 and React/React DOM 19.2.9 in the isolated package; no Supabase SDK or app-side Supabase client.
@@ -76,8 +78,8 @@ This confirms a successful Cloudflare build/deployment and the earlier container
 - Separate D1 database `ngms-admin-preview` (UUID `f12c5c48-58cd-4c48-82de-8c7341b8e6cf`) with the five inspected table shapes.
 - Separate R2 bucket `ngmsmedia-preview`, bound to the staging Worker.
 - Four synthetic QA fixtures in staging D1 only (enquiry, job, draft quote, sent invoice), all clearly tagged as preview-only. No production data was copied or changed.
-- Added frontend create/status/media helper functions; UI controls are feature-gated and remain disabled unless `NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=true`. The preview build variable is configured as `false`; writes remain disabled.
-- Admin module screens now include create forms for enquiries, jobs, quotations and invoices; status editor controls when the feature gate is enabled; and a preview media upload control. These controls are **not enabled in the currently unconfigured app**.
+- Frontend create/status/media helper functions and forms exist, but `NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=false` and writes remain disabled. The current Cloudflare build configuration supplies the dedicated preview API base; it does not enable write actions.
+- Admin module screens include create forms for enquiries, jobs, quotations and invoices; explicit status options; a media upload control; and an authenticated media open/download link. API URL pinning and a direct Access health/sign-in link are implemented. The read path and media download still require an authorized human-browser test; no write or upload persistence test has been run.
 
 ### Pending / blocked
 - A Vercel preview now exists, but the project remains on the Cloudflare Workers free-tier path to avoid recurring hosting costs.
