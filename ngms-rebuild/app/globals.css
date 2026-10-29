@@ -34,3 +34,14 @@
 .data-panel tbody tr:hover{background:#fffaf6}
 .admin-page>.module-footnote{margin:12px 0 0}
 @media(max-width:760px){.admin-head-actions{width:100%;justify-content:stretch}.admin-head-actions .button{flex:1}.admin-lower-grid{grid-template-columns:1fr}.admin-list-heading{align-items:flex-start;flex-direction:column}.recent-list li{padding:12px}.recent-list strong{font-size:.74rem}.recent-list span{font-size:.67rem}.recent-meta b{max-width:120px;text-align:right}}
+
+/* Brand assets copied from the existing NGMS application into this isolated rebuild. */
+.brand-logo{display:block;width:144px;height:51px;object-fit:contain;object-position:left center}
+.hero-solar-image{display:block;width:100%;height:100%;object-fit:cover;object-position:center 54%;filter:saturate(.92) contrast(1.04)}
+.solar-art{isolation:isolate;overflow:hidden;background:#101820}
+.solar-art:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(5,5,5,.04),rgba(5,5,5,.12) 50%,rgba(5,5,5,.3)),linear-gradient(0deg,rgba(10,10,10,.35),transparent 62%)}
+.solar-feature-right{display:grid;gap:14px;min-width:0}
+.solar-feature-photo{margin:0;border:1px solid #414141;background:#090909;overflow:hidden}
+.solar-feature-photo img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
+.solar-feature-photo figcaption{padding:8px 12px;color:#bdbdbd;font-size:.65rem;letter-spacing:.04em}
+@media(max-width:760px){.brand-logo{width:128px;height:45px}.solar-feature-right{gap:10px}}
