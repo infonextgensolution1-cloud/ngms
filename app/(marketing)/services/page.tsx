@@ -6,6 +6,7 @@ import TrustBadges from "@/components/TrustBadges";
 import HowItWorks from "@/components/HowItWorks";
 import { SERVICES } from "@/lib/services";
 import { getServiceImages } from "@/lib/queries";
+import { FALLBACK_SERVICE_IMAGES } from "@/lib/fallback-images";
 
 export const revalidate = 60;
 export const metadata: Metadata = {
@@ -21,9 +22,7 @@ const PRICING: Record<string, string> = {
   "rubble-removal": "From R1 800/load", "steelwork-welding": "From R650/hour",
   handyman: "From R380/hour", "subcontractor-work": "Custom quote",
 };
-const FALLBACK_IMAGES: Record<string, string> = {
-  "solar-panel-cleaning": "https://dfwwpqtsbaytfqptancj.supabase.co/storage/v1/object/public/gallery-photos/1788906733722-ig0pgfcjwv.jpg",
-};
+const FALLBACK_IMAGES = FALLBACK_SERVICE_IMAGES;
 const HERO_IMAGE = FALLBACK_IMAGES["solar-panel-cleaning"];
 
 export default async function ServicesPage() {

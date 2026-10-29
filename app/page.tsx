@@ -11,7 +11,7 @@ import { GoogleReviews, WhyNgms, AreasAndFaq, FinalCta } from '@/components/home
 import { services } from '@/lib/services'
 import { SITE, whatsappLink } from '@/lib/site'
 import { getBusinessHours } from '@/lib/business-hours'
-import { getBeforeAfter, getGalleryPhotos, getHeroSlides, getServiceImages, getSlotPhotos } from '@/lib/queries'
+import { getBeforeAfter, getHeroSlides, getServiceImages, getSlotPhotos } from '@/lib/queries'
 import './homepage-mason-editorial.css'
 import './homepage-editorial.css'
 import './homepage-fusion.css'
@@ -23,15 +23,13 @@ export const revalidate = 60
 export const metadata: Metadata = { alternates: { canonical: '/' } }
 
 export default async function HomePage() {
-  const [hours, slides, gallery, serviceImages, beforeAfter, slotPhotos] = await Promise.all([
+  const [hours, slides, serviceImages, beforeAfter, slotPhotos] = await Promise.all([
     getBusinessHours(),
     getHeroSlides(),
-    getGalleryPhotos(18),
     getServiceImages(),
     getBeforeAfter(),
     getSlotPhotos(['hero_solar', 'hero_feature', 'mission_left', 'mission_right']),
   ])
-  const projectPhotos = gallery.filter((photo) => photo.image_url).slice(0, 6)
   const comparisonPhotos = beforeAfter.filter((photo) => photo.before_image_url && photo.after_image_url).slice(0, 3)
 
   return (
@@ -74,7 +72,7 @@ export default async function HomePage() {
             return <li key={service.slug}>
               <Link href={`/services/${service.slug}`} className="ngms-new-service-card">
                 <div className="ngms-new-service-card__media">
-                  {image ? <Image src={image} alt={service.name} fill sizes="(max-width: 700px) 100vw, (max-width: 1050px) 50vw, 25vw" quality={76} unoptimized={image.includes('.supabase.co')} /> : <div className="ngms-new-service-card__placeholder" />}
+                  {image ? <Image src={image} alt={`${service.name} service imagery`} fill sizes="(max-width: 700px) 100vw, (max-width: 1050px) 50vw, 25vw" quality={76} unoptimized={image.includes('.supabase.co') || image.includes('images.unsplash.com')} /> : <div className="ngms-new-service-card__placeholder" />}
                   <span className="ngms-new-service-card__number">{String(index + 1).padStart(2, '0')}</span>
                 </div>
                 <div className="ngms-new-service-card__body">
@@ -107,7 +105,7 @@ export default async function HomePage() {
                 fill
                 sizes="(max-width: 900px) 100vw, 40vw"
                 quality={80}
-                unoptimized={slotPhotos.hero_solar.image_url.includes('.supabase.co/storage/')}
+                unoptimized={slotPhotos.hero_solar.image_url.includes('.supabase.co/storage/') || slotPhotos.hero_solar.image_url.includes('images.unsplash.com')}
                 className="object-cover"
               />
               {slotPhotos.hero_solar.caption && (
@@ -122,24 +120,6 @@ export default async function HomePage() {
           <div><strong>03</strong><span>Local Helderberg service</span></div>
         </div>
       </section>
-
-      {projectPhotos.length > 0 && <section className="ngms-new-work" aria-labelledby="ngms-work-title">
-        <div className="ngms-new-section-head">
-          <div>
-            <p className="ngms-new-eyebrow">REAL WORK · REAL PROPERTIES</p>
-            <h2 id="ngms-work-title">WORK THAT<br /><span>SPEAKS FOR ITSELF.</span></h2>
-          </div>
-          <Link href="/portfolio" className="ngms-new-text-link ngms-new-text-link--light">VIEW PROJECTS <span aria-hidden="true">↗</span></Link>
-        </div>
-        <div className="ngms-new-work-grid">
-          {projectPhotos.map((photo, index) => <figure key={photo.image_url}>
-            <div className="ngms-new-work-photo">
-              <Image src={photo.image_url} alt={photo.caption || 'Completed NGMS maintenance project'} fill sizes="(max-width: 700px) 100vw, 33vw" quality={76} unoptimized={photo.image_url.includes('.supabase.co')} />
-            </div>
-            <figcaption><span>{String(index + 1).padStart(2, '0')}</span>{photo.caption || 'Completed NGMS project'}</figcaption>
-          </figure>)}
-        </div>
-      </section>}
 
       {comparisonPhotos.length > 0 && <section className="bg-[#F2F2F2] text-[#0D0D0D] px-5 py-16 sm:px-8 sm:py-24" aria-labelledby="ngms-before-after-title">
         <div className="mx-auto max-w-7xl">

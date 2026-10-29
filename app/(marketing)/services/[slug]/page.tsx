@@ -7,6 +7,7 @@ import { SUBURBS } from "@/lib/suburbs";
 import { SOLAR_TIERS, SOLAR_SUBURB_TO_LOCATION } from "@/lib/solar-pricing";
 import { whatsappLink } from "@/lib/site";
 import { getServiceImages, getSlotPhotos } from "@/lib/queries";
+import { FALLBACK_SERVICE_IMAGES } from "@/lib/fallback-images";
 import TrustBadges from "@/components/TrustBadges";
 import NgmsIcon from "@/components/NgmsIcon";
 import { GoogleReviews } from "@/components/home/HomeSections";
@@ -36,9 +37,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
     getServiceImages(),
     getSlotPhotos(isSolar ? ["solar_service_feature"] : []),
   ]);
-  const image = serviceImages[s.slug] || (s.slug === "solar-panel-cleaning"
-    ? "https://dfwwpqtsbaytfqptancj.supabase.co/storage/v1/object/public/gallery-photos/1788906733722-ig0pgfcjwv.jpg"
-    : null);
+  const image = serviceImages[s.slug] || FALLBACK_SERVICE_IMAGES[s.slug] || null;
   const relatedServices = SERVICES.filter((item) => item.slug !== s.slug).slice(0, 5);
   const areaHref = (sub: string) =>
     isSolar && SOLAR_SUBURB_TO_LOCATION[sub]
@@ -84,11 +83,11 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
             <div className="ngms-solar-editorial__service-image" aria-label="Solar panel cleaning feature photo">
               <Image
                 src={solarSlotPhotos.solar_service_feature?.image_url || "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=1600&q=85"}
-                alt={solarSlotPhotos.solar_service_feature?.caption || "Solar panels in bright sunlight — illustrative stock photo"}
+                alt={solarSlotPhotos.solar_service_feature?.caption || "Solar panels in bright sunlight"}
                 fill
                 sizes="(max-width: 760px) 100vw, 52vw"
                 quality={82}
-                unoptimized={(solarSlotPhotos.solar_service_feature?.image_url || "").includes(".supabase.co/storage/")}
+                unoptimized={(solarSlotPhotos.solar_service_feature?.image_url || "").includes(".supabase.co/storage/") || (solarSlotPhotos.solar_service_feature?.image_url || "").includes("images.unsplash.com")}
                 className="ngms-solar-editorial__service-photo"
               />
               <div className="ngms-solar-editorial__service-image-overlay" aria-hidden="true" />

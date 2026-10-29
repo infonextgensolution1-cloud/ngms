@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
+import { FALLBACK_GALLERY_PHOTOS } from '@/lib/fallback-images'
 
 export const metadata = {
   alternates: { canonical: '/gallery' },
@@ -16,6 +17,7 @@ type GalleryPhoto = {
   image_url: string
   caption: string | null
   service_slug: string | null
+  is_stock?: boolean
 }
 
 async function getGalleryPhotos(): Promise<GalleryPhoto[]> {
@@ -27,10 +29,11 @@ async function getGalleryPhotos(): Promise<GalleryPhoto[]> {
 
   if (error) {
     console.error('Unable to load gallery photos:', error.message)
-    return []
+    return FALLBACK_GALLERY_PHOTOS.map((photo, index) => ({ ...photo, id: `stock-${index + 1}` }))
   }
 
-  return (data as GalleryPhoto[]) ?? []
+  const usable = ((data as GalleryPhoto[]) ?? []).filter((photo) => Boolean(photo.image_url)).map((photo) => ({ ...photo, is_stock: false }))
+  return usable.length ? usable : FALLBACK_GALLERY_PHOTOS.map((photo, index) => ({ ...photo, id: `stock-${index + 1}` }))
 }
 
 function serviceLabel(slug: string | null) {
@@ -45,6 +48,7 @@ function serviceLabel(slug: string | null) {
 export default async function GalleryPage() {
   const photos = await getGalleryPhotos()
   const [leadPhoto, ...remainingPhotos] = photos
+  const hasStockPhotos = photos.some((photo) => photo.is_stock)
 
   return (
     <main className="bg-[#F7F4EF] text-[#171717]">
@@ -61,16 +65,14 @@ export default async function GalleryPage() {
         <div className="relative flex flex-1 flex-col justify-center py-14 sm:py-16">
           <p className="mb-6 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.22em] text-[#C4C1BB]">
             <span className="h-[2px] w-8 bg-[#FF6A00]" />
-            NGMS / Field archive
+            {hasStockPhotos ? 'NGMS / Service gallery' : 'NGMS / Field archive'}
           </p>
           <h1 className="max-w-[1000px] text-[clamp(4rem,11vw,10rem)] font-semibold leading-[0.78] tracking-[-0.085em] text-white">
-            Selected
-            <span className="block">Field Work</span>
-            <span className="block text-[#777570]">2026—27</span>
+            {hasStockPhotos ? <>Service<span className="block">Gallery</span><span className="block text-[#777570]">NGMS</span></> : <>Selected<span className="block">Field Work</span><span className="block text-[#777570]">2026—27</span></>}
           </h1>
           <div className="mt-10 grid gap-7 border-t border-white/20 pt-5 sm:grid-cols-[1fr_auto] sm:items-end">
             <p className="max-w-xl text-sm leading-relaxed text-[#C4C1BB] sm:text-base">
-              A working record of the details, finishes and maintenance jobs we handle across the Helderberg. Real work, captured on site.
+              {hasStockPhotos ? 'A visual guide to the solar and property maintenance services we coordinate. Verified on-site project photographs will be added as they become available.' : 'A working record of the details, finishes and maintenance jobs we handle across the Helderberg. Real work, captured on site.'}
             </p>
             <div className="font-mono text-[10px] uppercase leading-relaxed tracking-[0.12em] text-[#96938D] sm:text-right">
               <p>01 / On-site photography</p>
@@ -92,8 +94,8 @@ export default async function GalleryPage() {
         <div className="mx-auto max-w-[1280px]">
           <div className="mb-8 flex flex-col justify-between gap-5 border-b border-[#C6C1B9] pb-5 sm:flex-row sm:items-end">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#B83E00]">The archive / 01</p>
-              <h2 className="mt-3 text-4xl font-semibold leading-[0.9] tracking-[-0.065em] text-[#171717] sm:text-6xl">Work in focus.</h2>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#B83E00]">{hasStockPhotos ? 'Service gallery / 01' : 'The archive / 01'}</p>
+              <h2 className="mt-3 text-4xl font-semibold leading-[0.9] tracking-[-0.065em] text-[#171717] sm:text-6xl">{hasStockPhotos ? 'Service imagery.' : 'Work in focus.'}</h2>
             </div>
             <p className="max-w-xs font-mono text-[10px] uppercase leading-relaxed tracking-[0.1em] text-[#77736D]">
               {String(photos.length).padStart(2, '0')} {photos.length === 1 ? 'photograph' : 'photographs'} / Admin-managed collection
@@ -106,7 +108,7 @@ export default async function GalleryPage() {
                 <div className="relative aspect-[4/3] overflow-hidden bg-[#C6C3BE] sm:aspect-[16/9] lg:aspect-[1.28/1]">
                   <Image
                     src={leadPhoto.image_url}
-                    alt={leadPhoto.caption || serviceLabel(leadPhoto.service_slug) + ' by NextGen Solar Clean & Maintenance Solutions'}
+                    alt={leadPhoto.caption || serviceLabel(leadPhoto.service_slug) + ' service image'}
                     fill
                     priority
                     sizes="(max-width: 1024px) 100vw, 65vw"
@@ -114,7 +116,7 @@ export default async function GalleryPage() {
                     unoptimized
                     className="object-cover transition-transform duration-700 hover:scale-[1.025]"
                   />
-                  <span className="absolute left-4 top-4 bg-[#FF6A00] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[#171717]">Featured / 01</span>
+                  <span className="absolute left-4 top-4 bg-[#FF6A00] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[#171717]">{hasStockPhotos ? 'Service image / 01' : 'Featured / 01'}</span>
                 </div>
                 <div className="flex flex-col justify-between gap-8 py-5 lg:py-2">
                   <div>
@@ -145,14 +147,14 @@ export default async function GalleryPage() {
                         <div className="relative aspect-[4/5] overflow-hidden bg-[#C6C3BE]">
                           <Image
                             src={photo.image_url}
-                            alt={photo.caption || serviceLabel(photo.service_slug) + ' by NextGen Solar Clean & Maintenance Solutions'}
+                            alt={photo.caption || serviceLabel(photo.service_slug) + ' service image'}
                             fill
                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                             quality={75}
                             unoptimized
                             className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
                           />
-                          <span className="absolute left-3 top-3 bg-[#F7F4EF] px-2 py-1 font-mono text-[10px] text-[#171717]">{String(index + 2).padStart(2, '0')}</span>
+                          <span className="absolute left-3 top-3 bg-[#F7F4EF] px-2 py-1 font-mono text-[10px] text-[#171717]">{photo.is_stock ? 'Service image' : String(index + 2).padStart(2, '0')}</span>
                         </div>
                         <div className="flex items-start justify-between gap-3 border-b border-[#C6C1B9] py-3">
                           <div className="min-w-0">
@@ -173,7 +175,7 @@ export default async function GalleryPage() {
                 <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#B83E00]">Archive in progress / 00</p>
                 <h3 className="mt-4 max-w-xl text-4xl font-semibold leading-[0.9] tracking-[-0.065em] sm:text-6xl">Good work deserves to be seen.</h3>
                 <p className="mt-5 max-w-lg text-sm leading-relaxed text-[#55534F]">
-                  New site photographs will appear here when they are published in the admin dashboard. No sample projects or stock photos are shown as completed NGMS work.
+                  New site photographs will appear here when they are published in the admin dashboard. The gallery is reserved for verified NGMS work and project photographs.
                 </p>
               </div>
               <div className="flex h-28 w-28 items-center justify-center border border-[#BDB8B0] text-5xl font-light text-[#FF6A00]" aria-hidden="true">+</div>

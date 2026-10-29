@@ -23,7 +23,7 @@ export default function ServiceCard({
         <div className="relative aspect-[16/10] overflow-hidden bg-graphite">
           <Image
             src={image}
-            alt={s.name}
+            alt={`${s.name} service image`}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
             quality={70}

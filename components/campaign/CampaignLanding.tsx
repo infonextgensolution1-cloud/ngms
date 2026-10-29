@@ -21,6 +21,8 @@ export default function CampaignLanding({
   proofPhotos: GalleryPhoto[];
 }) {
   const whatsapp = whatsappLink(waMessage(service.name));
+  const stockHero = Boolean(heroImage?.includes("images.unsplash.com"));
+  const stockProofPhotos = proofPhotos.some((photo) => photo.is_stock);
 
   return (
     <main className="bg-jet">
@@ -28,10 +30,11 @@ export default function CampaignLanding({
         {heroImage ? (
           <Image
             src={heroImage}
-            alt={`${service.name} by NextGen in the Helderberg Basin`}
+            alt={`${service.name} service image`}
             fill
             priority
             sizes="100vw"
+            unoptimized={stockHero || heroImage?.includes(".supabase.co") || false}
             className="object-cover opacity-55"
           />
         ) : null}
@@ -109,8 +112,8 @@ export default function CampaignLanding({
           <div className="wrap py-14">
             <div className="flex items-end justify-between gap-4 mb-7">
               <div>
-                <p className="kicker">Proof of work</p>
-                <h2 className="text-3xl md:text-4xl">Recent {service.name.toLowerCase()} work.</h2>
+                <p className="kicker">Service gallery</p>
+                <h2 className="text-3xl md:text-4xl">Service images for {service.name.toLowerCase()}.</h2>
               </div>
               <Link href="/projects" className="btn-outline hidden sm:inline-flex">View projects</Link>
             </div>
@@ -118,7 +121,7 @@ export default function CampaignLanding({
               {proofPhotos.slice(0, 6).map((photo, index) => (
                 <figure key={`${photo.image_url}-${index}`} className="group overflow-hidden rounded-card border border-darkgrey bg-cardgrey">
                   <div className="relative aspect-[4/3]">
-                    <Image src={photo.image_url} alt={photo.caption || `${service.name} completed work`} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <Image src={photo.image_url} alt={photo.caption || `${service.name} service image`} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" unoptimized={photo.image_url.includes("images.unsplash.com") || photo.image_url.includes(".supabase.co")} className="object-cover transition-transform duration-500 group-hover:scale-105" />
                   </div>
                   {photo.caption ? <figcaption className="p-3 text-sm text-mist">{photo.caption}</figcaption> : null}
                 </figure>

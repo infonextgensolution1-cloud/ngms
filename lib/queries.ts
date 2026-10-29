@@ -1,4 +1,10 @@
 import { supabase } from "./ngms-public-supabase";
+import {
+  FALLBACK_GALLERY_PHOTOS,
+  FALLBACK_HERO_SLIDES,
+  FALLBACK_SERVICE_IMAGES,
+  FALLBACK_SLOT_PHOTOS,
+} from "./fallback-images";
 
 export type HeroSlide = {
   image_url: string;
@@ -10,6 +16,7 @@ export type GalleryPhoto = {
   image_url: string;
   caption: string | null;
   service_slug: string | null;
+  is_stock?: boolean;
 };
 
 export type BeforeAfter = {
@@ -28,15 +35,7 @@ export type Post = {
   content: string | null;
 };
 
-// Fallback content used only if the live Supabase fetch fails
-// (e.g. a transient network hiccup) so the page never renders empty.
-const FALLBACK_HERO: HeroSlide[] = [
-  {
-    image_url: "",
-    alt_text: "NGSMS completed project",
-    caption: "Another Project Successfully Completed",
-  },
-];
+
 
 export async function getHeroSlides(): Promise<HeroSlide[]> {
   const { data, error } = await supabase
@@ -44,8 +43,9 @@ export async function getHeroSlides(): Promise<HeroSlide[]> {
     .select("image_url, alt_text, caption")
     .eq("is_active", true)
     .order("sort_order", { ascending: true });
-  if (error || !data || data.length === 0) return FALLBACK_HERO;
-  return data as HeroSlide[];
+  if (error || !data || data.length === 0) return FALLBACK_HERO_SLIDES;
+  const usable = (data as HeroSlide[]).filter((slide) => Boolean(slide.image_url));
+  return usable.length ? usable : FALLBACK_HERO_SLIDES;
 }
 
 export async function getGalleryPhotos(limit = 24): Promise<GalleryPhoto[]> {
@@ -58,8 +58,9 @@ export async function getGalleryPhotos(limit = 24): Promise<GalleryPhoto[]> {
     .is("slot", null)
     .order("sort_order", { ascending: true })
     .limit(limit);
-  if (error || !data) return [];
-  return data as GalleryPhoto[];
+  if (error || !data) return FALLBACK_GALLERY_PHOTOS.slice(0, limit);
+  const usable = (data as GalleryPhoto[]).filter((photo) => Boolean(photo.image_url));
+  return usable.length ? usable : FALLBACK_GALLERY_PHOTOS.slice(0, limit);
 }
 
 // Photos pinned to fixed homepage positions in Admin → Media → Homepage photos.
@@ -74,10 +75,14 @@ export async function getSlotPhotos(slots: string[]): Promise<Record<string, Gal
     .select("image_url, caption, service_slug, slot")
     .eq("is_active", true)
     .in("slot", slots);
-  if (error || !data) return {};
   const map: Record<string, GalleryPhoto> = {};
-  for (const row of data as (GalleryPhoto & { slot: string })[]) {
-    map[row.slot] = row;
+  if (!error && data) {
+    for (const row of data as (GalleryPhoto & { slot: string })[]) {
+      if (row.image_url) map[row.slot] = { ...row, is_stock: false };
+    }
+  }
+  for (const slot of slots) {
+    if (!map[slot] && FALLBACK_SLOT_PHOTOS[slot]) map[slot] = FALLBACK_SLOT_PHOTOS[slot];
   }
   return map;
 }
@@ -120,8 +125,8 @@ export async function getServiceImages(): Promise<Record<string, string>> {
     .from("services")
     .select("slug, hero_image")
     .not("hero_image", "is", null);
-  if (error || !data) return {};
-  const map: Record<string, string> = {};
+  const map: Record<string, string> = { ...FALLBACK_SERVICE_IMAGES };
+  if (error || !data) return map;
   for (const row of data as { slug: string; hero_image: string | null }[]) {
     if (row.hero_image) map[row.slug] = row.hero_image;
   }
