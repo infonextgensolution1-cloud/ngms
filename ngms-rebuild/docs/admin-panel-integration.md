@@ -1,6 +1,6 @@
 # NGMS V4 admin-panel integration
 
-**Status:** preview integration work in progress  
+**Status:** admin integration code updated; current CI and Cloudflare preview build are being verified  
 **Application:** `ngms-rebuild/`  
 **Admin preview:** https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev/admin  
 **Preview API:** https://ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev  
@@ -10,7 +10,7 @@
 ## What is connected in the code
 
 - The overview requests `GET /api/admin/enquiries`, `GET /api/admin/jobs` and `GET /api/admin/documents` from the protected preview API and shows metrics only after all three reads succeed.
-- Enquiries, jobs, quotations, invoices, media and website content modules use the preview API collection client where a route is documented. Calendar, reports and settings remain unavailable because the current backend contract does not expose those datasets.
+- Enquiries, jobs, quotations, invoices, media and website content modules use the preview API collection client where a route is documented. The media table now provides an authenticated Worker open/download link for each row with a safe record identifier. Website-content JSON objects render as readable JSON. Calendar, reports and settings remain unavailable because the current backend contract does not expose those datasets.
 - The browser client accepts only HTTPS requests to the dedicated `ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev` host. A blank, malformed, or alternate target is blocked client-side; this preview cannot be pointed at the production API with the public build variable.
 - API requests use `credentials: "include"`, no-store caching, and typed checks for the collection `{ items: [] }` response shape. API errors remain errors; they are not presented as zero records.
 - The admin overview and modules expose an “Open secure API sign-in / health check” link to `/health` on the approved preview API. This opens the Access-protected API host directly, which gives the administrator a place to complete the Cloudflare Access sign-in before returning to the admin page and refreshing.
@@ -28,7 +28,7 @@
 
 ## What is not yet accepted
 
-The integration code and its safe defaults are present, but a human-browser Access login, CORS preflight, successful API reads, R2 listing/download, and create/update/upload persistence have not been independently verified from the frontend. The current tool environment could not fetch the `workers.dev` pages directly. The page-level CI workflow verifies compilation and local Docker smoke tests, not these interactive API flows.
+The integration code and its safe defaults are present, but a human-browser Access login, CORS preflight, successful API reads, R2 listing/download, and create/update/upload persistence have not been independently verified from the frontend. The current tool environment could not fetch the `workers.dev` pages directly. The page-level CI workflow verifies compilation and local Docker smoke tests, not these interactive API flows. The media open/download action is wired to the documented authenticated endpoint but is not accepted as working until that browser test passes.
 
 The four synthetic test fixtures documented in the backend contract belong only to preview D1. Their visibility from the browser has not yet been confirmed. Do not copy them into production or treat them as genuine customers, jobs, quotations or invoices.
 
