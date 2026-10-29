@@ -5,6 +5,9 @@ on:
     branches:
       - rebuild/ngms-cloudflare-first
       - preview/ngms-cloudflare-worker
+  pull_request:
+    branches:
+      - preview/ngms-cloudflare-worker
 
 permissions:
   contents: read
