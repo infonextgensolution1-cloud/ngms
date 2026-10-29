@@ -15,7 +15,7 @@
 - No false live metrics, customer names, quotation amounts, invoice balances or record writes are simulated. Calendar, reporting and settings remain marked unavailable until their contracts are implemented.
 - Compatibility screens for existing quote/maintenance/job-tracking token routes; they do not display tokens or read or mutate private records.
 - Next.js 16.4.3 and React/React DOM 19.2.9 in the isolated package; no Supabase SDK or app-side Supabase client.
-- CI workflow includes locked dependency installation, high/critical dependency audit, TypeScript validation, a Supabase source/lockfile/dependency-tree guard, a Next.js production build, Docker image build, container start and route smoke tests.
+- CI workflow includes locked dependency installation, high/critical dependency audit, TypeScript validation, a Supabase source/lockfile/dependency-tree guard, a Next.js production build, Docker image build, container start and smoke tests for the three priority pages plus the branded `/icon.svg` asset.
 
 ## Verified Cloudflare inventory (read-only)
 
@@ -35,14 +35,15 @@ See [backend-contract.md](backend-contract.md) for the verified endpoint map, sc
 
 The V4 source on `preview/ngms-cloudflare-worker` builds and deploys to the dedicated Cloudflare Worker:
 
-- Cloudflare Workers Build: `842272af-9200-4b7d-8231-63145e92d88a` — **success**, source commit `d464ab51a17635677f8530d98c0a2d824e1ae1ea`.
-- Active preview Worker version: `498aa4f7-5e0f-4c90-a1c7-3ecdedcc81b2` (100% traffic on the preview Worker).
-- GitHub Actions V4 CI run: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40904904067 — **success** for dependency audit, TypeScript, Supabase guard, Next.js build, Docker build and Docker route smoke tests.
-- Docker smoke tests confirmed HTTP 200 and expected page markers for `/services/solar-panel-cleaning`, `/maintenance-packages` and `/body-corporate-maintenance`.
-- Vercel preview for source commit `d464ab51a17635677f8530d98c0a2d824e1ae1ea` is also **Ready**, but Cloudflare remains the chosen R0 hosting path.
-- Production alias `www.nextgensolarmaintenance.co.za` remains mapped to the existing production Vercel deployment; it has not been switched to V4.
+- Latest Cloudflare Workers Build: `e05f302a-3339-4a72-b223-49b5f357f6b5` — **success**, source commit `221af794990af37c1bb7a7c11f52d8df1bda0105`.
+- Active preview Worker version: `f09552d0-8541-4bc8-a7ea-053a182bd6b7` (100% traffic on the preview Worker).
+- Previously confirmed GitHub Actions V4 CI run: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40904904067 — **success** for dependency audit, TypeScript, Supabase guard, Next.js build, Docker build and smoke tests for the three priority pages. That run predates the icon check added below.
+- Docker smoke tests previously confirmed HTTP 200 and expected page markers for `/services/solar-panel-cleaning`, `/maintenance-packages` and `/body-corporate-maintenance`.
+- Runtime telemetry review found 308 HTTP 200 responses and one HTTP 404 in the sampled 24-hour window; the 404 was specifically `/favicon.ico`. Added the NGMS-branded `app/icon.svg`. The successful Cloudflare build generated `/icon.svg` and uploaded the icon asset.
+- The CI workflow now also checks `/icon.svg` for HTTP 200 and an SVG payload. The latest run for this new workflow revision has not yet been independently confirmed, so the branch should not be described as fully green until that result is checked.
+- Production remains separate: V4 is on its dedicated `workers.dev` preview URL. This work did not switch the public domain or alter production resources.
 
-This confirms build/runtime route smoke tests, not full browser acceptance. The tools used for this run could not resolve/fetch the `workers.dev` preview pages directly, so visual regression and real browser authentication/API tests have not been independently completed.
+This confirms a successful Cloudflare build/deployment and the earlier container route tests, not full browser acceptance. The tools used for this run still could not fetch the `workers.dev` preview pages directly, so visual regression and real browser authentication/API tests have not been independently completed.
 
 ## Outstanding acceptance tests
 
@@ -78,5 +79,5 @@ This confirms build/runtime route smoke tests, not full browser acceptance. The 
 - A Vercel preview now exists, but the project remains on the Cloudflare Workers free-tier path to avoid recurring hosting costs.
 - The rebuild is deployed to Cloudflare Workers and has passed the Next.js build, Docker build, and route smoke checks. It has not yet been exercised from an authorised human browser session; real Access login, cross-origin browser requests, API reads and R2 upload/read remain not run.
 - No public quote submission is enabled; the existing intake Worker shares production D1. A separate staged intake endpoint and Turnstile configuration are required.
-- Latest changes after the earlier passing CI run (brand assets, admin forms, preview backend docs/banner) require a fresh CI run; use the latest Actions result before claiming the current branch is green.
+- The latest workflow revision adds a dedicated `/icon.svg` smoke test. Its result has not yet been independently confirmed; check the latest Actions run before claiming the current branch is green.
 - Desktop/mobile visual inspection, accessibility, performance, full SEO crawl, workflow regression, restore rehearsal and final release checklist are still pending.
