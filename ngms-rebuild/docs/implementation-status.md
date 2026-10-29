@@ -63,3 +63,24 @@ The subsequent logo, solar image, homepage parity and documentation changes trig
 5. Implement the approved create/update/media upload flows only after staging tests; run end-to-end enquiry → quotation → job → invoice tests with synthetic data.
 6. Review SEO URL parity, WCAG 2.2 AA baseline, performance metrics, security/privacy and backup/restore.
 7. Require explicit release-candidate and production approval. Do not merge/promote or change the public domain as part of this work without approval.
+
+
+---
+
+## Staging environment update — 29 October 2026
+
+### Created and verified via Cloudflare API
+- Isolated preview Worker `ngms-admin-api-preview` using the existing admin Worker code with its CORS allowlist changed to `https://ngms-rebuild-preview.vercel.app`.
+- Separate Cloudflare Access application `NGMS Rebuild Preview API` with the same single-administrator allow policy; Worker JWT validation remains enabled.
+- Separate D1 database `ngms-admin-preview` (UUID `f12c5c48-58cd-4c48-82de-8c7341b8e6cf`) with the five inspected table shapes.
+- Separate R2 bucket `ngmsmedia-preview`, bound to the staging Worker.
+- Four synthetic QA fixtures in staging D1 only (enquiry, job, draft quote, sent invoice), all clearly tagged as preview-only. No production data was copied or changed.
+- Added frontend create/status/media helper functions; UI controls are feature-gated and remain disabled unless `NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=true`. That environment flag has not been set.
+- Admin module screens now include create forms for enquiries, jobs, quotations and invoices; status editor controls when the feature gate is enabled; and a preview media upload control. These controls are **not enabled in the currently unconfigured app**.
+
+### Pending / blocked
+- The connected Vercel integration previously returned 403 while inspecting the older preview and creating the new project. Owner-side Vercel team authorisation is still required.
+- No rebuild preview website has been deployed yet and the preview Worker has not been exercised from an authorised browser session. Access login, browser CORS, API reads/writes and R2 upload/read remain not run.
+- No public quote submission is enabled; the existing intake Worker shares production D1. A separate staged intake endpoint and Turnstile configuration are required.
+- Latest changes after the earlier passing CI run (brand assets, admin forms, preview backend docs/banner) require a fresh CI run; use the latest Actions result before claiming the current branch is green.
+- Desktop/mobile visual inspection, accessibility, performance, full SEO crawl, workflow regression, restore rehearsal and final release checklist are still pending.
