@@ -33,15 +33,15 @@ See [backend-contract.md](backend-contract.md) for the verified endpoint map, sc
 
 ## CI evidence
 
-The completed GitHub Actions run for commit `09691795c79cd2622caf0c520ac6d2315bf6fa0d` passed:
+The latest completed GitHub Actions run for commit `2cc30319507a9e46f390117691736ea846b29a2e` passed:
 - Dependency security audit
 - TypeScript validation
-- Supabase-reference guard
+- Supabase-reference guard in the isolated app, including its lockfile and installed dependency tree
 - Next.js production build
 
-Evidence: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40801258292
+Evidence: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40803803963
 
-The subsequent logo, solar image, homepage parity and documentation changes trigger another CI run; use the branch's latest Actions run to verify those changes before treating them as checked.
+This confirms the committed application builds and passes its configured CI checks. It does **not** replace browser QA: Vercel preview deployment, Cloudflare Access login, browser CORS, live API reads/writes, media upload/download and visual/accessibility checks remain pending.
 
 ## Explicitly not complete / not verified
 
