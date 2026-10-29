@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { publicNav, site } from "@/lib/site";
+import { LOGO_DATA_URI } from "@/lib/logo";
 
 export function Brand() {
-  return <Link href="/" className="brand" aria-label="NGMS — home"><span className="brand-mark" aria-hidden="true">N<span>G</span></span><span className="brand-copy"><strong>NGMS</strong><small>MAINTENANCE SOLUTIONS</small></span></Link>;
+  return <Link href="/" className="brand" aria-label="NGMS — home"><img src={LOGO_DATA_URI} alt="" width={160} height={56} className="brand-logo" /></Link>;
 }
 export function PublicShell({children,active}:{children:ReactNode;active?:string}) {
   return <div className="public-app">
