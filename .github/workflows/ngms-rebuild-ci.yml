@@ -1,0 +1,44 @@
+name: NGMS Cloudflare-first Rebuild CI
+
+on:
+  push:
+    branches:
+      - rebuild/ngms-cloudflare-first
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ngms-rebuild-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Typecheck, Supabase guard and production build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ngms-rebuild
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install dependencies
+        run: npm install
+      - name: Dependency security audit
+        run: npm audit --audit-level=high
+      - name: TypeScript validation
+        run: npm run typecheck
+      - name: Ensure rebuild has no Supabase dependencies
+        run: |
+          if grep -RniE 'supabase|NEXT_PUBLIC_SUPABASE' app components lib package.json package-lock.json next.config.mjs postcss.config.mjs .env.example; then
+            echo "Supabase reference found in isolated rebuild source or dependencies."
+            exit 1
+          fi
+          if npm ls @supabase/supabase-js --parseable --all 2>/dev/null | grep -q .; then
+            echo "Supabase SDK found in the installed dependency tree."
+            exit 1
+          fi
+      - name: Build Next.js application
+        run: npm run build
