@@ -3,7 +3,7 @@
 **Updated:** 29 October 2026  
 **Current preview branch:** `preview/ngms-cloudflare-worker`  
 **App root:** `ngms-rebuild/`  
-**Production boundary:** no production website, DNS, Vercel production alias, Worker configuration, D1 schema or customer record has been changed by the rebuild work.
+**Production boundary:** no production website, DNS, Vercel production alias, Worker configuration, D1 schema or customer record has been changed by the rebuild work. Existing repository PR [#274](https://github.com/infonextgensolution1-cloud/ngms/pull/274) (“Preview/ngms cloudflare worker”) remains open and unmerged; it is not approval to merge or cut over. Do not merge or change public routing until the mandatory release gate in [v4-acceptance-matrix.md](v4-acceptance-matrix.md) is complete and production release is explicitly approved.
 
 ## Acceptance control
 
