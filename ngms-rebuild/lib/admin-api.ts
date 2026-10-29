@@ -88,6 +88,12 @@ export function adminApiConfigurationMessage(): string {
   }
 }
 
+export function getAdminMediaDownloadUrl(id: unknown): string {
+  const base = getAdminApiBase();
+  if (typeof id !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(id) || !base) return "";
+  return `${base}/api/admin/media/${encodeURIComponent(id)}/download`;
+}
+
 export async function readAdminCollection(
   resource: AdminResource,
   signal?: AbortSignal
