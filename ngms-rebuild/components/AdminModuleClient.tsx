@@ -108,11 +108,12 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   },
 };
 
-const STATUS_OPTIONS: Record<"enquiries" | "jobs" | "documents", string[]> = {
+const STATUS_OPTIONS: Record<"enquiries" | "jobs", string[]> = {
   enquiries: ["New", "Contacted", "Quoted", "Converted", "Closed"],
   jobs: ["New", "Quoted", "In progress", "Completed", "Cancelled"],
-  documents: ["Draft", "Sent", "Accepted", "Declined", "Expired", "Paid", "Overdue", "Cancelled"],
 };
+const QUOTE_STATUS_OPTIONS = ["Draft", "Sent", "Accepted", "Declined", "Expired", "Cancelled"];
+const INVOICE_STATUS_OPTIONS = ["Draft", "Sent", "Paid", "Overdue", "Cancelled"];
 
 function displayValue(key: string, value: unknown): string {
   if (value === null || value === undefined || value === "") return "—";
@@ -133,14 +134,15 @@ function displayValue(key: string, value: unknown): string {
 }
 
 function StatusEditor({
-  resource, row, onSaved,
+  resource, row, onSaved, statusOptions,
 }: {
   resource: "enquiries" | "jobs" | "documents";
   row: AdminRow;
   onSaved: () => void;
+  statusOptions: string[];
 }) {
-  const allowed = STATUS_OPTIONS[resource];
-  const initial = typeof row.status === "string" && allowed.includes(row.status) ? row.status : allowed[0];
+  const allowed = statusOptions;
+  const initial = typeof row.status === "string" ? row.status : "";
   const [value, setValue] = useState(initial);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -161,9 +163,11 @@ function StatusEditor({
   return <div className="status-editor">
     <label className="sr-only" htmlFor={"status-"+String(row.id)}>New status for {String(row.id ?? "record")}</label>
     <select id={"status-"+String(row.id)} value={value} onChange={(event)=>setValue(event.target.value)} disabled={!previewWritesEnabled()||saving}>
+      {value && !allowed.includes(value) && <option value={value} disabled>Current status: {value}</option>}
+      <option value="" disabled>Choose status</option>
       {allowed.map((status)=><option key={status} value={status}>{status}</option>)}
     </select>
-    <button type="button" className="button button-small" onClick={save} disabled={!previewWritesEnabled()||saving||!row.id||value===row.status}>{saving?"Saving…":"Save status"}</button>
+    <button type="button" className="button button-small" onClick={save} disabled={!previewWritesEnabled()||saving||!row.id||!allowed.includes(value)||value===row.status}>{saving?"Saving…":"Save status"}</button>
     {message&&<small className="inline-feedback" role="status">{message}</small>}
   </div>;
 }
@@ -328,7 +332,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       :rows.length===0?<div className="table-empty"><span aria-hidden="true">▤</span><h2>NO RECORDS RETURNED.</h2><p>The protected API returned an empty collection for this module. This is not an API error.</p></div>
       :visibleRows.length===0?<div className="table-empty"><span aria-hidden="true">⌕</span><h2>NO MATCHES.</h2><p>Try a different search term.</p></div>
       :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&<th>Preview action</th>}</tr></thead>
-        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents"].includes(module.resource)&&<td><StatusEditor resource={module.resource as "enquiries"|"jobs"|"documents"} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
+        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents"].includes(module.resource)&&<td><StatusEditor resource={module.resource as "enquiries"|"jobs"|"documents"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
     </section>
     {moduleKey==="invoices"&&<p className="module-footnote">The inspected document schema stores invoice face value and status, but has no partial-payment ledger. This screen does not calculate a reconciled amount due.</p>}
     {moduleKey==="content"&&<p className="module-footnote">Content editing remains disabled until optimistic concurrency, publish/rollback and the owner-approved field schema are implemented.</p>}
