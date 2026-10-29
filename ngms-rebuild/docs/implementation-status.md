@@ -5,6 +5,10 @@
 **App root:** `ngms-rebuild/`  
 **Production boundary:** no production website, DNS, Vercel production alias, Worker configuration, D1 schema or customer record has been changed by the rebuild work.
 
+## Acceptance control
+
+Use [v4-acceptance-matrix.md](v4-acceptance-matrix.md) as the requirement-to-evidence checklist. The matrix records implemented scope separately from verified tests and keeps the release state **PREVIEW ONLY — NOT APPROVED FOR PRODUCTION** until the mandatory release checks pass.
+
 ## Implemented in the isolated app
 
 - NGMS public shell with the brand's embedded logo, navigation, footer, mobile contact CTA and consistent orange/black/white/warm-neutral styling.
