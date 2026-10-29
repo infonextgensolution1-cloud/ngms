@@ -33,8 +33,59 @@ export class AdminApiError extends Error {
   }
 }
 
+const PREVIEW_ADMIN_API_HOST = "ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev";
+
 export function getAdminApiBase(): string {
-  return (process.env.NEXT_PUBLIC_NGMS_API_BASE ?? "").trim().replace(/\/+$/, "");
+  const configured = (process.env.NEXT_PUBLIC_NGMS_API_BASE ?? "").trim();
+  if (!configured) return "";
+
+  try {
+    const url = new URL(configured);
+    if (
+      url.protocol !== "https:" ||
+      url.hostname !== PREVIEW_ADMIN_API_HOST ||
+      url.port ||
+      url.username ||
+      url.password ||
+      url.pathname !== "/" ||
+      url.search ||
+      url.hash
+    ) {
+      return "";
+    }
+    return url.origin;
+  } catch {
+    return "";
+  }
+}
+
+export function getAdminApiHealthUrl(): string {
+  const base = getAdminApiBase();
+  return base ? `${base}/health` : "";
+}
+
+export function adminApiConfigurationMessage(): string {
+  const configured = (process.env.NEXT_PUBLIC_NGMS_API_BASE ?? "").trim();
+  if (!configured) return "The preview API URL is not configured.";
+
+  try {
+    const url = new URL(configured);
+    if (
+      url.protocol !== "https:" ||
+      url.hostname !== PREVIEW_ADMIN_API_HOST ||
+      url.port ||
+      url.username ||
+      url.password ||
+      url.pathname !== "/" ||
+      url.search ||
+      url.hash
+    ) {
+      return "The configured API target is blocked. This preview admin only connects to the approved HTTPS preview API host; no request was sent.";
+    }
+    return "The preview API configuration is valid.";
+  } catch {
+    return "The preview API URL is invalid. No request was sent.";
+  }
 }
 
 export async function readAdminCollection(
@@ -44,7 +95,7 @@ export async function readAdminCollection(
   const base = getAdminApiBase();
   if (!base) {
     throw new AdminApiError(
-      "The protected Cloudflare API base URL is not configured for this preview.",
+      "The preview API URL is missing or not the approved HTTPS preview host. No request was sent.",
       "not-configured"
     );
   }
