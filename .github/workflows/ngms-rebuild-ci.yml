@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   build:
-    name: Typecheck, Supabase guard, Next.js and Docker builds
+    name: Typecheck, Supabase guard, Next.js, Docker and route smoke tests
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -47,3 +47,53 @@ jobs:
         run: npm run build
       - name: Build Coolify-compatible Docker image
         run: docker build --file Dockerfile --tag ngms-rebuild-coolify-smoke .
+
+      - name: Start Docker image and smoke-test V4 routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          container_name="ngms-rebuild-smoke-${GITHUB_RUN_ID}"
+          cleanup() {
+            docker logs "$container_name" 2>/dev/null || true
+            docker rm --force "$container_name" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          docker run --detach --name "$container_name" \
+            --publish 127.0.0.1:3000:3000 \
+            ngms-rebuild-coolify-smoke
+
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:3000/ >/dev/null 2>&1; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            echo "Container did not become ready within 60 seconds."
+            exit 1
+          fi
+
+          check_route() {
+            local route="$1"
+            local marker="$2"
+            local output="/tmp/ngms-route-check.html"
+            local status
+            status="$(curl --silent --show-error --output "$output" --write-out '%{http_code}' "http://127.0.0.1:3000$route")"
+            if [ "$status" != "200" ]; then
+              echo "Route $route returned HTTP $status (expected 200)."
+              return 1
+            fi
+            if ! grep -qi "$marker" "$output"; then
+              echo "Route $route returned 200 but expected page marker '$marker' was absent."
+              return 1
+            fi
+            echo "PASS: $route returned HTTP 200 and marker '$marker'."
+          }
+
+          check_route "/services/solar-panel-cleaning" "SOLAR PANEL CLEANING"
+          check_route "/maintenance-packages" "PLANNED"
+          check_route "/body-corporate-maintenance" "BODY CORPORATES"
