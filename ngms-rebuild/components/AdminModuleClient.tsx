@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
   AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, createAdminRecord, getAdminApiBase,
-  getAdminApiHealthUrl, previewWritesEnabled, readAdminCollection, updateAdminStatus, uploadAdminMedia,
+  getAdminApiHealthUrl, getAdminMediaDownloadUrl, previewWritesEnabled, readAdminCollection, updateAdminStatus, uploadAdminMedia,
 } from "@/lib/admin-api";
 import { services } from "@/lib/site";
 
@@ -129,7 +129,11 @@ function displayValue(key: string, value: unknown): string {
     const parsed = new Date(value);
     return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString("en-ZA", { dateStyle: "medium", timeStyle: "short" });
   }
-  if (key === "content_json" && typeof value === "string" && value.length > 100) return value.slice(0, 100) + "…";
+  if (key === "content_json") {
+    const serialized = typeof value === "string" ? value : JSON.stringify(value);
+    if (serialized === undefined) return "—";
+    return serialized.length > 100 ? serialized.slice(0, 100) + "…" : serialized;
+  }
   return String(value);
 }
 
@@ -331,8 +335,8 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       :!apiConfigured?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>CONNECT THE PREVIEW API.</h2><p>Set the non-secret API base URL in Vercel Preview. Cloudflare Access and the preview origin allowlist must also match.</p></div>
       :rows.length===0?<div className="table-empty"><span aria-hidden="true">▤</span><h2>NO RECORDS RETURNED.</h2><p>The protected API returned an empty collection for this module. This is not an API error.</p></div>
       :visibleRows.length===0?<div className="table-empty"><span aria-hidden="true">⌕</span><h2>NO MATCHES.</h2><p>Try a different search term.</p></div>
-      :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&<th>Preview action</th>}</tr></thead>
-        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents"].includes(module.resource)&&<td><StatusEditor resource={module.resource as "enquiries"|"jobs"|"documents"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
+      :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<th>File action</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&<th>Preview action</th>}</tr></thead>
+        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<td>{getAdminMediaDownloadUrl(row.id)?<a className="text-link" href={getAdminMediaDownloadUrl(row.id)} target="_blank" rel="noopener noreferrer">Open / download ↗</a>:<span className="inline-feedback">File link unavailable</span>}</td>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents"].includes(module.resource)&&<td><StatusEditor resource={module.resource as "enquiries"|"jobs"|"documents"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
     </section>
     {moduleKey==="invoices"&&<p className="module-footnote">The inspected document schema stores invoice face value and status, but has no partial-payment ledger. This screen does not calculate a reconciled amount due.</p>}
     {moduleKey==="content"&&<p className="module-footnote">Content editing remains disabled until optimistic concurrency, publish/rollback and the owner-approved field schema are implemented.</p>}
