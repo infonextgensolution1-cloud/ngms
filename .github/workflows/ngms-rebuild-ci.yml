@@ -1,10 +1,11 @@
-name: NGMS Cloudflare-first Rebuild CI
+name: NGMS Rebuild CI (Next.js, Supabase guard and Docker)
 
 on:
   push:
     branches:
       - rebuild/ngms-cloudflare-first
       - preview/ngms-cloudflare-worker
+      - preview/ngms-coolify
 
 permissions:
   contents: read
