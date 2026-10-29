@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminRow, adminApiErrorMessage, getAdminApiBase, readAdminCollection } from "@/lib/admin-api";
 
-type ModuleKey =
+export type AdminModuleKey =
   | "enquiries" | "jobs" | "quotes" | "invoices" | "calendar"
   | "media" | "content" | "reports" | "settings";
 
@@ -17,7 +17,7 @@ type ModuleDefinition = {
   columns: Column[];
 };
 
-const MODULES: Record<ModuleKey, ModuleDefinition> = {
+const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   enquiries: {
     title: "Enquiries & customers",
     description: "Review incoming requests, qualification details and customer history.",
@@ -126,7 +126,7 @@ function displayValue(key: string, value: unknown): string {
   return String(value);
 }
 
-export default function AdminModuleClient({ moduleKey }: { moduleKey: ModuleKey }) {
+export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModuleKey }) {
   const module = MODULES[moduleKey];
   const [rows, setRows] = useState<AdminRow[]>([]);
   const [loading, setLoading] = useState(false);
