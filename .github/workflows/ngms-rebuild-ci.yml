@@ -7,7 +7,7 @@ on:
       - preview/ngms-cloudflare-worker
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ngms-rebuild-${{ github.ref }}
@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   build:
-    name: Typecheck, Supabase guard and production build
+    name: Typecheck, Supabase guard, Next.js and Docker builds
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -25,28 +25,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Install dependencies
-        run: npm install
-      - name: Commit generated package lock on isolated preview branch
-        if: github.ref == 'refs/heads/preview/ngms-cloudflare-worker'
-        working-directory: .
-        run: |
-          if ! git ls-files --error-unmatch ngms-rebuild/package-lock.json >/dev/null 2>&1; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add ngms-rebuild/package-lock.json
-            if ! git diff --cached --quiet; then
-              git commit -m "build: add generated lockfile for Cloudflare preview"
-              git push origin "HEAD:${GITHUB_REF_NAME}"
-            fi
-          fi
+          cache: npm
+          cache-dependency-path: ngms-rebuild/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
       - name: Dependency security audit
         run: npm audit --audit-level=high
       - name: TypeScript validation
         run: npm run typecheck
       - name: Ensure rebuild has no Supabase dependencies
         run: |
-          if grep -RniE 'supabase|NEXT_PUBLIC_SUPABASE' app components lib package.json package-lock.json next.config.mjs postcss.config.mjs .env.example wrangler.jsonc; then
+          if grep -RniE 'supabase|NEXT_PUBLIC_SUPABASE' app components lib package.json package-lock.json next.config.mjs postcss.config.mjs .env.example wrangler.jsonc Dockerfile; then
             echo "Supabase reference found in isolated rebuild source or dependencies."
             exit 1
           fi
@@ -56,3 +45,5 @@ jobs:
           fi
       - name: Build Next.js application
         run: npm run build
+      - name: Build Coolify-compatible Docker image
+        run: docker build --file Dockerfile --tag ngms-rebuild-coolify-smoke .
