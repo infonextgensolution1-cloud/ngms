@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AdminRow, adminApiErrorMessage, getAdminApiBase, readAdminCollection } from "@/lib/admin-api";
+import { AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, getAdminApiBase, getAdminApiHealthUrl, readAdminCollection } from "@/lib/admin-api";
 
 type DashboardData = { enquiries: AdminRow[]; jobs: AdminRow[]; documents: AdminRow[] };
 type LoadState =
@@ -30,7 +30,7 @@ export default function AdminDashboardClient() {
   useEffect(() => {
     const controller = new AbortController();
     if (!getAdminApiBase()) {
-      setState({ status: "not-configured", message: "Set the preview API URL only after confirming the Worker host, Access policy and preview origin allowlist." });
+      setState({ status: "not-configured", message: adminApiConfigurationMessage() + " The dashboard will not call an unapproved host." });
       return () => controller.abort();
     }
     setState({ status: "loading", message: "Retrieving live metrics from the protected Cloudflare API." });
@@ -80,6 +80,7 @@ export default function AdminDashboardClient() {
   const metricValue = (value: number | string | undefined) => apiIsReady && value !== undefined ? value : "—";
   const recentEnquiries = metrics?.recentEnquiries ?? [];
   const recentJobs = metrics?.recentJobs ?? [];
+  const apiHealthUrl = getAdminApiHealthUrl();
 
   return <div className="admin-page">
     <div className="admin-headline">
@@ -87,7 +88,7 @@ export default function AdminDashboardClient() {
       <div className="admin-head-actions"><Link className="button button-orange" href="/admin/enquiries">Review enquiries ↗</Link><button className="button button-outline button-dark-outline" type="button" onClick={() => setRefreshVersion(v=>v+1)} disabled={state.status==="loading"}>Refresh data</button></div>
     </div>
 
-    <div className="api-notice" role="status"><span className="notice-dot" aria-hidden="true"/><div><strong>{state.status==="ready"?"Cloudflare API connected":state.status==="loading"?"Connecting to Cloudflare API":state.status==="error"?"Live data unavailable":"Preview integration pending"}</strong><p>{state.message}</p></div></div>
+    <div className="api-notice" role="status"><span className="notice-dot" aria-hidden="true"/><div><strong>{state.status==="ready"?"Cloudflare API connected":state.status==="loading"?"Connecting to Cloudflare API":state.status==="error"?"Live data unavailable":"Preview integration pending"}</strong><p>{state.message}</p>{apiHealthUrl&&<p><a className="text-link" href={apiHealthUrl} target="_blank" rel="noopener noreferrer">Open secure API sign-in / health check ↗</a> <span className="module-footnote">After signing in, return here and refresh data.</span></p>}</div></div>
 
     <section className="metric-grid" aria-label="Business metrics">
       <article className="metric-card"><span className="metric-label">Enquiries</span><strong>{metricValue(metrics?.enquiries)}</strong><small>{apiIsReady ? `${metrics?.newEnquiries ?? 0} new to review` : "API data not confirmed"}</small></article>
