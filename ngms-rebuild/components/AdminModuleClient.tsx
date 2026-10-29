@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AdminRow, adminApiErrorMessage, createAdminRecord, getAdminApiBase,
-  previewWritesEnabled, readAdminCollection, updateAdminStatus, uploadAdminMedia,
+  AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, createAdminRecord, getAdminApiBase,
+  getAdminApiHealthUrl, previewWritesEnabled, readAdminCollection, updateAdminStatus, uploadAdminMedia,
 } from "@/lib/admin-api";
 import { services } from "@/lib/site";
 
@@ -182,6 +182,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
   const apiConfigured = Boolean(getAdminApiBase());
+  const apiHealthUrl = getAdminApiHealthUrl();
   const writesEnabled = previewWritesEnabled();
   const hasReadEndpoint = Boolean(module.resource);
   const canCreate = ["enquiries", "jobs", "quotes", "invoices"].includes(moduleKey);
@@ -238,8 +239,14 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       payload.email = String(data.get("email") ?? "").trim();
     }
     if (moduleKey === "quotes" || moduleKey === "invoices") {
+      const amount = Number(data.get("amount"));
+      const amountCents = Math.round(amount * 100);
+      if (!Number.isFinite(amount) || amount < 0 || amount > 100_000_000 || !Number.isSafeInteger(amountCents)) {
+        setActionError("Enter a valid non-negative ZAR amount within the supported limit.");
+        return;
+      }
       payload.kind = module.kind;
-      payload.amount = Number(data.get("amount"));
+      payload.amount_cents = amountCents;
     }
     setSaving(true);
     setActionMessage("");
@@ -284,7 +291,8 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     <div className="api-notice" role="status">
       <span className="notice-dot" aria-hidden="true"/>
       <div><strong>{error ? "API data is unavailable" : loading ? "Loading records" : !module.resource ? "API route not implemented" : !apiConfigured ? "Preview integration pending" : "Read-only API connection"}</strong>
-        <p>{error ? error : !module.resource ? "The Worker does not expose this module. No demo records are displayed." : !apiConfigured ? "Set NEXT_PUBLIC_NGMS_API_BASE in the protected preview environment; no data is simulated." : "Reads use the protected preview Worker. Any write controls remain disabled by default until preview authentication and persistence tests are approved."}</p>
+        <p>{error ? error : !module.resource ? "The Worker does not expose this module. No demo records are displayed." : !apiConfigured ? adminApiConfigurationMessage() + " No request was sent and no data is simulated." : "Reads use the approved preview Worker. Any write controls remain disabled by default until preview authentication and persistence tests are approved."}</p>
+        {apiHealthUrl&&<p><a className="text-link" href={apiHealthUrl} target="_blank" rel="noopener noreferrer">Open secure API sign-in / health check ↗</a> <span className="module-footnote">After signing in, return here and refresh records.</span></p>}
       </div>
     </div>
 
