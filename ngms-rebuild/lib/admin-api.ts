@@ -110,3 +110,86 @@ export function adminApiErrorMessage(error: unknown): string {
   if (error.status && error.status >= 500) return "The Cloudflare API reported a server error. No record changes were made by this read request.";
   return error.message;
 }
+
+
+export function previewWritesEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES === "true";
+}
+
+async function readMutationResponse(response: Response): Promise<AdminRow> {
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message =
+      body && typeof body === "object" && "error" in body &&
+      typeof (body as { error?: unknown }).error === "string"
+        ? (body as { error: string }).error
+        : `Cloudflare API returned HTTP ${response.status}.`;
+    throw new AdminApiError(message, "http", response.status);
+  }
+  if (!body || typeof body !== "object" || !("item" in body) ||
+      !(body as { item?: unknown }).item ||
+      typeof (body as { item?: unknown }).item !== "object") {
+    throw new AdminApiError("The API response did not match the expected { item: {} } contract.", "invalid-response", response.status);
+  }
+  return (body as { item: AdminRow }).item;
+}
+
+async function mutationFetch(path: string, init: RequestInit): Promise<AdminRow> {
+  if (!previewWritesEnabled()) {
+    throw new AdminApiError("Preview write actions are disabled until staging authentication and persistence checks are complete.", "not-configured");
+  }
+  const base = getAdminApiBase();
+  if (!base) throw new AdminApiError("The protected Cloudflare API base URL is not configured for this preview.", "not-configured");
+  let response: Response;
+  try {
+    response = await fetch(`${base}${path}`, {
+      ...init,
+      credentials: "include",
+      cache: "no-store",
+      headers: { Accept: "application/json", ...(init.headers ?? {}) },
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") throw error;
+    throw new AdminApiError("The API request failed. No success has been assumed.", "network");
+  }
+  return readMutationResponse(response);
+}
+
+export async function createAdminRecord(
+  resource: "enquiries" | "jobs" | "documents",
+  payload: Record<string, unknown>
+): Promise<AdminRow> {
+  return mutationFetch(`/api/admin/${resource}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateAdminStatus(
+  resource: "enquiries" | "jobs" | "documents",
+  id: string,
+  status: string
+): Promise<AdminRow> {
+  if (!/^[A-Za-z0-9-]{1,100}$/.test(id)) {
+    throw new AdminApiError("The record identifier is not valid.", "invalid-response");
+  }
+  return mutationFetch(`/api/admin/${resource}/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+}
+
+export async function uploadAdminMedia(file: File): Promise<AdminRow> {
+  const accepted = new Set(["image/jpeg", "image/png", "image/webp", "image/avif", "application/pdf"]);
+  if (!accepted.has(file.type)) {
+    throw new AdminApiError("Unsupported file type. Use JPEG, PNG, WebP, AVIF or PDF.", "invalid-response");
+  }
+  if (file.size < 1 || file.size > 10 * 1024 * 1024) {
+    throw new AdminApiError("File must be between 1 byte and 10 MB.", "invalid-response");
+  }
+  const form = new FormData();
+  form.append("file", file);
+  return mutationFetch("/api/admin/media", { method: "POST", body: form });
+}
