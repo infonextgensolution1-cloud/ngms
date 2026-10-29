@@ -23,9 +23,9 @@ Status meanings:
 |---|---|---|---|---|
 | BP-01 | Preserve the existing public website while V4 is built separately. | **PASS** | The public alias `www.nextgensolarmaintenance.co.za` still maps to the existing Vercel deployment; V4 is on its dedicated Cloudflare `workers.dev` preview. | Keep the production alias and production data untouched until an explicitly approved release plan. Recheck the alias before cutover. |
 | BP-02 | NGMS industrial identity: black, white and orange; consistent logo, typography and calls to action. | **PARTIAL** | Brand styles, embedded brand mark, navigation and shared page shell exist in `ngms-rebuild/`. | Compare every target page with the approved brand/reference screenshots in desktop and mobile browsers; record visual sign-off. |
-| BP-03 | Separate V4 code and preview backend; do not depend on Supabase. | **PASS for source/deployment separation; latest CI recheck pending** | The isolated app records no Supabase SDK/client; the CI has a source/lockfile/dependency-tree guard. Earlier CI run passed that guard. | Confirm latest Actions run passes the Supabase guard and audit. Keep production legacy Supabase issues separate from V4 acceptance. |
+| BP-03 | Separate V4 code and preview backend; do not depend on Supabase. | **PASS for source/deployment separation and current V4 CI check** | The isolated app records no Supabase SDK/client. V4 acceptance CI run #80 passed the source/lockfile/dependency-tree guard and dependency audit. | Keep production legacy Supabase issues separate from V4 acceptance; rerun the guard for future code changes. |
 | BP-04 | Stay within the R0/monthly additional-cost requirement using free-tier services where practical. | **PARTIAL** | Cloudflare Workers preview is deployed; preview D1/R2 resources are separate. | Verify current account plan, quota, billing alerts and any paid services/connectors before launch. Free-tier intent is not a promise that usage can never incur cost. |
-| BP-05 | Mobile-responsive, accessible public website and admin interface. | **PARTIAL** | Responsive styles and mobile navigation/CTA exist; keyboard focus styling and skip-link styling are present. | Browser-check at 320, 375, 768, 1024 and desktop widths; test keyboard-only navigation, zoom, labels, contrast, screen-reader basics and WCAG 2.2 AA issues. |
+| BP-05 | Mobile-responsive, accessible public website and admin interface. | **PARTIAL** | Responsive styles and mobile navigation/CTA exist; CSS contains focus and `.skip-link` styling. The rendered skip link and real-browser keyboard behavior have not been independently verified. | Browser-check at 320, 375, 768, 1024 and desktop widths; test keyboard-only navigation, zoom, labels, contrast, screen-reader basics and WCAG 2.2 AA issues. |
 
 ## 2. Public website and services
 
@@ -81,7 +81,7 @@ Status meanings:
 |---|---|---|---|
 | TEST-01 | Cloudflare production build and deployment for V4 preview. | **PASS** | Build `e05f302a-3339-4a72-b223-49b5f357f6b5` succeeded for commit `221af794990af37c1bb7a7c11f52d8df1bda0105`; Worker version `f09552d0-8541-4bc8-a7ea-053a182bd6b7` is assigned 100% of preview Worker traffic. |
 | TEST-02 | Previous GitHub Actions CI checks for three priority routes. | **PASS for that recorded run** | Run https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40904904067 passed dependency audit, TypeScript, Supabase guard, Next.js, Docker and three route/content-marker smoke tests. |
-| TEST-03 | Latest CI run including `/icon.svg` smoke test. | **PENDING** | The workflow file now includes the icon test, but the result for this newer workflow revision was not independently verified at matrix creation. |
+| TEST-03 | Latest CI run including `/icon.svg` smoke test. | **PASS** | V4 acceptance CI run #80 passed: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40922977824. Its logs confirm HTTP 200 and expected markers for all three priority pages plus `/icon.svg`. This ran against the current preview base through a documentation-only PR, which was closed unmerged. |
 | TEST-04 | Production domain unchanged. | **PASS at last check** | `www.nextgensolarmaintenance.co.za` still maps to the existing production Vercel deployment. Recheck before any future cutover. |
 | TEST-05 | Interactive visual checks, real browser Access/API/media flow. | **PENDING** | Not independently completed; the current tool environment could not directly fetch the `workers.dev` preview pages. |
 | TEST-06 | Latest preview favicon correction. | **Build PASS; live browser confirmation pending** | The sampled 404 was `/favicon.ico`; adding `app/icon.svg` produced a generated `/icon.svg` route and the successful Worker build uploaded the icon asset. Fresh browser verification is not recorded. |
@@ -89,7 +89,7 @@ Status meanings:
 ## 7. Release gate — do not declare V4 production-ready until all mandatory items pass
 
 - [ ] A canonical blueprint or approved requirements baseline is linked and reconciled against this matrix.
-- [ ] Latest GitHub Actions run passes, including the icon smoke test, dependency audit, typecheck, Supabase guard, application build, Docker build and route tests.
+- [x] V4 acceptance workflow run #80 passed the dependency audit, typecheck, Supabase guard, application build, Docker build and all three priority route plus icon smoke tests: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40922977824.
 - [ ] Visual review signed off for all public pages at required viewport sizes.
 - [ ] Route, links, metadata, SEO/robots, redirect and performance checks completed.
 - [ ] Cloudflare Access sign-in, allow/deny, session expiry, CORS preflight and admin API reads validated in a real browser.
