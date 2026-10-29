@@ -41,8 +41,8 @@ See [backend-contract.md](backend-contract.md) for the verified endpoint map, sc
 
 The V4 source on `preview/ngms-cloudflare-worker` builds and deploys to the dedicated Cloudflare Worker:
 
-- Latest Cloudflare Workers Build: `e05f302a-3339-4a72-b223-49b5f357f6b5` — **success**, source commit `221af794990af37c1bb7a7c11f52d8df1bda0105`.
-- Active preview Worker version: `f09552d0-8541-4bc8-a7ea-053a182bd6b7` (100% traffic on the preview Worker).
+- Latest Cloudflare Workers Build: `a1887958-1a6d-4256-98a4-4f8bb7e71bfd` — **success**, source commit `d0d39d5c224718b3e3dffa4ceb3975148f9bb79f` (admin API host guard, Access sign-in link, amount-cents mapping, safe status selection and media open/download action).
+- Latest preview deployment: `02fe4141-9afb-443b-a1d9-f5deb671127d`; active preview Worker version `cce817ca-43a9-4872-b72f-80db57bd610e` is assigned 100% of preview Worker traffic.
 - Previous GitHub Actions V4 CI run: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40904904067 — **success** for dependency audit, TypeScript, Supabase guard, Next.js build, Docker build and smoke tests for the three priority pages.
 - Docker smoke tests previously confirmed HTTP 200 and expected page markers for `/services/solar-panel-cleaning`, `/maintenance-packages` and `/body-corporate-maintenance`.
 - Runtime telemetry review found 308 HTTP 200 responses and one HTTP 404 in the sampled 24-hour window; the 404 was specifically `/favicon.ico`. Added the NGMS-branded `app/icon.svg`. The successful Cloudflare build generated `/icon.svg` and uploaded the icon asset.
@@ -50,7 +50,7 @@ The V4 source on `preview/ngms-cloudflare-worker` builds and deploys to the dedi
 - V4 acceptance workflow run #95: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40938100852 — **success** after the admin integration changes. TypeScript, dependency audit, Supabase guard, Next.js build, Docker image build, and HTTP 200 marker checks for the three priority pages plus `/icon.svg` all passed. This was triggered through a documentation-only PR against the current preview base; it does not verify browser-based Access/CORS/API/media behavior.
 - Production remains separate: V4 is on its dedicated `workers.dev` preview URL. This work did not switch the public domain or alter production resources.
 
-This confirms a successful Cloudflare build/deployment and the earlier container route tests, not full browser acceptance. The tools used for this run still could not fetch the `workers.dev` preview pages directly, so visual regression and real browser authentication/API tests have not been independently completed.
+The latest admin integration code passed the Cloudflare build/deployment and V4 CI run #95 (dependency audit, TypeScript, no-Supabase guard, Next.js build, Docker build and container smoke tests). This is not full browser acceptance: the execution environment cannot resolve the `workers.dev` hostnames, so visual regression, real Access sign-in/CORS/API reads and authenticated R2 download have not been independently completed.
 
 ## Outstanding acceptance tests
 
