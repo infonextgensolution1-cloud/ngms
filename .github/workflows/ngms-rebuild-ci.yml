@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   build:
-    name: Typecheck, Supabase guard, Next.js, Docker and route smoke tests
+    name: Typecheck, Supabase guard, Next.js, Docker and public/admin route smoke tests
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -51,7 +51,7 @@ jobs:
       - name: Build Coolify-compatible Docker image
         run: docker build --file Dockerfile --tag ngms-rebuild-coolify-smoke .
 
-      - name: Start Docker image and smoke-test V4 routes and icon
+      - name: Start Docker image and smoke-test public routes, admin screens and icon
         shell: bash
         run: |
           set -euo pipefail
@@ -100,4 +100,7 @@ jobs:
           check_route "/services/solar-panel-cleaning" "SOLAR PANEL CLEANING"
           check_route "/maintenance-packages" "PLANNED"
           check_route "/body-corporate-maintenance" "CORPORATES"
+          check_route "/admin" "GOOD WORK"
+          check_route "/admin/enquiries" "ENQUIRIES"
+          check_route "/admin/media" "MEDIA LIBRARY"
           check_route "/icon.svg" "<svg"
