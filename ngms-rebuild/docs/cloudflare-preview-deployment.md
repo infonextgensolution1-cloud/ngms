@@ -9,10 +9,11 @@
 
 - Public preview: https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev
 - Worker: `ngms-rebuild-preview-worker`
-- Latest verified build: `e05f302a-3339-4a72-b223-49b5f357f6b5`
-- Build source commit: `221af794990af37c1bb7a7c11f52d8df1bda0105`
+- Latest verified build: `a1887958-1a6d-4256-98a4-4f8bb7e71bfd`
+- Build source commit: `d0d39d5c224718b3e3dffa4ceb3975148f9bb79f`
 - Build result: `success`
-- Active Worker version: `f09552d0-8541-4bc8-a7ea-053a182bd6b7`
+- Latest deployment: `02fe4141-9afb-443b-a1d9-f5deb671127d`
+- Active Worker version: `cce817ca-43a9-4872-b72f-80db57bd610e` (100% of preview traffic)
 - Framework: Next.js 16.4.3 with OpenNext for Cloudflare Workers.
 - API base: `https://ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev`
 - Preview write flag: `NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=false`
@@ -28,8 +29,8 @@
 
 ## Verification boundary
 
-Cloudflare's latest build logs confirmed the Next.js build, OpenNext bundle, static asset upload, and Worker deployment succeeded. It generated `/icon.svg`, uploaded the branded icon asset and activated Worker version `f09552d0-8541-4bc8-a7ea-053a182bd6b7` at 100% traffic. Runtime telemetry found one `/favicon.ico` 404 in the sampled 24-hour window; `app/icon.svg` has now been added to resolve the missing branded icon and was included in the successful build.
+Cloudflare build `a1887958-1a6d-4256-98a4-4f8bb7e71bfd` succeeded for the admin integration source commit `d0d39d5c224718b3e3dffa4ceb3975148f9bb79f`. It uploaded the updated static assets and activated Worker version `cce817ca-43a9-4872-b72f-80db57bd610e` at 100% traffic under deployment `02fe4141-9afb-443b-a1d9-f5deb671127d`. The current source pins the admin API client to the preview host, adds a direct Access health/sign-in link, uses `amount_cents` in the document form payload, requires explicit status selection, and exposes an authenticated media open/download link. The earlier `/favicon.ico` correction remains included.
 
-The previously confirmed repository CI run passed TypeScript validation, the no-Supabase guard, Next.js build, Docker build, and HTTP 200/content-marker smoke tests for all three V4 pages: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40904904067. The latest V4 acceptance workflow run #80 also passed the dependency audit, TypeScript, Supabase guard, Next.js build, Docker image build and HTTP 200/content-marker smoke tests for all three priority pages plus `/icon.svg`: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40922977824. It was run via a documentation-only PR against the current preview branch; PR #277 was closed unmerged.
+The previously confirmed repository CI run passed TypeScript validation, the no-Supabase guard, Next.js build, Docker build, and HTTP 200/content-marker smoke tests for all three V4 pages: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40904904067. V4 acceptance workflow run #80 passed the same checks plus `/icon.svg`: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40922977824. Latest V4 acceptance workflow run #95 also passed these checks against the current admin integration base: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40938100852. These temporary documentation-only CI PRs are closed unmerged.
 
-A full interactive browser check of Cloudflare Access authentication and admin API requests has not been completed because direct resolution/fetching of the workers.dev pages is blocked in the validation environment. Keep preview writes disabled until those checks and staging persistence tests pass. Temporary CI-validation PRs #276 and #277 were closed without merging.
+A full interactive browser check of Cloudflare Access authentication and admin API requests has not been completed because direct resolution/fetching of the workers.dev pages is blocked in the validation environment. Keep preview writes disabled until those checks and staging persistence tests pass. Temporary CI-validation PRs #276, #277 and #278 were closed without merging.
