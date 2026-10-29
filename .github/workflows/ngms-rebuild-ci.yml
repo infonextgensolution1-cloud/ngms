@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - rebuild/ngms-cloudflare-first
+      - preview/ngms-cloudflare-worker
 
 permissions:
   contents: read
@@ -32,7 +33,7 @@ jobs:
         run: npm run typecheck
       - name: Ensure rebuild has no Supabase dependencies
         run: |
-          if grep -RniE 'supabase|NEXT_PUBLIC_SUPABASE' app components lib package.json package-lock.json next.config.mjs postcss.config.mjs .env.example; then
+          if grep -RniE 'supabase|NEXT_PUBLIC_SUPABASE' app components lib package.json package-lock.json next.config.mjs postcss.config.mjs .env.example wrangler.jsonc; then
             echo "Supabase reference found in isolated rebuild source or dependencies."
             exit 1
           fi
