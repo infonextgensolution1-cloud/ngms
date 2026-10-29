@@ -110,3 +110,10 @@ These values exist solely to test the preview interface; they must never be mist
 - The existing production Worker, production D1, production R2 and original site's domain/DNS were not changed by this staging setup.
 - Public enquiry submission remains disabled in the rebuild. The existing public-intake Worker is bound to production D1; using it for rebuild form tests would put test enquiries into production data. A separate preview intake Worker and Turnstile configuration are required before public form submissions can be enabled.
 - The preview API Worker is configured and its bindings, Access application and CORS source have been read back from Cloudflare. Its Access application is `NGMS Rebuild Preview API` with a single-administrator allow policy. However, an authorised browser request, CORS preflight, Access sign-in, API read, write, and R2 upload/download have **not** yet been successfully executed from the preview frontend. Do not enable writes until those end-to-end tests are completed.
+
+
+## Related acceptance record
+
+- [V4 blueprint-to-acceptance matrix](v4-acceptance-matrix.md) — current requirement status, available evidence, exit criteria and production release gate.
+- [Implementation status](implementation-status.md)
+- [Cloudflare preview deployment](cloudflare-preview-deployment.md)
