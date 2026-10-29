@@ -1,0 +1,25 @@
+# Never send local secrets or environment files to the Docker build context
+.env
+.env.*
+!.env.example
+.dev.vars
+
+# Dependencies and generated build output
+node_modules
+.next
+.open-next
+.wrangler
+out
+coverage
+*.tsbuildinfo
+
+# Version-control and local tooling metadata
+.git
+.github
+.vscode
+.idea
+
+# Logs and temporary artifacts
+*.log
+npm-debug.log*
+.DS_Store

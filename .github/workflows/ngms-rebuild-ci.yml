@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - rebuild/ngms-cloudflare-first
+      - preview/ngms-cloudflare-worker
+  pull_request:
+    branches:
+      - preview/ngms-cloudflare-worker
 
 permissions:
   contents: read
@@ -14,7 +18,7 @@ concurrency:
 
 jobs:
   build:
-    name: Typecheck, Supabase guard and production build
+    name: Typecheck, Supabase guard, Next.js, Docker and public/admin route smoke tests
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -24,15 +28,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Install dependencies
-        run: npm install
+          cache: npm
+          cache-dependency-path: ngms-rebuild/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
       - name: Dependency security audit
         run: npm audit --audit-level=high
       - name: TypeScript validation
         run: npm run typecheck
       - name: Ensure rebuild has no Supabase dependencies
         run: |
-          if grep -RniE 'supabase|NEXT_PUBLIC_SUPABASE' app components lib package.json package-lock.json next.config.mjs postcss.config.mjs .env.example; then
+          if grep -RniE 'supabase|NEXT_PUBLIC_SUPABASE' app components lib package.json package-lock.json next.config.mjs postcss.config.mjs .env.example wrangler.jsonc Dockerfile; then
             echo "Supabase reference found in isolated rebuild source or dependencies."
             exit 1
           fi
@@ -42,3 +48,59 @@ jobs:
           fi
       - name: Build Next.js application
         run: npm run build
+      - name: Build Coolify-compatible Docker image
+        run: docker build --file Dockerfile --tag ngms-rebuild-coolify-smoke .
+
+      - name: Start Docker image and smoke-test public routes, admin screens and icon
+        shell: bash
+        run: |
+          set -euo pipefail
+          container_name="ngms-rebuild-smoke-${GITHUB_RUN_ID}"
+          cleanup() {
+            docker logs "$container_name" 2>/dev/null || true
+            docker rm --force "$container_name" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          docker run --detach --name "$container_name" \
+            --publish 127.0.0.1:3000:3000 \
+            ngms-rebuild-coolify-smoke
+
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:3000/ >/dev/null 2>&1; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            echo "Container did not become ready within 60 seconds."
+            exit 1
+          fi
+
+          check_route() {
+            local route="$1"
+            local marker="$2"
+            local output="/tmp/ngms-route-check.html"
+            local status
+            status="$(curl --silent --show-error --output "$output" --write-out '%{http_code}' "http://127.0.0.1:3000$route")"
+            if [ "$status" != "200" ]; then
+              echo "Route $route returned HTTP $status (expected 200)."
+              return 1
+            fi
+            if ! grep -qi "$marker" "$output"; then
+              echo "Route $route returned 200 but expected page marker '$marker' was absent."
+              return 1
+            fi
+            echo "PASS: $route returned HTTP 200 and marker '$marker'."
+          }
+
+          check_route "/services/solar-panel-cleaning" "SOLAR PANEL CLEANING"
+          check_route "/maintenance-packages" "PLANNED"
+          check_route "/body-corporate-maintenance" "CORPORATES"
+          check_route "/admin" "GOOD WORK"
+          check_route "/admin/enquiries" "ENQUIRIES"
+          check_route "/admin/media" "MEDIA LIBRARY"
+          check_route "/icon.svg" "<svg"
