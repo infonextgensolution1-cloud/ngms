@@ -41,10 +41,10 @@ The V4 source on `preview/ngms-cloudflare-worker` builds and deploys to the dedi
 
 - Latest Cloudflare Workers Build: `e05f302a-3339-4a72-b223-49b5f357f6b5` — **success**, source commit `221af794990af37c1bb7a7c11f52d8df1bda0105`.
 - Active preview Worker version: `f09552d0-8541-4bc8-a7ea-053a182bd6b7` (100% traffic on the preview Worker).
-- Previously confirmed GitHub Actions V4 CI run: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40904904067 — **success** for dependency audit, TypeScript, Supabase guard, Next.js build, Docker build and smoke tests for the three priority pages. That run predates the icon check added below.
+- Previous GitHub Actions V4 CI run: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40904904067 — **success** for dependency audit, TypeScript, Supabase guard, Next.js build, Docker build and smoke tests for the three priority pages.
 - Docker smoke tests previously confirmed HTTP 200 and expected page markers for `/services/solar-panel-cleaning`, `/maintenance-packages` and `/body-corporate-maintenance`.
 - Runtime telemetry review found 308 HTTP 200 responses and one HTTP 404 in the sampled 24-hour window; the 404 was specifically `/favicon.ico`. Added the NGMS-branded `app/icon.svg`. The successful Cloudflare build generated `/icon.svg` and uploaded the icon asset.
-- The CI workflow now also checks `/icon.svg` for HTTP 200 and an SVG payload. The latest run for this new workflow revision has not yet been independently confirmed, so the branch should not be described as fully green until that result is checked.
+- V4 acceptance workflow run #80: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40922977824 — **success** for dependency audit, TypeScript, Supabase guard, Next.js build, Docker image build, and smoke tests for the three priority pages plus `/icon.svg`. The run was triggered by a documentation-only PR against the current preview branch; PR #277 was closed unmerged.
 - Production remains separate: V4 is on its dedicated `workers.dev` preview URL. This work did not switch the public domain or alter production resources.
 
 This confirms a successful Cloudflare build/deployment and the earlier container route tests, not full browser acceptance. The tools used for this run still could not fetch the `workers.dev` preview pages directly, so visual regression and real browser authentication/API tests have not been independently completed.
@@ -76,12 +76,12 @@ This confirms a successful Cloudflare build/deployment and the earlier container
 - Separate D1 database `ngms-admin-preview` (UUID `f12c5c48-58cd-4c48-82de-8c7341b8e6cf`) with the five inspected table shapes.
 - Separate R2 bucket `ngmsmedia-preview`, bound to the staging Worker.
 - Four synthetic QA fixtures in staging D1 only (enquiry, job, draft quote, sent invoice), all clearly tagged as preview-only. No production data was copied or changed.
-- Added frontend create/status/media helper functions; UI controls are feature-gated and remain disabled unless `NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=true`. That environment flag has not been set.
+- Added frontend create/status/media helper functions; UI controls are feature-gated and remain disabled unless `NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=true`. The preview build variable is configured as `false`; writes remain disabled.
 - Admin module screens now include create forms for enquiries, jobs, quotations and invoices; status editor controls when the feature gate is enabled; and a preview media upload control. These controls are **not enabled in the currently unconfigured app**.
 
 ### Pending / blocked
 - A Vercel preview now exists, but the project remains on the Cloudflare Workers free-tier path to avoid recurring hosting costs.
 - The rebuild is deployed to Cloudflare Workers and has passed the Next.js build, Docker build, and route smoke checks. It has not yet been exercised from an authorised human browser session; real Access login, cross-origin browser requests, API reads and R2 upload/read remain not run.
 - No public quote submission is enabled; the existing intake Worker shares production D1. A separate staged intake endpoint and Turnstile configuration are required.
-- The latest workflow revision adds a dedicated `/icon.svg` smoke test. Its result has not yet been independently confirmed; check the latest Actions run before claiming the current branch is green.
+- The V4 acceptance workflow run #80 has confirmed the dedicated `/icon.svg` smoke test and all three priority route checks: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40922977824. This is CI evidence, not browser-level acceptance.
 - Desktop/mobile visual inspection, accessibility, performance, full SEO crawl, workflow regression, restore rehearsal and final release checklist are still pending.
