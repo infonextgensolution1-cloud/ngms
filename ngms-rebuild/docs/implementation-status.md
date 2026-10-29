@@ -35,7 +35,7 @@ Use [v4-acceptance-matrix.md](v4-acceptance-matrix.md) as the requirement-to-evi
 - The original production Workers retain their production CORS allowlist. The separate `ngms-admin-api-preview` Worker source was inspected: its allowlist includes `https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev` and the earlier `https://ngms-rebuild-preview.vercel.app` origin. The preview Worker has its own single-administrator Cloudflare Access application and preview-only D1/R2 bindings.
 - Read-only aggregate count on 29 October 2026: enquiries 0, jobs 0, documents 0, media 2, site_content 3. No row-level customer data or media filenames were read for this count check.
 
-See [backend-contract.md](backend-contract.md) for the verified endpoint map, schema details, limitations and security boundaries.
+See [backend-contract.md](backend-contract.md) for the verified endpoint map, schema details, limitations and security boundaries. See [admin-panel-integration.md](admin-panel-integration.md) for the connected screens, authenticated preview workflow and browser verification steps.
 
 ## Current verification evidence — 29 October 2026
 
