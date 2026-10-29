@@ -137,6 +137,12 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
   const hasReadEndpoint = Boolean(module.resource);
 
   const load = useCallback(async (signal: AbortSignal) => {
+    if (!getAdminApiBase()) {
+      setRows([]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
     if (!module.resource) {
       setRows([]);
       setLoading(false);
@@ -186,7 +192,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       <div className="api-notice" role="status">
         <span className="notice-dot" aria-hidden="true" />
         <div>
-          <strong>{error ? "API data is unavailable" : loading ? "Loading records" : hasReadEndpoint ? "Read-only API connection" : "API route not implemented"}</strong>
+          <strong>{error ? "API data is unavailable" : loading ? "Loading records" : !module.resource ? "API route not implemented" : !apiConfigured ? "Preview integration pending" : "Read-only API connection"}</strong>
           <p>
             {error
               ? error
