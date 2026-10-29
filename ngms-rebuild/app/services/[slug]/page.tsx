@@ -18,10 +18,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 const serviceIncludes = [
-  "Soft-wash cleaning using non-abrasive methods",
-  "No abrasive pads or high pressure applied to the panel glass",
-  "Visual check for visible damage or loose mounting",
-  "Before-and-after photos where site conditions allow",
+  "Soft-wash cleaning safe for all panel types and warranties",
+  "No harsh chemicals, abrasive pads or high pressure on the glass",
+  "Visual inspection for cracked cells, loose mounting or damaged wiring",
+  "Before-and-after photos so you can see the difference",
   "Cleaning frequency guidance based on roof and surroundings",
 ];
 const solarTiers = [
@@ -32,9 +32,9 @@ const solarTiers = [
   ["41+ panels", "from R50 / panel"],
 ];
 const solarFaqs = [
-  { q: "How often should solar panels be cleaned in the Helderberg?", a: "Many homes start with a clean every 4–6 months. Coastal salt, trees, pollen and dusty roads can change how quickly panels gather dirt, so the right schedule depends on the site." },
-  { q: "Will cleaning affect my solar warranty?", a: "We describe our approach as soft-wash and non-abrasive. Manufacturer instructions and site conditions still apply, so let us know if your system has specific cleaning requirements." },
-  { q: "Can you clean panels on a steep or high roof?", a: "Access and roof pitch are assessed before confirming a quote. The job only proceeds when the access and safety requirements can be addressed." },
+  { q: "How often should solar panels be cleaned in the Helderberg?", a: "Most homes do well with a clean every 4–6 months. Properties near the coast, under trees, or close to dusty roads often benefit from more frequent cleaning." },
+  { q: "Will cleaning affect my solar warranty?", a: "No — we use soft-wash methods and non-abrasive materials designed not to damage the glass or coating, so your manufacturer warranty stays intact." },
+  { q: "Can you clean panels on a steep or high roof?", a: "Yes, our team is equipped for safe work at height. We assess roof access and pitch before quoting so there are no surprises on the day." },
   { q: "What does the price include?", a: "The listed rates are starting prices excluding VAT. Panel count, access and location may affect the final quote. We confirm scope and pricing before work begins." },
 ];
 
@@ -46,7 +46,7 @@ function SolarCleaningPage() {
           <div className="v4-solar-opening-left">
             <p className="v4-page-kicker"><span>01</span> / NGMS SERVICES</p>
             <h1>MY<br />SERVICES<span>.</span></h1>
-            <p>Solar panel cleaning and property maintenance. Practical service for homes and businesses across the Helderberg Basin.</p>
+            <p>End-to-end solar panel cleaning and property maintenance. Safe, reliable work for homes and businesses across the Helderberg Basin.</p>
             <a href="#solar-service" className="v4-scroll-link">↘ <span>EXPLORE THIS SERVICE</span></a>
           </div>
           <div className="v4-solar-opening-right">
@@ -62,7 +62,7 @@ function SolarCleaningPage() {
         </section>
 
         <section className="v4-solar-feedback">
-          <div className="v4-solar-feedback-intro"><p className="v4-page-kicker"><span>02</span> / CLIENT EXPERIENCE</p><h2>CLIENTS<br />FEEDBACK<span>.</span></h2><p>Professional work. Clear communication. Respect for your property.</p><Link href="/portfolio" className="v4-text-link">VIEW PROJECTS ↗</Link></div>
+          <div className="v4-solar-feedback-intro"><p className="v4-page-kicker"><span>02</span> / CLIENT EXPERIENCE</p><h2>CLIENTS<br />FEEDBACK<span>.</span></h2><p>Professional work. Clear communication. Respect for your property.</p><a href="https://maps.app.goo.gl/eoWNCRjJDscGmQsSA" target="_blank" rel="noreferrer" className="v4-text-link">READ GOOGLE REVIEWS ↗</a></div>
           <div className="v4-solar-promise-grid">
             <article><span>✳</span><strong>LOCAL SERVICE</strong><p>Serving Strand, Gordon’s Bay and Somerset West with practical maintenance support.</p></article>
             <article><span>✳</span><strong>CLEAR QUOTES</strong><p>Written quotations and straightforward communication before work begins.</p></article>
