@@ -32,8 +32,12 @@ jobs:
         run: npm run typecheck
       - name: Ensure rebuild has no Supabase dependencies
         run: |
-          if grep -RniE 'supabase|NEXT_PUBLIC_SUPABASE' app components lib package.json next.config.mjs; then
-            echo "Supabase reference found in isolated rebuild."
+          if grep -RniE 'supabase|NEXT_PUBLIC_SUPABASE' app components lib package.json package-lock.json next.config.mjs postcss.config.mjs .env.example; then
+            echo "Supabase reference found in isolated rebuild source or dependencies."
+            exit 1
+          fi
+          if npm ls @supabase/supabase-js --parseable --all 2>/dev/null | grep -q .; then
+            echo "Supabase SDK found in the installed dependency tree."
             exit 1
           fi
       - name: Build Next.js application
