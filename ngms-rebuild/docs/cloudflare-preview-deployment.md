@@ -24,6 +24,7 @@
 - The preview API Worker source was inspected directly: its CORS allow-list includes this Worker origin and the earlier intended Vercel preview origin. The `NGMS Rebuild Preview API` Cloudflare Access application has a single-administrator allow policy, and the API Worker binds only the preview D1 and R2 resources.
 - The preview branch includes a committed npm lockfile so the Cloudflare build runner's `npm ci` succeeds.
 - The existing public domain, production Vercel configuration, production Worker, production D1/R2, and production customer records were not changed by this deployment.
+- Existing PR [#274](https://github.com/infonextgensolution1-cloud/ngms/pull/274) (“Preview/ngms cloudflare worker”) remains open and unmerged. Do not merge it or change public routing until the mandatory acceptance matrix is complete and production release is explicitly approved.
 
 ## Verification boundary
 
