@@ -1,0 +1,8 @@
+import type {Metadata} from "next";
+import {notFound} from "next/navigation";
+import {CTASection,PageIntro,PublicShell} from "@/components/PublicShell";
+import {site} from "@/lib/site";
+const locations=["helderberg"];
+export function generateStaticParams(){return locations.map((location)=>({location}));}
+export async function generateMetadata({params}:{params:Promise<{location:string}>}):Promise<Metadata>{const {location}=await params;return {title:location==="helderberg"?"Solar Panel Cleaning — Helderberg":"Solar Panel Cleaning"};}
+export default async function SolarAreaPage({params}:{params:Promise<{location:string}>}){const {location}=await params;if(!locations.includes(location))notFound();return <PublicShell><main id="main-content"><PageIntro eyebrow="SOLAR PANEL CLEANING · HELDERBERG" title={"CLEAN PANELS.\nCLEAR RESULTS."} intro={"Solar panel cleaning enquiries across "+site.serviceArea+". Share installation details and confirm availability, access requirements and scope with NGMS."}/><section className="page-section"><div className="container detail-grid"><div className="detail-panel"><h2>START WITH<br/><span>YOUR SYSTEM.</span></h2><p>Useful details include panel count, roof access, site location and known restrictions. Quote and timing are confirmed for the actual installation.</p><a className="button button-orange" href="/quote?service=solar-panel-cleaning">Request a solar quote ↗</a></div><div className="detail-aside"><span className="big-number">SOLAR / 001</span><h3>Site-specific<br/>scope.</h3><p>Installation and conditions vary. This page does not promise unverified yield, savings or performance outcomes.</p></div></div></section><CTASection/></main></PublicShell>;}
