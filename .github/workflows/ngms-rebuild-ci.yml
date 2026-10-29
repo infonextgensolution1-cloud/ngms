@@ -7,7 +7,7 @@ on:
       - preview/ngms-cloudflare-worker
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: ngms-rebuild-${{ github.ref }}
@@ -27,6 +27,19 @@ jobs:
           node-version: 24
       - name: Install dependencies
         run: npm install
+      - name: Commit generated package lock on isolated preview branch
+        if: github.ref == 'refs/heads/preview/ngms-cloudflare-worker'
+        working-directory: .
+        run: |
+          if ! git ls-files --error-unmatch ngms-rebuild/package-lock.json >/dev/null 2>&1; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add ngms-rebuild/package-lock.json
+            if ! git diff --cached --quiet; then
+              git commit -m "build: add generated lockfile for Cloudflare preview"
+              git push origin "HEAD:${GITHUB_REF_NAME}"
+            fi
+          fi
       - name: Dependency security audit
         run: npm audit --audit-level=high
       - name: TypeScript validation
