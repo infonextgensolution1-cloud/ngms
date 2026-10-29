@@ -2,7 +2,8 @@
 
 **Updated:** 29 October 2026  
 **Branch:** `preview/ngms-cloudflare-worker`  
-**App root:** `ngms-rebuild/`
+**App root:** `ngms-rebuild/`  
+**Acceptance checklist:** [V4 blueprint-to-acceptance matrix](v4-acceptance-matrix.md)
 
 ## Deployment
 
