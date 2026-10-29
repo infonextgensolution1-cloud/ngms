@@ -8,10 +8,10 @@
 
 - Public preview: https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev
 - Worker: `ngms-rebuild-preview-worker`
-- Latest verified build: `842272af-9200-4b7d-8231-63145e92d88a`
-- Build source commit: `d464ab51a17635677f8530d98c0a2d824e1ae1ea`
+- Latest verified build: `e05f302a-3339-4a72-b223-49b5f357f6b5`
+- Build source commit: `221af794990af37c1bb7a7c11f52d8df1bda0105`
 - Build result: `success`
-- Active Worker version: `498aa4f7-5e0f-4c90-a1c7-3ecdedcc81b2`
+- Active Worker version: `f09552d0-8541-4bc8-a7ea-053a182bd6b7`
 - Framework: Next.js 16.4.3 with OpenNext for Cloudflare Workers.
 - API base: `https://ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev`
 - Preview write flag: `NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=false`
@@ -26,6 +26,8 @@
 
 ## Verification boundary
 
-Cloudflare's build logs confirmed the Next.js build, OpenNext bundle, static asset upload, and Worker deployment succeeded. Latest repository CI passed TypeScript validation, the no-Supabase guard, Next.js build, Docker build, and HTTP 200/content-marker smoke tests for all three V4 pages: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40904904067
+Cloudflare's latest build logs confirmed the Next.js build, OpenNext bundle, static asset upload, and Worker deployment succeeded. It generated `/icon.svg`, uploaded the branded icon asset and activated Worker version `f09552d0-8541-4bc8-a7ea-053a182bd6b7` at 100% traffic. Runtime telemetry found one `/favicon.ico` 404 in the sampled 24-hour window; `app/icon.svg` has now been added to resolve the missing branded icon and was included in the successful build.
+
+The previously confirmed repository CI run passed TypeScript validation, the no-Supabase guard, Next.js build, Docker build, and HTTP 200/content-marker smoke tests for all three V4 pages: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40904904067. The CI workflow now also smoke-tests `/icon.svg`; that newer run has not yet been independently confirmed.
 
 A full interactive browser check of Cloudflare Access authentication and admin API requests has not been completed because direct resolution/fetching of the workers.dev pages is blocked in the validation environment. Keep preview writes disabled until those checks and staging persistence tests pass. The temporary CI validation PR #276 was closed without merging.
