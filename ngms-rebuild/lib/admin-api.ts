@@ -189,7 +189,48 @@ export async function uploadAdminMedia(file: File): Promise<AdminRow> {
   if (file.size < 1 || file.size > 10 * 1024 * 1024) {
     throw new AdminApiError("File must be between 1 byte and 10 MB.", "invalid-response");
   }
+  if (!previewWritesEnabled()) {
+    throw new AdminApiError("Preview uploads are disabled until staging authentication and persistence checks are complete.", "not-configured");
+  }
+  const base = getAdminApiBase();
+  if (!base) throw new AdminApiError("The protected Cloudflare API base URL is not configured for this preview.", "not-configured");
   const form = new FormData();
   form.append("file", file);
-  return mutationFetch("/api/admin/media", { method: "POST", body: form });
+  let response: Response;
+  try {
+    response = await fetch(`${base}/api/admin/media`, {
+      method: "POST",
+      body: form,
+      credentials: "include",
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+  } catch {
+    throw new AdminApiError("The upload request failed. No successful upload has been assumed.", "network");
+  }
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message =
+      body && typeof body === "object" && "error" in body &&
+      typeof (body as { error?: unknown }).error === "string"
+        ? (body as { error: string }).error
+        : `Cloudflare API returned HTTP ${response.status}.`;
+    throw new AdminApiError(message, "http", response.status);
+  }
+  if (
+    !body || typeof body !== "object" ||
+    !("id" in body) || typeof (body as { id?: unknown }).id !== "string" ||
+    !("name" in body) || typeof (body as { name?: unknown }).name !== "string" ||
+    !("type" in body) || typeof (body as { type?: unknown }).type !== "string" ||
+    !("size" in body) || typeof (body as { size?: unknown }).size !== "number"
+  ) {
+    throw new AdminApiError("The media endpoint response did not match its verified { id, name, type, size } contract.", "invalid-response", response.status);
+  }
+  const uploaded = body as { id: string; name: string; type: string; size: number };
+  return {
+    id: uploaded.id,
+    original_name: uploaded.name,
+    content_type: uploaded.type,
+    size_bytes: uploaded.size,
+  };
 }
