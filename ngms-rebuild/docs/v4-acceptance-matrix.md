@@ -79,7 +79,7 @@ Status meanings:
 
 | ID | Check | Current status | Evidence / limitation |
 |---|---|---|---|
-| TEST-01 | Cloudflare production build and deployment for V4 preview. | **PASS** | Build `e05f302a-3339-4a72-b223-49b5f357f6b5` succeeded for commit `221af794990af37c1bb7a7c11f52d8df1bda0105`; Worker version `f09552d0-8541-4bc8-a7ea-053a182bd6b7` is assigned 100% of preview Worker traffic. |
+| TEST-01 | Cloudflare build and deployment for V4 preview admin integration. | **PASS** | Latest build `a1887958-1a6d-4256-98a4-4f8bb7e71bfd` succeeded for commit `d0d39d5c224718b3e3dffa4ceb3975148f9bb79f`; deployment `02fe4141-9afb-443b-a1d9-f5deb671127d` assigned Worker version `cce817ca-43a9-4872-b72f-80db57bd610e` 100% of preview traffic. This validates deployment, not authenticated browser API behavior. |
 | TEST-02 | Previous GitHub Actions CI checks for three priority routes. | **PASS for that recorded run** | Run https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40904904067 passed dependency audit, TypeScript, Supabase guard, Next.js, Docker and three route/content-marker smoke tests. |
 | TEST-03 | Latest CI run including `/icon.svg` and the admin integration changes. | **PASS for CI/build checks** | V4 acceptance CI run #95 passed: https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40938100852. Dependency audit, TypeScript, Supabase guard, Next.js build, Docker build and HTTP 200 marker tests for all three priority pages plus `/icon.svg` passed. This was triggered by a documentation-only PR against the latest preview base; it does not test human-browser Access/CORS/media behavior. |
 | TEST-04 | Production domain unchanged. | **PASS at last check** | `www.nextgensolarmaintenance.co.za` still maps to the existing production Vercel deployment. Recheck before any future cutover. |
@@ -107,7 +107,7 @@ Status meanings:
 
 **Current release state: PREVIEW ONLY — NOT APPROVED FOR PRODUCTION.**
 
-The three priority pages and isolated Cloudflare deployment are verified at build/deployment level, and earlier route smoke tests passed. The whole blueprint, admin/media workflows, public submissions, browser-level security tests and production readiness are not yet accepted. Treat each row's status independently; do not infer acceptance of an entire module from a route rendering or build passing.
+The latest admin integration is deployed to the isolated Cloudflare preview and CI run #95 passed its build checks and route smoke tests. The whole blueprint, authenticated admin/media workflows, public submissions, browser-level security tests and production readiness are not yet accepted. Treat each row's status independently; do not infer acceptance of an entire module from a route rendering or build passing.
 
 ## Related records
 
