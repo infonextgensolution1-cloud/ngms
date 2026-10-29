@@ -72,3 +72,40 @@ There is currently no separate customers table, quotation line-item table, invoi
 - The dashboard must distinguish `0 records` from API unavailable, access denied, timeout, unsupported route and bad response.
 - All create/update/delete actions and public form submission remain disabled until the rebuild preview origin, Access session flow, CORS behaviour and actual write persistence are tested end to end with synthetic records.
 - Private media stays behind the Worker; do not enable public bucket URLs.
+
+
+---
+
+## Isolated staging environment — created 29 October 2026
+
+These resources are **preview-only** and separate from the original production database/bucket.
+
+- Preview admin Worker: `ngms-admin-api-preview`
+- Preview API base: `https://ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev`
+- Preview D1: `ngms-admin-preview`, UUID `f12c5c48-58cd-4c48-82de-8c7341b8e6cf`
+- Preview R2: `ngmsmedia-preview`
+- Cloudflare Access application: `NGMS Rebuild Preview API`, protected with the same single-administrator allow criterion as the existing admin application.
+- Worker bindings are verified to target the **preview** D1 and R2 resources only. The preview Worker has no Zapier token binding.
+- Preview Worker CORS is configured for `https://ngms-rebuild-preview.vercel.app`. The Vercel project still has to be created/authorised, so the real browser CORS/Access flow is not yet tested.
+
+A schema was created in preview D1 with the five table shapes copied from a read-only inspection of the existing schema. The preview database has been checked with read queries.
+
+### Synthetic QA fixtures
+
+Four records were inserted into the **preview D1 only**, with `created_by = REBUILD_SYNTHETIC_QA` and explicit “PREVIEW ONLY - Test Customer” labels:
+- enquiry `preview-enquiry-001` — Solar Panel Cleaning / Somerset West / New;
+- job `preview-job-001` — Solar Panel Cleaning / Somerset West / In progress;
+- quotation `preview-quote-001` — R1,234.56 / Draft;
+- invoice `preview-invoice-001` — R789.00 / Sent.
+
+These values exist solely to test the preview interface; they must never be mistaken for genuine work, used for decisions or copied into production.
+
+### Preview access and write gate
+
+- The Worker continues to validate the Cloudflare Access JWT's issuer, audience, expiry and signature.
+- UI mutations require `NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=true` at preview build/runtime and the Worker independently requires a valid Access identity. The flag is unset by default.
+- The preview UI is intended to use `NEXT_PUBLIC_NGMS_API_BASE=https://ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev` only as a **Vercel Preview** environment variable; it is not a secret.
+- Do not set the preview API base/feature flag on the live `ngms-new` project or production environment.
+- The existing production Worker, production D1, production R2 and original site's domain/DNS were not changed by this staging setup.
+- Public enquiry submission remains disabled in the rebuild. The existing public-intake Worker is bound to production D1; using it for rebuild form tests would put test enquiries into production data. A separate preview intake Worker and Turnstile configuration are required before public form submissions can be enabled.
+- The Worker host is configured, but an authorised browser request, CORS preflight, Access sign-in, API read, write, and R2 upload/download have **not** yet been successfully executed from the preview frontend. These remain blocked/pending until the authorised Vercel preview exists and the end-to-end checks are run.
