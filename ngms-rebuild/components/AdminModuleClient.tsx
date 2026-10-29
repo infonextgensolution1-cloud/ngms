@@ -1,8 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { AdminRow, adminApiErrorMessage, getAdminApiBase, readAdminCollection } from "@/lib/admin-api";
+import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  AdminRow, adminApiErrorMessage, createAdminRecord, getAdminApiBase,
+  previewWritesEnabled, readAdminCollection, updateAdminStatus, uploadAdminMedia,
+} from "@/lib/admin-api";
+import { services } from "@/lib/site";
 
 export type AdminModuleKey =
   | "enquiries" | "jobs" | "quotes" | "invoices" | "calendar"
@@ -41,8 +45,7 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   quotes: {
     title: "Quotations",
     description: "Review quotation documents and their current recorded status.",
-    resource: "documents",
-    kind: "Quotation",
+    resource: "documents", kind: "Quotation",
     columns: [
       { key: "id", label: "Quote reference" }, { key: "customer_name", label: "Customer" },
       { key: "amount_cents", label: "Amount (ZAR)" }, { key: "created_at", label: "Created" },
@@ -52,8 +55,7 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   invoices: {
     title: "Invoices",
     description: "Review invoice documents and their recorded status.",
-    resource: "documents",
-    kind: "Invoice",
+    resource: "documents", kind: "Invoice",
     columns: [
       { key: "id", label: "Invoice reference" }, { key: "customer_name", label: "Customer" },
       { key: "amount_cents", label: "Face value (ZAR)" }, { key: "created_at", label: "Created" },
@@ -62,7 +64,7 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   },
   calendar: {
     title: "Job calendar",
-    description: "Review appointments and coordinate schedule changes.",
+    description: "Calendar scheduling is not available in the current D1 schema. This module remains read-only and clearly marked.",
     columns: [
       { key: "date", label: "Date" }, { key: "job", label: "Job" },
       { key: "site", label: "Site" }, { key: "assigned_to", label: "Assigned to" },
@@ -81,7 +83,7 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   },
   content: {
     title: "Website content",
-    description: "Review the content records currently stored for the website.",
+    description: "Review content records currently stored for the website. Editing remains disabled until publish/rollback and concurrency controls are implemented.",
     resource: "content",
     columns: [
       { key: "content_key", label: "Content key" }, { key: "content_json", label: "Content value" },
@@ -90,7 +92,7 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   },
   reports: {
     title: "Reports",
-    description: "Operational and financial reporting will be enabled when the reporting definitions and API are implemented.",
+    description: "Operational and financial reports require agreed business definitions and additional data fields.",
     columns: [
       { key: "report", label: "Report" }, { key: "period", label: "Period" },
       { key: "last_updated", label: "Last updated" }, { key: "data_status", label: "Data status" },
@@ -98,12 +100,18 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   },
   settings: {
     title: "Settings & access",
-    description: "Review authorised roles, access rules, service catalogue and audit history.",
+    description: "Access and service-catalogue settings are not exposed by the current Worker API.",
     columns: [
       { key: "setting", label: "Setting" }, { key: "current_value", label: "Current value" },
       { key: "owner", label: "Owner" }, { key: "last_changed", label: "Last changed" },
     ],
   },
+};
+
+const STATUS_OPTIONS: Record<"enquiries" | "jobs" | "documents", string[]> = {
+  enquiries: ["New", "Contacted", "Quoted", "Converted", "Closed"],
+  jobs: ["New", "Quoted", "In progress", "Completed", "Cancelled"],
+  documents: ["Draft", "Sent", "Accepted", "Declined", "Expired", "Paid", "Overdue", "Cancelled"],
 };
 
 function displayValue(key: string, value: unknown): string {
@@ -120,10 +128,44 @@ function displayValue(key: string, value: unknown): string {
     const parsed = new Date(value);
     return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString("en-ZA", { dateStyle: "medium", timeStyle: "short" });
   }
-  if (key === "content_json" && typeof value === "string" && value.length > 100) {
-    return value.slice(0, 100) + "…";
-  }
+  if (key === "content_json" && typeof value === "string" && value.length > 100) return value.slice(0, 100) + "…";
   return String(value);
+}
+
+function StatusEditor({
+  resource, row, onSaved,
+}: {
+  resource: "enquiries" | "jobs" | "documents";
+  row: AdminRow;
+  onSaved: () => void;
+}) {
+  const allowed = STATUS_OPTIONS[resource];
+  const initial = typeof row.status === "string" && allowed.includes(row.status) ? row.status : allowed[0];
+  const [value, setValue] = useState(initial);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  async function save() {
+    if (!previewWritesEnabled() || !row.id) return;
+    setSaving(true);
+    setMessage("");
+    try {
+      await updateAdminStatus(resource, row.id, value);
+      setMessage("Status saved.");
+      onSaved();
+    } catch (error) {
+      setMessage(adminApiErrorMessage(error));
+    } finally {
+      setSaving(false);
+    }
+  }
+  return <div className="status-editor">
+    <label className="sr-only" htmlFor={"status-"+String(row.id)}>New status for {String(row.id ?? "record")}</label>
+    <select id={"status-"+String(row.id)} value={value} onChange={(event)=>setValue(event.target.value)} disabled={!previewWritesEnabled()||saving}>
+      {allowed.map((status)=><option key={status} value={status}>{status}</option>)}
+    </select>
+    <button type="button" className="button button-small" onClick={save} disabled={!previewWritesEnabled()||saving||!row.id||value===row.status}>{saving?"Saving…":"Save status"}</button>
+    {message&&<small className="inline-feedback" role="status">{message}</small>}
+  </div>;
 }
 
 export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModuleKey }) {
@@ -133,17 +175,20 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [refreshVersion, setRefreshVersion] = useState(0);
+  const [showCreate, setShowCreate] = useState(false);
+  const [actionMessage, setActionMessage] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState("");
   const apiConfigured = Boolean(getAdminApiBase());
+  const writesEnabled = previewWritesEnabled();
   const hasReadEndpoint = Boolean(module.resource);
+  const canCreate = ["enquiries", "jobs", "quotes", "invoices"].includes(moduleKey);
+  const writeResource = moduleKey === "enquiries" || moduleKey === "jobs" ? moduleKey : "documents";
 
   const load = useCallback(async (signal: AbortSignal) => {
-    if (!getAdminApiBase()) {
-      setRows([]);
-      setLoading(false);
-      setError(null);
-      return;
-    }
-    if (!module.resource) {
+    if (!getAdminApiBase() || !module.resource) {
       setRows([]);
       setLoading(false);
       setError(null);
@@ -177,74 +222,108 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     return rows.filter((row) => Object.values(row).some((value) => String(value ?? "").toLowerCase().includes(term)));
   }, [rows, query]);
 
+  async function handleCreate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!writesEnabled || !apiConfigured) return;
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const payload: Record<string, unknown> = {
+      customer_name: String(data.get("customer_name") ?? "").trim(),
+      service: String(data.get("service") ?? "").trim(),
+      area: String(data.get("area") ?? "").trim(),
+      details: String(data.get("details") ?? "").trim(),
+    };
+    if (moduleKey === "enquiries") {
+      payload.phone = String(data.get("phone") ?? "").trim();
+      payload.email = String(data.get("email") ?? "").trim();
+    }
+    if (moduleKey === "quotes" || moduleKey === "invoices") {
+      payload.kind = module.kind;
+      payload.amount = Number(data.get("amount"));
+    }
+    setSaving(true);
+    setActionMessage("");
+    setActionError("");
+    try {
+      await createAdminRecord(writeResource, payload);
+      setActionMessage(moduleKey === "jobs" ? "Job created in the preview database." : moduleKey === "enquiries" ? "Enquiry created in the preview database." : moduleKey === "quotes" ? "Draft quotation created in the preview database." : "Invoice document created in the preview database.");
+      form.reset();
+      setShowCreate(false);
+      setRefreshVersion((version)=>version+1);
+    } catch (error) {
+      setActionError(adminApiErrorMessage(error));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file || !writesEnabled || !apiConfigured) return;
+    setUploading(true);
+    setUploadMessage("");
+    setActionError("");
+    try {
+      const record = await uploadAdminMedia(file);
+      setUploadMessage("Upload stored in the preview media bucket: "+String(record.original_name ?? record.id ?? file.name));
+      setRefreshVersion((version)=>version+1);
+      event.target.value = "";
+    } catch (error) {
+      setActionError(adminApiErrorMessage(error));
+    } finally {
+      setUploading(false);
+    }
+  }
+
   const title = module.title;
-  return (
-    <div className="admin-page">
-      <div className="admin-page-top">
-        <div>
-          <p className="eyebrow">NGMS / WORKSPACE</p>
-          <h1>{title.toUpperCase()}</h1>
-          <p>{module.description}</p>
-        </div>
-        <Link href="/admin" className="button button-outline button-dark-outline">← Overview</Link>
-      </div>
-
-      <div className="api-notice" role="status">
-        <span className="notice-dot" aria-hidden="true" />
-        <div>
-          <strong>{error ? "API data is unavailable" : loading ? "Loading records" : !module.resource ? "API route not implemented" : !apiConfigured ? "Preview integration pending" : "Read-only API connection"}</strong>
-          <p>
-            {error
-              ? error
-              : !module.resource
-                ? "The currently verified Worker does not expose this module's reporting or calendar endpoint. No demo records are displayed."
-                : !apiConfigured
-                  ? "The preview API URL is not configured. This module will not show placeholder data as if it were live."
-                  : "This view reads the verified Worker endpoint only. Record creation, status changes and deletion remain disabled until end-to-end authorisation and write tests are approved."}
-          </p>
-        </div>
-      </div>
-
-      <section className="data-panel">
-        <div className="data-toolbar">
-          <div>
-            <strong>{title}</strong>
-            <small>{error ? "Could not verify the current record count" : loading ? "Retrieving from protected API…" : hasReadEndpoint && apiConfigured ? `${rows.length} records returned by the API` : "Live record retrieval is not active in this preview"}</small>
-          </div>
-          <input aria-label={"Search " + title} placeholder="Search loaded records…" value={query} onChange={(e) => setQuery(e.target.value)} disabled={!rows.length} />
-          <button className="button button-orange" type="button" onClick={() => setRefreshVersion((v) => v + 1)} disabled={loading || !module.resource || !apiConfigured}>Refresh</button>
-        </div>
-
-        {loading ? (
-          <div className="table-empty" role="status"><span aria-hidden="true">◌</span><h2>LOADING RECORDS</h2><p>Waiting for the protected Cloudflare API response.</p></div>
-        ) : error ? (
-          <div className="table-empty"><span aria-hidden="true">!</span><h2>RECORDS COULD NOT BE LOADED.</h2><p>The dashboard will not substitute an empty list or zero balance for an API error.</p><button className="button button-outline button-dark-outline" type="button" onClick={() => setRefreshVersion((v) => v + 1)}>Try again</button></div>
-        ) : !module.resource ? (
-          <div className="table-empty"><span aria-hidden="true">⌁</span><h2>ENDPOINT NOT YET IMPLEMENTED.</h2><p>This module needs a documented API route and approved business definitions before its data can be displayed.</p></div>
-        ) : !apiConfigured ? (
-          <div className="table-empty"><span aria-hidden="true">⌁</span><h2>CONNECT THE PREVIEW API.</h2><p>Set NEXT_PUBLIC_NGMS_API_BASE only in the preview environment, and ensure Cloudflare Access and the allowed-origin policy include that preview. Never place secrets in this variable.</p></div>
-        ) : rows.length === 0 ? (
-          <div className="table-empty"><span aria-hidden="true">▤</span><h2>NO RECORDS RETURNED.</h2><p>The protected API returned an empty collection for this module. This is a live empty result, not an API error.</p></div>
-        ) : visibleRows.length === 0 ? (
-          <div className="table-empty"><span aria-hidden="true">⌕</span><h2>NO MATCHES.</h2><p>Try a different search term.</p></div>
-        ) : (
-          <div className="table-scroll">
-            <table>
-              <thead><tr>{module.columns.map((column) => <th key={column.key}>{column.label}</th>)}</tr></thead>
-              <tbody>
-                {visibleRows.map((row, i) => (
-                  <tr key={String(row.id ?? row.content_key ?? i)}>
-                    {module.columns.map((column) => <td key={column.key}>{displayValue(column.key, row[column.key])}</td>)}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-      {moduleKey === "invoices" && <p className="module-footnote">The current D1 document schema stores invoice face value and status, but does not contain a partial-payment ledger. This screen therefore does not calculate a partial-payment balance.</p>}
-      {moduleKey === "content" && <p className="module-footnote">Content editing is intentionally disabled in this rebuild until optimistic concurrency, publish/rollback and the owner-approved field schema are implemented.</p>}
-      <p className="module-footnote">This UI does not enable writes. API calls and access policy must be verified in the actual preview before create/edit/publish operations are switched on.</p>
+  return <div className="admin-page">
+    <div className="admin-page-top">
+      <div><p className="eyebrow">NGMS / WORKSPACE</p><h1>{title.toUpperCase()}</h1><p>{module.description}</p></div>
+      <Link href="/admin" className="button button-outline button-dark-outline">← Overview</Link>
     </div>
-  );
+    <div className="api-notice" role="status">
+      <span className="notice-dot" aria-hidden="true"/>
+      <div><strong>{error ? "API data is unavailable" : loading ? "Loading records" : !module.resource ? "API route not implemented" : !apiConfigured ? "Preview integration pending" : "Read-only API connection"}</strong>
+        <p>{error ? error : !module.resource ? "The Worker does not expose this module. No demo records are displayed." : !apiConfigured ? "Set NEXT_PUBLIC_NGMS_API_BASE in the protected preview environment; no data is simulated." : "Reads use the protected preview Worker. Any write controls remain disabled by default until preview authentication and persistence tests are approved."}</p>
+      </div>
+    </div>
+
+    {canCreate && <section className="action-panel">
+      <div className="action-panel-head"><div><strong>Create {moduleKey==="enquiries"?"enquiry":moduleKey==="jobs"?"job":moduleKey==="quotes"?"quotation":"invoice"}</strong><small>New records are only allowed when the explicit preview-write flag is enabled.</small></div>
+        <button type="button" className="button button-orange" onClick={()=>{setShowCreate(v=>!v);setActionMessage("");setActionError("");}} disabled={!writesEnabled||!apiConfigured}>{showCreate?"Close form":"+ New record"}</button>
+      </div>
+      {!writesEnabled&&<p className="guardrail-message">Writes disabled: enable NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES only after Access, CORS and staging persistence checks pass.</p>}
+      {showCreate&&writesEnabled&&apiConfigured&&<form className="admin-form-grid" onSubmit={handleCreate}>
+        <label>Customer / contact name<input name="customer_name" required maxLength={160} autoComplete="off"/></label>
+        <label>Service<select name="service" defaultValue="" required><option value="" disabled>Choose service</option>{services.map((service)=><option key={service.slug} value={service.name}>{service.name}</option>)}</select></label>
+        {(moduleKey==="quotes"||moduleKey==="invoices")&&<label>Amount (ZAR)<input name="amount" type="number" inputMode="decimal" min="0" max="100000000" step="0.01" required/></label>}
+        <label>Area / suburb<input name="area" maxLength={160} autoComplete="off"/></label>
+        {moduleKey==="enquiries"&&<><label>Phone<input name="phone" type="tel" maxLength={40} autoComplete="off"/></label><label>Email<input name="email" type="email" maxLength={254} autoComplete="off"/></label></>}
+        <label className="admin-form-wide">Job details<textarea name="details" rows={3} maxLength={4000}/></label>
+        <div className="admin-form-wide form-actions"><button className="button button-orange" type="submit" disabled={saving}>{saving?"Saving…":"Create in preview"}</button><span>Records are written only to the isolated preview D1 database.</span></div>
+      </form>}
+    </section>}
+
+    {moduleKey==="media"&&<section className="action-panel"><div className="action-panel-head"><div><strong>Upload media</strong><small>JPEG, PNG, WebP, AVIF or PDF · maximum 10 MB.</small></div><span className="preview-pill">PREVIEW BUCKET</span></div><label className="upload-control">Choose a file<input type="file" accept="image/jpeg,image/png,image/webp,image/avif,application/pdf" disabled={!writesEnabled||!apiConfigured||uploading} onChange={handleUpload}/></label>{uploading&&<p className="inline-feedback" role="status">Uploading to preview storage…</p>}{uploadMessage&&<p className="inline-feedback" role="status">{uploadMessage}</p>}{!writesEnabled&&<p className="guardrail-message">Uploads remain disabled until preview Access/CORS and persistence checks are approved.</p>}</section>}
+
+    {(actionMessage||actionError)&&<div className={actionError?"action-result action-result-error":"action-result"} role="status"><strong>{actionError?"Action failed":"Action complete"}</strong><p>{actionError||actionMessage}</p></div>}
+
+    <section className="data-panel">
+      <div className="data-toolbar"><div><strong>{title}</strong><small>{error?"Could not verify the current record count":loading?"Retrieving from protected API…":hasReadEndpoint&&apiConfigured?rows.length+" records returned by API":"Live record retrieval is not active"}</small></div>
+        <input aria-label={"Search "+title} placeholder="Search loaded records…" value={query} onChange={(event)=>setQuery(event.target.value)} disabled={!rows.length}/>
+        <button className="button button-orange" type="button" onClick={()=>setRefreshVersion((v)=>v+1)} disabled={loading||!module.resource||!apiConfigured}>Refresh</button>
+      </div>
+      {loading?<div className="table-empty" role="status"><span aria-hidden="true">◌</span><h2>LOADING RECORDS</h2><p>Waiting for the protected Cloudflare API response.</p></div>
+      :error?<div className="table-empty"><span aria-hidden="true">!</span><h2>RECORDS COULD NOT BE LOADED.</h2><p>No empty list or zero balance is substituted for an API error.</p><button className="button button-outline button-dark-outline" type="button" onClick={()=>setRefreshVersion((v)=>v+1)}>Try again</button></div>
+      :!module.resource?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>ENDPOINT NOT YET IMPLEMENTED.</h2><p>This module needs a documented API route and approved business definitions before its data can be displayed.</p></div>
+      :!apiConfigured?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>CONNECT THE PREVIEW API.</h2><p>Set the non-secret API base URL in Vercel Preview. Cloudflare Access and the preview origin allowlist must also match.</p></div>
+      :rows.length===0?<div className="table-empty"><span aria-hidden="true">▤</span><h2>NO RECORDS RETURNED.</h2><p>The protected API returned an empty collection for this module. This is not an API error.</p></div>
+      :visibleRows.length===0?<div className="table-empty"><span aria-hidden="true">⌕</span><h2>NO MATCHES.</h2><p>Try a different search term.</p></div>
+      :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&<th>Preview action</th>}</tr></thead>
+        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents"].includes(module.resource)&&<td><StatusEditor resource={module.resource as "enquiries"|"jobs"|"documents"} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
+    </section>
+    {moduleKey==="invoices"&&<p className="module-footnote">The inspected document schema stores invoice face value and status, but has no partial-payment ledger. This screen does not calculate a reconciled amount due.</p>}
+    {moduleKey==="content"&&<p className="module-footnote">Content editing remains disabled until optimistic concurrency, publish/rollback and the owner-approved field schema are implemented.</p>}
+    <p className="module-footnote">Preview write controls require NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=true. The Worker independently verifies Cloudflare Access identity for every protected action.</p>
+  </div>;
 }
