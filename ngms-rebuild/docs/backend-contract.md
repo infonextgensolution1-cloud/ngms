@@ -69,7 +69,7 @@ There is currently no separate customers table, quotation line-item table, invoi
 
 ## Integration safety rules
 
-- The rebuild includes a read-only client for the verified collection endpoints. It deliberately displays a configuration/error state when the API URL is blank, Access fails, CORS rejects the origin or the response does not match `{ items: [] }`.
+- The rebuild includes a read-only client for the verified collection endpoints. The browser client permits only the dedicated HTTPS preview API hostname, exposes an API health/sign-in link for Cloudflare Access, and displays configuration/error state when the URL is invalid, Access fails, CORS rejects the origin or the response does not match `{ items: [] }`. The media table includes an authenticated Worker open/download link, but its browser behavior is not yet verified.
 - The dashboard must distinguish `0 records` from API unavailable, access denied, timeout, unsupported route and bad response.
 - All create/update/delete actions and public form submission remain disabled until the rebuild preview origin, Access session flow, CORS behaviour and actual write persistence are tested end to end with synthetic records.
 - Private media stays behind the Worker; do not enable public bucket URLs.
