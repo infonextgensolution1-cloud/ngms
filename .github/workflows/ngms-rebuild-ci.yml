@@ -51,7 +51,7 @@ jobs:
       - name: Build Coolify-compatible Docker image
         run: docker build --file Dockerfile --tag ngms-rebuild-coolify-smoke .
 
-      - name: Start Docker image and smoke-test V4 routes
+      - name: Start Docker image and smoke-test V4 routes and icon
         shell: bash
         run: |
           set -euo pipefail
@@ -100,3 +100,4 @@ jobs:
           check_route "/services/solar-panel-cleaning" "SOLAR PANEL CLEANING"
           check_route "/maintenance-packages" "PLANNED"
           check_route "/body-corporate-maintenance" "CORPORATES"
+          check_route "/icon.svg" "<svg"
