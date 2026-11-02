@@ -57,7 +57,13 @@ export default function AdminDashboardClient() {
   const metrics = useMemo(() => {
     if (state.status !== "ready") return null;
     const { enquiries, jobs, documents } = state.data;
-    const activeJobs = jobs.filter((job) => !["Completed", "Cancelled"].includes(String(job.status ?? "")));
+    // Keep closed/converted enquiries in the full records view for audit, but
+    // exclude them from active pipeline KPIs and the recent-active feed.
+    const inactiveEnquiryStatuses = new Set(["closed", "converted", "cancelled"]);
+    const activeEnquiries = enquiries.filter((item) =>
+      !inactiveEnquiryStatuses.has(String(item.status ?? "").trim().toLowerCase())
+    );
+    const activeJobs = jobs.filter((job) => !["completed", "cancelled"].includes(String(job.status ?? "").trim().toLowerCase()));
     const draftQuotes = documents.filter((doc) => doc.kind === "Quotation" && doc.status === "Draft");
     const issuedUnpaid = documents.filter((doc) => doc.kind === "Invoice" && ["Sent", "Overdue"].includes(String(doc.status ?? "")));
     const outstandingFaceValueCents = issuedUnpaid.reduce((sum, doc) => {
@@ -65,13 +71,13 @@ export default function AdminDashboardClient() {
       return sum + Math.max(0, cents);
     }, 0);
     return {
-      enquiries: enquiries.length,
-      newEnquiries: enquiries.filter((item) => item.status === "New").length,
+      enquiries: activeEnquiries.length,
+      newEnquiries: activeEnquiries.filter((item) => String(item.status ?? "").trim().toLowerCase() === "new").length,
       activeJobs: activeJobs.length,
       draftQuotes: draftQuotes.length,
       issuedUnpaidCount: issuedUnpaid.length,
       outstandingFaceValueCents,
-      recentEnquiries: [...enquiries].sort((a,b)=>String(b.created_at??"").localeCompare(String(a.created_at??""))).slice(0,5),
+      recentEnquiries: [...activeEnquiries].sort((a,b)=>String(b.created_at??"").localeCompare(String(a.created_at??""))).slice(0,5),
       recentJobs: [...jobs].sort((a,b)=>String(b.created_at??"").localeCompare(String(a.created_at??""))).slice(0,5),
     };
   }, [state]);
@@ -91,7 +97,7 @@ export default function AdminDashboardClient() {
     <div className="api-notice" role="status"><span className="notice-dot" aria-hidden="true"/><div><strong>{state.status==="ready"?"Cloudflare API connected":state.status==="loading"?"Connecting to Cloudflare API":state.status==="error"?"Live data unavailable":"Preview integration pending"}</strong><p>{state.message}</p>{apiHealthUrl&&<p><a className="text-link" href={apiHealthUrl} target="_blank" rel="noopener noreferrer">Open secure API sign-in / health check ↗</a> <span className="module-footnote">After signing in, return here and refresh data.</span></p>}</div></div>
 
     <section className="metric-grid" aria-label="Business metrics">
-      <article className="metric-card"><span className="metric-label">Enquiries</span><strong>{metricValue(metrics?.enquiries)}</strong><small>{apiIsReady ? `${metrics?.newEnquiries ?? 0} new to review` : "API data not confirmed"}</small></article>
+      <article className="metric-card"><span className="metric-label">Active enquiries</span><strong>{metricValue(metrics?.enquiries)}</strong><small>{apiIsReady ? `${metrics?.newEnquiries ?? 0} new to review` : "API data not confirmed"}</small></article>
       <article className="metric-card"><span className="metric-label">Active jobs</span><strong>{metricValue(metrics?.activeJobs)}</strong><small>{apiIsReady ? "Excludes completed and cancelled jobs" : "API data not confirmed"}</small></article>
       <article className="metric-card"><span className="metric-label">Draft quotations</span><strong>{metricValue(metrics?.draftQuotes)}</strong><small>{apiIsReady ? "Quotation documents marked Draft" : "API data not confirmed"}</small></article>
       <article className="metric-card"><span className="metric-label">Issued unpaid invoices</span><strong>{metricValue(metrics ? zar(metrics.outstandingFaceValueCents) : undefined)}</strong><small>{apiIsReady ? `${metrics?.issuedUnpaidCount ?? 0} invoices · status-based face value` : "API data not confirmed"}</small></article>
@@ -109,7 +115,7 @@ export default function AdminDashboardClient() {
     </section>
 
     <section className="admin-lower-grid">
-      <div className="data-panel"><div className="admin-list-heading"><div><strong>Recent enquiries</strong><small>Latest records returned by the API</small></div><Link className="text-link" href="/admin/enquiries">OPEN ENQUIRIES ↗</Link></div>
+      <div className="data-panel"><div className="admin-list-heading"><div><strong>Recent enquiries</strong><small>Latest active records · closed history remains in Enquiries</small></div><Link className="text-link" href="/admin/enquiries">OPEN ENQUIRIES ↗</Link></div>
         {state.status==="loading" ? <p className="admin-list-message">Loading enquiries…</p> : state.status!=="ready" ? <p className="admin-list-message">Recent records are hidden until the API successfully responds.</p> : recentEnquiries.length===0 ? <p className="admin-list-message">The API returned no enquiry records.</p> : <ul className="recent-list">{recentEnquiries.map((item,i)=><li key={String(item.id??i)}><div><strong>{String(item.customer_name??"Enquiry")}</strong><span>{String(item.service??"Service not set")} · {String(item.area??"Area not set")}</span></div><div className="recent-meta"><b>{String(item.status??"—")}</b><time>{dateLabel(item.created_at)}</time></div></li>)}</ul>}
       </div>
       <div className="data-panel"><div className="admin-list-heading"><div><strong>Jobs overview</strong><small>Operational progress from live records</small></div><Link className="text-link" href="/admin/jobs">OPEN JOBS ↗</Link></div>
