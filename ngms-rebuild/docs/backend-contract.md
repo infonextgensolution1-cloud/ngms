@@ -1,7 +1,7 @@
 # NGMS backend integration contract — verified inventory
 
-**Inventory date:** 29 October 2026  
-**Scope:** Read-only Cloudflare inspection and code-route review. No Worker, D1, R2, Access, secret, or production resource was changed.
+**Updated:** 3 November 2026  
+**Scope:** Production inventory remained read-only. Implementation changes were restricted to the dedicated preview API Worker and `ngms-admin-preview` D1 database. No production Worker, D1, R2, DNS or customer record was changed.
 
 ## Verified resources
 
@@ -34,8 +34,14 @@ Routes below are present in the `ngms-admin-api` Worker source. Their existence 
 - `GET /api/admin/enquiries` — list enquiry records.
 - `POST /api/admin/enquiries` — create an enquiry record.
 - `GET /api/admin/jobs` and `POST /api/admin/jobs` — list/create job records.
-- `GET /api/admin/documents` and `POST /api/admin/documents` — list/create quotation/invoice documents using the `kind` field.
-- `PATCH /api/admin/{enquiries|jobs|documents}/:id` or corresponding `/status` endpoint — update supported record status.
+- `GET /api/admin/documents` and `POST /api/admin/documents` — legacy/basic document collection.
+- `GET /api/admin/commercial-documents?kind=Quotation|Invoice&status=...` — formal quotation/invoice list, filtered by document kind and optional status.
+- `POST /api/admin/commercial-documents` — create an itemised formal quotation, or create an invoice from an accepted quotation.
+- `GET /api/admin/commercial-documents/:id` — retrieve a formal document with its line items.
+- `PATCH /api/admin/commercial-documents/:id/status` — update permitted formal document statuses.
+- `GET /api/admin/customers` and `POST /api/admin/customers` — list/create CRM customers.
+- `GET/POST /api/admin/schedules` and `PATCH/DELETE /api/admin/schedules/:id` — schedule records.
+- `GET/POST/PATCH/DELETE /api/admin/operations/{maintenance|suppliers|inventory|financials}/:id?` — operation records.
 - `GET /api/admin/media` and `POST /api/admin/media` — list/upload allowed media.
 - `POST /api/admin/media/:uuid/replace`, `DELETE /api/admin/media/:uuid` or `POST /api/admin/media/:uuid/delete` — replace/delete media.
 - `GET /api/admin/media/:uuid/download` — authenticated media download through the Worker.
@@ -45,25 +51,35 @@ The `ngms-public-intake` Worker exposes:
 - `GET /api/public/site-content` — read public content from the shared D1 database.
 - `POST /api/public/enquiries` — validate and save a public enquiry; requires valid submitted fields and a valid Turnstile token.
 
-## D1 schema and known business-model limitations
+## D1 schema and business-model boundaries
 
-- `enquiries`: `id`, `customer_name`, phone/email, service, area, details, status, creator and timestamps.
-- `jobs`: `id`, `customer_name`, service, area, details, status, creator and timestamps.
-- `documents`: `id`, `customer_name`, `kind` (Quotation/Invoice), `amount_cents`, status, creator and timestamps.
-- `media`: object key, original name, content type, size, uploader and timestamp.
-- `site_content`: content key, JSON value, updater and timestamp.
+The production and preview D1 databases contain the core business tables below:
 
-There is currently no separate customers table, quotation line-item table, invoice line-item table, payment ledger, partial-payment allocation, credit-note table, or job-assignment/status-history table in the inspected D1 schema. Consequently:
-- The dashboard can display quotation/invoice documents and statuses, but it must not claim detailed quote-line calculations or a reconciled partial-payment balance.
-- The “Enquiries & customers” view is currently enquiry-record centric; it is not a normalized customer CRM.
-- Advanced scheduling, team assignment, profitability and audit reporting need further API/schema work before they are represented as operational.
-- Any schema change or migration requires a written mapping, backup, non-production rehearsal and approval before cutover.
+- `customers`, `customer_contacts`, `customer_activity`: normalized CRM customers, contacts and activity notes.
+- `enquiries`: customer name, phone/email, requested service, area, details, status, creator, deduplication keys and timestamps.
+- `jobs`: job/site, service, area, details, status and optional customer relationship.
+- `documents`: formal quotations/invoices, customer relationship, reference, issue/due dates, amount/subtotal/discount/VAT cents, status, notes and invoice source document.
+- `document_line_items`: item description, quantity, unit, unit price cents and line total cents, linked to a document.
+- `document_sequences`: yearly formal quotation and invoice number sequences.
+- `schedules`: scheduled start/end, assigned person, customer/site, status and notes.
+- `projects`, `media`, `site_content`: project records, R2 media metadata and CMS content.
+- `operation_records`: maintenance, supplier, inventory and financial operational records.
+
+The formal commercial-document API is the supported route for new quotations and invoices. The generic `/api/admin/documents` endpoint remains for legacy/basic records and must not be used by the V4 commercial-document forms.
+
+Business-model limitations remain:
+- There is no partial-payment ledger or payment-to-invoice allocation. The dashboard may show invoice face value by status, but must not present it as a reconciled balance due.
+- Credit-note allocation and a complete job status/assignment history are not yet implemented.
+- Marking an invoice as paid is intentionally not offered in the formal invoice UI until a payment ledger and reconciliation flow exist.
+- Financial profitability reports need agreed labour/material allocation and overhead definitions.
+
+Any production schema migration requires a verified backup, duplicate/data preflight checks, non-production rehearsal and explicit release approval.
 
 ## Authentication and browser-origin boundary
 
 - Admin Worker reads `Cf-Access-Jwt-Assertion`, checks signature/issuer/audience/expiry and requires an identity claim.
 - The production admin Worker CORS configuration reviewed here lists `https://ngms-website-v4.vercel.app`. Keep that production allowlist and production Access policy separate from V4.
-- The dedicated `ngms-admin-api-preview` Worker source was later inspected and its allowlist includes `https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev` and the earlier intended `https://ngms-rebuild-preview.vercel.app` origin. This is configuration evidence only; real browser CORS preflight and Access login remain untested.
+- The dedicated `ngms-admin-api-preview` Worker now explicitly allowlists `https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev`. The change was deployed only to the preview Worker (version 35); the production Worker CORS allowlist was not changed. Browser CORS preflight and Access sign-in still require human-browser verification.
 - Do not add the V4 preview origin to the existing production Worker’s allowlist. Use the preview-specific Worker/policy for preview validation.
 - Never place Cloudflare Access audience/secret bindings, R2 keys, Turnstile secret, or Zapier token in browser-visible environment variables or source code. Only the non-secret API base URL may use `NEXT_PUBLIC_NGMS_API_BASE`.
 
@@ -89,7 +105,12 @@ These resources are **preview-only** and separate from the original production d
 - Worker bindings are verified to target the **preview** D1 and R2 resources only. The preview Worker has no Zapier token binding.
 - The preview API Worker source was inspected and its CORS allowlist includes `https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev` plus the earlier intended `https://ngms-rebuild-preview.vercel.app` origin. This preview allowlist is separate from the production Worker configuration. The real browser CORS/Access flow is still not independently tested.
 
-A schema was created in preview D1 with the five table shapes copied from a read-only inspection of the existing schema. The preview database has been checked with read queries.
+The preview D1 schema has been reconciled through application migrations 0007–0009:
+- 0007 records the already-present scheduling table/indexes in the preview migration ledger.
+- 0008 creates `operation_records` and its category indexes.
+- 0009 adds a partial unique index that prevents more than one non-cancelled invoice from being linked to the same source quotation.
+
+The duplicate-invoice preflight returned no rows before migration 0009 was applied. These migrations were applied only to `ngms-admin-preview`; production migration history and schema were not changed.
 
 ### Synthetic QA fixtures
 
