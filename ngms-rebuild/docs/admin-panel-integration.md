@@ -1,15 +1,18 @@
 # NGMS V4 admin-panel integration
 
-**Status:** formal quotation/invoice integration implemented on the isolated work branch; preview API and D1 updated; authenticated browser verification pending  
+**Status:** formal quotation/invoice integration deployed to the isolated Cloudflare preview; authenticated browser verification pending  
 **Application:** `ngms-rebuild/`  
 **Admin preview:** https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev/admin  
 **Preview API:** https://ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev  
 **Preview D1:** `ngms-admin-preview`  
 **Preview media bucket:** `ngmsmedia-preview`  
-**Latest build:** `a1887958-1a6d-4256-98a4-4f8bb7e71bfd` — success  
-**Deployment:** `02fe4141-9afb-443b-a1d9-f5deb671127d`  
-**Active preview version:** `cce817ca-43a9-4872-b72f-80db57bd610e` (100% of preview traffic)  
-**V4 CI run #105:** [passed](https://github.com/infonextgensolution1-cloud/ngms/actions/runs/40938991776) — includes `/admin`, `/admin/enquiries` and `/admin/media` route smoke tests
+**Latest Cloudflare build:** `d5f7d7d6-dc1a-497e-a4b4-228455d9d2a4` — success  
+**Deployment:** `fd2ce28d-39f9-43cf-a323-05d5f615ce35`  
+**Active preview version:** `5214d3fb-3758-48f3-8adf-650c1853193b` (version 18; 100% of preview traffic)  
+**Preview API Worker:** `ngms-admin-api-preview` version 49  
+**GitHub rebuild CI:** [passed](https://github.com/infonextgensolution1-cloud/ngms/actions/runs/41593797443) — dependency audit, TypeScript, no-Supabase guard, Next.js build, Docker build and seven route smoke tests  
+**Root build/release gate:** [passed](https://github.com/infonextgensolution1-cloud/ngms/actions/runs/41593797422)  
+**Draft PR:** [#283](https://github.com/infonextgensolution1-cloud/ngms/pull/283) — open and unmerged
 
 ## What is connected in the code
 
@@ -34,8 +37,8 @@
 4. Open **Enquiries**, **Jobs**, **Quotations**, **Invoices**, **Media library** and **Website content**. Confirm returned preview records, a genuine empty response, or an explicit API error. Formal quotations/invoices must come from `/api/admin/commercial-documents`, not the generic `documents` collection.
 5. On Quotations, confirm the CRM customer list loads. In the controlled preview-write test, add a clearly synthetic customer, create a multi-line quotation, and verify the returned NGMS reference and stored line items.
 6. Mark that synthetic quotation Accepted, then create one invoice from it. Verify that the invoice inherits the source lines and VAT/discount values. Attempt a second invoice for the same quotation and confirm the Worker rejects it with HTTP 409. Do not test on production data.
-5. Confirm the write buttons/upload chooser remain disabled while the write flag is `false`. Do not test by switching the flag on yet.
-6. If a request fails, check Cloudflare Access sign-in/session, the preview API host, preview Worker CORS allowlist and the browser's request/response details. Do not add the preview origin to the production Worker.
+7. Confirm the write buttons/upload chooser remain disabled while the write flag is `false`. Do not enable writes until the browser login/read path has passed.
+8. If a request fails, check Cloudflare Access sign-in/session, the preview API host, the preview Worker CORS allowlist, Access `options_preflight_bypass` and the browser's request/response details. Do not add the preview origin to the production Worker.
 
 ## What is not yet accepted
 
