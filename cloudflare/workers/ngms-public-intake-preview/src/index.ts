@@ -1,20 +1,17 @@
-interface Env {
-  DB: D1Database;
-  MEDIA: R2Bucket;
-  TURNSTILE_SECRET_KEY: string;
-  RESEND_API_KEY?: string;
-  LEAD_NOTIFY_TO?: string;
-  LEAD_NOTIFY_FROM?: string;
-}
+// @ts-nocheck
+// Recovered from the deployed ngms-public-intake-preview Worker bundle; keep this file aligned with that deployed contract.
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-const ALLOWED_ORIGINS = new Set([
+// src/index.ts
+var ALLOWED_ORIGINS = /* @__PURE__ */ new Set([
   "https://ngms-website-v4.vercel.app",
   "https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev",
   "https://www.nextgensolarmaintenance.co.za",
   "https://nextgensolarmaintenance.co.za",
-  "http://localhost:3000",
+  "http://localhost:3000"
 ]);
-const PUBLIC_MEDIA_SLOT_KEYS = [
+var PUBLIC_MEDIA_SLOT_KEYS = [
   "home.hero",
   "home.service.solar",
   "home.service.painting",
@@ -27,12 +24,11 @@ const PUBLIC_MEDIA_SLOT_KEYS = [
   "home.project.solar",
   "home.project.exterior",
   "home.project.paving",
-  "home.why",
-] as const;
-const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
-const MEDIA_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-const SERVICES = new Set([
+  "home.why"
+];
+var IMAGE_TYPES = /* @__PURE__ */ new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
+var MEDIA_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+var SERVICES = /* @__PURE__ */ new Set([
   "Solar panel cleaning",
   "Painting & finishes",
   "Waterproofing",
@@ -44,18 +40,17 @@ const SERVICES = new Set([
   "Other",
   "General property maintenance",
   "Body corporate / complex maintenance",
-  "Other / not sure yet",
+  "Other / not sure yet"
 ]);
-
-function json(data: unknown, status = 200, origin: string | null = null): Response {
+function json(data, status = 200, origin = null) {
   const headers = new Headers({
     "content-type": "application/json; charset=utf-8",
     "cache-control": "no-store",
     "x-content-type-options": "nosniff",
     "referrer-policy": "no-referrer",
-    "vary": "Origin",
+    "vary": "Origin"
   });
-  if (origin && (ALLOWED_ORIGINS.has(origin) || (origin.startsWith("https://ngms-website-v4-") && origin.endsWith("-ngms.vercel.app")))) {
+  if (origin && (ALLOWED_ORIGINS.has(origin) || origin.startsWith("https://ngms-website-v4-") && origin.endsWith("-ngms.vercel.app"))) {
     headers.set("access-control-allow-origin", origin);
     headers.set("access-control-allow-credentials", "false");
     headers.set("access-control-allow-methods", "POST, OPTIONS, GET");
@@ -64,42 +59,53 @@ function json(data: unknown, status = 200, origin: string | null = null): Respon
   }
   return new Response(JSON.stringify(data), { status, headers });
 }
-
-function cleanText(value: unknown, max: number): string | null {
+__name(json, "json");
+function cleanText(value, max) {
   if (typeof value !== "string") return null;
   const cleaned = value.trim();
   if (!cleaned || cleaned.length > max) return null;
   return cleaned;
 }
-
-function validEmail(value: string): boolean {
+__name(cleanText, "cleanText");
+function validEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 254;
 }
-
-
-function escapeHtml(value: string): string {
+__name(validEmail, "validEmail");
+function escapeHtml(value) {
   return value.replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
   })[char] ?? char);
 }
-
-async function notifyNewLead(env: Env, lead: {
-  id: string; customer: string; phone: string; email: string;
-  service: string; area: string; details: string;
-}): Promise<boolean> {
+__name(escapeHtml, "escapeHtml");
+async function notifyNewLead(env, lead) {
   if (!env.RESEND_API_KEY || !env.LEAD_NOTIFY_TO || !env.LEAD_NOTIFY_FROM) {
     console.warn("Lead saved; Resend notification is not configured.");
     return false;
   }
   const safe = {
-    id: escapeHtml(lead.id), customer: escapeHtml(lead.customer),
-    phone: escapeHtml(lead.phone || "Not supplied"), email: escapeHtml(lead.email || "Not supplied"),
-    service: escapeHtml(lead.service), area: escapeHtml(lead.area), details: escapeHtml(lead.details),
+    id: escapeHtml(lead.id),
+    customer: escapeHtml(lead.customer),
+    phone: escapeHtml(lead.phone || "Not supplied"),
+    email: escapeHtml(lead.email || "Not supplied"),
+    service: escapeHtml(lead.service),
+    area: escapeHtml(lead.area),
+    details: escapeHtml(lead.details)
   };
   const text = [
-    "New NGMS website enquiry", `Reference: ${lead.id}`, `Customer: ${lead.customer}`,
-    `Phone: ${lead.phone || "Not supplied"}`, `Email: ${lead.email || "Not supplied"}`,
-    `Service: ${lead.service}`, `Area: ${lead.area}`, "", "Job details:", lead.details,
+    "New NGMS website enquiry",
+    `Reference: ${lead.id}`,
+    `Customer: ${lead.customer}`,
+    `Phone: ${lead.phone || "Not supplied"}`,
+    `Email: ${lead.email || "Not supplied"}`,
+    `Service: ${lead.service}`,
+    `Area: ${lead.area}`,
+    "",
+    "Job details:",
+    lead.details
   ].join("\n");
   const html = `<h2>New NGMS website enquiry</h2><p><strong>Reference:</strong> ${safe.id}</p><p><strong>Customer:</strong> ${safe.customer}</p><p><strong>Phone:</strong> ${safe.phone}</p><p><strong>Email:</strong> ${safe.email}</p><p><strong>Service:</strong> ${safe.service}</p><p><strong>Area:</strong> ${safe.area}</p><p><strong>Job details:</strong></p><p>${safe.details.replace(/\n/g, "<br>")}</p>`;
   try {
@@ -107,15 +113,15 @@ async function notifyNewLead(env: Env, lead: {
       method: "POST",
       headers: {
         "authorization": `Bearer ${env.RESEND_API_KEY}`,
-        "content-type": "application/json",
+        "content-type": "application/json"
       },
       body: JSON.stringify({
         from: env.LEAD_NOTIFY_FROM,
         to: [env.LEAD_NOTIFY_TO],
-        subject: `New NGMS lead — ${lead.service} — ${lead.id}`,
+        subject: `New NGMS lead \u2014 ${lead.service} \u2014 ${lead.id}`,
         text,
-        html,
-      }),
+        html
+      })
     });
     if (!response.ok) {
       console.error("Resend lead notification failed", response.status);
@@ -127,57 +133,48 @@ async function notifyNewLead(env: Env, lead: {
     return false;
   }
 }
-
-async function verifyTurnstile(
-  token: string,
-  secret: string,
-  ip: string,
-  origin: string,
-): Promise<boolean> {
+__name(notifyNewLead, "notifyNewLead");
+async function verifyTurnstile(token, secret, ip, origin) {
   if (!secret || !token || token.length > 2048) return false;
   const form = new URLSearchParams({ secret, response: token });
   if (ip) form.set("remoteip", ip);
-  let result: { success?: boolean; hostname?: string; action?: string; ["error-codes"]?: string[] };
+  let result;
   try {
     const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: form,
+      body: form
     });
     if (!response.ok) return false;
-    result = await response.json() as typeof result;
+    result = await response.json();
   } catch {
     return false;
   }
-  return result.success === true
-    && result.action === "ngms_enquiry"
-    && result.hostname === new URL(origin).hostname;
+  return result.success === true && result.action === "ngms_enquiry" && result.hostname === new URL(origin).hostname;
 }
-
-export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+__name(verifyTurnstile, "verifyTurnstile");
+var index_default = {
+  async fetch(request, env) {
     const url = new URL(request.url);
     const origin = request.headers.get("Origin");
-
     if (request.method === "GET" && url.pathname === "/health") {
       return json({ ok: true, service: "ngms-public-intake", status: "healthy" });
     }
-
     if (request.method === "GET" && url.pathname === "/api/public/site-content") {
       try {
         const keys = ["home.heroTitle", "home.heroAccent", "home.heroSubtitle", "website.mediaSlots"];
         const placeholders = keys.map(() => "?").join(", ");
         const result = await env.DB.prepare(
-          `SELECT content_key, content_json FROM site_content WHERE content_key IN (${placeholders})`,
-        ).bind(...keys).all<{ content_key: string; content_json: string }>();
-        const items: Record<string, unknown> = {};
+          `SELECT content_key, content_json FROM site_content WHERE content_key IN (${placeholders})`
+        ).bind(...keys).all();
+        const items = {};
         for (const row of result.results ?? []) {
           try {
-            const value: unknown = JSON.parse(row.content_json);
+            const value = JSON.parse(row.content_json);
             if (row.content_key === "website.mediaSlots") {
               if (!value || typeof value !== "object" || Array.isArray(value)) continue;
-              const map = value as Record<string, unknown>;
-              const safeSlots: Record<string, string> = {};
+              const map = value;
+              const safeSlots = {};
               for (const slotKey of PUBLIC_MEDIA_SLOT_KEYS) {
                 const mediaId = map[slotKey];
                 if (typeof mediaId === "string" && MEDIA_ID_PATTERN.test(mediaId)) safeSlots[slotKey] = mediaId;
@@ -187,16 +184,14 @@ export default {
               items[row.content_key] = value;
             }
           } catch {
-            // Ignore malformed content rows and retain the static frontend defaults.
           }
         }
-        // A published homepage snapshot takes precedence over the legacy headline fields.
         const homePublication = await env.DB.prepare(
-          "SELECT p.content_json, p.content_hash, p.id, p.published_at FROM cms_publication_state s JOIN cms_publications p ON p.id = s.publication_id WHERE s.module_key = 'home' AND s.slug = 'home'",
-        ).first<{ content_json: string; content_hash: string; id: string; published_at: string }>();
+          "SELECT p.content_json, p.content_hash, p.id, p.published_at FROM cms_publication_state s JOIN cms_publications p ON p.id = s.publication_id WHERE s.module_key = 'home' AND s.slug = 'home'"
+        ).first();
         if (homePublication) {
           try {
-            const page = JSON.parse(homePublication.content_json) as Record<string, unknown>;
+            const page = JSON.parse(homePublication.content_json);
             if (typeof page.title === "string" && page.title.trim()) items["home.heroTitle"] = page.title;
             if (typeof page.summary === "string" && page.summary.trim()) items["home.heroSubtitle"] = page.summary;
             items["cms.home"] = {
@@ -206,10 +201,9 @@ export default {
               seoDescription: typeof page.seoDescription === "string" ? page.seoDescription : "",
               blocks: Array.isArray(page.blocks) ? page.blocks : [],
               publicationId: homePublication.id,
-              publishedAt: homePublication.published_at,
+              publishedAt: homePublication.published_at
             };
           } catch {
-            // Keep legacy homepage fields when a published snapshot is malformed.
           }
         }
         return json({ ok: true, items }, 200, origin);
@@ -217,7 +211,6 @@ export default {
         return json({ error: "Public website content is temporarily unavailable." }, 500, origin);
       }
     }
-
     if (request.method === "GET" && url.pathname === "/api/public/pages") {
       const rawSlug = (url.searchParams.get("slug") || "").trim().replace(/^\/+|\/+$/g, "");
       if (!rawSlug || rawSlug.length > 160 || !/^[a-z0-9]+(?:[a-z0-9-]*[a-z0-9])?(?:\/[a-z0-9]+(?:[a-z0-9-]*[a-z0-9])?)*$/i.test(rawSlug)) {
@@ -225,8 +218,8 @@ export default {
       }
       try {
         const page = await env.DB.prepare(
-          "SELECT p.id, p.module_key, p.slug, p.content_json, p.content_hash, p.published_at FROM cms_publication_state s JOIN cms_publications p ON p.id = s.publication_id WHERE s.slug = ? LIMIT 1",
-        ).bind(rawSlug).first<{ id: string; module_key: string; slug: string; content_json: string; content_hash: string; published_at: string }>();
+          "SELECT p.id, p.module_key, p.slug, p.content_json, p.content_hash, p.published_at FROM cms_publication_state s JOIN cms_publications p ON p.id = s.publication_id WHERE s.slug = ? LIMIT 1"
+        ).bind(rawSlug).first();
         if (!page) return json({ error: "Published page not found." }, 404, origin);
         const etag = '"' + page.content_hash + '"';
         const headers = new Headers({
@@ -234,9 +227,9 @@ export default {
           "cache-control": "public, max-age=30, s-maxage=60, stale-while-revalidate=120",
           "etag": etag,
           "x-content-type-options": "nosniff",
-          "referrer-policy": "strict-origin-when-cross-origin",
+          "referrer-policy": "strict-origin-when-cross-origin"
         });
-        if (origin && (ALLOWED_ORIGINS.has(origin) || (origin.startsWith("https://ngms-website-v4-") && origin.endsWith("-ngms.vercel.app")))) {
+        if (origin && (ALLOWED_ORIGINS.has(origin) || origin.startsWith("https://ngms-website-v4-") && origin.endsWith("-ngms.vercel.app"))) {
           headers.set("access-control-allow-origin", origin);
           headers.set("vary", "Origin");
         }
@@ -245,16 +238,228 @@ export default {
           page: JSON.parse(page.content_json),
           publicationId: page.id,
           publishedAt: page.published_at,
-          contentHash: page.content_hash,
+          contentHash: page.content_hash
         }), { status: 200, headers });
       } catch {
         return json({ error: "Published website content is temporarily unavailable." }, 500, origin);
       }
     }
-
     const cmsMediaMatch = url.pathname.match(/^\/api\/public\/cms-media\/([0-9a-f-]{36})$/i);
     if (request.method === "GET" && cmsMediaMatch) {
       try {
         const mediaId = cmsMediaMatch[1];
         const published = await env.DB.prepare(
-          "SELECT p.content_json FROM cms_publication_stat --- TRUNCATED --- 24,346 chars
+          "SELECT p.content_json FROM cms_publication_state s JOIN cms_publications p ON p.id = s.publication_id LIMIT 100"
+        ).all();
+        const mediaIsPublished = (published.results ?? []).some((row) => row.content_json.includes('"' + mediaId + '"'));
+        if (!mediaIsPublished) return json({ error: "Website media not found." }, 404, origin);
+        const media = await env.DB.prepare(
+          "SELECT object_key, content_type, size_bytes FROM media WHERE id = ?"
+        ).bind(mediaId).first();
+        if (!media || !IMAGE_TYPES.has(media.content_type)) return json({ error: "Website media not found." }, 404, origin);
+        const object = await env.MEDIA.get(media.object_key);
+        if (!object) return json({ error: "Website media not found." }, 404, origin);
+        const headers = new Headers({
+          "content-type": media.content_type,
+          "content-length": String(media.size_bytes),
+          "cache-control": "public, max-age=60, s-maxage=300",
+          "x-content-type-options": "nosniff",
+          "content-disposition": "inline",
+          "referrer-policy": "strict-origin-when-cross-origin"
+        });
+        if (origin && (ALLOWED_ORIGINS.has(origin) || origin.startsWith("https://ngms-website-v4-") && origin.endsWith("-ngms.vercel.app"))) {
+          headers.set("access-control-allow-origin", origin);
+          headers.set("vary", "Origin");
+        }
+        return new Response(object.body, { status: 200, headers });
+      } catch {
+        return json({ error: "Website media is temporarily unavailable." }, 500, origin);
+      }
+    }
+    if (request.method === "OPTIONS") {
+      if (!origin || !ALLOWED_ORIGINS.has(origin)) return json({ error: "Origin not allowed." }, 403);
+      return new Response(null, {
+        status: 204,
+        headers: {
+          "access-control-allow-origin": origin,
+          "access-control-allow-methods": "POST, OPTIONS, GET",
+          "access-control-allow-headers": "Content-Type",
+          "access-control-max-age": "86400",
+          "vary": "Origin"
+        }
+      });
+    }
+    const websiteMediaMatch = url.pathname.match(/^\/api\/public\/website-media\/([0-9a-f-]{36})$/i);
+    if (request.method === "GET" && websiteMediaMatch) {
+      try {
+        const mediaId = websiteMediaMatch[1];
+        const mapping = await env.DB.prepare(
+          "SELECT content_json FROM site_content WHERE content_key = 'website.mediaSlots'"
+        ).first();
+        if (!mapping) return json({ error: "Website image not found." }, 404, origin);
+        let savedSlots = {};
+        try {
+          const parsed = JSON.parse(mapping.content_json);
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) savedSlots = parsed;
+        } catch {
+          return json({ error: "Website image not found." }, 404, origin);
+        }
+        const isAssigned = PUBLIC_MEDIA_SLOT_KEYS.some((slotKey) => savedSlots[slotKey] === mediaId);
+        if (!isAssigned) return json({ error: "Website image not found." }, 404, origin);
+        const media = await env.DB.prepare(
+          "SELECT object_key, content_type, size_bytes FROM media WHERE id = ?"
+        ).bind(mediaId).first();
+        if (!media || !IMAGE_TYPES.has(media.content_type)) return json({ error: "Website image not found." }, 404, origin);
+        const object = await env.MEDIA.get(media.object_key);
+        if (!object) return json({ error: "Website image not found." }, 404, origin);
+        const headers = new Headers({
+          "content-type": media.content_type,
+          "content-length": String(media.size_bytes),
+          "cache-control": "public, max-age=60, s-maxage=300",
+          "x-content-type-options": "nosniff",
+          "content-disposition": "inline",
+          "referrer-policy": "strict-origin-when-cross-origin"
+        });
+        if (origin && (ALLOWED_ORIGINS.has(origin) || origin.startsWith("https://ngms-website-v4-") && origin.endsWith("-ngms.vercel.app"))) {
+          headers.set("access-control-allow-origin", origin);
+          headers.set("vary", "Origin");
+        }
+        return new Response(object.body, { status: 200, headers });
+      } catch {
+        return json({ error: "Website image is temporarily unavailable." }, 500, origin);
+      }
+    }
+    if (request.method === "GET" && url.pathname === "/api/public/projects") {
+      try {
+        const result = await env.DB.prepare(
+          "SELECT p.id, p.title, p.service, p.area, p.description, p.created_at, p.before_media_id, p.after_media_id FROM projects p WHERE p.status = 'Published' ORDER BY p.created_at DESC LIMIT 100"
+        ).all();
+        const items = (result.results ?? []).map((project) => ({
+          id: project.id,
+          title: project.title,
+          service: project.service,
+          area: project.area,
+          description: project.description,
+          created_at: project.created_at,
+          beforeImage: project.before_media_id ? `/api/public/project-media/${encodeURIComponent(project.before_media_id)}` : null,
+          afterImage: project.after_media_id ? `/api/public/project-media/${encodeURIComponent(project.after_media_id)}` : null
+        }));
+        return json({ ok: true, items }, 200, origin);
+      } catch {
+        return json({ error: "Published project information is temporarily unavailable." }, 500, origin);
+      }
+    }
+    const publicMediaMatch = url.pathname.match(/^\/api\/public\/project-media\/([0-9a-f-]{36})$/i);
+    if (request.method === "GET" && publicMediaMatch) {
+      try {
+        const media = await env.DB.prepare(
+          "SELECT m.object_key, m.content_type, m.original_name FROM media m WHERE m.id = ? AND m.content_type IN ('image/jpeg', 'image/png', 'image/webp', 'image/avif') AND EXISTS (SELECT 1 FROM projects p WHERE p.status = 'Published' AND (p.before_media_id = m.id OR p.after_media_id = m.id))"
+        ).bind(publicMediaMatch[1]).first();
+        if (!media) return json({ error: "Project image not found." }, 404, origin);
+        const object = await env.MEDIA.get(media.object_key);
+        if (!object) return json({ error: "Project image not found." }, 404, origin);
+        const headers = new Headers({
+          "content-type": media.content_type,
+          "cache-control": "public, max-age=60, s-maxage=300",
+          "x-content-type-options": "nosniff",
+          "content-disposition": "inline",
+          "referrer-policy": "strict-origin-when-cross-origin"
+        });
+        if (origin && (ALLOWED_ORIGINS.has(origin) || origin.startsWith("https://ngms-website-v4-") && origin.endsWith("-ngms.vercel.app"))) {
+          headers.set("access-control-allow-origin", origin);
+          headers.set("vary", "Origin");
+        }
+        return new Response(object.body, { status: 200, headers });
+      } catch {
+        return json({ error: "Project image is temporarily unavailable." }, 500, origin);
+      }
+    }
+    if (url.pathname !== "/api/public/enquiries") return json({ error: "Not found." }, 404, origin);
+    if (request.method !== "POST") return json({ error: "Method not allowed." }, 405, origin);
+    if (!origin || !ALLOWED_ORIGINS.has(origin)) return json({ error: "Origin not allowed." }, 403);
+    const contentType = (request.headers.get("Content-Type") ?? "").toLowerCase();
+    if (!contentType.includes("application/json")) return json({ error: "JSON content type required." }, 415, origin);
+    const contentLength = Number(request.headers.get("Content-Length") ?? "0");
+    if (contentLength > 12288) return json({ error: "Request is too large." }, 413, origin);
+    let raw;
+    try {
+      raw = await request.json();
+    } catch {
+      return json({ error: "Invalid JSON." }, 400, origin);
+    }
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return json({ error: "A JSON object is required." }, 400, origin);
+    const body = raw;
+    if (typeof body.website === "string" && body.website.trim()) {
+      return json({ ok: true, message: "Thank you. Your enquiry has been received." }, 202, origin);
+    }
+    const customer = cleanText(body.customer_name, 160);
+    const phone = typeof body.phone === "string" ? body.phone.trim().slice(0, 40) : "";
+    const email = typeof body.email === "string" ? body.email.trim().slice(0, 254) : "";
+    const service = cleanText(body.service, 160);
+    const area = cleanText(body.area, 160);
+    const details = cleanText(body.details, 4e3);
+    const turnstileToken = cleanText(body.turnstileToken, 2048);
+    const submissionKey = cleanText(body.submissionKey, 80);
+    if (!customer || customer.length < 2 || !service || !SERVICES.has(service) || !area || area.length < 2 || !details || details.length < 10) {
+      return json({ error: "Please provide your name, service, property area and at least 10 characters of job details." }, 400, origin);
+    }
+    if (phone.length < 7 && !email) return json({ error: "Please provide a valid phone number or email address." }, 400, origin);
+    if (phone && !/^[0-9+()\-\s]{7,40}$/.test(phone)) return json({ error: "Please check the phone number." }, 400, origin);
+    if (email && !validEmail(email)) return json({ error: "Please check the email address." }, 400, origin);
+    if (!submissionKey || !/^[0-9a-f-]{36}$/i.test(submissionKey)) return json({ error: "Please refresh the form and try again." }, 400, origin);
+    if (!turnstileToken) return json({ error: "Please complete the security check and submit again." }, 400, origin);
+    const ip = request.headers.get("CF-Connecting-IP") ?? "";
+    const verified = await verifyTurnstile(turnstileToken, env.TURNSTILE_SECRET_KEY, ip, origin);
+    if (!verified) return json({ error: "The security check expired or could not be verified. Please try again." }, 400, origin);
+    try {
+      const normalise = /* @__PURE__ */ __name((value) => value.trim().toLowerCase().replace(/\s+/g, " "), "normalise");
+      const fingerprintInput = [
+        normalise(customer),
+        normalise(phone.replace(/[^0-9+]/g, "")),
+        normalise(email),
+        normalise(service),
+        normalise(area),
+        normalise(details)
+      ].join("\n");
+      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(fingerprintInput));
+      const fingerprint = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+      const bucket = Math.floor(Date.now() / 3e5);
+      const dedupeKey = `${fingerprint}:${bucket}`;
+      const previousDedupeKey = `${fingerprint}:${bucket - 1}`;
+      const id = `EN-${crypto.randomUUID()}`;
+      const inserted = await env.DB.prepare(
+        "INSERT OR IGNORE INTO enquiries (id, customer_name, phone, email, service, area, details, status, created_by, submission_key, dedupe_key) VALUES (?, ?, ?, ?, ?, ?, ?, 'New', 'public-contact-form', ?, ?)"
+      ).bind(id, customer, phone, email, service, area, details, submissionKey, dedupeKey).run();
+      const saved = await env.DB.prepare(
+        "SELECT id FROM enquiries WHERE submission_key = ? OR dedupe_key IN (?, ?) LIMIT 1"
+      ).bind(submissionKey, dedupeKey, previousDedupeKey).first();
+      if (!saved?.id) throw new Error("Enquiry was not persisted.");
+      const created = Number(inserted.meta?.changes ?? 0) > 0;
+      let notificationSent = false;
+      if (created) {
+        notificationSent = await notifyNewLead(env, {
+          id: saved.id,
+          customer,
+          phone,
+          email,
+          service,
+          area,
+          details
+        });
+      }
+      return json({
+        ok: true,
+        message: created ? "Thank you. Your enquiry has been sent to NGMS." : "This enquiry was already received. NGMS has your request.",
+        reference: saved.id,
+        duplicate: !created,
+        notificationSent
+      }, created ? 201 : 200, origin);
+    } catch (error) {
+      console.error("Public enquiry intake failed", error instanceof Error ? error.message : "unknown error");
+      return json({ error: "We could not save your enquiry right now. Please call or WhatsApp NGMS instead." }, 500, origin);
+    }
+  }
+};
+export {
+  index_default as default
+};
