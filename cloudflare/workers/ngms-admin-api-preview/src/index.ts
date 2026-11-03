@@ -129,22 +129,92 @@ export default {
     if (publicQuoteMatch && (request.method === "GET" || request.method === "POST")) {
       try {
         const tokenHash = await sha256Hex(publicQuoteMatch[1]);
-        const link = await env.DB.prepare("SELECT l.document_id, l.expires_at, l.used_at, d.reference, d.customer_name, d.kind, d.amount_cents, d.subtotal_cents, d.discount_cents, d.vat_enabled, d.vat_rate_basis_points, d.vat_cents, d.status, d.issue_date, d.notes FROM quote_public_links l JOIN documents d ON d.id = l.document_id WHERE l.token_hash = ? AND d.kind = 'Quotation'").bind(tokenHash).first<Record<string, unknown>>();
-        if (!link || Date.parse(String(link.expires_at)) <= Date.now()) return json({ error: "This quotation link is invalid or has expired." }, 404, origin);
+        const link = await env.DB.prepare(
+          "SELECT l.document_id, l.enquiry_id, l.customer_id, l.decision, l.job_id, l.expires_at, l.used_at, d.reference, d.customer_name, d.kind, d.amount_cents, d.subtotal_cents, d.discount_cents, d.vat_enabled, d.vat_rate_basis_points, d.vat_cents, d.status, d.issue_date, d.notes, e.service, e.area, c.display_name AS crm_customer_name FROM quote_public_links l JOIN documents d ON d.id = l.document_id LEFT JOIN enquiries e ON e.id = l.enquiry_id LEFT JOIN customers c ON c.id = l.customer_id WHERE l.token_hash = ? AND d.kind = 'Quotation'"
+        ).bind(tokenHash).first<Record<string, unknown>>();
+        if (!link || Date.parse(String(link.expires_at)) <= Date.now()) {
+          return json({ error: "This quotation link is invalid or has expired." }, 404, origin);
+        }
         if (request.method === "GET") {
-          const lines = await env.DB.prepare("SELECT description, quantity, unit, unit_price_cents, line_total_cents FROM document_line_items WHERE document_id = ? ORDER BY line_order").bind(link.document_id).all();
+          const lines = await env.DB.prepare(
+            "SELECT description, quantity, unit, unit_price_cents, line_total_cents FROM document_line_items WHERE document_id = ? ORDER BY line_order"
+          ).bind(link.document_id).all();
           return json({ quote: link, lines: lines.results }, 200, origin);
         }
-        if (link.used_at || link.status !== "Sent") return json({ error: "This quotation is no longer awaiting a customer decision." }, 409, origin);
+        if (link.used_at || link.status !== "Sent") {
+          return json({ error: "This quotation is no longer awaiting a customer decision." }, 409, origin);
+        }
+        if (typeof link.enquiry_id !== "string" || typeof link.customer_id !== "string") {
+          return json({ error: "This quotation is not linked to its originating enquiry. Contact NGMS for assistance." }, 409, origin);
+        }
+        const enquiry = await env.DB.prepare(
+          "SELECT id, customer_id, status FROM enquiries WHERE id = ?"
+        ).bind(link.enquiry_id).first<{ id: string; customer_id: string | null; status: string }>();
+        if (!enquiry || enquiry.customer_id !== link.customer_id || !["Contacted", "Quoted"].includes(enquiry.status)) {
+          return json({ error: "The originating enquiry is no longer eligible for a customer decision." }, 409, origin);
+        }
         const body = await readJson(request);
         const decision = body ? textField(body, "decision", 16) : null;
-        if (decision !== "Accepted" && decision !== "Declined") return json({ error: "Choose Accept or Decline." }, 400, origin);
-        const updated = await env.DB.prepare("UPDATE documents SET status = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ? AND status = 'Sent'").bind(decision, link.document_id).run();
-        if (!updated.meta.changes) return json({ error: "The quotation has already received a decision." }, 409, origin);
-        await env.DB.prepare("UPDATE quote_public_links SET used_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE token_hash = ?").bind(tokenHash).run();
-        return json({ saved: true, decision, reference: link.reference }, 200, origin);
+        if (decision !== "Accepted" && decision !== "Declined") {
+          return json({ error: "Choose Accept or Decline." }, 400, origin);
+        }
+        const decidedAt = new Date().toISOString();
+        if (decision === "Declined") {
+          const results = await env.DB.batch([
+            env.DB.prepare(
+              "UPDATE documents SET status = 'Declined', updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ? AND status = 'Sent' AND EXISTS (SELECT 1 FROM quote_public_links WHERE token_hash = ? AND used_at IS NULL)"
+            ).bind(link.document_id, tokenHash),
+            env.DB.prepare(
+              "UPDATE quote_public_links SET used_at = ?, decision = 'Declined', decision_at = ? WHERE token_hash = ? AND used_at IS NULL"
+            ).bind(decidedAt, decidedAt, tokenHash),
+            env.DB.prepare(
+              "INSERT INTO customer_activity (id, customer_id, entity_type, entity_id, event_type, summary, actor) SELECT ?, ?, 'document', ?, 'quote_declined', ?, 'customer-quote-decision' WHERE EXISTS (SELECT 1 FROM quote_public_links WHERE token_hash = ? AND used_at = ? AND decision = 'Declined') AND NOT EXISTS (SELECT 1 FROM customer_activity WHERE customer_id = ? AND entity_type = 'document' AND entity_id = ? AND event_type = 'quote_declined')"
+            ).bind(newId("ACT"), link.customer_id, link.document_id, "Customer declined quotation " + String(link.reference), tokenHash, decidedAt, link.customer_id, link.document_id),
+          ]);
+          if (!results[0]?.meta?.changes || !results[1]?.meta?.changes) {
+            return json({ error: "The quotation has already received a decision." }, 409, origin);
+          }
+          return json({ saved: true, decision, reference: link.reference, job_id: null }, 200, origin);
+        }
+
+        const candidateJobId = newId("J");
+        const lineRows = await env.DB.prepare(
+          "SELECT description, quantity, unit FROM document_line_items WHERE document_id = ? ORDER BY line_order"
+        ).bind(link.document_id).all<{ description: string; quantity: number; unit: string }>();
+        const details = [
+          String(link.reference),
+          String(link.notes || ""),
+          ...lineRows.results.map((line) => String(line.quantity) + " " + line.unit + " — " + line.description),
+        ].filter(Boolean).join("\n");
+
+        const results = await env.DB.batch([
+          env.DB.prepare(
+            "UPDATE documents SET status = 'Accepted', updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ? AND status = 'Sent' AND EXISTS (SELECT 1 FROM quote_public_links WHERE token_hash = ? AND used_at IS NULL AND enquiry_id = ? AND customer_id = ?)"
+          ).bind(link.document_id, tokenHash, link.enquiry_id, link.customer_id),
+          env.DB.prepare(
+            "INSERT INTO jobs (id, customer_name, service, area, details, created_by, customer_id, source_document_id) SELECT ?, e.customer_name, e.service, e.area, ?, 'customer-quote-acceptance', e.customer_id, d.id FROM quote_public_links l JOIN documents d ON d.id = l.document_id JOIN enquiries e ON e.id = l.enquiry_id WHERE l.token_hash = ? AND l.used_at IS NULL AND l.customer_id = e.customer_id AND d.status = 'Accepted' AND e.status IN ('Contacted','Quoted') AND NOT EXISTS (SELECT 1 FROM jobs WHERE source_document_id = d.id)"
+          ).bind(candidateJobId, details, tokenHash),
+          env.DB.prepare(
+            "UPDATE quote_public_links SET used_at = ?, decision = 'Accepted', decision_at = ?, job_id = (SELECT id FROM jobs WHERE source_document_id = ?) WHERE token_hash = ? AND used_at IS NULL AND EXISTS (SELECT 1 FROM jobs WHERE source_document_id = ?)"
+          ).bind(decidedAt, decidedAt, link.document_id, tokenHash, link.document_id),
+          env.DB.prepare(
+            "UPDATE enquiries SET status = 'Converted', updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ? AND customer_id = ? AND status IN ('Contacted','Quoted') AND EXISTS (SELECT 1 FROM quote_public_links WHERE token_hash = ? AND used_at = ? AND decision = 'Accepted' AND job_id IS NOT NULL)"
+          ).bind(link.enquiry_id, link.customer_id, tokenHash, decidedAt),
+          env.DB.prepare(
+            "INSERT INTO customer_activity (id, customer_id, entity_type, entity_id, event_type, summary, actor) SELECT ?, ?, 'job', l.job_id, 'job_created_from_quote', ?, 'customer-quote-acceptance' FROM quote_public_links l WHERE l.token_hash = ? AND l.used_at = ? AND l.decision = 'Accepted' AND l.job_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM customer_activity WHERE customer_id = ? AND entity_type = 'job' AND entity_id = l.job_id AND event_type = 'job_created_from_quote')"
+          ).bind(newId("ACT"), link.customer_id, "Customer accepted quotation " + String(link.reference), tokenHash, decidedAt, link.customer_id),
+        ]);
+        if (!results[0]?.meta?.changes || !results[2]?.meta?.changes) {
+          return json({ error: "The quotation has already received a decision or could not be converted to a job." }, 409, origin);
+        }
+        const job = await env.DB.prepare(
+          "SELECT id FROM jobs WHERE source_document_id = ?"
+        ).bind(link.document_id).first<{ id: string }>();
+        if (!job) return json({ error: "Job creation could not be verified. Contact NGMS before resubmitting." }, 500, origin);
+        return json({ saved: true, decision, reference: link.reference, job_id: job.id }, 200, origin);
       } catch (error) {
-        return json({ error: error instanceof Error ? error.message : "Could not process quotation decision." }, 500, origin);
+        console.error("Customer quotation decision failed", error);
+        return json({ error: "Could not process quotation decision. Contact NGMS if the problem persists." }, 500, origin);
       }
     }
     if (!url.pathname.startsWith("/api/admin/")) return json({ error: "Not found" }, 404, origin);
@@ -273,16 +343,43 @@ export default {
 
       const commercialShareMatch = url.pathname.match(/^\/api\/admin\/commercial-documents\/([A-Za-z0-9-]+)\/share$/);
       if (commercialShareMatch && request.method === "POST") {
-        const quote = await env.DB.prepare("SELECT id, reference, status FROM documents WHERE id = ? AND kind = 'Quotation' AND reference IS NOT NULL").bind(commercialShareMatch[1]).first<{id:string;reference:string;status:string}>();
-        if (!quote) return json({error:"Quotation not found."},404,origin);
-        if (quote.status !== "Draft" && quote.status !== "Sent") return json({error:"Only draft or sent quotations can be shared."},409,origin);
-        const token = newShareToken(), tokenHash = await sha256Hex(token);
+        const body = await readJson(request);
+        const enquiryId = body ? textField(body, "enquiry_id", 120) : null;
+        if (!enquiryId) return json({ error: "Select the originating enquiry before issuing this quotation." }, 400, origin);
+        const quote = await env.DB.prepare(
+          "SELECT id, reference, status, customer_id FROM documents WHERE id = ? AND kind = 'Quotation' AND reference IS NOT NULL"
+        ).bind(commercialShareMatch[1]).first<{ id: string; reference: string; status: string; customer_id: string | null }>();
+        if (!quote) return json({ error: "Quotation not found." }, 404, origin);
+        if (quote.status !== "Draft" && quote.status !== "Sent") return json({ error: "Only draft or sent quotations can be shared." }, 409, origin);
+        const enquiry = await env.DB.prepare(
+          "SELECT id, customer_id, status FROM enquiries WHERE id = ?"
+        ).bind(enquiryId).first<{ id: string; customer_id: string | null; status: string }>();
+        if (!enquiry || !quote.customer_id || enquiry.customer_id !== quote.customer_id || !["Contacted", "Quoted"].includes(enquiry.status)) {
+          return json({ error: "Link the quotation to an enquiry belonging to the same CRM customer before issuing it." }, 409, origin);
+        }
+        const token = newShareToken();
+        const tokenHash = await sha256Hex(token);
         const expiresAt = new Date(Date.now() + 30 * 86400000).toISOString();
-        await env.DB.prepare("INSERT INTO quote_public_links (id,document_id,token_hash,expires_at,created_by) VALUES (?,?,?,?,?)").bind(newId("QL"),quote.id,tokenHash,expiresAt,actor).run();
-        await env.DB.prepare("UPDATE documents SET status = 'Sent', updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ? AND status = 'Draft'").bind(quote.id).run();
-        const base = origin || "https://www.nextgensolarmaintenance.co.za";
-        return json({url: base + "/quote/" + token, expires_at: expiresAt, reference: quote.reference},201,origin);
+        const now = new Date().toISOString();
+        await env.DB.batch([
+          env.DB.prepare("UPDATE quote_public_links SET expires_at = ? WHERE document_id = ? AND used_at IS NULL").bind(now, quote.id),
+          env.DB.prepare(
+            "INSERT INTO quote_public_links (id, document_id, token_hash, expires_at, created_by, enquiry_id, customer_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
+          ).bind(newId("QL"), quote.id, tokenHash, expiresAt, actor, enquiry.id, quote.customer_id),
+          env.DB.prepare(
+            "UPDATE documents SET status = 'Sent', updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ? AND status IN ('Draft','Sent')"
+          ).bind(quote.id),
+          env.DB.prepare(
+            "UPDATE enquiries SET status = 'Quoted', updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ? AND customer_id = ? AND status IN ('Contacted','Quoted')"
+          ).bind(enquiry.id, quote.customer_id),
+          env.DB.prepare(
+            "INSERT INTO customer_activity (id, customer_id, entity_type, entity_id, event_type, summary, actor) VALUES (?, ?, 'document', ?, 'quote_issued', ?, ?)"
+          ).bind(newId("ACT"), quote.customer_id, quote.id, "Quotation issued: " + quote.reference, actor),
+        ]);
+        const base = origin || "https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev";
+        return json({ url: base + "/quote/" + token, expires_at: expiresAt, reference: quote.reference }, 201, origin);
       }
+
 
       const commercialPaymentsMatch = url.pathname.match(/^\/api\/admin\/commercial-documents\/([A-Za-z0-9-]+)\/payments$/);
       if (commercialPaymentsMatch && request.method === "GET") {
@@ -348,7 +445,7 @@ export default {
         const status = url.searchParams.get("status");
         if (kind !== "Quotation" && kind !== "Invoice") return json({ error: "Choose Quotation or Invoice." }, 400, origin);
         if (status && !["Draft", "Sent", "Accepted", "Declined", "Expired", "Overdue", "Cancelled"].includes(status)) return json({ error: "Invalid document status filter." }, 400, origin);
-        const result = await env.DB.prepare("SELECT d.id, d.reference, d.customer_id, COALESCE(c.display_name, d.customer_name) AS customer_name, d.kind, d.amount_cents, d.subtotal_cents, d.discount_cents, d.vat_enabled, d.vat_rate_basis_points, d.vat_cents, d.status, d.issue_date, d.created_at, d.source_document_id FROM documents d LEFT JOIN customers c ON c.id = d.customer_id WHERE d.reference IS NOT NULL AND d.kind = ? AND (? IS NULL OR d.status = ?) ORDER BY d.created_at DESC LIMIT 200").bind(kind, status, status).all();
+        const result = await env.DB.prepare("SELECT d.id, d.reference, d.customer_id, COALESCE(c.display_name, d.customer_name) AS customer_name, d.kind, d.amount_cents, d.subtotal_cents, d.discount_cents, d.vat_enabled, d.vat_rate_basis_points, d.vat_cents, d.status, d.issue_date, d.created_at, d.source_document_id, (SELECT j.id FROM jobs j WHERE j.source_document_id = d.id LIMIT 1) AS job_id FROM documents d LEFT JOIN customers c ON c.id = d.customer_id WHERE d.reference IS NOT NULL AND d.kind = ? AND (? IS NULL OR d.status = ?) ORDER BY d.created_at DESC LIMIT 200").bind(kind, status, status).all();
         return json({ items: result.results }, 200, origin);
       }
 
@@ -513,6 +610,81 @@ export default {
         const result=await env.DB.prepare("DELETE FROM schedules WHERE id=?").bind(scheduleMatch[1]).run();
         if (!result.meta.changes) return json({error:"Appointment not found."},404,origin);
         return json({deleted:true},200,origin);
+      }
+
+      const enquiryConversionMatch = url.pathname.match(/^\/api\/admin\/enquiries\/([A-Za-z0-9-]+)\/convert-to-customer$/);
+      if (enquiryConversionMatch && request.method === "POST") {
+        const enquiryId = enquiryConversionMatch[1];
+        const enquiry = await env.DB.prepare(
+          "SELECT id, customer_name, phone, email, service, area, details, status, customer_id FROM enquiries WHERE id = ?"
+        ).bind(enquiryId).first<{
+          id: string; customer_name: string; phone: string; email: string;
+          service: string; area: string; details: string; status: string; customer_id: string | null;
+        }>();
+        if (!enquiry) return json({ error: "Enquiry not found." }, 404, origin);
+
+        const mapping = await env.DB.prepare(
+          "SELECT customer_id FROM enquiry_customer_links WHERE enquiry_id = ?"
+        ).bind(enquiryId).first<{ customer_id: string }>();
+        if (mapping) {
+          const customer = await env.DB.prepare("SELECT * FROM customers WHERE id = ?").bind(mapping.customer_id).first<Record<string, unknown>>();
+          if (!customer) return json({ error: "The linked CRM customer could not be found." }, 409, origin);
+          await env.DB.prepare("UPDATE enquiries SET customer_id = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ? AND customer_id IS NULL").bind(mapping.customer_id, enquiryId).run();
+          return json({ item: { ...customer, customer_id: mapping.customer_id }, enquiry: { ...enquiry, customer_id: mapping.customer_id } }, 200, origin);
+        }
+
+        if (enquiry.customer_id) {
+          await env.DB.prepare(
+            "INSERT OR IGNORE INTO enquiry_customer_links (enquiry_id, customer_id, linked_by) VALUES (?, ?, ?)"
+          ).bind(enquiryId, enquiry.customer_id, actor).run();
+          const customer = await env.DB.prepare("SELECT * FROM customers WHERE id = ?").bind(enquiry.customer_id).first<Record<string, unknown>>();
+          if (!customer) return json({ error: "The enquiry references a missing CRM customer." }, 409, origin);
+          return json({ item: { ...customer, customer_id: enquiry.customer_id }, enquiry }, 200, origin);
+        }
+
+        const email = String(enquiry.email || "").trim().toLowerCase();
+        const normalisePhone = (value: string) => value.replace(/\D/g, "").replace(/^27/, "0");
+        const phone = normalisePhone(String(enquiry.phone || ""));
+        const phoneTail = phone.slice(-9);
+        const candidates = await env.DB.prepare(
+          "SELECT id, display_name, primary_phone, primary_email FROM customers WHERE (? <> '' AND lower(primary_email) = ?) OR (? <> '' AND primary_phone LIKE '%' || ? || '%') ORDER BY updated_at DESC LIMIT 200"
+        ).bind(email, email, phoneTail, phoneTail).all<{
+          id: string; display_name: string; primary_phone: string; primary_email: string;
+        }>();
+        const matches = candidates.results.filter((candidate) =>
+          (email && String(candidate.primary_email || "").trim().toLowerCase() === email) ||
+          (phone && normalisePhone(String(candidate.primary_phone || "")) === phone)
+        );
+        if (matches.length > 1) {
+          return json({ error: "More than one CRM customer matches this enquiry. Resolve the duplicate candidates in CRM before converting it." }, 409, origin);
+        }
+
+        const matched = matches[0];
+        const candidateCustomerId = matched?.id || newId("CUS");
+        const statements = [
+          ...(!matched ? [env.DB.prepare(
+            "INSERT INTO customers (id, customer_type, display_name, company_name, primary_phone, primary_email, billing_address, service_address, notes, created_by) SELECT ?, 'Individual', ?, '', ?, ?, '', ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM enquiry_customer_links WHERE enquiry_id = ?)"
+          ).bind(candidateCustomerId, enquiry.customer_name, enquiry.phone || "", enquiry.email || "", enquiry.area || "", "Created from enquiry " + enquiryId + (enquiry.details ? "\n" + enquiry.details : ""), actor, enquiryId)] : []),
+          env.DB.prepare(
+            "INSERT OR IGNORE INTO enquiry_customer_links (enquiry_id, customer_id, linked_by) VALUES (?, ?, ?)"
+          ).bind(enquiryId, candidateCustomerId, actor),
+          env.DB.prepare(
+            "UPDATE enquiries SET customer_id = (SELECT customer_id FROM enquiry_customer_links WHERE enquiry_id = ?), status = CASE WHEN status = 'New' THEN 'Contacted' ELSE status END, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ? AND customer_id IS NULL"
+          ).bind(enquiryId, enquiryId),
+          env.DB.prepare(
+            "INSERT INTO customer_activity (id, customer_id, entity_type, entity_id, event_type, summary, actor) SELECT ?, customer_id, 'enquiry', ?, 'enquiry_linked', ?, ? FROM enquiry_customer_links WHERE enquiry_id = ? AND NOT EXISTS (SELECT 1 FROM customer_activity WHERE customer_id = ? AND entity_type = 'enquiry' AND entity_id = ? AND event_type = 'enquiry_linked')"
+          ).bind(newId("ACT"), enquiryId, "Enquiry linked to CRM customer: " + enquiry.customer_name, actor, enquiryId, candidateCustomerId, enquiryId),
+        ];
+        await env.DB.batch(statements);
+        const linked = await env.DB.prepare(
+          "SELECT e.id, e.customer_id, e.status, m.customer_id AS mapped_customer_id FROM enquiries e JOIN enquiry_customer_links m ON m.enquiry_id = e.id WHERE e.id = ?"
+        ).bind(enquiryId).first<{ id: string; customer_id: string | null; status: string; mapped_customer_id: string }>();
+        if (!linked || linked.customer_id !== linked.mapped_customer_id) {
+          return json({ error: "The CRM customer link could not be verified. Refresh the enquiry before retrying." }, 409, origin);
+        }
+        const customer = await env.DB.prepare("SELECT * FROM customers WHERE id = ?").bind(linked.customer_id).first<Record<string, unknown>>();
+        if (!customer) return json({ error: "CRM customer record could not be loaded after conversion." }, 500, origin);
+        return json({ item: { ...customer, customer_id: linked.customer_id }, enquiry: linked }, 200, origin);
       }
 
       const collectionMatch = url.pathname.match(/^\/api\/admin\/(enquiries|jobs|documents)$/);
