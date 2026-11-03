@@ -144,8 +144,9 @@ export default function QuoteRequestForm() {
     }
     const details = [
       description,
+      selected?.value === "Other" ? `Specific request: ${selected.label}` : "",
       preferredDate ? `Preferred date: ${preferredDate}` : "",
-    ].filter(Boolean).join("\\n\\n");
+    ].filter(Boolean).join("\n\n");
 
     setSubmitting(true);
     try {
