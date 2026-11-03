@@ -7,6 +7,7 @@ import {
   getAdminApiHealthUrl, getAdminMediaDownloadUrl, previewWritesEnabled, readAdminCollection, updateAdminStatus, uploadAdminMedia,
 } from "@/lib/admin-api";
 import { services } from "@/lib/site";
+import EnquiryQuoteBuilder from "@/components/EnquiryQuoteBuilder";
 
 export type AdminModuleKey =
   | "enquiries" | "jobs" | "quotes" | "invoices" | "calendar"
@@ -47,7 +48,7 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
     description: "Review quotation documents and their current recorded status.",
     resource: "documents", kind: "Quotation",
     columns: [
-      { key: "id", label: "Quote reference" }, { key: "customer_name", label: "Customer" },
+      { key: "reference", label: "Quote reference" }, { key: "customer_name", label: "Customer" },
       { key: "amount_cents", label: "Amount (ZAR)" }, { key: "created_at", label: "Created" },
       { key: "status", label: "Status" },
     ],
@@ -190,12 +191,13 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
   const [convertingId, setConvertingId] = useState<string | null>(null);
+  const [quotingEnquiry, setQuotingEnquiry] = useState<AdminRow | null>(null);
   const apiConfigured = Boolean(getAdminApiBase());
   const apiHealthUrl = getAdminApiHealthUrl();
   const writesEnabled = previewWritesEnabled();
   const hasReadEndpoint = Boolean(module.resource);
-  const canCreate = ["enquiries", "jobs", "quotes", "invoices"].includes(moduleKey);
-  const writeResource = moduleKey === "enquiries" || moduleKey === "jobs" ? moduleKey : "documents";
+  const canCreate = ["enquiries", "jobs"].includes(moduleKey);
+  const writeResource: "enquiries" | "jobs" = moduleKey === "jobs" ? "jobs" : "enquiries";
 
   const load = useCallback(async (signal: AbortSignal) => {
     if (!getAdminApiBase() || !module.resource) {
@@ -282,7 +284,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     setActionError("");
     try {
       const linked = await convertEnquiryToCustomer(row.id);
-      setActionMessage(`Enquiry linked to CRM customer ${String(linked.customer_id ?? "")}.`);
+      setActionMessage(`Enquiry linked to CRM customer ${String(linked.customer_id ?? linked.id ?? "")}.`);
       setRefreshVersion((version) => version + 1);
     } catch (error) {
       setActionError(adminApiErrorMessage(error));
@@ -323,6 +325,12 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       </div>
     </div>
 
+    {moduleKey === "enquiries" && quotingEnquiry && <EnquiryQuoteBuilder
+      enquiry={quotingEnquiry}
+      onClose={() => setQuotingEnquiry(null)}
+      onComplete={() => setRefreshVersion((version) => version + 1)}
+    />}
+
     {canCreate && <section className="action-panel">
       <div className="action-panel-head"><div><strong>Create {moduleKey==="enquiries"?"enquiry":moduleKey==="jobs"?"job":moduleKey==="quotes"?"quotation":"invoice"}</strong><small>New records are only allowed when the explicit preview-write flag is enabled.</small></div>
         <button type="button" className="button button-orange" onClick={()=>{setShowCreate(v=>!v);setActionMessage("");setActionError("");}} disabled={!writesEnabled||!apiConfigured}>{showCreate?"Close form":"+ New record"}</button>
@@ -354,8 +362,10 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       :!apiConfigured?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>CONNECT THE PREVIEW API.</h2><p>Set the non-secret API base URL in the Cloudflare preview build. Cloudflare Access and the preview origin allowlist must also match.</p></div>
       :rows.length===0?<div className="table-empty"><span aria-hidden="true">▤</span><h2>NO RECORDS RETURNED.</h2><p>The protected API returned an empty collection for this module. This is not an API error.</p></div>
       :visibleRows.length===0?<div className="table-empty"><span aria-hidden="true">⌕</span><h2>NO MATCHES.</h2><p>Try a different search term.</p></div>
-      :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<th>File action</th>}{moduleKey==="enquiries"&&writesEnabled&&<th>CRM conversion</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&<th>Preview action</th>}</tr></thead>
-        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<td>{getAdminMediaDownloadUrl(row.id)?<a className="text-link" href={getAdminMediaDownloadUrl(row.id)} target="_blank" rel="noopener noreferrer">Open / download ↗</a>:<span className="inline-feedback">File link unavailable</span>}</td>}{moduleKey==="enquiries"&&writesEnabled&&<td>{row.customer_id?<span className="preview-pill">LINKED TO CRM</span>:<button type="button" className="button button-small" onClick={()=>handleConvertEnquiry(row)} disabled={!row.id||convertingId!==null}>{convertingId===row.id?"Linking…":"Add to CRM"}</button>}</td>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents"].includes(module.resource)&&<td><StatusEditor resource={module.resource as "enquiries"|"jobs"|"documents"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
+      :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<th>File action</th>}{moduleKey==="enquiries"&&writesEnabled&&<th>CRM / quotation workflow</th>}{writesEnabled&&(moduleKey==="enquiries"||moduleKey==="jobs")&&<th>Preview action</th>}</tr></thead>
+        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<td>{getAdminMediaDownloadUrl(row.id)?<a className="text-link" href={getAdminMediaDownloadUrl(row.id)} target="_blank" rel="noopener noreferrer">Open / download ↗</a>:<span className="inline-feedback">File link unavailable</span>}</td>}{moduleKey==="enquiries"&&writesEnabled&&<td>{row.customer_id
+        ? <button type="button" className="button button-small button-orange" onClick={()=>setQuotingEnquiry(row)}>Prepare quotation</button>
+        : <button type="button" className="button button-small" onClick={()=>handleConvertEnquiry(row)} disabled={!row.id||convertingId!==null}>{convertingId===row.id?"Linking…":"Add to CRM"}</button>}</td>}{writesEnabled&&(moduleKey==="enquiries"||moduleKey==="jobs")&&module.resource&&<td><StatusEditor resource={module.resource as "enquiries"|"jobs"} statusOptions={STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
     </section>
     {moduleKey==="invoices"&&<p className="module-footnote">The inspected document schema stores invoice face value and status, but has no partial-payment ledger. This screen does not calculate a reconciled amount due.</p>}
     {moduleKey==="content"&&<p className="module-footnote">Content editing remains disabled until optimistic concurrency, publish/rollback and the owner-approved field schema are implemented.</p>}
