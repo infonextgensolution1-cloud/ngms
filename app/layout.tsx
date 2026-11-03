@@ -16,6 +16,7 @@ import { Phone } from 'lucide-react'
 import PWARegister from '@/components/PWARegister'
 import './globals.css'
 import './ngms-industrial-editorial.css'
+import './ngms-interactive-motion.css'
 
 // Solar Forge type system: Inter for body/UI, Poppins for display headings.
 // Exposed as CSS variables that tailwind.config.js maps to font-body / font-heading.
