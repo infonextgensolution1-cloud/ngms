@@ -37,5 +37,18 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_documents_one_invoice_per_quote
   ON documents(source_document_id)
   WHERE kind = 'Invoice' AND source_document_id IS NOT NULL;
 
+-- Enforce the invoice balance at the database boundary as well as in the API.
+-- This prevents over-allocation even if a future caller bypasses the UI checks.
+CREATE TRIGGER IF NOT EXISTS trg_document_payments_within_invoice_total
+BEFORE INSERT ON document_payments
+WHEN
+  (SELECT COALESCE(SUM(amount_cents), 0)
+   FROM document_payments
+   WHERE document_id = NEW.document_id) + NEW.amount_cents
+  > (SELECT amount_cents FROM documents WHERE id = NEW.document_id)
+BEGIN
+  SELECT RAISE(ABORT, 'Payment exceeds outstanding invoice balance');
+END;
+
 INSERT OR IGNORE INTO ngms_schema_migrations (name)
 VALUES ('0011_customer_approval_payments_jobs.sql');
