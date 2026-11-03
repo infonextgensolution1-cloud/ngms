@@ -117,3 +117,23 @@ These values exist solely to test the preview interface; they must never be mist
 - [V4 blueprint-to-acceptance matrix](v4-acceptance-matrix.md) — current requirement status, available evidence, exit criteria and production release gate.
 - [Implementation status](implementation-status.md)
 - [Cloudflare preview deployment](cloudflare-preview-deployment.md)
+
+
+---
+
+## Preview public intake update — 3 November 2026
+
+This section supersedes the earlier note that a separate preview intake Worker and Turnstile setup were still required.
+
+- Preview public intake Worker: `ngms-public-intake-preview`.
+- Preview endpoint: `https://ngms-public-intake-preview.nextgensolarcleaningmaintenancesolutions.workers.dev/api/public/enquiries`.
+- Preview D1 binding: `DB` → `ngms-admin-preview` (`f12c5c48-58cd-4c48-82de-8c7341b8e6cf`).
+- Preview R2 binding: `MEDIA` → `ngmsmedia-preview`.
+- A dedicated Turnstile widget named `NGMS V4 Rebuild Preview Enquiry` was created for the rebuild preview hostname. Its public site key is configured as a public build variable; the Turnstile secret is stored only as the Worker secret binding `TURNSTILE_SECRET_KEY`.
+- The preview intake Worker's allowlist now includes `https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev`. The production public-intake Worker and production Turnstile widget were not changed.
+- The feature branch adds `QuoteRequestForm` to the rebuild quote page. It sends customer requests to the preview intake endpoint with a Turnstile token and unique submission key. The existing intake Worker validates the payload, applies its honeypot and duplicate checks, and inserts into the existing `enquiries` table. No parallel quote table is introduced.
+- The current intake Worker stores preferred date in the enquiry details because the existing D1 `enquiries` schema has no dedicated preferred-date column.
+- Public photo attachments are not part of this phase.
+- Admin notification email is not confirmed: preview intake has no configured `LEAD_NOTIFY_TO` / `LEAD_NOTIFY_FROM` values. The enquiry is intended to be reviewed through the protected admin API; email delivery must not be claimed until configured and tested.
+
+**Verification state:** Cloudflare read-back confirms the preview D1/R2 bindings, Turnstile secret binding and updated origin configuration. Browser submission, Turnstile acceptance, D1 persistence and Admin Enquiries read-back remain unverified because the preview hostname is not resolvable from the current execution environment. Do not enable the public form on production.
