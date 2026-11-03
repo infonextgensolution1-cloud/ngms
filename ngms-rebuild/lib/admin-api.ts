@@ -291,3 +291,70 @@ export async function uploadAdminMedia(file: File): Promise<AdminRow> {
     size_bytes: uploaded.size,
   };
 }
+
+
+export async function readCommercialDocuments(
+  kind: "Quotation" | "Invoice",
+  status?: string,
+  signal?: AbortSignal
+): Promise<AdminRow[]> {
+  const base = getAdminApiBase();
+  if (!base) throw new AdminApiError("The approved preview API is not configured.", "not-configured");
+  const params = new URLSearchParams({ kind });
+  if (status) params.set("status", status);
+  let response: Response;
+  try {
+    response = await fetch(`${base}/api/admin/commercial-documents?${params.toString()}`, {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+      signal,
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") throw error;
+    throw new AdminApiError("The commercial-document request failed. Check Cloudflare Access and preview CORS.", "network");
+  }
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message = body && typeof body === "object" && "error" in body && typeof (body as { error?: unknown }).error === "string"
+      ? (body as { error: string }).error
+      : `Cloudflare API returned HTTP ${response.status}.`;
+    throw new AdminApiError(message, "http", response.status);
+  }
+  if (!body || typeof body !== "object" || !("items" in body) || !Array.isArray((body as { items?: unknown }).items)) {
+    throw new AdminApiError("The commercial-document response did not match the expected { items: [] } contract.", "invalid-response", response.status);
+  }
+  return (body as { items: AdminRow[] }).items;
+}
+
+export async function readAdminCustomers(signal?: AbortSignal): Promise<AdminRow[]> {
+  return readAdminCollection("customers" as AdminResource, signal);
+}
+
+export async function createCommercialDocument(payload: Record<string, unknown>): Promise<AdminRow> {
+  return mutationFetch("/api/admin/commercial-documents", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function createAdminCustomer(payload: Record<string, unknown>): Promise<AdminRow> {
+  return mutationFetch("/api/admin/customers", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateCommercialDocumentStatus(id: string, status: string): Promise<AdminRow> {
+  if (!/^[A-Za-z0-9-]{1,100}$/.test(id)) {
+    throw new AdminApiError("The document identifier is not valid.", "invalid-response");
+  }
+  return mutationFetch(`/api/admin/commercial-documents/${encodeURIComponent(id)}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+}
