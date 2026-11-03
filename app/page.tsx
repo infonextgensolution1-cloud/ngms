@@ -59,6 +59,46 @@ export default async function HomePage() {
         <p>From solar panel cleaning to repairs, painting and exterior maintenance, NGMS helps homeowners, body corporates and businesses manage property work with one reliable team.</p>
       </section>
 
+      <section className="ngms-interactive-features" aria-label="Why customers choose NextGen Maintenance Solutions">
+        <div className="ngms-interactive-features__grid">
+          <Link href="/services" className="ngms-interactive-feature">
+            <span className="ngms-interactive-feature__circle">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M29 8a11 11 0 0 0-13.8 13.8L7 30l11 11 8.2-8.2A11 11 0 0 0 40 19l-7 7-7-7 7-7a11 11 0 0 0-4-4Z"/><path d="m11 30 7 7"/></svg>
+            </span>
+            <h2>BEST SERVICES</h2>
+            <p>Practical maintenance solutions delivered by one accountable team.</p>
+            <span className="ngms-interactive-feature__more">MORE <span aria-hidden="true">↗</span></span>
+          </Link>
+
+          <Link href="/portfolio" className="ngms-interactive-feature">
+            <span className="ngms-interactive-feature__circle">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 40V12h34v28H7Z"/><path d="M13 12V7h22v5M15 19h6m6 0h6M15 25h6m6 0h6M15 31h6m6 0h6M21 40V33h6v7"/></svg>
+            </span>
+            <h2>COMPLETE SOLUTIONS</h2>
+            <p>Residential, commercial and shared-property maintenance in one place.</p>
+            <span className="ngms-interactive-feature__more">MORE <span aria-hidden="true">↗</span></span>
+          </Link>
+
+          <Link href="/about" className="ngms-interactive-feature">
+            <span className="ngms-interactive-feature__circle">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5 39 11v11c0 10-6.4 16.5-15 21-8.6-4.5-15-11-15-21V11l15-6Z"/><path d="m16 24 5 5 11-12"/></svg>
+            </span>
+            <h2>QUALITY WORKMANSHIP</h2>
+            <p>Clear scopes, considered workmanship and visible project results.</p>
+            <span className="ngms-interactive-feature__more">MORE <span aria-hidden="true">↗</span></span>
+          </Link>
+
+          <Link href="/contact" className="ngms-interactive-feature">
+            <span className="ngms-interactive-feature__circle">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 27v-4a16 16 0 0 1 32 0v4"/><path d="M8 24H6v9h8v-9H8Zm32 0h2v9h-8v-9h6Z"/><path d="M34 34c-2 5-6 7-12 7h-4"/></svg>
+            </span>
+            <h2>QUICK SUPPORT</h2>
+            <p>Speak to our team and send through your maintenance requirements.</p>
+            <span className="ngms-interactive-feature__more">MORE <span aria-hidden="true">↗</span></span>
+          </Link>
+        </div>
+      </section>
+
       <section className="ngms-new-services" aria-labelledby="ngms-services-title">
         <div className="ngms-new-section-head">
           <div>
