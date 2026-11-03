@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, createAdminRecord, getAdminApiBase,
-  getAdminApiHealthUrl, getAdminMediaDownloadUrl, previewWritesEnabled, readAdminCollection, updateAdminStatus, uploadAdminMedia,
+  AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, createAdminCustomer, createAdminRecord, createCommercialDocument,
+  getAdminApiBase, getAdminApiHealthUrl, getAdminMediaDownloadUrl, previewWritesEnabled, readAdminCollection,
+  readAdminCustomers, readCommercialDocuments, updateAdminStatus, updateCommercialDocumentStatus, uploadAdminMedia,
 } from "@/lib/admin-api";
 import { services } from "@/lib/site";
 
@@ -44,20 +45,20 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   },
   quotes: {
     title: "Quotations",
-    description: "Review quotation documents and their current recorded status.",
+    description: "Create formal, numbered quotations with CRM customers, itemised work, discounts and VAT.",
     resource: "documents", kind: "Quotation",
     columns: [
-      { key: "id", label: "Quote reference" }, { key: "customer_name", label: "Customer" },
+      { key: "reference", label: "Quote reference" }, { key: "customer_name", label: "Customer" },
       { key: "amount_cents", label: "Amount (ZAR)" }, { key: "created_at", label: "Created" },
       { key: "status", label: "Status" },
     ],
   },
   invoices: {
     title: "Invoices",
-    description: "Review invoice documents and their recorded status.",
+    description: "Create invoices directly from accepted quotations, preserving their approved line items and VAT treatment.",
     resource: "documents", kind: "Invoice",
     columns: [
-      { key: "id", label: "Invoice reference" }, { key: "customer_name", label: "Customer" },
+      { key: "reference", label: "Invoice reference" }, { key: "customer_name", label: "Customer" },
       { key: "amount_cents", label: "Face value (ZAR)" }, { key: "created_at", label: "Created" },
       { key: "status", label: "Status" },
     ],
@@ -113,7 +114,7 @@ const STATUS_OPTIONS: Record<"enquiries" | "jobs", string[]> = {
   jobs: ["New", "Quoted", "In progress", "Completed", "Cancelled"],
 };
 const QUOTE_STATUS_OPTIONS = ["Draft", "Sent", "Accepted", "Declined", "Expired", "Cancelled"];
-const INVOICE_STATUS_OPTIONS = ["Draft", "Sent", "Paid", "Overdue", "Cancelled"];
+const INVOICE_STATUS_OPTIONS = ["Draft", "Sent", "Overdue", "Cancelled"];
 
 function displayValue(key: string, value: unknown): string {
   if (value === null || value === undefined || value === "") return "—";
@@ -155,7 +156,11 @@ function StatusEditor({
     setSaving(true);
     setMessage("");
     try {
-      await updateAdminStatus(resource, row.id, value);
+      if (resource === "documents") {
+        await updateCommercialDocumentStatus(row.id, value);
+      } else {
+        await updateAdminStatus(resource, row.id, value);
+      }
       setMessage("Status saved.");
       onSaved();
     } catch (error) {
@@ -179,6 +184,13 @@ function StatusEditor({
 export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModuleKey }) {
   const module = MODULES[moduleKey];
   const [rows, setRows] = useState<AdminRow[]>([]);
+  const [customers, setCustomers] = useState<AdminRow[]>([]);
+  const [acceptedQuotes, setAcceptedQuotes] = useState<AdminRow[]>([]);
+  const [quoteLines, setQuoteLines] = useState<Array<{ description: string; quantity: string; unit: string; unit_price: string }>>([
+    { description: "", quantity: "1", unit: "item", unit_price: "" },
+  ]);
+  const [showCustomerForm, setShowCustomerForm] = useState(false);
+  const [newCustomerId, setNewCustomerId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -199,6 +211,8 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
   const load = useCallback(async (signal: AbortSignal) => {
     if (!getAdminApiBase() || !module.resource) {
       setRows([]);
+      setCustomers([]);
+      setAcceptedQuotes([]);
       setLoading(false);
       setError(null);
       return;
@@ -206,18 +220,38 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     setLoading(true);
     setError(null);
     try {
-      const result = await readAdminCollection(module.resource, signal);
-      const filtered = module.kind ? result.filter((row) => row.kind === module.kind) : result;
-      if (!signal.aborted) setRows(filtered);
+      const [result, customerRows, acceptedRows] = await Promise.all([
+        moduleKey === "quotes"
+          ? readCommercialDocuments("Quotation", undefined, signal)
+          : moduleKey === "invoices"
+            ? readCommercialDocuments("Invoice", undefined, signal)
+            : readAdminCollection(module.resource, signal),
+        moduleKey === "quotes" || moduleKey === "invoices"
+          ? readAdminCustomers(signal)
+          : Promise.resolve([] as AdminRow[]),
+        moduleKey === "invoices"
+          ? readCommercialDocuments("Quotation", "Accepted", signal)
+          : Promise.resolve([] as AdminRow[]),
+      ]);
+      const filtered = module.kind && moduleKey !== "quotes" && moduleKey !== "invoices"
+        ? result.filter((row) => row.kind === module.kind)
+        : result;
+      if (!signal.aborted) {
+        setRows(filtered);
+        setCustomers(customerRows);
+        setAcceptedQuotes(acceptedRows);
+      }
     } catch (e) {
       if (!signal.aborted) {
         setRows([]);
+        setCustomers([]);
+        setAcceptedQuotes([]);
         setError(adminApiErrorMessage(e));
       }
     } finally {
       if (!signal.aborted) setLoading(false);
     }
-  }, [module.resource, module.kind]);
+  }, [module.resource, module.kind, moduleKey]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -236,6 +270,82 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     if (!writesEnabled || !apiConfigured) return;
     const form = event.currentTarget;
     const data = new FormData(form);
+
+    if (moduleKey === "quotes") {
+      const customerId = String(data.get("customer_id") ?? "");
+      const customer = customers.find((item) => item.id === customerId);
+      const lines = quoteLines.map((line) => ({
+        description: line.description.trim(),
+        quantity: Number(line.quantity),
+        unit: line.unit.trim() || "item",
+        unit_price: Number(line.unit_price),
+      }));
+      const subtotal = lines.reduce((sum, line) => sum + Math.round(line.quantity * line.unit_price * 100), 0) / 100;
+      const discount = Number(data.get("discount_amount") ?? 0);
+      const invalidLine = lines.some((line) =>
+        !line.description || !Number.isFinite(line.quantity) || line.quantity <= 0 || line.quantity > 100000 ||
+        !Number.isFinite(line.unit_price) || line.unit_price < 0 || line.unit_price > 10000000
+      );
+      if (!customer || invalidLine || !lines.length || !Number.isFinite(discount) || discount < 0 || discount > subtotal) {
+        setActionError("Choose a CRM customer, complete every quotation line and enter a discount no greater than the subtotal.");
+        return;
+      }
+      setSaving(true);
+      setActionMessage("");
+      setActionError("");
+      try {
+        await createCommercialDocument({
+          kind: "Quotation",
+          customer_id: customerId,
+          lines,
+          discount_amount: discount,
+          vat_enabled: data.get("vat_enabled") === "on",
+          notes: String(data.get("notes") ?? "").trim(),
+        });
+        setActionMessage("Formal quotation created in preview D1. Its NGMS reference and item lines have been saved.");
+        setQuoteLines([{ description: "", quantity: "1", unit: "item", unit_price: "" }]);
+        form.reset();
+        setShowCreate(false);
+        setRefreshVersion((version) => version + 1);
+      } catch (error) {
+        setActionError(adminApiErrorMessage(error));
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
+    if (moduleKey === "invoices") {
+      const sourceDocumentId = String(data.get("source_document_id") ?? "");
+      const sourceQuote = acceptedQuotes.find((item) => item.id === sourceDocumentId);
+      const invoicedQuoteIds = new Set(rows.map((item) => String(item.source_document_id ?? "")));
+      if (!sourceQuote || !sourceQuote.customer_id || invoicedQuoteIds.has(sourceDocumentId)) {
+        setActionError("Select an accepted quotation that has not already been invoiced.");
+        return;
+      }
+      setSaving(true);
+      setActionMessage("");
+      setActionError("");
+      try {
+        await createCommercialDocument({
+          kind: "Invoice",
+          source_document_id: sourceDocumentId,
+          customer_id: sourceQuote.customer_id,
+          due_date: String(data.get("due_date") ?? "").trim() || undefined,
+          notes: String(data.get("notes") ?? "").trim(),
+        });
+        setActionMessage("Invoice created in preview D1 from the accepted quotation, carrying across its approved line items and VAT treatment.");
+        form.reset();
+        setShowCreate(false);
+        setRefreshVersion((version) => version + 1);
+      } catch (error) {
+        setActionError(adminApiErrorMessage(error));
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
     const payload: Record<string, unknown> = {
       customer_name: String(data.get("customer_name") ?? "").trim(),
       service: String(data.get("service") ?? "").trim(),
@@ -246,25 +356,49 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       payload.phone = String(data.get("phone") ?? "").trim();
       payload.email = String(data.get("email") ?? "").trim();
     }
-    if (moduleKey === "quotes" || moduleKey === "invoices") {
-      const amount = Number(data.get("amount"));
-      const amountCents = Math.round(amount * 100);
-      if (!Number.isFinite(amount) || amount < 0 || amount > 100_000_000 || !Number.isSafeInteger(amountCents)) {
-        setActionError("Enter a valid non-negative ZAR amount within the supported limit.");
-        return;
-      }
-      payload.kind = module.kind;
-      payload.amount_cents = amountCents;
-    }
     setSaving(true);
     setActionMessage("");
     setActionError("");
     try {
       await createAdminRecord(writeResource, payload);
-      setActionMessage(moduleKey === "jobs" ? "Job created in the preview database." : moduleKey === "enquiries" ? "Enquiry created in the preview database." : moduleKey === "quotes" ? "Draft quotation created in the preview database." : "Invoice document created in the preview database.");
+      setActionMessage(moduleKey === "jobs" ? "Job created in the preview database." : "Enquiry created in the preview database.");
       form.reset();
       setShowCreate(false);
       setRefreshVersion((version)=>version+1);
+    } catch (error) {
+      setActionError(adminApiErrorMessage(error));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleCustomerCreate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!writesEnabled || !apiConfigured) return;
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const displayName = String(data.get("display_name") ?? "").trim();
+    if (!displayName) {
+      setActionError("Enter a customer name before saving.");
+      return;
+    }
+    setSaving(true);
+    setActionMessage("");
+    setActionError("");
+    try {
+      const customer = await createAdminCustomer({
+        display_name: displayName,
+        customer_type: String(data.get("customer_type") ?? "Individual"),
+        primary_phone: String(data.get("primary_phone") ?? "").trim(),
+        primary_email: String(data.get("primary_email") ?? "").trim(),
+        service_address: String(data.get("service_address") ?? "").trim(),
+        billing_address: String(data.get("billing_address") ?? "").trim(),
+      });
+      if (customer.id) setNewCustomerId(customer.id);
+      setActionMessage("Customer added to the preview CRM. Select the customer when preparing the quotation.");
+      form.reset();
+      setShowCustomerForm(false);
+      setRefreshVersion((version) => version + 1);
     } catch (error) {
       setActionError(adminApiErrorMessage(error));
     } finally {
