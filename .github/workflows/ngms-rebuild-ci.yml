@@ -5,9 +5,11 @@ on:
     branches:
       - rebuild/ngms-cloudflare-first
       - preview/ngms-cloudflare-worker
+      - fix/ngms-commercial-documents-preview-20261103
   pull_request:
     branches:
       - preview/ngms-cloudflare-worker
+      - main
 
 permissions:
   contents: read
