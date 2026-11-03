@@ -1,6 +1,6 @@
 # NGMS V4 admin-panel integration
 
-**Status:** formal quotation/invoice integration deployed to the isolated Cloudflare preview; authenticated browser verification pending  
+**Status:** Workflow A backend deployed to isolated preview; frontend changes committed to draft PR #283; authenticated browser verification pending  
 **Application:** `ngms-rebuild/`  
 **Admin preview:** https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev/admin  
 **Preview API:** https://ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev  
@@ -9,7 +9,9 @@
 **Latest Cloudflare build:** `d5f7d7d6-dc1a-497e-a4b4-228455d9d2a4` — success  
 **Deployment:** `fd2ce28d-39f9-43cf-a323-05d5f615ce35`  
 **Active preview version:** `5214d3fb-3758-48f3-8adf-650c1853193b` (version 18; 100% of preview traffic)  
-**Preview API Worker:** `ngms-admin-api-preview` version 49  
+**Preview API Worker:** `ngms-admin-api-preview` version 50 (Workflow A conversion/quotation decision lifecycle; 100% preview traffic)
+**Preview public intake Worker:** `ngms-public-intake-preview` version 38 (Turnstile CORS allow-list includes the isolated preview website; 100% preview traffic)
+**Public quote token Access app:** `NGMS Preview Public Quote Decisions` — Bypass/Everyone for `/api/public/quotes/*` only; administrator endpoints remain protected  
 **GitHub rebuild CI:** [passed](https://github.com/infonextgensolution1-cloud/ngms/actions/runs/41593797443) — dependency audit, TypeScript, no-Supabase guard, Next.js build, Docker build and seven route smoke tests  
 **Root build/release gate:** [passed](https://github.com/infonextgensolution1-cloud/ngms/actions/runs/41593797422)  
 **Draft PR:** [#283](https://github.com/infonextgensolution1-cloud/ngms/pull/283) — open and unmerged
@@ -20,7 +22,7 @@
 - Enquiries, jobs, media and website content continue to use their documented collection endpoints. Quotations and invoices now use `/api/admin/commercial-documents`, not the legacy generic documents collection. The quotation screen loads CRM customers and supports itemised lines, quantities, units, unit prices, discounts, saved VAT settings and notes. A preview-only customer form creates CRM records through `POST /api/admin/customers`.
 - Invoice creation is restricted to accepted quotations that do not already have an active invoice. The invoice API copies the approved line items, discount and VAT treatment from the source quotation. The preview Worker also checks for an existing invoice, and preview D1 has a partial unique index as a database-level guard.
 - Formal quotation/invoice lists display the NGMS document reference and status. The item-details panel reads saved line items and VAT/discount totals.
-- Quotations can be shared through a 30-day one-use public link. The public `/quote/:token` page reads the quotation from the preview API, displays the items and totals, and lets the customer accept or decline once. Accepted quotations can be converted to a job exactly once.
+- Workflow A binds a quotation to its originating CRM enquiry before a 30-day one-use link can be issued. On acceptance the preview Worker creates one job linked to the customer and quotation, changes the enquiry to Converted and records customer activity. A decline creates no job. The public `/quote/:token` page reads the quote from the preview API and displays its itemised lines and totals. The new enquiry-to-CRM action, source-enquiry selector and public quote request form are in draft PR #283; they are not yet part of the active frontend preview.
 - Invoices include a payment-history/balance panel. The UI can record partial payments using the deployed ledger API; the Worker rejects payments above the outstanding balance and marks the invoice Paid only when the full amount has been allocated. Paid is not a manual status option.
 - The media table still provides an authenticated Worker open/download link. Website-content JSON objects render as readable JSON. Scheduling endpoints exist in the API; the current generic calendar screen has not yet been connected to their date-range and mutation contract. Reports and settings remain unavailable.
 - The browser client accepts only HTTPS requests to the dedicated `ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev` host. A blank, malformed, or alternate target is blocked client-side; this preview cannot be pointed at the production API with the public build variable.
@@ -29,7 +31,7 @@
 - Formal quotation payloads use `kind: "Quotation"`, a CRM `customer_id`, itemised `lines`, an optional discount amount, VAT selection and notes. Prices are sent in ZAR and converted to integer cents by the Worker.
 - Formal invoice payloads use `kind: "Invoice"` and `source_document_id` for an accepted quotation. The server derives customer, line items, discount and VAT from that accepted source; the browser does not send a second arbitrary invoice total.
 - Quotation statuses are `Draft`, `Sent`, `Accepted`, `Declined`, `Expired` and `Cancelled`. Invoice statuses available in the UI are `Draft`, `Sent`, `Overdue` and `Cancelled`; payment status is not claimed.
-- The write flag remains `NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=false`. Create, update and media upload remain disabled pending authenticated browser acceptance. Server-side Access validation remains required independently of the UI flag.
+- The write flag remains `NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=false`. Admin create/update/media upload and the new CRM/quotation actions remain disabled pending authenticated browser acceptance. The public quote request form is protected by Turnstile, but must be tested from the actual preview browser before it is enabled for customers. Server-side Access validation remains required independently of the UI flag.
 
 ## Safe browser verification steps
 
@@ -64,3 +66,12 @@ Related records:
 - [V4 blueprint-to-acceptance matrix](v4-acceptance-matrix.md)
 - [Backend contract and security boundaries](backend-contract.md)
 - [Cloudflare preview deployment](cloudflare-preview-deployment.md)
+
+
+## Workflow A preview boundary — 3 November 2026
+
+- The preview public intake Worker was updated only to allow CORS requests from `https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev`. Existing production CORS origins and the production public-intake Worker were not altered.
+- The preview admin Worker includes enquiry-to-CRM conversion, source-enquiry-bound quotation links, one-use customer decision handling and job creation on acceptance. It returns the generated `job_id`; the commercial document list exposes the linked job ID for the admin UI.
+- A separate Access application bypasses Access authentication only for `/api/public/quotes/*`. The endpoint is not an admin API, uses a random token, stores only its hash, expires the link after 30 days, and allows one decision. The administrator API paths remain behind the existing Access policy.
+- The preview database uses existing migrations 0011 and 0012 for the customer/enquiry map, quote links and job uniqueness. No additional schema migration was applied for Workflow A.
+- The active preview frontend has not yet been updated to this PR's latest source. CI is green, but browser checks and full synthetic end-to-end tests remain outstanding.
