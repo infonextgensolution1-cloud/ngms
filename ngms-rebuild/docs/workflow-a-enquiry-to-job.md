@@ -93,7 +93,7 @@ This work is preview-only. Do not merge or promote it to the live website until 
 
 ## Workflow A implementation and preview migration
 
-- Additive migration: `migrations/0002_workflow_a_quote_lifecycle.sql`.
+- Additive migration: `migrations/0012_workflow_a_quote_lifecycle.sql`.
 - New table: `enquiry_customer_links` (one CRM customer link per enquiry).
 - Extended `quote_public_links`: originating enquiry/customer, decision, decision timestamp and resulting job ID.
 - Unique partial index: one job per `source_document_id`.
