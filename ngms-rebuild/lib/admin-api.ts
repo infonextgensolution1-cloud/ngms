@@ -399,6 +399,10 @@ export type PublicQuotation = {
   vat_cents: number;
   status: string;
   issue_date: string | null;
+  service?: string | null;
+  area?: string | null;
+  decision?: "Accepted" | "Declined" | null;
+  job_id?: string | null;
   used_at?: string | null;
   notes: string;
 };
@@ -441,9 +445,35 @@ async function requestPreviewJson<T>(
   return body as T;
 }
 
-export async function createCommercialShareLink(id: string): Promise<{ url: string; expires_at: string; reference: string }> {
-  if (!/^[A-Za-z0-9-]{1,100}$/.test(id)) throw new AdminApiError("The quotation identifier is not valid.", "invalid-response");
-  return requestPreviewJson(`/api/admin/commercial-documents/${encodeURIComponent(id)}/share`, { method: "POST" }, true);
+export async function convertEnquiryToCustomer(id: string): Promise<{ item: AdminRow; enquiry: AdminRow }> {
+  if (!/^[A-Za-z0-9-]{1,120}$/.test(id)) throw new AdminApiError("The enquiry identifier is not valid.", "invalid-response");
+  const result = await requestPreviewJson<{ item?: AdminRow; enquiry?: AdminRow }>(
+    `/api/admin/enquiries/${encodeURIComponent(id)}/convert-to-customer`,
+    { method: "POST" },
+    true
+  );
+  if (!result.item || !result.enquiry) {
+    throw new AdminApiError("The CRM conversion response did not match the expected item/enquiry contract.", "invalid-response");
+  }
+  return { item: result.item, enquiry: result.enquiry };
+}
+
+export async function createCommercialShareLink(
+  id: string,
+  enquiryId: string
+): Promise<{ url: string; expires_at: string; reference: string }> {
+  if (!/^[A-Za-z0-9-]{1,100}$/.test(id) || !/^[A-Za-z0-9-]{1,120}$/.test(enquiryId)) {
+    throw new AdminApiError("The quotation or enquiry identifier is not valid.", "invalid-response");
+  }
+  return requestPreviewJson(
+    `/api/admin/commercial-documents/${encodeURIComponent(id)}/share`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enquiry_id: enquiryId }),
+    },
+    true
+  );
 }
 
 export async function readInvoicePayments(id: string, signal?: AbortSignal): Promise<InvoicePaymentSummary> {
@@ -486,7 +516,7 @@ export async function readPublicQuotation(token: string, signal?: AbortSignal): 
 export async function submitPublicQuotationDecision(
   token: string,
   decision: "Accepted" | "Declined"
-): Promise<{ saved: boolean; decision: string; reference: string }> {
+): Promise<{ saved: boolean; decision: string; reference: string; job_id?: string | null }> {
   if (!validPublicQuoteToken(token)) throw new AdminApiError("This quotation link is not valid.", "invalid-response");
   return requestPreviewJson(`/api/public/quotes/${token}`, {
     method: "POST",
