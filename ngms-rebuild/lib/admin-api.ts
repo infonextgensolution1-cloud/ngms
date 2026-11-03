@@ -15,7 +15,9 @@ export type AdminResource =
   | "jobs"
   | "documents"
   | "media"
-  | "content";
+  | "content"
+  | "customers"
+  | "schedules";
 
 export class AdminApiError extends Error {
   readonly code: "not-configured" | "http" | "invalid-response" | "network";
@@ -329,7 +331,7 @@ export async function readCommercialDocuments(
 }
 
 export async function readAdminCustomers(signal?: AbortSignal): Promise<AdminRow[]> {
-  return readAdminCollection("customers" as AdminResource, signal);
+  return readAdminCollection("customers", signal);
 }
 
 export async function createCommercialDocument(payload: Record<string, unknown>): Promise<AdminRow> {
