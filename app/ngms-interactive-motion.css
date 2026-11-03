@@ -1,0 +1,582 @@
+/* NGMS Interactive Motion Enhancement
+   Shared public-facing visual layer. Keeps the operational admin/portal surfaces
+   and all existing data flows untouched. Orange remains the primary brand accent;
+   electric lime is reserved for interaction and motion feedback. */
+
+:root {
+  --ngms-motion-orange: #E85002;
+  --ngms-motion-orange-hover: #C94300;
+  --ngms-motion-black: #000000;
+  --ngms-motion-charcoal: #333333;
+  --ngms-motion-grey: #646464;
+  --ngms-motion-light-grey: #A7A7A7;
+  --ngms-motion-white: #F9F9F9;
+  --ngms-motion-lime: #B7E532;
+  --ngms-motion-lime-deep: #83A91B;
+  --ngms-motion-ease: cubic-bezier(.2,.75,.25,1);
+}
+
+/* ---------- Shared header and navigation ---------- */
+body > header {
+  position: sticky;
+  isolation: isolate;
+  background: rgba(15, 16, 17, .96) !important;
+  border-bottom-color: rgba(255,255,255,.12) !important;
+  box-shadow: 0 8px 26px rgba(0,0,0,.24);
+  transition: background-color .25s ease, box-shadow .25s ease;
+}
+
+body > header::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset-inline: 0;
+  bottom: -1px;
+  height: 2px;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--ngms-motion-orange) 0 68%, var(--ngms-motion-lime) 68% 100%);
+  transform: scaleX(.24);
+  transform-origin: left center;
+  transition: transform .55s var(--ngms-motion-ease);
+}
+
+body > header:hover::after,
+body > header:focus-within::after {
+  transform: scaleX(1);
+}
+
+body > header nav[aria-label="Main"] a {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2px !important;
+  transition: color .22s ease, background-color .22s ease, transform .22s ease;
+}
+
+body > header nav[aria-label="Main"] a::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 3px;
+  height: 2px;
+  background: var(--ngms-motion-lime);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .25s var(--ngms-motion-ease);
+}
+
+body > header nav[aria-label="Main"] a:hover,
+body > header nav[aria-label="Main"] a[aria-current="page"] {
+  color: var(--ngms-motion-white) !important;
+  background: rgba(255,255,255,.055) !important;
+}
+
+body > header nav[aria-label="Main"] a:hover::after,
+body > header nav[aria-label="Main"] a[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+body > header nav[aria-label="Main"] a:hover {
+  transform: translateY(-1px);
+}
+
+body > header nav[aria-label="Mobile"] a {
+  transition: color .2s ease, padding-left .2s ease, background-color .2s ease;
+}
+
+body > header nav[aria-label="Mobile"] a:hover,
+body > header nav[aria-label="Mobile"] a:focus-visible,
+body > header nav[aria-label="Mobile"] a[aria-current="page"] {
+  color: var(--ngms-motion-lime) !important;
+  padding-left: 8px;
+}
+
+/* Orange remains the normal CTA; lime is the deliberate interactive state. */
+body > header .btn-quote,
+body footer[data-site-marketing] .btn-quote,
+body main :is(.btn-quote, .btn-glow, .btn-quote-popup, .btn-quote-hero,
+  .ngms-new-button--orange, .ngms-industrial-button--orange) {
+  background: var(--ngms-motion-orange) !important;
+  border-color: var(--ngms-motion-orange) !important;
+  color: #111111 !important;
+  transition: transform .22s var(--ngms-motion-ease),
+    background-color .22s ease, color .22s ease, border-color .22s ease,
+    box-shadow .22s ease;
+}
+
+body > header .btn-quote:hover,
+body footer[data-site-marketing] .btn-quote:hover,
+body main :is(.btn-quote, .btn-glow, .btn-quote-popup, .btn-quote-hero,
+  .ngms-new-button--orange, .ngms-industrial-button--orange):hover {
+  background: var(--ngms-motion-lime) !important;
+  border-color: var(--ngms-motion-lime) !important;
+  color: #111111 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(183,229,50,.18);
+}
+
+body main :is(a, button, summary):focus-visible,
+body > header :is(a, button):focus-visible {
+  outline: 3px solid var(--ngms-motion-lime) !important;
+  outline-offset: 3px;
+}
+
+/* ---------- Geometric industrial accents ---------- */
+.ngms-home-new .ngms-new-services,
+.ngms-home-new .ngms-new-solar,
+.ngms-interactive-features {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.ngms-home-new .ngms-new-services::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  opacity: .16;
+  background:
+    linear-gradient(135deg, transparent 0 46%, rgba(232,80,2,.36) 46.1% 46.35%, transparent 46.45%),
+    repeating-linear-gradient(135deg, transparent 0 34px, rgba(255,255,255,.07) 35px 36px, transparent 37px 72px);
+  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+}
+
+.ngms-home-new .ngms-new-solar::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  width: clamp(150px, 25vw, 360px);
+  aspect-ratio: 1;
+  right: -7%;
+  top: -35%;
+  border: 1px solid rgba(183,229,50,.32);
+  border-radius: 50%;
+  box-shadow: 0 0 0 22px rgba(183,229,50,.035), 0 0 0 48px rgba(232,80,2,.045);
+  pointer-events: none;
+  animation: ngms-orbit-drift 18s ease-in-out infinite alternate;
+}
+
+.ngms-home-new .ngms-new-services > *,
+.ngms-home-new .ngms-new-solar > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes ngms-orbit-drift {
+  from { transform: translate3d(0, 0, 0) rotate(0deg); }
+  to { transform: translate3d(-18px, 16px, 0) rotate(12deg); }
+}
+
+/* ---------- Homepage circular corporate features ---------- */
+.ngms-interactive-features {
+  padding: clamp(42px, 5.5vw, 78px) clamp(20px, 6vw, 96px);
+  color: var(--ngms-motion-white);
+  background:
+    linear-gradient(120deg, rgba(232,80,2,.075), transparent 35% 72%, rgba(183,229,50,.045)),
+    #292929;
+  border-block: 1px solid rgba(255,255,255,.12);
+}
+
+.ngms-interactive-features::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .2;
+  background: repeating-linear-gradient(135deg, transparent 0 46px, rgba(255,255,255,.065) 47px 48px, transparent 49px 94px);
+}
+
+.ngms-interactive-features__grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(18px, 3vw, 42px);
+  width: min(100%, 1180px);
+  margin: 0 auto;
+}
+
+.ngms-interactive-feature {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: var(--ngms-motion-white);
+  text-decoration: none;
+  padding: 4px 8px 8px;
+  transition: transform .3s var(--ngms-motion-ease), color .25s ease;
+}
+
+.ngms-interactive-feature__circle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(116px, 12vw, 154px);
+  aspect-ratio: 1;
+  margin-bottom: 19px;
+  color: var(--ngms-motion-orange);
+  border: 1px solid rgba(255,255,255,.17);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, #3e3e3e 0%, #242424 48%, #181818 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.09), 0 12px 30px rgba(0,0,0,.22);
+  transition: border-color .28s ease, box-shadow .28s ease, transform .35s var(--ngms-motion-ease), color .25s ease;
+}
+
+.ngms-interactive-feature__circle::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 50%;
+  transition: inset .3s ease, border-color .3s ease;
+}
+
+.ngms-interactive-feature__circle::after {
+  content: "";
+  position: absolute;
+  top: 15px;
+  right: 17px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ngms-motion-orange);
+  box-shadow: 0 0 0 4px rgba(232,80,2,.12);
+  transition: background-color .25s ease, box-shadow .25s ease;
+}
+
+.ngms-interactive-feature__circle svg {
+  width: 42px;
+  height: 42px;
+  stroke: currentColor;
+  stroke-width: 1.55;
+  fill: none;
+  transition: transform .35s var(--ngms-motion-ease), color .25s ease;
+}
+
+.ngms-interactive-feature h2 {
+  margin: 0 0 9px;
+  color: #FFFFFF;
+  font-size: clamp(.88rem, 1.15vw, 1.05rem);
+  font-weight: 800;
+  letter-spacing: .015em;
+  line-height: 1.2;
+}
+
+.ngms-interactive-feature p {
+  max-width: 245px;
+  margin: 0 auto 12px;
+  color: #C8C8C8;
+  font-size: .84rem;
+  line-height: 1.55;
+}
+
+.ngms-interactive-feature__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  color: var(--ngms-motion-white);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  transition: color .2s ease, gap .2s ease;
+}
+
+.ngms-interactive-feature__more span {
+  color: var(--ngms-motion-orange);
+  transition: color .2s ease, transform .2s ease;
+}
+
+.ngms-interactive-feature:hover,
+.ngms-interactive-feature:focus-visible {
+  color: #FFFFFF;
+  transform: translateY(-5px);
+}
+
+.ngms-interactive-feature:hover .ngms-interactive-feature__circle,
+.ngms-interactive-feature:focus-visible .ngms-interactive-feature__circle {
+  color: var(--ngms-motion-lime);
+  border-color: var(--ngms-motion-lime);
+  transform: translateY(-3px) scale(1.035);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 0 0 5px rgba(183,229,50,.055), 0 0 28px rgba(183,229,50,.16), 0 15px 32px rgba(0,0,0,.28);
+}
+
+.ngms-interactive-feature:hover .ngms-interactive-feature__circle::before,
+.ngms-interactive-feature:focus-visible .ngms-interactive-feature__circle::before {
+  inset: 4px;
+  border-color: rgba(183,229,50,.36);
+}
+
+.ngms-interactive-feature:hover .ngms-interactive-feature__circle::after,
+.ngms-interactive-feature:focus-visible .ngms-interactive-feature__circle::after {
+  background: var(--ngms-motion-lime);
+  box-shadow: 0 0 0 5px rgba(183,229,50,.12), 0 0 14px rgba(183,229,50,.45);
+}
+
+.ngms-interactive-feature:hover .ngms-interactive-feature__circle svg,
+.ngms-interactive-feature:focus-visible .ngms-interactive-feature__circle svg {
+  transform: rotate(-8deg) scale(1.07);
+}
+
+.ngms-interactive-feature:hover .ngms-interactive-feature__more,
+.ngms-interactive-feature:focus-visible .ngms-interactive-feature__more {
+  color: var(--ngms-motion-lime);
+  gap: 13px;
+}
+
+.ngms-interactive-feature:hover .ngms-interactive-feature__more span,
+.ngms-interactive-feature:focus-visible .ngms-interactive-feature__more span {
+  color: var(--ngms-motion-lime);
+  transform: translate(2px, -2px);
+}
+
+/* ---------- Service, project and portfolio card interactions ---------- */
+.ngms-home-new .ngms-new-service-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-color: rgba(255,255,255,.19) !important;
+  transition: transform .3s var(--ngms-motion-ease), border-color .25s ease, box-shadow .3s ease, background-color .25s ease !important;
+}
+
+.ngms-home-new .ngms-new-service-card::before,
+.ngms-home-new .ngms-new-service-card::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  width: 28px;
+  height: 3px;
+  pointer-events: none;
+  transition: width .28s ease, background-color .28s ease;
+}
+
+.ngms-home-new .ngms-new-service-card::before {
+  top: 0;
+  right: 0;
+  background: var(--ngms-motion-lime);
+}
+
+.ngms-home-new .ngms-new-service-card::after {
+  bottom: 0;
+  left: 0;
+  background: var(--ngms-motion-orange);
+}
+
+.ngms-home-new .ngms-new-service-card:hover,
+.ngms-home-new .ngms-new-service-card:focus-visible {
+  transform: translateY(-6px);
+  border-color: var(--ngms-motion-lime) !important;
+  box-shadow: 0 16px 34px rgba(0,0,0,.28), 0 0 0 1px rgba(183,229,50,.12);
+}
+
+.ngms-home-new .ngms-new-service-card:hover::before,
+.ngms-home-new .ngms-new-service-card:hover::after,
+.ngms-home-new .ngms-new-service-card:focus-visible::before,
+.ngms-home-new .ngms-new-service-card:focus-visible::after {
+  width: 58px;
+}
+
+.ngms-home-new .ngms-new-service-card__media {
+  overflow: hidden;
+  position: relative;
+}
+
+.ngms-home-new .ngms-new-service-card__media img {
+  transition: transform .7s var(--ngms-motion-ease), filter .45s ease;
+}
+
+.ngms-home-new .ngms-new-service-card__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(232,80,2,.15), transparent 42%, rgba(183,229,50,.08));
+  opacity: .5;
+  transition: opacity .35s ease;
+}
+
+.ngms-home-new .ngms-new-service-card:hover .ngms-new-service-card__media img,
+.ngms-home-new .ngms-new-service-card:focus-visible .ngms-new-service-card__media img {
+  transform: scale(1.055);
+  filter: saturate(1.08) contrast(1.04);
+}
+
+.ngms-home-new .ngms-new-service-card:hover .ngms-new-service-card__media::after,
+.ngms-home-new .ngms-new-service-card:focus-visible .ngms-new-service-card__media::after {
+  opacity: 1;
+}
+
+.ngms-home-new .ngms-new-service-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: color .2s ease, gap .2s ease;
+}
+
+.ngms-home-new .ngms-new-service-card__link > span {
+  transition: transform .2s ease, color .2s ease;
+}
+
+.ngms-home-new .ngms-new-service-card:hover .ngms-new-service-card__link,
+.ngms-home-new .ngms-new-service-card:focus-visible .ngms-new-service-card__link {
+  color: var(--ngms-motion-lime) !important;
+  gap: 13px;
+}
+
+.ngms-home-new .ngms-new-service-card:hover .ngms-new-service-card__link > span,
+.ngms-home-new .ngms-new-service-card:focus-visible .ngms-new-service-card__link > span {
+  transform: translate(2px, -2px);
+}
+
+.ngms-home-new .ngms-new-client-grid > a {
+  position: relative;
+  transition: transform .25s var(--ngms-motion-ease), border-color .25s ease, box-shadow .25s ease, background-color .25s ease !important;
+}
+
+.ngms-home-new .ngms-new-client-grid > a:hover,
+.ngms-home-new .ngms-new-client-grid > a:focus-visible {
+  transform: translateY(-4px);
+  border-color: var(--ngms-motion-lime) !important;
+  box-shadow: 0 12px 24px rgba(0,0,0,.13);
+}
+
+.ngms-home-new .ngms-new-client-grid > a:hover > b,
+.ngms-home-new .ngms-new-client-grid > a:focus-visible > b {
+  color: var(--ngms-motion-lime-deep) !important;
+  transform: translate(3px,-3px);
+}
+
+.ngms-home-new .ngms-new-client-grid > a > b {
+  transition: transform .2s ease, color .2s ease;
+}
+
+/* Gallery and project imagery: preserve framing, add a restrained image reveal. */
+body main :is(.ngms-project-editorial, [class*="gallery"], [class*="portfolio"]) :is(a, article, figure) {
+  transition: border-color .25s ease, box-shadow .25s ease, transform .25s var(--ngms-motion-ease);
+}
+
+body main :is(.ngms-project-editorial, [class*="gallery"], [class*="portfolio"]) :is(a, article, figure):hover {
+  border-color: var(--ngms-motion-lime);
+  box-shadow: 0 12px 28px rgba(0,0,0,.2);
+}
+
+body main :is(.ngms-project-editorial, [class*="gallery"], [class*="portfolio"]) img {
+  transition: transform .55s var(--ngms-motion-ease), filter .4s ease;
+}
+
+body main :is(.ngms-project-editorial, [class*="gallery"], [class*="portfolio"]) :is(a, figure):hover img {
+  transform: scale(1.035);
+}
+
+/* ---------- Buttons and links ---------- */
+body main :is(.btn, .btn-quote, .btn-touch, .btn-outline, .btn-wa, .btn-power, .btn-blue,
+  .ngms-new-button, .ngms-industrial-button) {
+  transition: transform .22s var(--ngms-motion-ease), box-shadow .22s ease,
+    border-color .22s ease, background-color .22s ease, color .22s ease;
+}
+
+body main :is(.btn-touch, .btn-outline, .btn-dark, .btn-outline-jet):hover {
+  border-color: var(--ngms-motion-lime) !important;
+  box-shadow: 0 7px 18px rgba(183,229,50,.1);
+  transform: translateY(-2px);
+}
+
+body main footer a:hover,
+body footer[data-site-marketing] a:hover {
+  color: var(--ngms-motion-lime) !important;
+}
+
+.ngms-home-new .ngms-new-text-link {
+  transition: color .2s ease, border-color .2s ease, gap .2s ease;
+}
+
+.ngms-home-new .ngms-new-text-link:hover {
+  color: var(--ngms-motion-lime) !important;
+  border-color: var(--ngms-motion-lime) !important;
+}
+
+/* ---------- Native scroll-linked reveals (progressive enhancement) ---------- */
+@keyframes ngms-view-rise {
+  from { opacity: .35; transform: translateY(22px) scale(.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@supports (animation-timeline: view()) {
+  .ngms-interactive-feature,
+  .ngms-home-new .ngms-new-client-grid > a,
+  .ngms-home-new .ngms-new-service-grid > li,
+  .ngms-home-new .ngms-new-solar__facts > div {
+    animation: ngms-view-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 62%;
+  }
+}
+
+/* ---------- Responsive and reduced-motion safeguards ---------- */
+@media (max-width: 900px) {
+  .ngms-interactive-features__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ngms-interactive-features {
+    padding: 42px 16px;
+  }
+  .ngms-interactive-features__grid {
+    gap: 26px 12px;
+  }
+  .ngms-interactive-feature {
+    padding-inline: 2px;
+  }
+  .ngms-interactive-feature__circle {
+    width: clamp(104px, 31vw, 132px);
+    margin-bottom: 13px;
+  }
+  .ngms-interactive-feature__circle svg {
+    width: 34px;
+    height: 34px;
+  }
+  .ngms-interactive-feature h2 {
+    font-size: .78rem;
+  }
+  .ngms-interactive-feature p {
+    font-size: .76rem;
+  }
+}
+
+@media (hover: none) {
+  .ngms-interactive-feature:hover,
+  .ngms-home-new .ngms-new-service-card:hover,
+  .ngms-home-new .ngms-new-client-grid > a:hover {
+    transform: none;
+  }
+  .ngms-home-new .ngms-new-service-card__media img {
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body > header,
+  body > header::after,
+  body > header nav[aria-label="Main"] a,
+  body > header nav[aria-label="Main"] a::after,
+  .ngms-interactive-feature,
+  .ngms-interactive-feature *,
+  .ngms-home-new .ngms-new-service-card,
+  .ngms-home-new .ngms-new-service-card *,
+  .ngms-home-new .ngms-new-client-grid > a,
+  body main :is(.ngms-project-editorial, [class*="gallery"], [class*="portfolio"]) *,
+  body main :is(.btn, .btn-quote, .btn-touch, .btn-outline, .btn-wa, .btn-power, .btn-blue) {
+    animation: none !important;
+    transition-duration: .01ms !important;
+  }
+  .ngms-home-new .ngms-new-solar::after {
+    animation: none !important;
+  }
+}
