@@ -20,6 +20,8 @@ type QuoteResponse = {
     area?: string | null;
     kind: string;
     status: string;
+    decision?: "Accepted" | "Declined" | null;
+    job_id?: string | null;
     used_at?: string | null;
     expires_at: string;
     amount_cents: number;
