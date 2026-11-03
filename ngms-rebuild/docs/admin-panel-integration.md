@@ -9,7 +9,7 @@
 **Latest Cloudflare build:** `d5f7d7d6-dc1a-497e-a4b4-228455d9d2a4` — success  
 **Deployment:** `fd2ce28d-39f9-43cf-a323-05d5f615ce35`  
 **Active preview version:** `5214d3fb-3758-48f3-8adf-650c1853193b` (version 18; 100% of preview traffic)  
-**Preview API Worker:** `ngms-admin-api-preview` version 50 (Workflow A conversion/quotation decision lifecycle; 100% preview traffic)
+**Preview API Worker:** `ngms-admin-api-preview` version 51 (Workflow A conversion/quotation decision lifecycle; 100% preview traffic)
 **Preview public intake Worker:** `ngms-public-intake-preview` version 38 (Turnstile CORS allow-list includes the isolated preview website; 100% preview traffic)
 **Public quote token Access app:** `NGMS Preview Public Quote Decisions` — Bypass/Everyone for `/api/public/quotes/*` only; administrator endpoints remain protected  
 **GitHub rebuild CI:** [passed](https://github.com/infonextgensolution1-cloud/ngms/actions/runs/41593797443) — dependency audit, TypeScript, no-Supabase guard, Next.js build, Docker build and seven route smoke tests  
