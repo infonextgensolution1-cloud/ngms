@@ -5,9 +5,11 @@ on:
     branches:
       - rebuild/ngms-cloudflare-first
       - preview/ngms-cloudflare-worker
+      - fix/ngms-commercial-documents-preview-20261103
   pull_request:
     branches:
       - preview/ngms-cloudflare-worker
+      - main
 
 permissions:
   contents: read
@@ -102,5 +104,8 @@ jobs:
           check_route "/body-corporate-maintenance" "CORPORATES"
           check_route "/admin" "GOOD WORK"
           check_route "/admin/enquiries" "ENQUIRIES"
+          check_route "/admin/quotes" "QUOTATIONS"
+          check_route "/admin/invoices" "INVOICES"
           check_route "/admin/media" "MEDIA LIBRARY"
+          check_route "/quote/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" "YOUR QUOTE"
           check_route "/icon.svg" "<svg"
