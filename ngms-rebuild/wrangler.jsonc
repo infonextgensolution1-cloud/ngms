@@ -3,7 +3,9 @@
   "name": "ngms-rebuild-preview-worker",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-10-29",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "workers_dev": true,
   "preview_urls": true,
   "upload_source_maps": true,
@@ -15,6 +17,8 @@
     "enabled": true
   },
   "vars": {
-    "NEXT_PUBLIC_NGMS_API_BASE": "https://ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev"
+    "NEXT_PUBLIC_NGMS_API_BASE": "https://ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev",
+    "NEXT_PUBLIC_NGMS_PUBLIC_INTAKE_URL": "https://ngms-public-intake-preview.nextgensolarcleaningmaintenancesolutions.workers.dev",
+    "NEXT_PUBLIC_NGMS_TURNSTILE_SITE_KEY": "0x4AAAAAAFxoO4FZHHYoj_ov"
   }
 }
