@@ -42,7 +42,7 @@ The GitHub rebuild CI and root build gate both passed for the current PR. The de
 
 ## Workflow A backend updates — 3 November 2026
 
-- Admin API Worker `ngms-admin-api-preview` version 50 is deployed at 100% of preview traffic. It contains the public quotation decision handler, enquiry-to-CRM conversion, quote issuing bound to an enquiry/customer, and automatic job creation on customer acceptance.
+- Admin API Worker `ngms-admin-api-preview` version 51 is deployed at 100% of preview traffic. It contains the public quotation decision handler, enquiry-to-CRM conversion, quote issuing bound to an enquiry/customer, and automatic job creation on customer acceptance.
 - Public intake Worker `ngms-public-intake-preview` version 38 is deployed at 100% of preview traffic. Its allowed origins include the isolated Cloudflare preview frontend, while production intake configuration remains unchanged.
 - Access application `NGMS Preview Public Quote Decisions` applies Bypass/Everyone only to `/api/public/quotes/*`; it does not bypass administrator API routes.
 - Frontend Workflow A changes are committed to draft PR #283. The active frontend preview has not yet been rebuilt from those commits. Admin writes remain disabled pending browser QA.
