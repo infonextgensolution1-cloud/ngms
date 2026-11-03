@@ -85,14 +85,15 @@ Any production schema migration requires a verified backup, duplicate/data prefl
 ## Authentication and browser-origin boundary
 
 - Admin Worker reads `Cf-Access-Jwt-Assertion`, checks signature/issuer/audience/expiry and requires an identity claim.
-- The production admin Worker CORS configuration reviewed here lists `https://ngms-website-v4.vercel.app`. Keep that production allowlist and production Access policy separate from V4.
-- The dedicated `ngms-admin-api-preview` Worker explicitly allowlists `https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev`. The preview Access application `NGMS Rebuild Preview API` has `options_preflight_bypass=true), so anonymous OPTIONS requests reach the Worker CORS handler. All non-OPTIONS admin requests still pass through Cloudflare Access and the Worker JWT signature/issuer/audience/expiry validation. The change was made only to the preview Worker (version 35) and preview Access app; the production Worker allowlist and production Access app were not changed. Real browser CORS and Access sign-in still require human-browser verification.
+- The production admin Worker CORS configuration remains separate. Do not add preview app origins to the production Worker or change production Access.
+- The dedicated `ngms-admin-api-preview` Worker (version 49) allowlists `https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev`. The preview API Access app `NGMS Rebuild Preview API` has `options_preflight_bypass=true`, so anonymous OPTIONS requests reach the Worker CORS handler. All actual admin API requests still pass through Cloudflare Access and Worker JWT signature/issuer/audience/expiry validation.
+- A separate preview UI Access app protects the exact `/admin` path and `/admin/*` routes using the single authorised administrator policy; public pages and token quotation routes remain outside those UI paths. These changes were made only in preview. Real human-browser sign-in and preflight still require acceptance testing.
 - Do not add the V4 preview origin to the existing production Worker’s allowlist. Use the preview-specific Worker/policy for preview validation.
 - Never place Cloudflare Access audience/secret bindings, R2 keys, Turnstile secret, or Zapier token in browser-visible environment variables or source code. Only the non-secret API base URL may use `NEXT_PUBLIC_NGMS_API_BASE`.
 
 ## Integration safety rules
 
-- The rebuild includes a read-only client for the verified collection endpoints. The browser client permits only the dedicated HTTPS preview API hostname, exposes an API health/sign-in link for Cloudflare Access, and displays configuration/error state when the URL is invalid, Access fails, CORS rejects the origin or the response does not match `{ items: [] }`. The media table includes an authenticated Worker open/download link, but its browser behavior is not yet verified.
+- The rebuild client permits only the dedicated HTTPS preview API hostname, exposes an API health/sign-in link for Cloudflare Access and displays explicit configuration/error state instead of assuming empty collections. The admin UI reads formal commercial documents, CRM customers, item lines and invoice payment records. Public quotation decisions use one-use tokens rather than exposing private document identifiers. Browser API/CORS/media behaviour still requires human-browser verification.
 - The dashboard must distinguish `0 records` from API unavailable, access denied, timeout, unsupported route and bad response.
 - All create/update/delete actions and public form submission remain disabled until the rebuild preview origin, Access session flow, CORS behaviour and actual write persistence are tested end to end with synthetic records.
 - Private media stays behind the Worker; do not enable public bucket URLs.
@@ -112,12 +113,14 @@ These resources are **preview-only** and separate from the original production d
 - Worker bindings are verified to target the **preview** D1 and R2 resources only. The preview Worker has no Zapier token binding.
 - The preview API Worker source was inspected and its CORS allowlist includes `https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev` plus the earlier intended `https://ngms-rebuild-preview.vercel.app` origin. This preview allowlist is separate from the production Worker configuration. The real browser CORS/Access flow is still not independently tested.
 
-The preview D1 schema has been reconciled through application migrations 0007–0009:
-- 0007 records the already-present scheduling table/indexes in the preview migration ledger.
-- 0008 creates `operation_records` and its category indexes.
-- 0009 adds a partial unique index that prevents more than one non-cancelled invoice from being linked to the same source quotation.
+The preview D1 schema records application migrations 0005, 0006 and 0007–0012:
+- 0007 records the already-present scheduling table/indexes.
+- 0008 creates `operation_records` and category indexes.
+- 0009 adds a partial unique active-invoice/source-quotation index.
+- 0011 adds the `document_payments` ledger, `enquiry_customer_links`, the job source-quotation relationship and the stricter unique index allowing only one invoice per source quotation, including after cancellation.
+- 0012 adds hashed, expiring, one-use `quote_public_links` for customer quotation decisions and the quote-to-job uniqueness index.
 
-The duplicate-invoice preflight returned no rows before migration 0009 was applied. These migrations were applied only to `ngms-admin-preview`; production migration history and schema were not changed.
+The invoice and job duplicate preflight queries returned no rows before the corresponding uniqueness constraints were verified. Migrations 0011 and 0012 were already present in preview D1; their SQL source files are now tracked in `cloudflare/migrations/`. No production D1 migration was applied.
 
 ### Synthetic QA fixtures
 
@@ -137,7 +140,7 @@ These values exist solely to test the preview interface; they must never be mist
 - Do not set the preview API base/feature flag on the live `ngms-new` project or production environment.
 - The existing production Worker, production D1, production R2 and original site's domain/DNS were not changed by this staging setup.
 - Public enquiry submission remains disabled in the rebuild. The existing public-intake Worker is bound to production D1; using it for rebuild form tests would put test enquiries into production data. A separate preview intake Worker and Turnstile configuration are required before public form submissions can be enabled.
-- The preview API Worker is configured and its bindings, Access application and CORS source have been read back from Cloudflare. Its Access application is `NGMS Rebuild Preview API` with a single-administrator allow policy. However, an authorised browser request, CORS preflight, Access sign-in, API read, write, and R2 upload/download have **not** yet been successfully executed from the preview frontend. Do not enable writes until those end-to-end tests are completed.
+- Preview API Access application `NGMS Rebuild Preview API` retains the single-administrator allow policy; only OPTIONS preflight bypass is enabled. Preview admin UI paths have their own single-administrator Access application. Formal commercial, public quotation-decision and payment endpoints are present in the deployed API. However, authorised browser sign-in, actual browser CORS, API reads, public quote acceptance, payment recording and R2 download have **not** yet been completed from a human browser. Keep admin write controls disabled until those tests are performed with synthetic preview records.
 
 
 ## Related acceptance record
