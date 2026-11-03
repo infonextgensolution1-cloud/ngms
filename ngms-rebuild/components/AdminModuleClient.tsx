@@ -225,7 +225,7 @@ function CommercialDocumentDetails({ id }: { id: string }) {
   </div>;
 }
 
-function ShareQuotationAction({ row }: { row: AdminRow }) {
+function ShareQuotationAction({ row, onUpdated }: { row: AdminRow; onUpdated: () => void }) {
   const [saving,setSaving] = useState(false);
   const [share,setShare] = useState<{url:string;expires_at:string;reference:string} | null>(null);
   const [message,setMessage] = useState("");
@@ -233,7 +233,7 @@ function ShareQuotationAction({ row }: { row: AdminRow }) {
   async function shareQuote() {
     if (!previewWritesEnabled() || !row.id || !canShare) return;
     setSaving(true); setMessage("");
-    try { setShare(await createCommercialShareLink(row.id)); setMessage("Customer link created. The quotation is now Sent."); }
+    try { setShare(await createCommercialShareLink(row.id)); setMessage("Customer link created. The quotation is now Sent."); onUpdated(); }
     catch (error) { setMessage(adminApiErrorMessage(error)); }
     finally { setSaving(false); }
   }
@@ -243,7 +243,7 @@ function ShareQuotationAction({ row }: { row: AdminRow }) {
     catch { setMessage("Copy is unavailable here. Select and copy the link below."); }
   }
   return <div className="mt-2">
-    <button type="button" className="button button-small button-orange" onClick={shareQuote} disabled={!previewWritesEnabled()||saving||!row.id||!canShare}>{saving ? "Creating link…" : "Create customer link"}</button>
+    <button type="button" className="button button-small button-orange" onClick={shareQuote} disabled={!previewWritesEnabled()||saving||!row.id||!canShare||Boolean(share)}>{saving ? "Creating link…" : share ? "Link created" : "Create customer link"}</button>
     {share && <div className="mt-2 max-w-[340px]">
       <a className="text-link break-all text-xs" href={share.url} target="_blank" rel="noopener noreferrer">{share.url}</a>
       <div className="mt-1 flex items-center gap-2">
@@ -356,7 +356,7 @@ function CommercialDocumentActions({ moduleKey, row, onUpdated }: { moduleKey: "
   return <div className="min-w-[260px]">
     <CommercialDocumentDetails id={String(row.id ?? "")}/>
     {moduleKey === "quotes" ? <>
-      {(row.status === "Draft" || row.status === "Sent") && <ShareQuotationAction row={row}/>}
+      {(row.status === "Draft" || row.status === "Sent") && <ShareQuotationAction row={row} onUpdated={onUpdated}/>}
       {row.status === "Accepted" && <ConvertQuotationToJobAction row={row} onUpdated={onUpdated}/>}
       {row.status === "Declined" && <small className="text-mist block mt-2">Customer declined this quotation.</small>}
     </> : <InvoicePaymentsPanel row={row} onUpdated={onUpdated}/>}
@@ -704,7 +704,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       :rows.length===0?<div className="table-empty"><span aria-hidden="true">▤</span><h2>NO RECORDS RETURNED.</h2><p>The protected API returned an empty collection for this module. This is not an API error.</p></div>
       :visibleRows.length===0?<div className="table-empty"><span aria-hidden="true">⌕</span><h2>NO MATCHES.</h2><p>Try a different search term.</p></div>
       :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<th>File action</th>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<th>Document workflow</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&<th>Status action</th>}</tr></thead>
-        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<td>{getAdminMediaDownloadUrl(row.id)?<a className="text-link" href={getAdminMediaDownloadUrl(row.id)} target="_blank" rel="noopener noreferrer">Open / download ↗</a>:<span className="inline-feedback">File link unavailable</span>}</td>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<td><CommercialDocumentActions moduleKey={moduleKey} row={row} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents"].includes(module.resource)&&<td><StatusEditor resource={module.resource as "enquiries"|"jobs"|"documents"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
+        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<td>{getAdminMediaDownloadUrl(row.id)?<a className="text-link" href={getAdminMediaDownloadUrl(row.id)} target="_blank" rel="noopener noreferrer">Open / download ↗</a>:<span className="inline-feedback">File link unavailable</span>}</td>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<td><CommercialDocumentActions moduleKey={moduleKey} row={row} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents"].includes(module.resource)&&<td><StatusEditor key={String(row.id)+"-"+String(row.status)} resource={module.resource as "enquiries"|"jobs"|"documents"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
     </section>
     {moduleKey==="invoices"&&<p className="module-footnote">Invoices are generated only from accepted quotations. The payment ledger tracks partial payments, prevents overpayment and marks an invoice Paid only when its allocated payments cover the full value. Refunds, reversals and credit-note allocation remain separate work.</p>}
     {moduleKey==="content"&&<p className="module-footnote">Content editing remains disabled until optimistic concurrency, publish/rollback and the owner-approved field schema are implemented.</p>}
