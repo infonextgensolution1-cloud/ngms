@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { AdminRow, adminApiErrorMessage, createCommercialDocument, shareCommercialQuote } from "@/lib/admin-api";
 
 type QuoteLineDraft = { description: string; quantity: string; unit: string; unitPrice: string };
@@ -45,7 +45,7 @@ export default function EnquiryQuoteBuilder({
     setLines((current) => current.map((line, i) => i === index ? { ...line, ...patch } : line));
   }
 
-  async function saveDraft(event: React.FormEvent<HTMLFormElement>) {
+  async function saveDraft(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (saved || saving) return;
     setError("");
