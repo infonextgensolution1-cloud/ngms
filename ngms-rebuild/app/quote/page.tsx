@@ -1,5 +1,40 @@
-import type {Metadata} from "next";
-import {PageIntro,PublicShell} from "@/components/PublicShell";
-import {site,services} from "@/lib/site";
-export const metadata:Metadata={title:"Request a quote",description:"Request a quotation from NGMS."};
-export default async function QuotePage({searchParams}:{searchParams:Promise<{service?:string}>}){const query=await searchParams;const selected=services.find((s)=>s.slug===query.service);return <PublicShell><main id="main-content"><PageIntro eyebrow="QUOTE REQUEST" title={"TELL US WHAT\nNEEDS DOING."} intro="Share the basics of the job. This rebuild preview is not connected to a live submission API yet, so use the published contact options for real requests."/><section className="page-section"><div className="container form-layout"><div className="form-card"><div className="form-preview-alert"><strong>Preview form — not live</strong><p>Do not enter personal or customer information here. Submission will be enabled after the API, authentication and validation contracts are verified.</p></div><form><fieldset disabled><legend>Request details</legend><label>Service<select defaultValue={selected?.slug??""}><option value="">Choose a service</option>{services.map((s)=><option key={s.slug} value={s.slug}>{s.name}</option>)}</select></label><label>Your name<input placeholder="Full name" autoComplete="name"/></label><label>Contact number<input placeholder="e.g. 063 000 0000" autoComplete="tel"/></label><label>Property or site area<input placeholder="Suburb or town"/></label><label>Describe the work<textarea placeholder="Include the issue, approximate size and preferred timing" rows={5}/></label><button className="button button-orange" type="button">Live submission not enabled</button></fieldset></form></div><aside className="form-aside"><p className="eyebrow">CONTACT NGMS DIRECTLY</p><h2>NEED A REAL<br/>RESPONSE?</h2><p>Use the current published contact channels while the new enquiry endpoint is being implemented.</p><a className="button button-orange" href={site.whatsappHref} target="_blank" rel="noreferrer">WhatsApp NGMS ↗</a><a className="button button-outline button-dark-outline" href={"tel:"+site.phoneHref}>Call {site.phoneDisplay}</a><small>Live website: <a href={site.domain} target="_blank" rel="noreferrer">nextgensolarmaintenance.co.za ↗</a></small></aside></div></section></main></PublicShell>;}
+import type { Metadata } from "next";
+import { PageIntro, PublicShell } from "@/components/PublicShell";
+import { site } from "@/lib/site";
+import QuoteRequestForm from "@/components/QuoteRequestForm";
+
+export const metadata: Metadata = {
+  title: "Request a Quote | NextGen Maintenance Solutions",
+  description: "Request a property maintenance quotation from NGMS across the Helderberg and surrounding Western Cape areas.",
+};
+
+export default function QuotePage() {
+  return (
+    <PublicShell>
+      <main id="main-content">
+        <PageIntro
+          eyebrow="QUOTE REQUEST"
+          title={"TELL US WHAT\nNEEDS DOING."}
+          intro="Share the service, property location and work required. Your request is sent to the NGMS team for review before a formal quotation is prepared."
+        />
+        <section className="page-section">
+          <div className="container form-layout">
+            <QuoteRequestForm />
+            <aside className="form-aside">
+              <p className="eyebrow">WHAT HAPPENS NEXT</p>
+              <h2>FROM REQUEST<br />TO QUOTATION.</h2>
+              <ol className="quote-next-steps">
+                <li><strong>01 / REQUEST RECEIVED</strong><span>Your enquiry is recorded and given a reference.</span></li>
+                <li><strong>02 / NGMS REVIEW</strong><span>An administrator checks the details and may contact you for more information.</span></li>
+                <li><strong>03 / WRITTEN QUOTE</strong><span>NGMS prepares a scope and pricing for your approval.</span></li>
+              </ol>
+              <a className="button button-orange" href={site.whatsappHref} target="_blank" rel="noreferrer">WhatsApp NGMS ↗</a>
+              <a className="button button-outline button-dark-outline" href={"tel:" + site.phoneHref}>Call {site.phoneDisplay}</a>
+              <small>For urgent maintenance requests, contact NGMS directly. The preview form does not accept photo attachments yet.</small>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </PublicShell>
+  );
+}
