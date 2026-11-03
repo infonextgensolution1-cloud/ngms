@@ -264,6 +264,8 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     if (!term) return rows;
     return rows.filter((row) => Object.values(row).some((value) => String(value ?? "").toLowerCase().includes(term)));
   }, [rows, query]);
+  const invoicedQuoteIds = new Set(rows.map((item) => String(item.source_document_id ?? "")));
+  const availableAcceptedQuotes = acceptedQuotes.filter((item) => item.id && !invoicedQuoteIds.has(item.id));
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -440,17 +442,67 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
 
     {canCreate && <section className="action-panel">
       <div className="action-panel-head"><div><strong>Create {moduleKey==="enquiries"?"enquiry":moduleKey==="jobs"?"job":moduleKey==="quotes"?"quotation":"invoice"}</strong><small>New records are only allowed when the explicit preview-write flag is enabled.</small></div>
-        <button type="button" className="button button-orange" onClick={()=>{setShowCreate(v=>!v);setActionMessage("");setActionError("");}} disabled={!writesEnabled||!apiConfigured}>{showCreate?"Close form":"+ New record"}</button>
+        <div className="flex gap-2 flex-wrap">
+          {(moduleKey === "quotes" || moduleKey === "invoices") && <button type="button" className="button button-outline button-dark-outline" onClick={()=>{setShowCustomerForm(v=>!v);setActionError("");}} disabled={!writesEnabled||!apiConfigured}>{showCustomerForm?"Close customer form":"+ Add customer"}</button>}
+          <button type="button" className="button button-orange" onClick={()=>{setShowCreate(v=>!v);setActionMessage("");setActionError("");}} disabled={!writesEnabled||!apiConfigured}>{showCreate?"Close form":"+ New record"}</button>
+        </div>
       </div>
       {!writesEnabled&&<p className="guardrail-message">Writes disabled: enable NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES only after Access, CORS and staging persistence checks pass.</p>}
       {showCreate&&writesEnabled&&apiConfigured&&<form className="admin-form-grid" onSubmit={handleCreate}>
-        <label>Customer / contact name<input name="customer_name" required maxLength={160} autoComplete="off"/></label>
-        <label>Service<select name="service" defaultValue="" required><option value="" disabled>Choose service</option>{services.map((service)=><option key={service.slug} value={service.name}>{service.name}</option>)}</select></label>
-        {(moduleKey==="quotes"||moduleKey==="invoices")&&<label>Amount (ZAR)<input name="amount" type="number" inputMode="decimal" min="0" max="100000000" step="0.01" required/></label>}
-        <label>Area / suburb<input name="area" maxLength={160} autoComplete="off"/></label>
-        {moduleKey==="enquiries"&&<><label>Phone<input name="phone" type="tel" maxLength={40} autoComplete="off"/></label><label>Email<input name="email" type="email" maxLength={254} autoComplete="off"/></label></>}
-        <label className="admin-form-wide">Job details<textarea name="details" rows={3} maxLength={4000}/></label>
-        <div className="admin-form-wide form-actions"><button className="button button-orange" type="submit" disabled={saving}>{saving?"Saving…":"Create in preview"}</button><span>Records are written only to the isolated preview D1 database.</span></div>
+        {moduleKey === "quotes" && <>
+          <label className="admin-form-wide">CRM customer
+            <select name="customer_id" value={newCustomerId} onChange={(event)=>setNewCustomerId(event.target.value)} required>
+              <option value="" disabled>Choose an active CRM customer</option>
+              {customers.filter((customer)=>customer.status !== "Archived").map((customer)=><option key={String(customer.id)} value={String(customer.id)}>{String(customer.display_name ?? customer.company_name ?? customer.id)} · {String(customer.primary_phone ?? "No phone")}</option>)}
+            </select>
+          </label>
+          {!customers.length && <p className="admin-form-wide guardrail-message">There are no CRM customers in this preview database yet. Add a customer before creating a formal quotation.</p>}
+          <div className="admin-form-wide">
+            <strong>Quotation line items</strong>
+            {quoteLines.map((line,index)=><div key={index} className="admin-form-grid mt-3 border border-darkgrey rounded-card p-3">
+              <label className="admin-form-wide">Description<input value={line.description} onChange={(event)=>setQuoteLines((current)=>current.map((item,i)=>i===index?{...item,description:event.target.value}:item))} required maxLength={240} placeholder="e.g. Solar panel cleaning — labour"/></label>
+              <label>Quantity<input type="number" min="0.001" max="100000" step="0.001" value={line.quantity} onChange={(event)=>setQuoteLines((current)=>current.map((item,i)=>i===index?{...item,quantity:event.target.value}:item))} required/></label>
+              <label>Unit<input value={line.unit} onChange={(event)=>setQuoteLines((current)=>current.map((item,i)=>i===index?{...item,unit:event.target.value}:item))} maxLength={24}/></label>
+              <label>Unit price (ZAR)<input type="number" min="0" max="10000000" step="0.01" value={line.unit_price} onChange={(event)=>setQuoteLines((current)=>current.map((item,i)=>i===index?{...item,unit_price:event.target.value}:item))} required/></label>
+              <div className="form-actions"><button type="button" className="button button-small button-outline button-dark-outline" onClick={()=>setQuoteLines((current)=>current.filter((_,i)=>i!==index))} disabled={quoteLines.length===1}>Remove line</button></div>
+            </div>)}
+            <button type="button" className="button button-small button-outline button-dark-outline mt-3" onClick={()=>setQuoteLines((current)=>[...current,{description:"",quantity:"1",unit:"item",unit_price:""}])}>+ Add line item</button>
+          </div>
+          <label>Discount (ZAR)<input name="discount_amount" type="number" min="0" step="0.01" defaultValue="0"/></label>
+          <label className="flex items-center gap-2"><input name="vat_enabled" type="checkbox" className="w-4 h-4"/> Apply VAT using saved NGMS settings</label>
+          <label className="admin-form-wide">Quotation notes<textarea name="notes" rows={3} maxLength={4000} placeholder="Scope, exclusions, access notes or payment terms"/></label>
+          <div className="admin-form-wide form-actions"><button className="button button-orange" type="submit" disabled={saving||!customers.length}>{saving?"Saving…":"Create formal quotation"}</button><span>Creates an NGMS reference and stores the itemised lines in preview D1.</span></div>
+        </>}
+        {moduleKey === "invoices" && <>
+          <label className="admin-form-wide">Accepted quotation
+            <select name="source_document_id" defaultValue="" required>
+              <option value="" disabled>Choose an accepted quotation not yet invoiced</option>
+              {availableAcceptedQuotes.map((quote)=><option key={String(quote.id)} value={String(quote.id)}>{String(quote.reference ?? quote.id)} · {String(quote.customer_name ?? "Customer")} · {displayValue("amount_cents",quote.amount_cents)}</option>)}
+            </select>
+          </label>
+          {!availableAcceptedQuotes.length && <p className="admin-form-wide guardrail-message">No accepted, uninvoiced quotations are available. An invoice must be created from an accepted quotation.</p>}
+          <label>Invoice due date<input name="due_date" type="date"/></label>
+          <label className="admin-form-wide">Invoice notes<textarea name="notes" rows={3} maxLength={4000}/></label>
+          <div className="admin-form-wide form-actions"><button className="button button-orange" type="submit" disabled={saving||!availableAcceptedQuotes.length}>{saving?"Saving…":"Create invoice from accepted quotation"}</button><span>Approved lines, discount and VAT are copied from the source quotation.</span></div>
+        </>}
+        {(moduleKey==="enquiries"||moduleKey==="jobs") && <>
+          <label>Customer / contact name<input name="customer_name" required maxLength={160} autoComplete="off"/></label>
+          <label>Service<select name="service" defaultValue="" required><option value="" disabled>Choose service</option>{services.map((service)=><option key={service.slug} value={service.name}>{service.name}</option>)}</select></label>
+          <label>Area / suburb<input name="area" maxLength={160} autoComplete="off"/></label>
+          {moduleKey==="enquiries"&&<><label>Phone<input name="phone" type="tel" maxLength={40} autoComplete="off"/></label><label>Email<input name="email" type="email" maxLength={254} autoComplete="off"/></label></>}
+          <label className="admin-form-wide">Job details<textarea name="details" rows={3} maxLength={4000}/></label>
+          <div className="admin-form-wide form-actions"><button className="button button-orange" type="submit" disabled={saving}>{saving?"Saving…":"Create in preview"}</button><span>Records are written only to the isolated preview D1 database.</span></div>
+        </>}
+      </form>}
+      {showCustomerForm&&writesEnabled&&apiConfigured&&(moduleKey==="quotes"||moduleKey==="invoices")&&<form className="admin-form-grid mt-4 border-t border-darkgrey pt-4" onSubmit={handleCustomerCreate}>
+        <strong className="admin-form-wide">Add customer to preview CRM</strong>
+        <label>Customer name<input name="display_name" required maxLength={160}/></label>
+        <label>Customer type<select name="customer_type" defaultValue="Individual"><option>Individual</option><option>Business</option><option>Body corporate</option></select></label>
+        <label>Phone<input name="primary_phone" type="tel" maxLength={40}/></label>
+        <label>Email<input name="primary_email" type="email" maxLength={254}/></label>
+        <label className="admin-form-wide">Service address<input name="service_address" maxLength={1000}/></label>
+        <label className="admin-form-wide">Billing address<input name="billing_address" maxLength={1000}/></label>
+        <div className="admin-form-wide form-actions"><button className="button button-orange" type="submit" disabled={saving}>{saving?"Saving…":"Save customer"}</button><span>Customer details are stored only in the isolated preview CRM.</span></div>
       </form>}
     </section>}
 
@@ -472,7 +524,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<th>File action</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&<th>Preview action</th>}</tr></thead>
         <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<td>{getAdminMediaDownloadUrl(row.id)?<a className="text-link" href={getAdminMediaDownloadUrl(row.id)} target="_blank" rel="noopener noreferrer">Open / download ↗</a>:<span className="inline-feedback">File link unavailable</span>}</td>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents"].includes(module.resource)&&<td><StatusEditor resource={module.resource as "enquiries"|"jobs"|"documents"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
     </section>
-    {moduleKey==="invoices"&&<p className="module-footnote">The inspected document schema stores invoice face value and status, but has no partial-payment ledger. This screen does not calculate a reconciled amount due.</p>}
+    {moduleKey==="invoices"&&<p className="module-footnote">Invoices are generated only from accepted quotations. The D1 schema has no partial-payment ledger; this screen does not calculate a reconciled amount due or allow a payment to be marked as settled.</p>}
     {moduleKey==="content"&&<p className="module-footnote">Content editing remains disabled until optimistic concurrency, publish/rollback and the owner-approved field schema are implemented.</p>}
     <p className="module-footnote">Preview write controls require NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=true. The Worker independently verifies Cloudflare Access identity for every protected action.</p>
   </div>;
