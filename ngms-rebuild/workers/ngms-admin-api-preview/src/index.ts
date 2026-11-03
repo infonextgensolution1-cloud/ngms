@@ -559,7 +559,8 @@ export default {
         const email = String(enquiry.email || "").trim().toLowerCase();
         const normalisePhone = (value: string) => value.replace(/\D/g, "").replace(/^27/, "0");
         const phone = normalisePhone(String(enquiry.phone || ""));
-        const candidates = await env.DB.prepare("SELECT id, display_name, primary_phone, primary_email FROM customers WHERE (? <> '' AND lower(primary_email) = ?) OR (? <> '' AND primary_phone <> '') ORDER BY updated_at DESC LIMIT 200").bind(email, email, phone).all<{ id: string; display_name: string; primary_phone: string; primary_email: string }>();
+        const phoneTail = phone.slice(-9);
+        const candidates = await env.DB.prepare("SELECT id, display_name, primary_phone, primary_email FROM customers WHERE (? <> '' AND lower(primary_email) = ?) OR (? <> '' AND primary_phone LIKE '%' || ? || '%') ORDER BY updated_at DESC LIMIT 200").bind(email, email, phoneTail, phoneTail).all<{ id: string; display_name: string; primary_phone: string; primary_email: string }>();
         const matches = candidates.results.filter((candidate) =>
           (email && String(candidate.primary_email || "").trim().toLowerCase() === email) ||
           (phone && normalisePhone(String(candidate.primary_phone || "")) === phone)
@@ -571,7 +572,7 @@ export default {
           ...(!matched ? [env.DB.prepare("INSERT INTO customers (id, customer_type, display_name, company_name, primary_phone, primary_email, billing_address, service_address, notes, created_by) SELECT ?, 'Individual', ?, '', ?, ?, '', ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM enquiry_customer_links WHERE enquiry_id = ?)").bind(candidateCustomerId, enquiry.customer_name, enquiry.phone || "", enquiry.email || "", enquiry.area || "", "Created from enquiry " + enquiryId + (enquiry.details ? "\n" + enquiry.details : ""), actor, enquiryId)] : []),
           env.DB.prepare("INSERT OR IGNORE INTO enquiry_customer_links (enquiry_id, customer_id, linked_by) VALUES (?, ?, ?)").bind(enquiryId, candidateCustomerId, actor),
           env.DB.prepare("UPDATE enquiries SET customer_id = (SELECT customer_id FROM enquiry_customer_links WHERE enquiry_id = ?), status = CASE WHEN status = 'New' THEN 'Contacted' ELSE status END, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ? AND customer_id IS NULL").bind(enquiryId, enquiryId),
-          env.DB.prepare("INSERT INTO customer_activity (id, customer_id, entity_type, entity_id, event_type, summary, actor) SELECT ?, customer_id, 'enquiry', ?, 'enquiry_linked', ?, ? FROM enquiry_customer_links WHERE enquiry_id = ? AND customer_id = ?").bind(newId("ACT"), enquiryId, "Enquiry linked to CRM customer: " + enquiry.customer_name, actor, enquiryId, candidateCustomerId),
+          env.DB.prepare("INSERT INTO customer_activity (id, customer_id, entity_type, entity_id, event_type, summary, actor) SELECT ?, customer_id, 'enquiry', ?, 'enquiry_linked', ?, ? FROM enquiry_customer_links WHERE enquiry_id = ? AND customer_id = ? AND NOT EXISTS (SELECT 1 FROM customer_activity WHERE customer_id = ? AND entity_type = 'enquiry' AND entity_id = ? AND event_type = 'enquiry_linked')").bind(newId("ACT"), enquiryId, "Enquiry linked to CRM customer: " + enquiry.customer_name, actor, enquiryId, candidateCustomerId, candidateCustomerId, enquiryId),
           ...(!matched ? [env.DB.prepare("DELETE FROM customers WHERE id = ? AND NOT EXISTS (SELECT 1 FROM enquiry_customer_links WHERE customer_id = ?)").bind(candidateCustomerId, candidateCustomerId)] : [])
         ];
         await env.DB.batch(statements);
