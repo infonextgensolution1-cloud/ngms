@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { FormEvent } from "react";
 
 type TurnstileOptions = {
   sitekey: string;
@@ -25,7 +26,7 @@ const SITE_KEY = process.env.NEXT_PUBLIC_NGMS_TURNSTILE_SITE_KEY ?? "";
 const INTAKE_URL = process.env.NEXT_PUBLIC_NGMS_PUBLIC_INTAKE_URL ?? "";
 const INTAKE_HOST = "ngms-public-intake-preview.nextgensolarcleaningmaintenancesolutions.workers.dev";
 
-const SERVICE_OPTIONS = [
+const SERVICE_OPTIONS: Array<{ label: string; value: string; note?: string }> = [
   { label: "Solar Panel Cleaning", value: "Solar panel cleaning" },
   { label: "Painting", value: "Painting & finishes" },
   { label: "Waterproofing", value: "Waterproofing" },
@@ -134,7 +135,7 @@ export default function QuoteRequestForm() {
       return;
     }
 
-    const selected = SERVICE_OPTIONS.find((item) => item.value === String(data.get("service")));
+    const selected = SERVICE_OPTIONS.find((item) => item.label === String(data.get("service_display")));
     const description = String(data.get("details") ?? "").trim();
     const preferredDate = String(data.get("preferred_date") ?? "").trim();
     const requestedService = selected?.note ?? selected?.label ?? "General property maintenance";
@@ -154,7 +155,7 @@ export default function QuoteRequestForm() {
           customer_name: String(data.get("customer_name") ?? "").trim(),
           phone,
           email,
-          service: String(data.get("service") ?? ""),
+          service: selected?.value ?? "",
           area: String(data.get("area") ?? "").trim(),
           details,
           turnstileToken,
@@ -201,7 +202,7 @@ export default function QuoteRequestForm() {
         <fieldset disabled={!configured || submitting}>
           <legend>Request details</legend>
           <label htmlFor="quote-service">Service required
-            <select id="quote-service" name="service" defaultValue="" required>
+            <select id="quote-service" name="service_display" defaultValue="" required>
               <option value="" disabled>Choose a service</option>
               {SERVICE_OPTIONS.map((service, index) => <option key={service.label + index} value={service.value}>{service.label}</option>)}
             </select>
