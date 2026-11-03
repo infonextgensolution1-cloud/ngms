@@ -238,6 +238,17 @@ export async function updateAdminStatus(
   });
 }
 
+export async function convertEnquiryToCustomer(id: string): Promise<AdminRow> {
+  if (!/^[A-Za-z0-9-]{1,120}$/.test(id)) {
+    throw new AdminApiError("The enquiry reference is not valid.", "invalid-response");
+  }
+  return mutationFetch(`/api/admin/enquiries/${encodeURIComponent(id)}/convert-to-customer`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "{}",
+  });
+}
+
 export async function uploadAdminMedia(file: File): Promise<AdminRow> {
   const accepted = new Set(["image/jpeg", "image/png", "image/webp", "image/avif", "application/pdf"]);
   if (!accepted.has(file.type)) {
