@@ -1,9 +1,20 @@
 # NGMS rebuild implementation status
 
-**Updated:** 29 October 2026  
-**Current preview branch:** `preview/ngms-cloudflare-worker`  
+**Updated:** 3 November 2026  
+**Current isolated preview branch:** `fix/ngms-commercial-documents-preview-20261103`  
 **App root:** `ngms-rebuild/`  
 **Production boundary:** no production website, DNS, Vercel production alias, Worker configuration, D1 schema or customer record has been changed by the rebuild work. Existing repository PR [#274](https://github.com/infonextgensolution1-cloud/ngms/pull/274) (“Preview/ngms cloudflare worker”) remains open and unmerged; it is not approval to merge or cut over. Do not merge or change public routing until the mandatory release gate in [v4-acceptance-matrix.md](v4-acceptance-matrix.md) is complete and production release is explicitly approved.
+
+## Current preview status — 3 November 2026
+
+- Draft implementation PR [#283](https://github.com/infonextgensolution1-cloud/ngms/pull/283) contains the formal quotation/invoice UI and preview API source changes; it remains open and unmerged.
+- Dedicated preview app Worker `ngms-rebuild-preview-worker` is built from `fix/ngms-commercial-documents-preview-20261103`. Cloudflare build `d5f7d7d6-dc1a-497e-a4b4-228455d9d2a4` succeeded and deployed Worker version `5214d3fb-3758-48f3-8adf-650c1853193b` (version 18) at 100% preview traffic.
+- Preview API Worker `ngms-admin-api-preview` version 49 is bound to `ngms-admin-preview` and `ngmsmedia-preview`. Its CORS allowlist includes the preview app origin. The preview Access app bypasses OPTIONS preflight only; the existing single-administrator policy and Worker JWT validation remain required for actual admin requests.
+- Preview D1 has migrations 0007–0009 recorded. Migration 0008 added operations records; migration 0009 prevents duplicate active invoices per source quotation. No production D1 migration was applied.
+- Preview GitHub CI run [#139](https://github.com/infonextgensolution1-cloud/ngms/actions/runs/41593797443) passed dependency audit, TypeScript, Supabase guard, Next.js, Docker and route smoke tests. Root build/release gate [#780](https://github.com/infonextgensolution1-cloud/ngms/actions/runs/41593797422) also passed.
+- The public workers.dev preview hostname could not be resolved from the validation environment, so actual human-browser Access sign-in, CORS/API reads, media download and controlled write persistence remain pending. Preview write controls remain disabled.
+- No production Worker, D1, R2, DNS, public-domain routing or live customer data was changed. Do not merge PR #283 or promote the preview without the release acceptance checks and explicit approval.
+
 
 ## Acceptance control
 
@@ -15,10 +26,10 @@ Use [v4-acceptance-matrix.md](v4-acceptance-matrix.md) as the requirement-to-evi
 - Homepage, all 12 service category cards and detail templates, service directory, Helderberg solar page, Strand/Gordon's Bay/Somerset West area pages, and templates for contact, about, maintenance plans, body corporates, portfolio, gallery, pricing, FAQ, privacy, terms and solar ROI.
 - Imported the verified NGMS logo and two existing solar marketing images into the isolated app. Images are used as general brand/service imagery, not represented as verified customer project evidence.
 - Admin navigation and responsive visual shell matching the public brand.
-- Admin collection client for currently documented endpoints: enquiries, jobs, documents (quotations/invoices), media and content. The dashboard reads counts/recent records only after all required collection calls succeed; it distinguishes confirmed empty collections from configuration, network, Access, CORS and response errors.
+- Admin collection client for enquiries, jobs, formal commercial documents, CRM customers, media and website content. Quotations and invoices use the dedicated commercial-document API rather than the generic legacy documents endpoint. Dashboard KPIs read formal quotation/invoice records and are shown only after all required collection calls succeed.
 - The browser-side API client is pinned to the dedicated HTTPS preview API hostname; it blocks blank, malformed or alternative (including production) API targets before sending a request. Overview and module screens provide an API health/sign-in link to help the administrator complete Cloudflare Access before refreshing.
 - Media rows include a Worker-based authenticated open/download link; website-content JSON values are rendered readably. Media listing/download still requires real-browser Access/CORS testing. Upload, replace, deletion, creation and status updates remain disabled.
-- No false live metrics, customer names, quotation amounts, invoice balances or record writes are simulated. Calendar, reporting and settings remain marked unavailable until their contracts are implemented.
+- No false live metrics or business balances are simulated. The calendar API exists but the current generic calendar screen is not yet integrated with its date-range/mutation contract. Reports and settings remain marked unavailable. Invoice face value is not represented as a reconciled amount due because there is no payment ledger.
 - Compatibility screens for existing quote/maintenance/job-tracking token routes; they do not display tokens or read or mutate private records.
 - Next.js 16.4.3 and React/React DOM 19.2.9 in the isolated package; no Supabase SDK or app-side Supabase client.
 - CI workflow includes locked dependency installation, high/critical dependency audit, TypeScript validation, a Supabase source/lockfile/dependency-tree guard, a Next.js production build, Docker image build, container start and smoke tests for the three priority public pages, admin overview, admin enquiries, admin media and the branded `/icon.svg` asset.
