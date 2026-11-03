@@ -1,0 +1,190 @@
+/* NGMS Lab / Orange Editorial system — public website only.
+   Inspired by the supplied reference: warm paper canvas, oversized black typography,
+   modular architectural panels and a confident signal-orange feature colour.
+   Admin, portal and document workflows are intentionally left untouched. */
+
+:root {
+  --ngms-lab-paper: #f1f0ed;
+  --ngms-lab-white: #fbfaf8;
+  --ngms-lab-ink: #101010;
+  --ngms-lab-muted: #66645f;
+  --ngms-lab-line: #c9c7c2;
+  --ngms-lab-orange: #f0441e;
+  --ngms-lab-orange-dark: #c83215;
+  --ngms-lab-lime: #b7ff00;
+}
+
+/* Public page canvas: homepage plus the marketing route group. */
+body:has(main.ngms-home-new),
+body:has(.ngms-public-page) {
+  background: #999896 !important;
+  color: var(--ngms-lab-ink);
+}
+body:has(main.ngms-home-new) #main-content,
+body:has(.ngms-public-page) #main-content {
+  background: #999896;
+}
+body:has(main.ngms-home-new) main.ngms-home-new,
+body:has(.ngms-public-page) .ngms-public-page main {
+  width: min(100% - 32px, 1240px);
+  margin-inline: auto;
+  background: var(--ngms-lab-paper);
+  color: var(--ngms-lab-ink);
+  box-shadow: 0 18px 55px rgba(0,0,0,.16);
+}
+body:has(main.ngms-home-new) main.ngms-home-new {
+  overflow: clip;
+}
+body:has(.ngms-public-page) .ngms-public-page {
+  background: transparent;
+  color: var(--ngms-lab-ink);
+}
+body:has(.ngms-public-page) .ngms-public-page main {
+  min-height: 60vh;
+}
+
+/* Light editorial typography and crisp, architectural geometry. */
+body:has(main.ngms-home-new) main,
+body:has(.ngms-public-page) .ngms-public-page main {
+  font-family: var(--font-body), Inter, Arial, sans-serif;
+}
+body:has(main.ngms-home-new) main :is(h1,h2,h3,h4),
+body:has(.ngms-public-page) .ngms-public-page main :is(h1,h2,h3,h4) {
+  color: var(--ngms-lab-ink);
+  letter-spacing: -.065em;
+  text-transform: none;
+  font-weight: 850;
+}
+body:has(main.ngms-home-new) main :is(p,li,small,dt,dd),
+body:has(.ngms-public-page) .ngms-public-page main :is(p,li,small,dt,dd) {
+  color: inherit;
+}
+body:has(main.ngms-home-new) main :is(section,article),
+body:has(.ngms-public-page) .ngms-public-page main :is(section,article) {
+  border-radius: 0 !important;
+  box-shadow: none;
+}
+body:has(main.ngms-home-new) main :is(.card,.panel,[class*="rounded-card"],[class*="rounded-panel"]),
+body:has(.ngms-public-page) .ngms-public-page main :is(.card,.panel,[class*="rounded-card"],[class*="rounded-panel"]) {
+  border-radius: 2px !important;
+  border: 1px solid var(--ngms-lab-line) !important;
+  box-shadow: 5px 5px 0 rgba(16,16,16,.06);
+}
+body:has(main.ngms-home-new) main :is(.kicker,.text-orange),
+body:has(.ngms-public-page) .ngms-public-page main :is(.kicker,.text-orange) {
+  color: var(--ngms-lab-orange-dark) !important;
+  letter-spacing: .12em;
+}
+body:has(main.ngms-home-new) main :is(.btn,.btn-quote,.btn-wa,.btn-touch,.btn-outline),
+body:has(.ngms-public-page) .ngms-public-page main :is(.btn,.btn-quote,.btn-wa,.btn-touch,.btn-outline) {
+  border-radius: 2px !important;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  min-height: 46px;
+  font-weight: 800;
+}
+body:has(main.ngms-home-new) main :is(.btn-quote,.btn-glow,.btn-quote-hero),
+body:has(.ngms-public-page) .ngms-public-page main :is(.btn-quote,.btn-glow,.btn-quote-hero) {
+  background: var(--ngms-lab-orange) !important;
+  border-color: var(--ngms-lab-orange) !important;
+  color: #fff !important;
+}
+body:has(main.ngms-home-new) main :is(.btn-quote,.btn-glow,.btn-quote-hero):hover,
+body:has(.ngms-public-page) .ngms-public-page main :is(.btn-quote,.btn-glow,.btn-quote-hero):hover {
+  background: var(--ngms-lab-orange-dark) !important;
+  border-color: var(--ngms-lab-orange-dark) !important;
+}
+
+/* Bring legacy dark/light utility sections into the same paper-and-ink language. */
+body:has(main.ngms-home-new) main :is(section,article)[class*="bg-jet"],
+body:has(main.ngms-home-new) main :is(section,article)[class*="bg-graphite"],
+body:has(main.ngms-home-new) main :is(section,article)[class*="bg-cardgrey"],
+body:has(.ngms-public-page) .ngms-public-page main :is(section,article)[class*="bg-jet"],
+body:has(.ngms-public-page) .ngms-public-page main :is(section,article)[class*="bg-graphite"],
+body:has(.ngms-public-page) .ngms-public-page main :is(section,article)[class*="bg-cardgrey"] {
+  background: var(--ngms-lab-paper) !important;
+  color: var(--ngms-lab-ink) !important;
+  border-color: var(--ngms-lab-line) !important;
+}
+body:has(main.ngms-home-new) main :is(section,article)[class*="bg-jet"] :is(h1,h2,h3,h4,p,li,small),
+body:has(main.ngms-home-new) main :is(section,article)[class*="bg-graphite"] :is(h1,h2,h3,h4,p,li,small),
+body:has(main.ngms-home-new) main :is(section,article)[class*="bg-cardgrey"] :is(h1,h2,h3,h4,p,li,small),
+body:has(.ngms-public-page) .ngms-public-page main :is(section,article)[class*="bg-jet"] :is(h1,h2,h3,h4,p,li,small),
+body:has(.ngms-public-page) .ngms-public-page main :is(section,article)[class*="bg-graphite"] :is(h1,h2,h3,h4,p,li,small),
+body:has(.ngms-public-page) .ngms-public-page main :is(section,article)[class*="bg-cardgrey"] :is(h1,h2,h3,h4,p,li,small) {
+  color: var(--ngms-lab-ink) !important;
+}
+body:has(main.ngms-home-new) main :is(a,button,summary):focus-visible,
+body:has(.ngms-public-page) .ngms-public-page main :is(a,button,summary):focus-visible {
+  outline: 3px solid var(--ngms-lab-orange) !important;
+  outline-offset: 3px;
+}
+body:has(main.ngms-home-new) main img,
+body:has(.ngms-public-page) .ngms-public-page main img {
+  border-radius: 2px;
+}
+
+/* Global navigation becomes a clean white editorial masthead. */
+header[data-site-marketing] {
+  background: rgba(251,250,248,.97) !important;
+  color: var(--ngms-lab-ink) !important;
+  border-bottom: 1px solid var(--ngms-lab-line) !important;
+  box-shadow: 0 5px 20px rgba(0,0,0,.05);
+  backdrop-filter: blur(14px);
+}
+header[data-site-marketing] nav a,
+header[data-site-marketing] a:not(.btn-quote) {
+  color: var(--ngms-lab-ink) !important;
+}
+header[data-site-marketing] nav a:hover,
+header[data-site-marketing] a:not(.btn-quote):hover {
+  color: var(--ngms-lab-orange-dark) !important;
+}
+header[data-site-marketing] button span { background: var(--ngms-lab-ink) !important; }
+header[data-site-marketing] .btn-quote {
+  background: var(--ngms-lab-orange) !important;
+  border-color: var(--ngms-lab-orange) !important;
+  color: #fff !important;
+}
+
+/* Paper footer and orange editorial callout band. */
+footer[data-site-marketing] {
+  background: var(--ngms-lab-paper) !important;
+  color: var(--ngms-lab-ink) !important;
+  border-top: 1px solid var(--ngms-lab-line) !important;
+}
+footer[data-site-marketing] :is(p,li,span,a) { color: inherit; }
+footer[data-site-marketing] :is(.text-paper,.text-mist,.text-blue) { color: var(--ngms-lab-ink) !important; }
+footer[data-site-marketing] a:hover { color: var(--ngms-lab-orange-dark) !important; }
+footer[data-site-marketing] .border-darkgrey { border-color: var(--ngms-lab-line) !important; }
+footer[data-site-marketing] .btn-quote {
+  background: var(--ngms-lab-orange) !important;
+  border-color: var(--ngms-lab-orange) !important;
+  color: #fff !important;
+}
+footer[data-site-marketing] .btn-wa {
+  background: var(--ngms-lab-ink) !important;
+  border-color: var(--ngms-lab-ink) !important;
+  color: #fff !important;
+}
+
+/* Lime remains a small interaction accent, not a competing brand colour. */
+a[aria-label*="WhatsApp"] :is(svg) { color: var(--ngms-lab-lime); }
+@media (max-width: 767px) {
+  body:has(main.ngms-home-new) main.ngms-home-new,
+  body:has(.ngms-public-page) .ngms-public-page main {
+    width: min(100% - 16px, 1240px);
+  }
+  header[data-site-marketing] nav#mobile-nav {
+    background: var(--ngms-lab-white) !important;
+    border-color: var(--ngms-lab-line) !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body:has(main.ngms-home-new) *,
+  body:has(.ngms-public-page) .ngms-public-page * {
+    scroll-behavior: auto;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
