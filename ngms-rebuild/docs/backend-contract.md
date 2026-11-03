@@ -1,7 +1,7 @@
 # NGMS backend integration contract — verified inventory
 
 **Updated:** 3 November 2026  
-**Scope:** Production inventory remained read-only. Workflow A backend changes were deployed only to preview Workers `ngms-admin-api-preview` (version 50) and `ngms-public-intake-preview` (version 38), with their existing preview-only D1/R2 bindings. No production Worker, D1, R2, DNS or customer record was changed. The frontend changes are on draft PR #283 and are not yet promoted to the active frontend preview.
+**Scope:** Production inventory remained read-only. Workflow A backend changes were deployed only to preview Workers `ngms-admin-api-preview` (version 51) and `ngms-public-intake-preview` (version 38), with their existing preview-only D1/R2 bindings. No production Worker, D1, R2, DNS or customer record was changed. The frontend changes are on draft PR #283 and are not yet promoted to the active frontend preview.
 
 ## Verified resources
 
@@ -152,7 +152,7 @@ These values exist solely to test the preview interface; they must never be mist
 
 ## Workflow A — preview-only additions (3 November 2026)
 
-- Preview admin API Worker: `ngms-admin-api-preview`, version **50**, deployed at 100% of that preview Worker’s traffic.
+- Preview admin API Worker: `ngms-admin-api-preview`, version **51**, deployed at 100% of that preview Worker’s traffic.
 - Preview intake Worker: `ngms-public-intake-preview`, version **38**, deployed at 100% of that preview Worker’s traffic.
 - Preview public intake: `POST /api/public/enquiries` uses Turnstile validation, honeypot handling, a UUID submission key and server-side duplicate detection. Its CORS allow-list includes the isolated Cloudflare preview website origin. The production intake Worker allow-list was not modified.
 - Preview admin conversion: `POST /api/admin/enquiries/:id/convert-to-customer` uses the existing `enquiry_customer_links` table, links to a matching CRM customer or creates one, updates the enquiry to Contacted and records customer activity. Ambiguous matches are rejected for manual resolution.
