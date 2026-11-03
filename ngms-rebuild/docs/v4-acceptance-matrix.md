@@ -1,7 +1,7 @@
 # NGMS V4 — Blueprint-to-Acceptance Matrix
 
-**Updated:** 29 October 2026  
-**Branch:** `preview/ngms-cloudflare-worker`  
+**Updated:** 3 November 2026  
+**Branch:** `feature/workflow-a-quote-intake-20261103`  
 **Application root:** `ngms-rebuild/`  
 **Purpose:** Trace NGMS requirements to implementation and evidence so a successful build is not mistaken for a fully accepted website or admin system.
 
@@ -45,7 +45,7 @@ Status meanings:
 
 | ID | Requirement / acceptance criterion | Current status | Evidence available | Exit criteria |
 |---|---|---|---|---|
-| LEAD-01 | Customer can submit an enquiry with service, job description, contact details and preferred date. | **BLOCKED** | Public submissions are disabled. Existing intake Worker is bound to production D1, so using it for V4 tests could contaminate production data. | Create a dedicated preview intake Worker and Turnstile configuration; test validation, spam controls, errors and persistence using synthetic data. |
+| LEAD-01 | Customer can submit an enquiry with service, job description, contact details and preferred date. | **PARTIAL** | The quote form and Turnstile integration are implemented on `feature/workflow-a-quote-intake-20261103`. A separate preview intake Worker is bound to preview D1; a preview-only Turnstile widget/secret and preview-origin allowlist are configured. Browser submission, D1 persistence and admin read-back have not yet been verified. | Deploy the feature to preview; submit synthetic requests; verify validation, spam controls, duplicate prevention, D1 persistence and authorised Admin Enquiries read-back. |
 | LEAD-02 | Allow maintenance enquiries to include photos/attachments. | **BLOCKED** | R2/media pieces exist, but end-to-end public attachment submission is not accepted or enabled. | Define size/type limits, private storage and safe file handling; test upload, validation, failure recovery and record linkage in preview. |
 | LEAD-03 | Enquiry is recorded in admin and can progress into a job/quotation workflow. | **PARTIAL** | Read-only admin client and backend collections exist; create helpers/UI are feature-gated and preview writes remain off. | Verify a synthetic enquiry appears in the authorised admin session and progresses through the approved status transitions without touching production data. |
 | LEAD-04 | Quotation request, quotation preparation and customer follow-up. | **PARTIAL** | Quote routes/templates and a document collection concept exist; writes and full business flow are not accepted end to end. | Confirm quote fields, numbering, line items, validity, VAT/tax treatment, totals, PDF, email/WhatsApp draft, approval and follow-up rules with real business requirements. |
