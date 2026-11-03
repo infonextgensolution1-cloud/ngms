@@ -478,3 +478,21 @@
  .v4-plan-card,.v4-value-grid>a,.v4-solar-switcher a,.v4-solar-banner img{transition:none}
  .v4-plan-card:hover,.v4-value-grid>a:hover{transform:none}
 }
+
+
+/* Public enquiry / quote workflow */
+.quote-security{margin:18px 0;padding:14px;background:#f7f4ef;border:1px solid #d4d0ca}
+.quote-security>.form-help{display:block;margin:0 0 10px;color:#5e5952}
+.quote-security>div{min-height:65px}
+.quote-honeypot{position:absolute!important;left:-10000px!important;top:auto!important;width:1px!important;height:1px!important;overflow:hidden!important}
+.form-help{display:block;margin:12px 0 0;color:#69645d;font-size:.76rem;line-height:1.55}
+.form-error{margin:8px 0 0;color:#9c2f20;font-size:.82rem}
+.form-success,.form-error-panel{margin-top:18px;padding:16px;border:1px solid #b7c9b6;background:#f0f7ee;color:#20351f}
+.form-success p,.form-error-panel p{margin:5px 0 0;color:inherit;font-size:.87rem}
+.form-error-panel{border-color:#d8a49b;background:#fff2ef;color:#7d241a}
+.form-card button:disabled{opacity:.58;cursor:not-allowed}
+.quote-next-steps{display:grid;gap:18px;margin:22px 0 28px;padding:0;list-style:none}
+.quote-next-steps li{display:grid;gap:6px;padding:0 0 16px;border-bottom:1px solid #d4d0ca}
+.quote-next-steps li strong{color:var(--orange);font-size:.68rem;letter-spacing:.1em}
+.quote-next-steps li span{color:#5e5952;font-size:.86rem;line-height:1.55}
+@media(max-width:760px){.form-layout{grid-template-columns:1fr}.form-card,.form-aside{padding:20px}.quote-security{overflow:hidden}}
