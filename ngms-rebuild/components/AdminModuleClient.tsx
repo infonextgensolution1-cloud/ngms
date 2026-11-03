@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, createAdminRecord, getAdminApiBase,
+  AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, convertEnquiryToCustomer, createAdminRecord, getAdminApiBase,
   getAdminApiHealthUrl, getAdminMediaDownloadUrl, previewWritesEnabled, readAdminCollection, updateAdminStatus, uploadAdminMedia,
 } from "@/lib/admin-api";
 import { services } from "@/lib/site";
@@ -189,6 +189,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
+  const [convertingId, setConvertingId] = useState<string | null>(null);
   const apiConfigured = Boolean(getAdminApiBase());
   const apiHealthUrl = getAdminApiHealthUrl();
   const writesEnabled = previewWritesEnabled();
@@ -272,6 +273,24 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     }
   }
 
+  async function handleConvertEnquiry(row: AdminRow) {
+    if (!writesEnabled || !apiConfigured || !row.id || row.customer_id || convertingId) return;
+    const customerName = String(row.customer_name ?? "this enquiry");
+    if (!window.confirm(`Create or link a CRM customer for ${customerName}? This will mark a new enquiry as Contacted.`)) return;
+    setConvertingId(row.id);
+    setActionMessage("");
+    setActionError("");
+    try {
+      const linked = await convertEnquiryToCustomer(row.id);
+      setActionMessage(`Enquiry linked to CRM customer ${String(linked.customer_id ?? "")}.`);
+      setRefreshVersion((version) => version + 1);
+    } catch (error) {
+      setActionError(adminApiErrorMessage(error));
+    } finally {
+      setConvertingId(null);
+    }
+  }
+
   async function handleUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file || !writesEnabled || !apiConfigured) return;
@@ -298,7 +317,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     </div>
     <div className="api-notice" role="status">
       <span className="notice-dot" aria-hidden="true"/>
-      <div><strong>{error ? "API data is unavailable" : loading ? "Loading records" : !module.resource ? "API route not implemented" : !apiConfigured ? "Preview integration pending" : "Read-only API connection"}</strong>
+      <div><strong>{error ? "API data is unavailable" : loading ? "Loading records" : !module.resource ? "API route not implemented" : !apiConfigured ? "Preview integration pending" : writesEnabled ? "Preview API write controls enabled" : "Read-only API connection"}</strong>
         <p>{error ? error : !module.resource ? "The Worker does not expose this module. No demo records are displayed." : !apiConfigured ? adminApiConfigurationMessage() + " No request was sent and no data is simulated." : "Reads use the approved preview Worker. Any write controls remain disabled by default until preview authentication and persistence tests are approved."}</p>
         {apiHealthUrl&&<p><a className="text-link" href={apiHealthUrl} target="_blank" rel="noopener noreferrer">Open secure API sign-in / health check ↗</a> <span className="module-footnote">After signing in, return here and refresh records.</span></p>}
       </div>
@@ -335,8 +354,8 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       :!apiConfigured?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>CONNECT THE PREVIEW API.</h2><p>Set the non-secret API base URL in Vercel Preview. Cloudflare Access and the preview origin allowlist must also match.</p></div>
       :rows.length===0?<div className="table-empty"><span aria-hidden="true">▤</span><h2>NO RECORDS RETURNED.</h2><p>The protected API returned an empty collection for this module. This is not an API error.</p></div>
       :visibleRows.length===0?<div className="table-empty"><span aria-hidden="true">⌕</span><h2>NO MATCHES.</h2><p>Try a different search term.</p></div>
-      :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<th>File action</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&<th>Preview action</th>}</tr></thead>
-        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<td>{getAdminMediaDownloadUrl(row.id)?<a className="text-link" href={getAdminMediaDownloadUrl(row.id)} target="_blank" rel="noopener noreferrer">Open / download ↗</a>:<span className="inline-feedback">File link unavailable</span>}</td>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents"].includes(module.resource)&&<td><StatusEditor resource={module.resource as "enquiries"|"jobs"|"documents"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
+      :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<th>File action</th>}{moduleKey==="enquiries"&&writesEnabled&&<th>CRM conversion</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&<th>Preview action</th>}</tr></thead>
+        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<td>{getAdminMediaDownloadUrl(row.id)?<a className="text-link" href={getAdminMediaDownloadUrl(row.id)} target="_blank" rel="noopener noreferrer">Open / download ↗</a>:<span className="inline-feedback">File link unavailable</span>}</td>}{moduleKey==="enquiries"&&writesEnabled&&<td>{row.customer_id?<span className="preview-pill">LINKED TO CRM</span>:<button type="button" className="button button-small" onClick={()=>handleConvertEnquiry(row)} disabled={!row.id||convertingId!==null}>{convertingId===row.id?"Linking…":"Add to CRM"}</button>}</td>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents"].includes(module.resource)&&<td><StatusEditor resource={module.resource as "enquiries"|"jobs"|"documents"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
     </section>
     {moduleKey==="invoices"&&<p className="module-footnote">The inspected document schema stores invoice face value and status, but has no partial-payment ledger. This screen does not calculate a reconciled amount due.</p>}
     {moduleKey==="content"&&<p className="module-footnote">Content editing remains disabled until optimistic concurrency, publish/rollback and the owner-approved field schema are implemented.</p>}
