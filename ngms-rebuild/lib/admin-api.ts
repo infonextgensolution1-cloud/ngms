@@ -360,3 +360,136 @@ export async function updateCommercialDocumentStatus(id: string, status: string)
     body: JSON.stringify({ status }),
   });
 }
+
+
+export type InvoicePayment = {
+  id: string;
+  amount_cents: number;
+  paid_at: string;
+  method: "EFT" | "Cash" | "Card" | "Other" | string;
+  reference: string;
+  notes: string;
+  recorded_by: string;
+  created_at: string;
+};
+
+export type InvoicePaymentSummary = {
+  items: InvoicePayment[];
+  paid_cents: number;
+  balance_cents: number;
+};
+
+export type QuotePublicLine = {
+  description: string;
+  quantity: number;
+  unit: string;
+  unit_price_cents: number;
+  line_total_cents: number;
+};
+
+export type PublicQuotation = {
+  reference: string;
+  customer_name: string;
+  kind: "Quotation";
+  amount_cents: number;
+  subtotal_cents: number;
+  discount_cents: number;
+  vat_enabled: number;
+  vat_rate_basis_points: number;
+  vat_cents: number;
+  status: string;
+  issue_date: string | null;
+  notes: string;
+};
+
+export type PublicQuotationResponse = {
+  quote: PublicQuotation;
+  lines: QuotePublicLine[];
+};
+
+async function requestPreviewJson<T>(
+  path: string,
+  init: RequestInit,
+  requiresWrite: boolean,
+  publicTokenRequest = false
+): Promise<T> {
+  if (requiresWrite && !previewWritesEnabled()) {
+    throw new AdminApiError("Preview write actions are disabled until authenticated staging persistence tests are approved.", "not-configured");
+  }
+  const base = getAdminApiBase();
+  if (!base) throw new AdminApiError("The protected preview API URL is not configured.", "not-configured");
+  let response: Response;
+  try {
+    response = await fetch(`${base}${path}`, {
+      ...init,
+      credentials: publicTokenRequest ? "omit" : "include",
+      cache: "no-store",
+      headers: { Accept: "application/json", ...(init.headers ?? {}) },
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") throw error;
+    throw new AdminApiError("The preview API request failed. Check Cloudflare Access and the preview origin.", "network");
+  }
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message = body && typeof body === "object" && "error" in body && typeof (body as { error?: unknown }).error === "string"
+      ? (body as { error: string }).error
+      : `Cloudflare API returned HTTP ${response.status}.`;
+    throw new AdminApiError(message, "http", response.status);
+  }
+  return body as T;
+}
+
+export async function createCommercialShareLink(id: string): Promise<{ url: string; expires_at: string; reference: string }> {
+  if (!/^[A-Za-z0-9-]{1,100}$/.test(id)) throw new AdminApiError("The quotation identifier is not valid.", "invalid-response");
+  return requestPreviewJson(`/api/admin/commercial-documents/${encodeURIComponent(id)}/share`, { method: "POST" }, true);
+}
+
+export async function readInvoicePayments(id: string, signal?: AbortSignal): Promise<InvoicePaymentSummary> {
+  if (!/^[A-Za-z0-9-]{1,100}$/.test(id)) throw new AdminApiError("The invoice identifier is not valid.", "invalid-response");
+  return requestPreviewJson(`/api/admin/commercial-documents/${encodeURIComponent(id)}/payments`, { method: "GET", signal }, false);
+}
+
+export async function recordInvoicePayment(
+  id: string,
+  payload: { amount: number; method: "EFT" | "Cash" | "Card" | "Other"; paid_at: string; reference?: string; notes?: string }
+): Promise<{ saved: boolean; paid_cents: number; balance_cents: number; status: string }> {
+  if (!/^[A-Za-z0-9-]{1,100}$/.test(id)) throw new AdminApiError("The invoice identifier is not valid.", "invalid-response");
+  return requestPreviewJson(`/api/admin/commercial-documents/${encodeURIComponent(id)}/payments`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }, true);
+}
+
+export async function convertAcceptedQuotationToJob(id: string): Promise<AdminRow> {
+  if (!/^[A-Za-z0-9-]{1,100}$/.test(id)) throw new AdminApiError("The quotation identifier is not valid.", "invalid-response");
+  const result = await requestPreviewJson<{ item?: AdminRow }>(
+    `/api/admin/commercial-documents/${encodeURIComponent(id)}/convert-to-job`,
+    { method: "POST" },
+    true
+  );
+  if (!result.item || typeof result.item !== "object") throw new AdminApiError("The quote-to-job response did not match the expected { item: {} } contract.", "invalid-response");
+  return result.item;
+}
+
+function validPublicQuoteToken(token: string): boolean {
+  return /^[a-f0-9]{64}$/i.test(token);
+}
+
+export async function readPublicQuotation(token: string, signal?: AbortSignal): Promise<PublicQuotationResponse> {
+  if (!validPublicQuoteToken(token)) throw new AdminApiError("This quotation link is not valid.", "invalid-response");
+  return requestPreviewJson(`/api/public/quotes/${token}`, { method: "GET", signal }, false, true);
+}
+
+export async function submitPublicQuotationDecision(
+  token: string,
+  decision: "Accepted" | "Declined"
+): Promise<{ saved: boolean; decision: string; reference: string }> {
+  if (!validPublicQuoteToken(token)) throw new AdminApiError("This quotation link is not valid.", "invalid-response");
+  return requestPreviewJson(`/api/public/quotes/${token}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ decision }),
+  }, false, true);
+}
