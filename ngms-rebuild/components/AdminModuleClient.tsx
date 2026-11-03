@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, createAdminCustomer, createAdminRecord, createCommercialDocument,
-  getAdminApiBase, getAdminApiHealthUrl, getAdminMediaDownloadUrl, previewWritesEnabled, readAdminCollection,
-  readAdminCustomers, readCommercialDocuments, updateAdminStatus, updateCommercialDocumentStatus, uploadAdminMedia,
+  AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, convertAcceptedQuotationToJob, createAdminCustomer, createAdminRecord,
+  createCommercialDocument, createCommercialShareLink, getAdminApiBase, getAdminApiHealthUrl, getAdminMediaDownloadUrl,
+  previewWritesEnabled, readAdminCollection, readAdminCustomers, readCommercialDocument, readCommercialDocuments,
+  readInvoicePayments, recordInvoicePayment, updateAdminStatus, updateCommercialDocumentStatus, uploadAdminMedia,
 } from "@/lib/admin-api";
 import { services } from "@/lib/site";
 
@@ -113,7 +114,8 @@ const STATUS_OPTIONS: Record<"enquiries" | "jobs", string[]> = {
   enquiries: ["New", "Contacted", "Quoted", "Converted", "Closed"],
   jobs: ["New", "Quoted", "In progress", "Completed", "Cancelled"],
 };
-const QUOTE_STATUS_OPTIONS = ["Draft", "Sent", "Accepted", "Declined", "Expired", "Cancelled"];
+// Customer decisions arrive through the one-use public quote link; sharing changes Draft to Sent.
+const QUOTE_STATUS_OPTIONS = ["Draft", "Expired", "Cancelled"];
 const INVOICE_STATUS_OPTIONS = ["Draft", "Sent", "Overdue", "Cancelled"];
 
 function displayValue(key: string, value: unknown): string {
@@ -178,6 +180,186 @@ function StatusEditor({
     </select>
     <button type="button" className="button button-small" onClick={save} disabled={!previewWritesEnabled()||saving||!row.id||!allowed.includes(value)||value===row.status}>{saving?"Saving…":"Save status"}</button>
     {message&&<small className="inline-feedback" role="status">{message}</small>}
+  </div>;
+}
+
+function localDateTimeValue(): string {
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
+function CommercialDocumentDetails({ id }: { id: string }) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [detail, setDetail] = useState<Awaited<ReturnType<typeof readCommercialDocument>> | null>(null);
+  useEffect(() => {
+    if (!open || detail) return;
+    const controller = new AbortController();
+    setLoading(true);
+    setError("");
+    readCommercialDocument(id, controller.signal)
+      .then((result) => { if (!controller.signal.aborted) setDetail(result); })
+      .catch((e) => { if (!controller.signal.aborted) setError(adminApiErrorMessage(e)); })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [open, id, detail]);
+  return <div className="mt-1">
+    <button type="button" className="button button-small button-outline button-dark-outline" onClick={() => setOpen((value) => !value)}>{open ? "Hide lines" : "View lines"}</button>
+    {open && <div className="mt-2 min-w-[240px] rounded-card border border-darkgrey p-3">
+      {loading ? <small>Loading saved line items…</small> : error ? <small className="text-orange">{error}</small> : detail ? <>
+        <strong className="text-sm">Saved quotation / invoice lines</strong>
+        <ul className="mt-2 space-y-2">{detail.lines.map((line,index)=><li key={line.id ?? index} className="border-b border-darkgrey pb-2 text-xs">
+          <div className="font-semibold">{line.description}</div>
+          <div className="text-mist">{line.quantity} {line.unit} × {displayValue("amount_cents",line.unit_price_cents)} = {displayValue("amount_cents",line.line_total_cents)}</div>
+        </li>)}</ul>
+        <div className="mt-2 space-y-1 text-xs">
+          <div className="flex justify-between gap-4"><span>Subtotal</span><strong>{displayValue("amount_cents",detail.item.subtotal_cents)}</strong></div>
+          <div className="flex justify-between gap-4"><span>Discount</span><strong>{displayValue("amount_cents",detail.item.discount_cents)}</strong></div>
+          <div className="flex justify-between gap-4"><span>VAT</span><strong>{displayValue("amount_cents",detail.item.vat_cents)}</strong></div>
+          <div className="flex justify-between gap-4 border-t border-darkgrey pt-1"><span>Total</span><strong>{displayValue("amount_cents",detail.item.amount_cents)}</strong></div>
+        </div>
+        {typeof detail.item.notes === "string" && detail.item.notes && <p className="mt-2 text-xs text-mist whitespace-pre-wrap">{detail.item.notes}</p>}
+      </> : <small>No document details returned.</small>}
+    </div>}
+  </div>;
+}
+
+function ShareQuotationAction({ row }: { row: AdminRow }) {
+  const [saving,setSaving] = useState(false);
+  const [share,setShare] = useState<{url:string;expires_at:string;reference:string} | null>(null);
+  const [message,setMessage] = useState("");
+  const canShare = row.status === "Draft" || row.status === "Sent";
+  async function shareQuote() {
+    if (!previewWritesEnabled() || !row.id || !canShare) return;
+    setSaving(true); setMessage("");
+    try { setShare(await createCommercialShareLink(row.id)); setMessage("Customer link created. The quotation is now Sent."); }
+    catch (error) { setMessage(adminApiErrorMessage(error)); }
+    finally { setSaving(false); }
+  }
+  async function copyLink() {
+    if (!share?.url) return;
+    try { await navigator.clipboard.writeText(share.url); setMessage("Customer link copied."); }
+    catch { setMessage("Copy is unavailable here. Select and copy the link below."); }
+  }
+  return <div className="mt-2">
+    <button type="button" className="button button-small button-orange" onClick={shareQuote} disabled={!previewWritesEnabled()||saving||!row.id||!canShare}>{saving ? "Creating link…" : "Create customer link"}</button>
+    {share && <div className="mt-2 max-w-[340px]">
+      <a className="text-link break-all text-xs" href={share.url} target="_blank" rel="noopener noreferrer">{share.url}</a>
+      <div className="mt-1 flex items-center gap-2">
+        <button type="button" className="button button-small button-outline button-dark-outline" onClick={copyLink}>Copy link</button>
+        <span className="text-xs text-mist">Expires {new Date(share.expires_at).toLocaleDateString("en-ZA")}</span>
+      </div>
+    </div>}
+    {message && <small className="inline-feedback block mt-1" role="status">{message}</small>}
+    {!previewWritesEnabled() && <small className="module-footnote block mt-1">Sharing is disabled until preview write testing is enabled.</small>}
+  </div>;
+}
+
+function ConvertQuotationToJobAction({ row, onUpdated }: { row: AdminRow; onUpdated: () => void }) {
+  const [saving,setSaving] = useState(false);
+  const [message,setMessage] = useState("");
+  async function convert() {
+    if (!previewWritesEnabled() || !row.id) return;
+    setSaving(true); setMessage("");
+    try {
+      const job = await convertAcceptedQuotationToJob(row.id);
+      setMessage("Job " + String(job.id ?? "") + " created from the accepted quotation.");
+      onUpdated();
+    } catch (error) { setMessage(adminApiErrorMessage(error)); }
+    finally { setSaving(false); }
+  }
+  return <div className="mt-2">
+    <button type="button" className="button button-small button-orange" onClick={convert} disabled={!previewWritesEnabled()||saving||!row.id||row.status!=="Accepted"}>{saving ? "Creating job…" : "Convert to job"}</button>
+    {message && <small className="inline-feedback block mt-1" role="status">{message}</small>}
+  </div>;
+}
+
+function InvoicePaymentsPanel({ row, onUpdated }: { row: AdminRow; onUpdated: () => void }) {
+  const [open,setOpen] = useState(false);
+  const [loading,setLoading] = useState(false);
+  const [saving,setSaving] = useState(false);
+  const [summary,setSummary] = useState<Awaited<ReturnType<typeof readInvoicePayments>> | null>(null);
+  const [error,setError] = useState("");
+  const [message,setMessage] = useState("");
+  const [dateValue,setDateValue] = useState(localDateTimeValue());
+  const load = useCallback(async (signal?: AbortSignal) => {
+    if (!row.id) return;
+    setLoading(true); setError("");
+    try {
+      const result = await readInvoicePayments(row.id,signal);
+      if (!signal?.aborted) setSummary(result);
+    } catch (e) { if (!signal?.aborted) setError(adminApiErrorMessage(e)); }
+    finally { if (!signal?.aborted) setLoading(false); }
+  },[row.id]);
+  useEffect(() => {
+    if (!open) return;
+    const controller = new AbortController();
+    void load(controller.signal);
+    return () => controller.abort();
+  },[open,load]);
+  async function addPayment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!previewWritesEnabled() || !row.id) return;
+    const data = new FormData(event.currentTarget);
+    const amount = Number(data.get("amount"));
+    const method = String(data.get("method") ?? "EFT") as "EFT"|"Cash"|"Card"|"Other";
+    const paidDate = new Date(String(data.get("paid_at") ?? ""));
+    if (!Number.isFinite(amount) || amount <= 0 || !Number.isFinite(paidDate.getTime())) { setError("Enter a valid payment amount and date."); return; }
+    setSaving(true); setError(""); setMessage("");
+    try {
+      const result = await recordInvoicePayment(row.id,{
+        amount, method, paid_at: paidDate.toISOString(),
+        reference: String(data.get("reference") ?? "").trim(),
+        notes: String(data.get("notes") ?? "").trim(),
+      });
+      setMessage("Payment saved. Outstanding balance: " + displayValue("amount_cents",result.balance_cents) + ".");
+      setDateValue(localDateTimeValue());
+      await load();
+      onUpdated();
+    } catch (e) { setError(adminApiErrorMessage(e)); }
+    finally { setSaving(false); }
+  }
+  return <div className="mt-2">
+    <button type="button" className="button button-small button-outline button-dark-outline" onClick={()=>setOpen((value)=>!value)}>{open ? "Hide payments" : "Payments & balance"}</button>
+    {open && <div className="mt-2 min-w-[260px] max-w-[380px] rounded-card border border-darkgrey p-3">
+      {loading && !summary ? <small>Loading invoice payments…</small> : error && !summary ? <small className="text-orange">{error}</small> : summary ? <>
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div><span className="text-mist block">Paid to date</span><strong>{displayValue("amount_cents",summary.paid_cents)}</strong></div>
+          <div><span className="text-mist block">Balance due</span><strong>{displayValue("amount_cents",summary.balance_cents)}</strong></div>
+        </div>
+        {summary.items.length ? <ul className="mt-3 space-y-2">{summary.items.map(payment=><li key={payment.id} className="border-t border-darkgrey pt-2 text-xs">
+          <div className="flex justify-between gap-2"><strong>{displayValue("amount_cents",payment.amount_cents)}</strong><span>{payment.method}</span></div>
+          <div className="text-mist">{new Date(payment.paid_at).toLocaleString("en-ZA")} · {payment.reference || "No reference"}</div>
+          {payment.notes && <p className="text-mist">{payment.notes}</p>}
+        </li>)}</ul> : <p className="mt-2 text-xs text-mist">No payments recorded yet.</p>}
+        {summary.balance_cents > 0 ? <form className="mt-3 border-t border-darkgrey pt-3 space-y-2" onSubmit={addPayment}>
+          <strong className="text-sm">Record payment</strong>
+          <label className="block text-xs">Amount (ZAR)<input name="amount" type="number" min="0.01" max="100000000" step="0.01" required disabled={!previewWritesEnabled()||saving}/></label>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="block text-xs">Method<select name="method" defaultValue="EFT" disabled={!previewWritesEnabled()||saving}><option>EFT</option><option>Cash</option><option>Card</option><option>Other</option></select></label>
+            <label className="block text-xs">Date & time<input name="paid_at" type="datetime-local" value={dateValue} onChange={(event)=>setDateValue(event.target.value)} required disabled={!previewWritesEnabled()||saving}/></label>
+          </div>
+          <label className="block text-xs">Reference<input name="reference" maxLength={120} disabled={!previewWritesEnabled()||saving}/></label>
+          <label className="block text-xs">Notes<textarea name="notes" rows={2} maxLength={1000} disabled={!previewWritesEnabled()||saving}/></label>
+          <button type="submit" className="button button-small button-orange" disabled={!previewWritesEnabled()||saving}>{saving?"Saving payment…":"Save payment"}</button>
+          {!previewWritesEnabled() && <small className="module-footnote block">Payment recording is disabled until preview write acceptance is approved.</small>}
+        </form> : <p className="mt-3 text-xs font-semibold">Invoice paid in full.</p>}
+      </> : null}
+      {message && <small className="inline-feedback block mt-2" role="status">{message}</small>}
+      {error && summary && <small className="text-orange block mt-2" role="alert">{error}</small>}
+    </div>}
+  </div>;
+}
+
+function CommercialDocumentActions({ moduleKey, row, onUpdated }: { moduleKey: "quotes"|"invoices"; row: AdminRow; onUpdated: () => void }) {
+  return <div className="min-w-[260px]">
+    <CommercialDocumentDetails id={String(row.id ?? "")}/>
+    {moduleKey === "quotes" ? <>
+      {(row.status === "Draft" || row.status === "Sent") && <ShareQuotationAction row={row}/>}
+      {row.status === "Accepted" && <ConvertQuotationToJobAction row={row} onUpdated={onUpdated}/>}
+      {row.status === "Declined" && <small className="text-mist block mt-2">Customer declined this quotation.</small>}
+    </> : <InvoicePaymentsPanel row={row} onUpdated={onUpdated}/>}
   </div>;
 }
 
@@ -521,10 +703,10 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       :!apiConfigured?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>CONNECT THE PREVIEW API.</h2><p>Set the non-secret API base URL in Vercel Preview. Cloudflare Access and the preview origin allowlist must also match.</p></div>
       :rows.length===0?<div className="table-empty"><span aria-hidden="true">▤</span><h2>NO RECORDS RETURNED.</h2><p>The protected API returned an empty collection for this module. This is not an API error.</p></div>
       :visibleRows.length===0?<div className="table-empty"><span aria-hidden="true">⌕</span><h2>NO MATCHES.</h2><p>Try a different search term.</p></div>
-      :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<th>File action</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&<th>Preview action</th>}</tr></thead>
-        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<td>{getAdminMediaDownloadUrl(row.id)?<a className="text-link" href={getAdminMediaDownloadUrl(row.id)} target="_blank" rel="noopener noreferrer">Open / download ↗</a>:<span className="inline-feedback">File link unavailable</span>}</td>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents"].includes(module.resource)&&<td><StatusEditor resource={module.resource as "enquiries"|"jobs"|"documents"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
+      :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<th>File action</th>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<th>Document workflow</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&<th>Status action</th>}</tr></thead>
+        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<td>{getAdminMediaDownloadUrl(row.id)?<a className="text-link" href={getAdminMediaDownloadUrl(row.id)} target="_blank" rel="noopener noreferrer">Open / download ↗</a>:<span className="inline-feedback">File link unavailable</span>}</td>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<td><CommercialDocumentActions moduleKey={moduleKey} row={row} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents"].includes(module.resource)&&<td><StatusEditor resource={module.resource as "enquiries"|"jobs"|"documents"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
     </section>
-    {moduleKey==="invoices"&&<p className="module-footnote">Invoices are generated only from accepted quotations. The D1 schema has no partial-payment ledger; this screen does not calculate a reconciled amount due or allow a payment to be marked as settled.</p>}
+    {moduleKey==="invoices"&&<p className="module-footnote">Invoices are generated only from accepted quotations. The payment ledger tracks partial payments, prevents overpayment and marks an invoice Paid only when its allocated payments cover the full value. Refunds, reversals and credit-note allocation remain separate work.</p>}
     {moduleKey==="content"&&<p className="module-footnote">Content editing remains disabled until optimistic concurrency, publish/rollback and the owner-approved field schema are implemented.</p>}
     <p className="module-footnote">Preview write controls require NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=true. The Worker independently verifies Cloudflare Access identity for every protected action.</p>
   </div>;
