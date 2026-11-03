@@ -1,6 +1,5 @@
 // @ts-nocheck
-// Cloudflare Workers entry point for the isolated NGMS admin API preview.
-// The deployed Worker is protected by Cloudflare Access; secrets are configured in Worker settings.
+// Mirrors the isolated NGMS preview admin Worker. Access secrets remain configured only in Cloudflare.
 interface Env {
   DB: D1Database;
   MEDIA: R2Bucket;
@@ -103,6 +102,14 @@ function textField(body: Record<string, unknown>, key: string, max = 2000): stri
 function validStatus(collection: Collection, status: string): boolean {
   return STATUSES[collection].includes(status);
 }
+async function sha256Hex(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+function newShareToken(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
 function newId(prefix: string): string {
   return `${prefix}-${crypto.randomUUID()}`;
 }
@@ -117,6 +124,28 @@ export default {
     }
     if (url.pathname === "/health" && request.method === "GET") {
       return json({ ok: true, service: "ngms-admin-api", storage: "cloudflare-r2", database: "cloudflare-d1" }, 200, origin);
+    }
+    const publicQuoteMatch = url.pathname.match(/^\/api\/public\/quotes\/([a-f0-9]{64})$/i);
+    if (publicQuoteMatch && (request.method === "GET" || request.method === "POST")) {
+      try {
+        const tokenHash = await sha256Hex(publicQuoteMatch[1]);
+        const link = await env.DB.prepare("SELECT l.document_id, l.expires_at, l.used_at, d.reference, d.customer_name, d.kind, d.amount_cents, d.subtotal_cents, d.discount_cents, d.vat_enabled, d.vat_rate_basis_points, d.vat_cents, d.status, d.issue_date, d.notes FROM quote_public_links l JOIN documents d ON d.id = l.document_id WHERE l.token_hash = ? AND d.kind = 'Quotation'").bind(tokenHash).first<Record<string, unknown>>();
+        if (!link || Date.parse(String(link.expires_at)) <= Date.now()) return json({ error: "This quotation link is invalid or has expired." }, 404, origin);
+        if (request.method === "GET") {
+          const lines = await env.DB.prepare("SELECT description, quantity, unit, unit_price_cents, line_total_cents FROM document_line_items WHERE document_id = ? ORDER BY line_order").bind(link.document_id).all();
+          return json({ quote: link, lines: lines.results }, 200, origin);
+        }
+        if (link.used_at || link.status !== "Sent") return json({ error: "This quotation is no longer awaiting a customer decision." }, 409, origin);
+        const body = await readJson(request);
+        const decision = body ? textField(body, "decision", 16) : null;
+        if (decision !== "Accepted" && decision !== "Declined") return json({ error: "Choose Accept or Decline." }, 400, origin);
+        const updated = await env.DB.prepare("UPDATE documents SET status = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ? AND status = 'Sent'").bind(decision, link.document_id).run();
+        if (!updated.meta.changes) return json({ error: "The quotation has already received a decision." }, 409, origin);
+        await env.DB.prepare("UPDATE quote_public_links SET used_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE token_hash = ?").bind(tokenHash).run();
+        return json({ saved: true, decision, reference: link.reference }, 200, origin);
+      } catch (error) {
+        return json({ error: error instanceof Error ? error.message : "Could not process quotation decision." }, 500, origin);
+      }
     }
     if (!url.pathname.startsWith("/api/admin/")) return json({ error: "Not found" }, 404, origin);
 
@@ -242,6 +271,75 @@ export default {
         return json({ saved: true, settings }, 200, origin);
       }
 
+      const commercialShareMatch = url.pathname.match(/^\/api\/admin\/commercial-documents\/([A-Za-z0-9-]+)\/share$/);
+      if (commercialShareMatch && request.method === "POST") {
+        const quote = await env.DB.prepare("SELECT id, reference, status FROM documents WHERE id = ? AND kind = 'Quotation' AND reference IS NOT NULL").bind(commercialShareMatch[1]).first<{id:string;reference:string;status:string}>();
+        if (!quote) return json({error:"Quotation not found."},404,origin);
+        if (quote.status !== "Draft" && quote.status !== "Sent") return json({error:"Only draft or sent quotations can be shared."},409,origin);
+        const token = newShareToken(), tokenHash = await sha256Hex(token);
+        const expiresAt = new Date(Date.now() + 30 * 86400000).toISOString();
+        await env.DB.prepare("INSERT INTO quote_public_links (id,document_id,token_hash,expires_at,created_by) VALUES (?,?,?,?,?)").bind(newId("QL"),quote.id,tokenHash,expiresAt,actor).run();
+        await env.DB.prepare("UPDATE documents SET status = 'Sent', updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ? AND status = 'Draft'").bind(quote.id).run();
+        const base = origin || "https://www.nextgensolarmaintenance.co.za";
+        return json({url: base + "/quote/" + token, expires_at: expiresAt, reference: quote.reference},201,origin);
+      }
+
+      const commercialPaymentsMatch = url.pathname.match(/^\/api\/admin\/commercial-documents\/([A-Za-z0-9-]+)\/payments$/);
+      if (commercialPaymentsMatch && request.method === "GET") {
+        const result = await env.DB.prepare("SELECT id,amount_cents,paid_at,method,reference,notes,recorded_by,created_at FROM document_payments WHERE document_id = ? ORDER BY paid_at DESC").bind(commercialPaymentsMatch[1]).all();
+        const total = await env.DB.prepare("SELECT amount_cents FROM documents WHERE id = ? AND kind = 'Invoice'").bind(commercialPaymentsMatch[1]).first<{amount_cents:number}>();
+        if (!total) return json({error:"Invoice not found."},404,origin);
+        const paid = result.results.reduce((sum,row)=>sum+Number((row as {amount_cents:number}).amount_cents),0);
+        return json({items:result.results,paid_cents:paid,balance_cents:Math.max(0,total.amount_cents-paid)},200,origin);
+      }
+      if (commercialPaymentsMatch && request.method === "POST") {
+        const body = await readJson(request);
+        if (!body) return json({error:"Provide payment details."},400,origin);
+        const amount = Number(body.amount);
+        const method = textField(body,"method",32) || "EFT";
+        const reference = textField(body,"reference",120) || "";
+        const notes = textField(body,"notes",1000) || "";
+        const paidAt = textField(body,"paid_at",40) || new Date().toISOString();
+        if (!Number.isFinite(amount) || amount <= 0 || amount > 100000000 || !Number.isFinite(Date.parse(paidAt)) || !["EFT","Cash","Card","Other"].includes(method)) return json({error:"Enter a valid positive payment, date and payment method."},400,origin);
+        const invoice = await env.DB.prepare("SELECT id,amount_cents,status,customer_id,reference FROM documents WHERE id = ? AND kind = 'Invoice' AND reference IS NOT NULL").bind(commercialPaymentsMatch[1]).first<{id:string;amount_cents:number;status:string;customer_id:string|null;reference:string}>();
+        if (!invoice || invoice.status === "Cancelled") return json({error:"An active invoice is required."},404,origin);
+        const already = await env.DB.prepare("SELECT COALESCE(SUM(amount_cents),0) AS paid FROM document_payments WHERE document_id = ?").bind(invoice.id).first<{paid:number}>();
+        const amountCents = Math.round(amount*100);
+        if (Number(already?.paid || 0)+amountCents > invoice.amount_cents) return json({error:"Payment exceeds the outstanding invoice balance."},409,origin);
+        const id = newId("PAY"), newPaid = Number(already?.paid || 0)+amountCents;
+        const nextStatus = newPaid >= invoice.amount_cents ? "Paid" : "Sent";
+        try {
+          await env.DB.batch([
+          env.DB.prepare("INSERT INTO document_payments (id,document_id,amount_cents,paid_at,method,reference,notes,recorded_by) VALUES (?,?,?,?,?,?,?,?)").bind(id,invoice.id,amountCents,new Date(paidAt).toISOString(),method,reference,notes,actor),
+          env.DB.prepare("UPDATE documents SET status = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?").bind(nextStatus,invoice.id),
+          ...(invoice.customer_id ? [env.DB.prepare("INSERT INTO customer_activity (id,customer_id,entity_type,entity_id,event_type,summary,actor) VALUES (?,?,'document',?,'payment_recorded',?,?)").bind(newId("ACT"),invoice.customer_id,invoice.id,"Payment of R"+(amountCents/100).toFixed(2)+" allocated to "+invoice.reference,actor)] : []),
+          ]);
+        } catch (error) {
+          const latest = await env.DB.prepare("SELECT COALESCE(SUM(amount_cents),0) AS paid FROM document_payments WHERE document_id = ?").bind(invoice.id).first<{paid:number}>();
+          if (Number(latest?.paid || 0) + amountCents > invoice.amount_cents) return json({error:"Payment exceeds the outstanding invoice balance."},409,origin);
+          throw error;
+        }
+        return json({saved:true,paid_cents:newPaid,balance_cents:invoice.amount_cents-newPaid,status:nextStatus},201,origin);
+      }
+
+      const commercialJobMatch = url.pathname.match(/^\/api\/admin\/commercial-documents\/([A-Za-z0-9-]+)\/convert-to-job$/);
+      if (commercialJobMatch && request.method === "POST") {
+        const quote = await env.DB.prepare("SELECT d.id,d.reference,d.status,d.customer_id,d.customer_name,d.notes,c.service_address FROM documents d LEFT JOIN customers c ON c.id=d.customer_id WHERE d.id=? AND d.kind='Quotation'").bind(commercialJobMatch[1]).first<{id:string;reference:string;status:string;customer_id:string|null;customer_name:string;notes:string;service_address:string|null}>();
+        if (!quote || quote.status !== "Accepted" || !quote.customer_id) return json({error:"Only accepted quotations linked to an active CRM customer can become jobs."},409,origin);
+        const existing = await env.DB.prepare("SELECT id FROM jobs WHERE source_document_id = ?").bind(quote.id).first<{id:string}>();
+        if (existing) return json({error:"A job has already been created from this quotation.",job_id:existing.id},409,origin);
+        const lines = await env.DB.prepare("SELECT description,quantity,unit FROM document_line_items WHERE document_id=? ORDER BY line_order").bind(quote.id).all<{description:string;quantity:number;unit:string}>();
+        const service = lines.results[0]?.description || "Quoted work";
+        const details = [quote.reference,quote.notes,...lines.results.map(line=>String(line.quantity)+" "+line.unit+" — "+line.description)].filter(Boolean).join("\n");
+        const id = newId("J");
+        await env.DB.batch([
+          env.DB.prepare("INSERT INTO jobs (id,customer_name,service,area,details,created_by,customer_id,source_document_id) VALUES (?,?,?,?,?,?,?,?)").bind(id,quote.customer_name,service,quote.service_address || "",details,actor,quote.customer_id,quote.id),
+          env.DB.prepare("INSERT INTO customer_activity (id,customer_id,entity_type,entity_id,event_type,summary,actor) VALUES (?,?,'job',?,'job_created_from_quote',?,?)").bind(newId("ACT"),quote.customer_id,id,"Job created from accepted quotation "+quote.reference,actor),
+        ]);
+        const job = await env.DB.prepare("SELECT * FROM jobs WHERE id=?").bind(id).first();
+        return json({item:job},201,origin);
+      }
+
       const commercialCollection = url.pathname === "/api/admin/commercial-documents";
       const commercialStatusMatch = url.pathname.match(/^\/api\/admin\/commercial-documents\/([A-Za-z0-9-]+)\/status$/);
       const commercialDetailMatch = url.pathname.match(/^\/api\/admin\/commercial-documents\/([A-Za-z0-9-]+)$/);
@@ -269,6 +367,8 @@ export default {
           if (activeInvoice) return json({ error: "An invoice already exists for this accepted quotation." }, 409, origin);
           sourceQuote = await env.DB.prepare("SELECT id, customer_id, status, kind, subtotal_cents, discount_cents, vat_enabled, vat_rate_basis_points FROM documents WHERE id = ? AND kind = 'Quotation' AND reference IS NOT NULL").bind(sourceDocumentId).first<typeof sourceQuote extends infer T ? NonNullable<T> : never>();
           if (!sourceQuote || sourceQuote.status !== "Accepted" || !sourceQuote.customer_id) return json({ error: "Select an accepted quotation linked to a CRM customer." }, 409, origin);
+          const existingInvoice = await env.DB.prepare("SELECT id, reference FROM documents WHERE source_document_id = ? AND kind = 'Invoice' LIMIT 1").bind(sourceDocumentId).first<{ id: string; reference: string | null }>();
+          if (existingInvoice) return json({ error: `An invoice (${existingInvoice.reference || existingInvoice.id}) has already been drafted from this quotation.` }, 409, origin);
           if (customerId && customerId !== sourceQuote.customer_id) return json({ error: "The invoice customer must match the accepted quotation." }, 409, origin);
           customerId = sourceQuote.customer_id;
           const sourceLines = await env.DB.prepare("SELECT description, quantity, unit, unit_price_cents FROM document_line_items WHERE document_id = ? ORDER BY line_order").bind(sourceDocumentId).all<{ description: string; quantity: number; unit: string; unit_price_cents: number }>();
@@ -321,16 +421,497 @@ export default {
         const issueDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
         const year = Number(issueDate.slice(0, 4));
         const sequenceKey = kind === "Quotation" ? "QUOTE" : "INVOICE";
-        const sequence = await env.DB.prepare("INSERT INTO document_sequences (sequence_key, sequence_year, last_value) VALUES (?, ?, 1) ON CONFLICT(sequence_key, sequence_year) DO UPDATE SET last_value = last_value + 1, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') RETURNING last_value").bind(sequenceKey, year).first<{ last_value: number }>();
-        if (!sequence) return json({ error: "Could not reserve a document reference." }, 500, origin);
         const referencePrefix = kind === "Quotation" ? "QUOTE" : "INV";
-        const reference = `NGMS-${referencePrefix}-${year}-${String(sequence.last_value).padStart(4, "0")}`;
         const id = newId(kind === "Quotation" ? "QUOTE" : "INV");
         const notes = textField(body, "notes", 4000) ?? "";
         const dueDate = kind === "Invoice" ? textField(body, "due_date", 10) : null;
         if (dueDate && !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) return json({ error: "Due date must use YYYY-MM-DD." }, 400, origin);
 
+        // Reserve the reference and write the document, lines and activity in one
+        // D1 batch. If any insert fails, the sequence increment rolls back too.
         const statements = [
-          env.DB.prepare("INSERT INTO documents (id, customer_name, customer_id, kind, amount_cents, status, created_by, reference, issue_date, due_date, subtotal_cents, discount_cents, vat_enabled, vat_rate_basis_points, vat_cents, notes, source_document_id) VALUES (?, ?, ?, ?, ?, 'Draft', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-            .bind(id, customer.display_name, customer.id, kind, amountCents, actor, reference, issueDate, dueDate, subtotalCents, discountCents, vatEnabled ? 1 : 0, vatRate, vatCents, notes, sourceDocumentId),
-          ...itemLines.map((line, index) => env.DB.prepare("INSERT INTO document_line_items (id, document_id, line_order, description, quantity, unit, unit_price_ce --- TRUNCATED --- 66,316 chars
+          env.DB.prepare("INSERT INTO document_sequences (sequence_key, sequence_year, last_value) VALUES (?, ?, 1) ON CONFLICT(sequence_key, sequence_year) DO UPDATE SET last_value = last_value + 1, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')").bind(sequenceKey, year),
+          env.DB.prepare("INSERT INTO documents (id, customer_name, customer_id, kind, amount_cents, status, created_by, reference, issue_date, due_date, subtotal_cents, discount_cents, vat_enabled, vat_rate_basis_points, vat_cents, notes, source_document_id) SELECT ?, ?, ?, ?, ?, 'Draft', ?, 'NGMS-' || ? || '-' || ? || '-' || printf('%04d', last_value), ?, ?, ?, ?, ?, ?, ?, ? FROM document_sequences WHERE sequence_key = ? AND sequence_year = ?")
+            .bind(id, customer.display_name, customer.id, kind, amountCents, actor, referencePrefix, year, issueDate, dueDate, subtotalCents, discountCents, vatEnabled ? 1 : 0, vatRate, vatCents, notes, sourceDocumentId, sequenceKey, year),
+          ...itemLines.map((line, index) => env.DB.prepare("INSERT INTO document_line_items (id, document_id, line_order, description, quantity, unit, unit_price_cents, line_total_cents) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+            .bind(newId("LINE"), id, index, line.description, line.quantity, line.unit, line.unit_price_cents, line.line_total_cents)),
+          env.DB.prepare("INSERT INTO customer_activity (id, customer_id, entity_type, entity_id, event_type, summary, actor) VALUES (?, ?, 'document', ?, ?, ?, ?)")
+            .bind(newId("ACT"), customer.id, id, kind === "Quotation" ? "quotation_drafted" : "invoice_drafted", `${kind} draft created`, actor),
+        ];
+        try {
+          await env.DB.batch(statements);
+        } catch (error) {
+          if (kind === "Invoice" && sourceDocumentId) {
+            const duplicate = await env.DB.prepare("SELECT id, reference FROM documents WHERE source_document_id = ? AND kind = 'Invoice' LIMIT 1").bind(sourceDocumentId).first<{ id: string; reference: string | null }>();
+            if (duplicate) return json({ error: `An invoice (${duplicate.reference || duplicate.id}) has already been drafted from this quotation.` }, 409, origin);
+          }
+          throw error;
+        }
+        const item = await env.DB.prepare("SELECT * FROM documents WHERE id = ?").bind(id).first();
+        const lines = await env.DB.prepare("SELECT id, line_order, description, quantity, unit, unit_price_cents, line_total_cents FROM document_line_items WHERE document_id = ? ORDER BY line_order").bind(id).all();
+        return json({ item, lines: lines.results }, 201, origin);
+      }
+
+      if (commercialDetailMatch && request.method === "GET") {
+        const item = await env.DB.prepare("SELECT * FROM documents WHERE id = ? AND reference IS NOT NULL").bind(commercialDetailMatch[1]).first();
+        if (!item) return json({ error: "Commercial document not found." }, 404, origin);
+        const lines = await env.DB.prepare("SELECT id, line_order, description, quantity, unit, unit_price_cents, line_total_cents FROM document_line_items WHERE document_id = ? ORDER BY line_order").bind(commercialDetailMatch[1]).all();
+        return json({ item, lines: lines.results }, 200, origin);
+      }
+
+      if (commercialStatusMatch && request.method === "PATCH") {
+        const body = await readJson(request);
+        const status = body ? textField(body, "status", 32) : null;
+        const current = await env.DB.prepare("SELECT id, customer_id, kind, status, reference FROM documents WHERE id = ? AND reference IS NOT NULL").bind(commercialStatusMatch[1]).first<{ id: string; customer_id: string | null; kind: string; status: string; reference: string }>();
+        if (!current) return json({ error: "Commercial document not found." }, 404, origin);
+        const allowed = current.kind === "Quotation" ? ["Draft", "Sent", "Accepted", "Declined", "Expired", "Cancelled"] : ["Draft", "Sent", "Overdue", "Cancelled"];
+        if (!status || !allowed.includes(status)) return json({ error: "Invalid status for this commercial document." }, 400, origin);
+        await env.DB.prepare("UPDATE documents SET status = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?").bind(status, current.id).run();
+        if (current.customer_id) await env.DB.prepare("INSERT INTO customer_activity (id, customer_id, entity_type, entity_id, event_type, summary, actor) VALUES (?, ?, 'document', ?, 'document_status_changed', ?, ?)").bind(newId("ACT"), current.customer_id, current.id, `${current.reference} status changed to ${status}`, actor).run();
+        const item = await env.DB.prepare("SELECT * FROM documents WHERE id = ?").bind(current.id).first();
+        return json({ item }, 200, origin);
+      }
+
+      // Authenticated scheduling calendar API backed by Cloudflare D1.
+      if (url.pathname === "/api/admin/schedules" && request.method === "GET") {
+        const from = (url.searchParams.get("from") || "").slice(0, 30);
+        const to = (url.searchParams.get("to") || "").slice(0, 30);
+        const result = await env.DB.prepare("SELECT * FROM schedules WHERE (? = '' OR scheduled_start >= ?) AND (? = '' OR scheduled_start < ?) ORDER BY scheduled_start ASC LIMIT 500").bind(from, from, to, to).all();
+        return json({ items: result.results }, 200, origin);
+      }
+      if (url.pathname === "/api/admin/schedules" && request.method === "POST") {
+        const body = await readJson(request);
+        if (!body) return json({ error: "Request body must be a JSON object." }, 400, origin);
+        const title = textField(body, "title", 180), service = textField(body, "service", 160);
+        const customer = textField(body, "customer_name", 160) ?? "", area = textField(body, "area", 160) ?? "";
+        const assigned = textField(body, "assigned_to", 160) ?? "", start = textField(body, "scheduled_start", 40), end = textField(body, "scheduled_end", 40);
+        const notes = textField(body, "notes", 4000) ?? "", status = textField(body, "status", 24) ?? "Scheduled";
+        const allowed = ["Scheduled", "Confirmed", "In progress", "Completed", "Cancelled"];
+        if (!title || !service || !start || !end || !Number.isFinite(Date.parse(start)) || !Number.isFinite(Date.parse(end)) || Date.parse(end) <= Date.parse(start) || !allowed.includes(status)) return json({ error: "Provide a title, service, valid start/end times and a supported status." }, 400, origin);
+        const id = newId("SCH");
+        await env.DB.prepare("INSERT INTO schedules (id,title,customer_name,service,area,assigned_to,scheduled_start,scheduled_end,status,notes,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?)").bind(id,title,customer,service,area,assigned,start,end,status,notes,actor).run();
+        const item = await env.DB.prepare("SELECT * FROM schedules WHERE id = ?").bind(id).first();
+        return json({ item }, 201, origin);
+      }
+      const scheduleMatch = url.pathname.match(new RegExp("^/api/admin/schedules/([A-Za-z0-9-]+)$"));
+      if (scheduleMatch && request.method === "PATCH") {
+        const body = await readJson(request);
+        if (!body) return json({ error: "Request body must be a JSON object." }, 400, origin);
+        const current = await env.DB.prepare("SELECT * FROM schedules WHERE id = ?").bind(scheduleMatch[1]).first<Record<string, unknown>>();
+        if (!current) return json({ error: "Appointment not found." }, 404, origin);
+        const field = (key: string, max: number, fallback: string) => body[key] === undefined ? fallback : textField(body, key, max);
+        const title=field("title",180,String(current.title)), customer=field("customer_name",160,String(current.customer_name)), service=field("service",160,String(current.service));
+        const area=field("area",160,String(current.area)), assigned=field("assigned_to",160,String(current.assigned_to)), start=field("scheduled_start",40,String(current.scheduled_start));
+        const end=field("scheduled_end",40,String(current.scheduled_end)), notes=field("notes",4000,String(current.notes)), status=field("status",24,String(current.status));
+        const allowed = ["Scheduled", "Confirmed", "In progress", "Completed", "Cancelled"];
+        if (!title || !service || !start || !end || !Number.isFinite(Date.parse(start)) || !Number.isFinite(Date.parse(end)) || Date.parse(end)<=Date.parse(start) || !status || !allowed.includes(status)) return json({ error: "Invalid appointment details or status." },400,origin);
+        await env.DB.prepare("UPDATE schedules SET title=?,customer_name=?,service=?,area=?,assigned_to=?,scheduled_start=?,scheduled_end=?,status=?,notes=?,updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=?").bind(title,customer,service,area,assigned,start,end,status,notes,scheduleMatch[1]).run();
+        const item=await env.DB.prepare("SELECT * FROM schedules WHERE id=?").bind(scheduleMatch[1]).first();
+        return json({item},200,origin);
+      }
+      if (scheduleMatch && request.method === "DELETE") {
+        const result=await env.DB.prepare("DELETE FROM schedules WHERE id=?").bind(scheduleMatch[1]).run();
+        if (!result.meta.changes) return json({error:"Appointment not found."},404,origin);
+        return json({deleted:true},200,origin);
+      }
+
+      const collectionMatch = url.pathname.match(/^\/api\/admin\/(enquiries|jobs|documents)$/);
+      if (collectionMatch) {
+        const collection = collectionMatch[1] as Collection;
+        if (request.method === "GET") {
+          const result = await env.DB.prepare(`SELECT * FROM ${collection} ORDER BY created_at DESC LIMIT 200`).all();
+          return json({ items: result.results }, 200, origin);
+        }
+        if (request.method === "POST") {
+          const body = await readJson(request);
+          if (!body) return json({ error: "Request body must be a JSON object." }, 400, origin);
+          const customer = textField(body, "customer_name", 160);
+          const service = textField(body, "service", 160);
+          const area = textField(body, "area", 160) ?? "";
+          const details = textField(body, "details", 4000) ?? "";
+          if (!customer || !service) return json({ error: "customer_name and service are required." }, 400, origin);
+          const id = newId(collection === "enquiries" ? "EN" : collection === "jobs" ? "J" : (body.kind === "Invoice" ? "INV" : "QT"));
+          if (collection === "enquiries") {
+            const phone = textField(body, "phone", 40) ?? "";
+            const email = textField(body, "email", 254) ?? "";
+            await env.DB.prepare("INSERT INTO enquiries (id, customer_name, phone, email, service, area, details, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(id, customer, phone, email, service, area, details, actor).run();
+          } else if (collection === "jobs") {
+            await env.DB.prepare("INSERT INTO jobs (id, customer_name, service, area, details, created_by) VALUES (?, ?, ?, ?, ?, ?)").bind(id, customer, service, area, details, actor).run();
+          } else {
+            const kind = body.kind;
+            const amount = body.amount;
+            if ((kind !== "Quotation" && kind !== "Invoice") || typeof amount !== "number" || !Number.isFinite(amount) || amount < 0 || amount > 100000000) {
+              return json({ error: "kind must be Quotation or Invoice and amount must be a valid non-negative ZAR amount." }, 400, origin);
+            }
+            await env.DB.prepare("INSERT INTO documents (id, customer_name, kind, amount_cents, created_by) VALUES (?, ?, ?, ?, ?)").bind(id, customer, kind, Math.round(amount * 100), actor).run();
+          }
+          const item = await env.DB.prepare(`SELECT * FROM ${collection} WHERE id = ?`).bind(id).first();
+          return json({ item }, 201, origin);
+        }
+      }
+
+      const recordMatch = url.pathname.match(/^\/api\/admin\/(enquiries|jobs|documents)\/([A-Za-z0-9-]+)(?:\/status)?$/);
+      if (recordMatch && (request.method === "PATCH" || (request.method === "POST" && url.pathname.endsWith("/status")))) {
+        const collection = recordMatch[1] as Collection;
+        const id = recordMatch[2];
+        const body = await readJson(request);
+        if (!body) return json({ error: "Request body must be a JSON object." }, 400, origin);
+        const status = textField(body, "status", 32);
+        if (!status || !validStatus(collection, status)) return json({ error: "Invalid status for this module." }, 400, origin);
+        const result = await env.DB.prepare(`UPDATE ${collection} SET status = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?`).bind(status, id).run();
+        if (!result.meta.changes) return json({ error: "Record not found." }, 404, origin);
+        const item = await env.DB.prepare(`SELECT * FROM ${collection} WHERE id = ?`).bind(id).first();
+        return json({ item }, 200, origin);
+      }
+
+
+      const customersPath = url.pathname === "/api/admin/customers" || url.pathname.startsWith("/api/admin/customers/");
+      if (customersPath) {
+        const customerId = url.pathname.split("/")[4] || undefined;
+        const contactsPath = customerId && url.pathname === `/api/admin/customers/${customerId}/contacts`;
+        const activityPath = customerId && url.pathname === `/api/admin/customers/${customerId}/activity`;
+
+        if (request.method === "GET" && !customerId) {
+          const query = (url.searchParams.get("q") || "").trim().slice(0, 120);
+          const status = url.searchParams.get("status");
+          const search = "%" + query + "%";
+          const result = await env.DB.prepare(
+            "SELECT c.*, (SELECT COUNT(*) FROM enquiries e WHERE e.customer_id = c.id) AS enquiry_count, (SELECT COUNT(*) FROM jobs j WHERE j.customer_id = c.id) AS job_count, (SELECT COUNT(*) FROM documents d WHERE d.customer_id = c.id) AS document_count FROM customers c WHERE (? = '' OR c.display_name LIKE ? ESCAPE '\\' OR c.company_name LIKE ? ESCAPE '\\' OR c.primary_phone LIKE ? ESCAPE '\\' OR c.primary_email LIKE ? ESCAPE '\\') AND (? IS NULL OR c.status = ?) ORDER BY c.updated_at DESC LIMIT 200"
+          ).bind(query, search, search, search, search, status, status).all();
+          return json({ items: result.results }, 200, origin);
+        }
+
+        if (request.method === "POST" && !customerId) {
+          const body = await readJson(request);
+          if (!body) return json({ error: "Request body must be a JSON object." }, 400, origin);
+          const displayName = textField(body, "display_name", 160);
+          const customerType = body.customer_type;
+          if (!displayName || !["Individual", "Business", "Body corporate"].includes(String(customerType || "Individual"))) {
+            return json({ error: "A customer name and valid customer type are required." }, 400, origin);
+          }
+          const id = newId("CUS");
+          const values = [
+            id, customerType || "Individual", displayName,
+            textField(body, "company_name", 160) ?? "",
+            textField(body, "primary_phone", 40) ?? "",
+            textField(body, "primary_email", 254) ?? "",
+            textField(body, "billing_address", 1000) ?? "",
+            textField(body, "service_address", 1000) ?? "",
+            textField(body, "notes", 4000) ?? "", actor
+          ];
+          await env.DB.prepare("INSERT INTO customers (id, customer_type, display_name, company_name, primary_phone, primary_email, billing_address, service_address, notes, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(...values).run();
+          await env.DB.prepare("INSERT INTO customer_activity (id, customer_id, entity_type, event_type, summary, actor) VALUES (?, ?, 'customer', 'created', 'Customer record created', ?)").bind(newId("ACT"), id, actor).run();
+          const item = await env.DB.prepare("SELECT * FROM customers WHERE id = ?").bind(id).first();
+          return json({ item }, 201, origin);
+        }
+
+        if (request.method === "GET" && customerId && !contactsPath && !activityPath) {
+          const item = await env.DB.prepare("SELECT * FROM customers WHERE id = ?").bind(customerId).first();
+          if (!item) return json({ error: "Customer not found." }, 404, origin);
+          const [contacts, activity, enquiries, jobs, documents] = await Promise.all([
+            env.DB.prepare("SELECT * FROM customer_contacts WHERE customer_id = ? ORDER BY is_primary DESC, full_name COLLATE NOCASE").bind(customerId).all(),
+            env.DB.prepare("SELECT * FROM customer_activity WHERE customer_id = ? ORDER BY created_at DESC LIMIT 100").bind(customerId).all(),
+            env.DB.prepare("SELECT id, service, area, status, created_at FROM enquiries WHERE customer_id = ? ORDER BY created_at DESC LIMIT 50").bind(customerId).all(),
+            env.DB.prepare("SELECT id, service, area, status, created_at FROM jobs WHERE customer_id = ? ORDER BY created_at DESC LIMIT 50").bind(customerId).all(),
+            env.DB.prepare("SELECT id, kind, amount_cents, status, created_at FROM documents WHERE customer_id = ? ORDER BY created_at DESC LIMIT 50").bind(customerId).all()
+          ]);
+          return json({ item, contacts: contacts.results, activity: activity.results, enquiries: enquiries.results, jobs: jobs.results, documents: documents.results }, 200, origin);
+        }
+
+        if (request.method === "PATCH" && customerId && !contactsPath && !activityPath) {
+          const body = await readJson(request);
+          if (!body) return json({ error: "Request body must be a JSON object." }, 400, origin);
+          const current = await env.DB.prepare("SELECT id FROM customers WHERE id = ?").bind(customerId).first();
+          if (!current) return json({ error: "Customer not found." }, 404, origin);
+          const allowedTypes = ["Individual", "Business", "Body corporate"];
+          const type = body.customer_type === undefined ? null : body.customer_type;
+          if (type !== null && !allowedTypes.includes(String(type))) return json({ error: "Invalid customer type." }, 400, origin);
+          const status = body.status === undefined ? null : body.status;
+          if (status !== null && status !== "Active" && status !== "Archived") return json({ error: "Invalid customer status." }, 400, origin);
+          const fields = ["display_name", "company_name", "primary_phone", "primary_email", "billing_address", "service_address", "notes"] as const;
+          const limits: Record<string, number> = { display_name: 160, company_name: 160, primary_phone: 40, primary_email: 254, billing_address: 1000, service_address: 1000, notes: 4000 };
+          const updates: string[] = [];
+          const values: (string | null)[] = [];
+          if (type !== null) { updates.push("customer_type = ?"); values.push(String(type)); }
+          for (const field of fields) {
+            if (body[field] !== undefined) {
+              const value = textField(body, field, limits[field]);
+              if (value === null || (field === "display_name" && !value)) return json({ error: `Invalid ${field} value.` }, 400, origin);
+              updates.push(`${field} = ?`); values.push(value);
+            }
+          }
+          if (status !== null) {
+            updates.push("status = ?", "archived_at = ?");
+            values.push(String(status), status === "Archived" ? new Date().toISOString() : null);
+          }
+          if (updates.length) {
+            updates.push("updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')");
+            await env.DB.prepare(`UPDATE customers SET ${updates.join(", ")} WHERE id = ?`).bind(...values, customerId).run();
+            await env.DB.prepare("INSERT INTO customer_activity (id, customer_id, entity_type, event_type, summary, actor) VALUES (?, ?, 'customer', 'updated', 'Customer record updated', ?)").bind(newId("ACT"), customerId, actor).run();
+          }
+          const item = await env.DB.prepare("SELECT * FROM customers WHERE id = ?").bind(customerId).first();
+          return json({ item }, 200, origin);
+        }
+
+        if (contactsPath && request.method === "POST") {
+          const body = await readJson(request);
+          if (!body) return json({ error: "Request body must be a JSON object." }, 400, origin);
+          const fullName = textField(body, "full_name", 160);
+          if (!fullName) return json({ error: "Contact name is required." }, 400, origin);
+          const customer = await env.DB.prepare("SELECT id FROM customers WHERE id = ?").bind(customerId).first();
+          if (!customer) return json({ error: "Customer not found." }, 404, origin);
+          const id = newId("CON");
+          const isPrimary = body.is_primary === true ? 1 : 0;
+          if (isPrimary) await env.DB.prepare("UPDATE customer_contacts SET is_primary = 0 WHERE customer_id = ?").bind(customerId).run();
+          await env.DB.prepare("INSERT INTO customer_contacts (id, customer_id, full_name, role, phone, email, is_primary, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(id, customerId, fullName, textField(body, "role", 100) ?? "", textField(body, "phone", 40) ?? "", textField(body, "email", 254) ?? "", isPrimary, textField(body, "notes", 1000) ?? "").run();
+          const item = await env.DB.prepare("SELECT * FROM customer_contacts WHERE id = ?").bind(id).first();
+          await env.DB.prepare("INSERT INTO customer_activity (id, customer_id, entity_type, event_type, summary, actor) VALUES (?, ?, 'customer', 'contact_added', ?, ?)").bind(newId("ACT"), customerId, `Contact added: ${fullName}`, actor).run();
+          return json({ item }, 201, origin);
+        }
+
+        if (activityPath && request.method === "POST") {
+          const body = await readJson(request);
+          const summary = body ? textField(body, "summary", 500) : null;
+          if (!summary) return json({ error: "A note summary is required." }, 400, origin);
+          const customer = await env.DB.prepare("SELECT id FROM customers WHERE id = ?").bind(customerId).first();
+          if (!customer) return json({ error: "Customer not found." }, 404, origin);
+          const details = body?.details === undefined ? "{}" : JSON.stringify(body.details);
+          if (details.length > 10000) return json({ error: "Note details exceed 10 KB." }, 413, origin);
+          const id = newId("ACT");
+          await env.DB.prepare("INSERT INTO customer_activity (id, customer_id, entity_type, event_type, summary, details_json, actor) VALUES (?, ?, 'note', 'note_added', ?, ?, ?)").bind(id, customerId, summary, details, actor).run();
+          const item = await env.DB.prepare("SELECT * FROM customer_activity WHERE id = ?").bind(id).first();
+          return json({ item }, 201, origin);
+        }
+      }
+
+      const projectsPath = url.pathname === "/api/admin/projects" || url.pathname.startsWith("/api/admin/projects/");
+      if (projectsPath) {
+        const projectId = url.pathname.split("/")[4] || undefined;
+        if (request.method === "GET" && !projectId) {
+          const result = await env.DB.prepare("SELECT id, title, service, area, description, status, before_media_id, after_media_id, created_at, updated_at FROM projects ORDER BY created_at DESC LIMIT 200").all();
+          return json({ items: result.results }, 200, origin);
+        }
+        if (request.method === "POST" && !projectId) {
+          const body = await readJson(request);
+          if (!body) return json({ error: "Request body must be a JSON object." }, 400, origin);
+          const title = textField(body, "title", 160);
+          const service = textField(body, "service", 160);
+          const area = textField(body, "area", 160) ?? "";
+          const description = textField(body, "description", 4000) ?? "";
+          const beforeId = body.before_media_id === null || body.before_media_id === "" ? null : textField(body, "before_media_id", 64);
+          const afterId = body.after_media_id === null || body.after_media_id === "" ? null : textField(body, "after_media_id", 64);
+          if (!title || !service) return json({ error: "Project title and service are required." }, 400, origin);
+          for (const mediaId of [beforeId, afterId]) {
+            if (mediaId) {
+              const mediaRow = await env.DB.prepare("SELECT id FROM media WHERE id = ?").bind(mediaId).first();
+              if (!mediaRow) return json({ error: "A selected project photograph could not be found in the media library." }, 400, origin);
+            }
+          }
+          const id = newId("PRJ");
+          await env.DB.prepare("INSERT INTO projects (id, title, service, area, description, before_media_id, after_media_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+            .bind(id, title, service, area, description, beforeId, afterId, actor).run();
+          const item = await env.DB.prepare("SELECT id, title, service, area, description, status, before_media_id, after_media_id, created_at, updated_at FROM projects WHERE id = ?").bind(id).first();
+          return json({ item }, 201, origin);
+        }
+        if (request.method === "PATCH" && projectId) {
+          const body = await readJson(request);
+          const status = body ? textField(body, "status", 32) : null;
+          if (!status || !["Draft", "In progress", "Completed", "Published", "Archived"].includes(status)) return json({ error: "Invalid project status." }, 400, origin);
+          const result = await env.DB.prepare("UPDATE projects SET status = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?").bind(status, projectId).run();
+          if (!result.meta.changes) return json({ error: "Project not found." }, 404, origin);
+          const item = await env.DB.prepare("SELECT id, title, service, area, description, status, before_media_id, after_media_id, created_at, updated_at FROM projects WHERE id = ?").bind(projectId).first();
+          return json({ item }, 200, origin);
+        }
+      }
+
+      if (url.pathname === "/api/admin/content" && request.method === "GET") {
+        const result = await env.DB.prepare("SELECT content_key, content_json, updated_by, updated_at FROM site_content ORDER BY content_key").all();
+        return json({ items: result.results }, 200, origin);
+      }
+      if (url.pathname === "/api/admin/content" && request.method === "PUT") {
+        const body = await readJson(request);
+        const key = body ? textField(body, "key", 100) : null;
+        const value = body?.value;
+        if (!key || !/^[a-zA-Z0-9._-]+$/.test(key) || value === undefined) return json({ error: "Provide a valid content key and value." }, 400, origin);
+        if ((key.startsWith("cms_draft.") || key.startsWith("cms_revision.")) && env.CMS_WRITE_ENABLED !== "true") {
+          return json({ error: "CMS draft writes are disabled on this Worker environment. Use the isolated CMS preview for draft editing." }, 403, origin);
+        }
+        const serialized = JSON.stringify(value);
+        if (serialized.length > 50000) return json({ error: "Content value exceeds 50 KB." }, 413, origin);
+        await env.DB.prepare("INSERT INTO site_content (content_key, content_json, updated_by) VALUES (?, ?, ?) ON CONFLICT(content_key) DO UPDATE SET content_json = excluded.content_json, updated_by = excluded.updated_by, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')").bind(key, serialized, actor).run();
+        return json({ saved: true, key }, 200, origin);
+      }
+
+      // Versioned CMS publishing: draft -> independent approval -> public revision.
+      if (url.pathname === "/api/admin/publishing" && request.method === "GET") {
+        const [requests, current, history, audit] = await Promise.all([
+          env.DB.prepare("SELECT id, module_key, slug, status, requested_by, reviewed_by, review_note, created_at, reviewed_at FROM cms_publication_requests ORDER BY created_at DESC LIMIT 100").all(),
+          env.DB.prepare("SELECT s.module_key, s.slug, s.publication_id, s.updated_at, p.content_hash, p.published_by, p.published_at FROM cms_publication_state s JOIN cms_publications p ON p.id = s.publication_id ORDER BY s.module_key").all(),
+          env.DB.prepare("SELECT id, module_key, slug, source_publication_id, published_by, published_at FROM cms_publications ORDER BY published_at DESC LIMIT 100").all(),
+          env.DB.prepare("SELECT id, module_key, request_id, publication_id, action, actor, details_json, created_at FROM cms_publication_audit ORDER BY created_at DESC LIMIT 100").all()
+        ]);
+        return json({ requests: requests.results, current: current.results, history: history.results, audit: audit.results }, 200, origin);
+      }
+
+      if (url.pathname === "/api/admin/publishing/request" && request.method === "POST") {
+        if (env.CMS_WRITE_ENABLED !== "true") return json({ error: "CMS publication requests are disabled on this Worker environment." }, 403, origin);
+        const body = await readJson(request);
+        const moduleKey = body ? textField(body, "moduleKey", 80) : null;
+        if (!moduleKey || !/^[a-zA-Z0-9_-]+$/.test(moduleKey)) return json({ error: "Provide a valid CMS module key." }, 400, origin);
+        const draftRow = await env.DB.prepare("SELECT content_json FROM site_content WHERE content_key = ?").bind("cms_draft." + moduleKey).first<{ content_json: string }>();
+        if (!draftRow) return json({ error: "Save a CMS draft before requesting publication." }, 409, origin);
+        let page: Record<string, unknown>;
+        try {
+          const parsed: unknown = JSON.parse(draftRow.content_json);
+          if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("invalid");
+          page = parsed as Record<string, unknown>;
+        } catch { return json({ error: "The saved draft is not valid JSON." }, 422, origin); }
+        const title = textField(page, "title", 160);
+        const rawSlug = textField(page, "slug", 160);
+        const slug = (rawSlug || (moduleKey === "home" ? "home" : moduleKey)).replace(/^\/+|\/+$/g, "");
+        const blocks = page.blocks;
+        if (page.moduleKey !== moduleKey || !title || !slug || !/^[a-z0-9]+(?:[a-z0-9-]*[a-z0-9])?(?:\/[a-z0-9]+(?:[a-z0-9-]*[a-z0-9])?)*$/i.test(slug)) {
+          return json({ error: "The draft must have a matching module key, page title and safe URL slug." }, 422, origin);
+        }
+        if (!Array.isArray(blocks) || blocks.length > 100) return json({ error: "The draft must contain a valid content block list (maximum 100 blocks)." }, 422, origin);
+        const serialized = JSON.stringify(page);
+        if (serialized.length > 50000) return json({ error: "The draft exceeds the 50 KB publication limit." }, 413, origin);
+        const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(serialized));
+        const contentHash = Array.from(new Uint8Array(digest)).map(value => value.toString(16).padStart(2, "0")).join("");
+        const requestId = crypto.randomUUID();
+        try {
+          await env.DB.batch([
+            env.DB.prepare("INSERT INTO cms_publication_requests (id, module_key, slug, content_json, content_hash, requested_by) VALUES (?, ?, ?, ?, ?, ?)").bind(requestId, moduleKey, slug, serialized, contentHash, actor),
+            env.DB.prepare("INSERT INTO cms_publication_audit (id, module_key, request_id, action, actor, details_json) VALUES (?, ?, ?, 'publish_requested', ?, ?)").bind(crypto.randomUUID(), moduleKey, requestId, actor, JSON.stringify({ slug, contentHash }))
+          ]);
+        } catch {
+          return json({ error: "A publication request is already pending for this module, or could not be created." }, 409, origin);
+        }
+        return json({ requested: true, requestId, moduleKey, slug, contentHash, approvalRequired: true }, 201, origin);
+      }
+
+      if (url.pathname === "/api/admin/publishing/approve" && request.method === "POST") {
+        if (env.CMS_WRITE_ENABLED !== "true") return json({ error: "CMS publication approvals are disabled on this Worker environment." }, 403, origin);
+        const body = await readJson(request);
+        const requestId = body ? textField(body, "requestId", 64) : null;
+        const decision = body ? textField(body, "decision", 16) : null;
+        const note = body ? (textField(body, "note", 1000) ?? "") : "";
+        if (!requestId || !/^[0-9a-f-]{36}$/i.test(requestId) || (decision !== "approve" && decision !== "reject")) {
+          return json({ error: "Provide a valid request ID and approve/reject decision." }, 400, origin);
+        }
+        const publicationRequest = await env.DB.prepare("SELECT * FROM cms_publication_requests WHERE id = ? AND status = 'Pending'").bind(requestId).first<{
+          id: string; module_key: string; slug: string; content_json: string; content_hash: string; requested_by: string;
+        }>();
+        if (!publicationRequest) return json({ error: "This publication request is no longer pending." }, 409, origin);
+        if (publicationRequest.requested_by.trim().toLowerCase() === actor.trim().toLowerCase()) {
+          return json({ error: "A second authorised administrator must approve or reject this request. The requester cannot approve their own publication." }, 403, origin);
+        }
+        if (decision === "reject") {
+          const rejected = await env.DB.batch([
+            env.DB.prepare("UPDATE cms_publication_requests SET status = 'Rejected', reviewed_by = ?, review_note = ?, reviewed_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ? AND status = 'Pending'").bind(actor, note, requestId),
+            env.DB.prepare("INSERT INTO cms_publication_audit (id, module_key, request_id, action, actor, details_json) VALUES (?, ?, ?, 'publish_rejected', ?, ?)").bind(crypto.randomUUID(), publicationRequest.module_key, requestId, actor, JSON.stringify({ note }))
+          ]);
+          if (!rejected[0]?.meta?.changes) return json({ error: "The publication request was processed by another administrator." }, 409, origin);
+          return json({ rejected: true, requestId }, 200, origin);
+        }
+        const claim = await env.DB.prepare("UPDATE cms_publication_requests SET status = 'Approved', reviewed_by = ?, review_note = ?, reviewed_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ? AND status = 'Pending'").bind(actor, note, requestId).run();
+        if (!claim.meta.changes) return json({ error: "The publication request was processed by another administrator." }, 409, origin);
+        const publicationId = crypto.randomUUID();
+        try {
+          await env.DB.batch([
+            env.DB.prepare("INSERT INTO cms_publications (id, module_key, slug, content_json, content_hash, source_request_id, published_by) VALUES (?, ?, ?, ?, ?, ?, ?)").bind(publicationId, publicationRequest.module_key, publicationRequest.slug, publicationRequest.content_json, publicationRequest.content_hash, requestId, actor),
+            env.DB.prepare("INSERT INTO cms_publication_state (module_key, slug, publication_id, updated_by) VALUES (?, ?, ?, ?) ON CONFLICT(module_key) DO UPDATE SET slug = excluded.slug, publication_id = excluded.publication_id, updated_by = excluded.updated_by, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')").bind(publicationRequest.module_key, publicationRequest.slug, publicationId, actor),
+            env.DB.prepare("INSERT INTO cms_publication_audit (id, module_key, request_id, publication_id, action, actor, details_json) VALUES (?, ?, ?, ?, 'publish_approved', ?, ?)").bind(crypto.randomUUID(), publicationRequest.module_key, requestId, publicationId, actor, JSON.stringify({ note, contentHash: publicationRequest.content_hash })),
+          ]);
+        } catch (error) {
+          await env.DB.prepare("UPDATE cms_publication_requests SET status = 'Pending', reviewed_by = NULL, review_note = '', reviewed_at = NULL WHERE id = ? AND status = 'Approved'").bind(requestId).run();
+          throw error;
+        }
+        return json({ published: true, requestId, publicationId, moduleKey: publicationRequest.module_key, slug: publicationRequest.slug }, 200, origin);
+      }
+
+      if (url.pathname === "/api/admin/publishing/rollback" && request.method === "POST") {
+        if (env.CMS_WRITE_ENABLED !== "true") return json({ error: "CMS rollback is disabled on this Worker environment." }, 403, origin);
+        const body = await readJson(request);
+        const moduleKey = body ? textField(body, "moduleKey", 80) : null;
+        const targetId = body ? textField(body, "publicationId", 64) : null;
+        const note = body ? (textField(body, "note", 1000) ?? "") : "";
+        if (!moduleKey || !/^[a-zA-Z0-9_-]+$/.test(moduleKey) || !targetId || !/^[0-9a-f-]{36}$/i.test(targetId)) {
+          return json({ error: "Provide a valid module key and previous publication ID." }, 400, origin);
+        }
+        const [current, target] = await Promise.all([
+          env.DB.prepare("SELECT p.published_by FROM cms_publication_state s JOIN cms_publications p ON p.id = s.publication_id WHERE s.module_key = ?").bind(moduleKey).first<{ published_by: string }>(),
+          env.DB.prepare("SELECT id, module_key, slug, content_json, content_hash FROM cms_publications WHERE id = ? AND module_key = ?").bind(targetId, moduleKey).first<{ id: string; module_key: string; slug: string; content_json: string; content_hash: string }>()
+        ]);
+        if (!current) return json({ error: "This module has no published version to roll back." }, 409, origin);
+        if (!target) return json({ error: "The selected previous publication does not belong to this module." }, 404, origin);
+        if (target.id === (await env.DB.prepare("SELECT publication_id FROM cms_publication_state WHERE module_key = ?").bind(moduleKey).first<{ publication_id: string }>())?.publication_id) {
+          return json({ error: "This version is already live." }, 409, origin);
+        }
+        if (current.published_by.trim().toLowerCase() === actor.trim().toLowerCase()) {
+          return json({ error: "A different authorised administrator must confirm this rollback." }, 403, origin);
+        }
+        const rollbackId = crypto.randomUUID();
+        await env.DB.batch([
+          env.DB.prepare("INSERT INTO cms_publications (id, module_key, slug, content_json, content_hash, source_publication_id, published_by) VALUES (?, ?, ?, ?, ?, ?, ?)").bind(rollbackId, moduleKey, target.slug, target.content_json, target.content_hash, target.id, actor),
+          env.DB.prepare("INSERT INTO cms_publication_state (module_key, slug, publication_id, updated_by) VALUES (?, ?, ?, ?) ON CONFLICT(module_key) DO UPDATE SET slug = excluded.slug, publication_id = excluded.publication_id, updated_by = excluded.updated_by, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')").bind(moduleKey, target.slug, rollbackId, actor),
+          env.DB.prepare("INSERT INTO cms_publication_audit (id, module_key, publication_id, action, actor, details_json) VALUES (?, ?, ?, 'rollback', ?, ?)").bind(crypto.randomUUID(), moduleKey, rollbackId, actor, JSON.stringify({ restoredFrom: target.id, note }))
+        ]);
+        return json({ rolledBack: true, moduleKey, publicationId: rollbackId, restoredFrom: target.id, slug: target.slug }, 200, origin);
+      }
+
+      // Generic, authenticated CRUD for maintenance, suppliers, inventory and finance.
+      const operationMatch = url.pathname.match(/^\/api\/admin\/operations\/(maintenance|suppliers|inventory|financials)(?:\/([A-Za-z0-9-]+))?$/);
+      if (operationMatch) {
+        const category = operationMatch[1];
+        const id = operationMatch[2];
+        if (request.method === "GET" && !id) {
+          const result = await env.DB.prepare("SELECT id, category, title, details, amount_cents, quantity, unit, due_date, status, contact, created_at FROM operation_records WHERE category = ? ORDER BY created_at DESC LIMIT 500").bind(category).all();
+          return json({ items: result.results }, 200, origin);
+        }
+        if (request.method === "POST" && !id) {
+          const body = await readJson(request);
+          if (!body) return json({ error: "Request body must be a JSON object." }, 400, origin);
+          const title = textField(body, "title", 180), details = textField(body, "details", 2000) ?? "";
+          const unit = textField(body, "unit", 80) ?? "", dueDate = textField(body, "due_date", 40) ?? "";
+          const contact = textField(body, "contact", 180) ?? "", status = textField(body, "status", 40);
+          const amount = Number(body.amount), quantity = Number(body.quantity ?? 0);
+          const allowed: Record<string,string[]> = { maintenance:["Active","Due","Paused","Completed","Cancelled"], suppliers:["Active","Pending approval","On hold","Inactive"], inventory:["In stock","Low stock","Out of stock","Discontinued"], financials:["Pending","Approved","Paid","Reconciled","Cancelled"] };
+          if (!title || !status || !allowed[category].includes(status) || !Number.isFinite(amount) || amount < 0 || !Number.isFinite(quantity) || quantity < 0) return json({ error: "Provide a title, valid amount, quantity and supported status." }, 400, origin);
+          if (dueDate && !Number.isFinite(Date.parse(dueDate))) return json({ error: "Invalid date." }, 400, origin);
+          const newRecordId = newId("OPS");
+          await env.DB.prepare("INSERT INTO operation_records (id,category,title,details,amount_cents,quantity,unit,due_date,status,contact,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?)").bind(newRecordId,category,title,details,Math.round(amount*100),quantity,unit,dueDate,status,contact,actor).run();
+          const item = await env.DB.prepare("SELECT id,category,title,details,amount_cents,quantity,unit,due_date,status,contact,created_at FROM operation_records WHERE id = ?").bind(newRecordId).first();
+          return json({ item }, 201, origin);
+        }
+        if (request.method === "PATCH" && id) {
+          const body = await readJson(request);
+          if (!body) return json({ error: "Request body must be a JSON object." }, 400, origin);
+          const current = await env.DB.prepare("SELECT * FROM operation_records WHERE id = ? AND category = ?").bind(id,category).first<Record<string,unknown>>();
+          if (!current) return json({ error: "Record not found." }, 404, origin);
+          const val = (key:string,max:number,fallback:string) => body[key] === undefined ? fallback : textField(body,key,max);
+          const title=val("title",180,String(current.title)), details=val("details",2000,String(current.details)), unit=val("unit",80,String(current.unit)), dueDate=val("due_date",40,String(current.due_date)), contact=val("contact",180,String(current.contact)), status=val("status",40,String(current.status));
+          const amount=body.amount === undefined ? Number(current.amount_cents)/100 : Number(body.amount);
+          const quantity=body.quantity === undefined ? Number(current.quantity) : Number(body.quantity);
+          const allowed: Record<string,string[]> = { maintenance:["Active","Due","Paused","Completed","Cancelled"], suppliers:["Active","Pending approval","On hold","Inactive"], inventory:["In stock","Low stock","Out of stock","Discontinued"], financials:["Pending","Approved","Paid","Reconciled","Cancelled"] };
+          if (!title || details === null || unit === null || dueDate === null || contact === null || !status || !allowed[category].includes(status) || !Number.isFinite(amount) || amount < 0 || !Number.isFinite(quantity) || quantity < 0) return json({ error: "Invalid record fields." }, 400, origin);
+          await env.DB.prepare("UPDATE operation_records SET title=?,details=?,amount_cents=?,quantity=?,unit=?,due_date=?,status=?,contact=?,updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=? AND category=?").bind(title,details,Math.round(amount*100),quantity,unit,dueDate,status,contact,id,category).run();
+          const item = await env.DB.prepare("SELECT id,category,title,details,amount_cents,quantity,unit,due_date,status,contact,created_at FROM operation_records WHERE id = ?").bind(id).first();
+          return json({ item }, 200, origin);
+        }
+        if (request.method === "DELETE" && id) {
+          const result = await env.DB.prepare("DELETE FROM operation_records WHERE id = ? AND category = ?").bind(id,category).run();
+          if (!result.meta.changes) return json({ error: "Record not found." }, 404, origin);
+          return json({ deleted: true }, 200, origin);
+        }
+      }
+
+      return json({ error: "Not found or method not allowed." }, 404, origin);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("UNIQUE constraint failed: documents.source_document_id")) return json({ error: "An invoice already exists for this accepted quotation." }, 409, origin);
+      // Keep sensitive customer data out of logs; record only the exception message for diagnosis.
+      console.error("NGMS admin API request failed", error instanceof Error ? error.message : String(error));
+      return json({ error: "The request could not be completed. Check the API configuration and database migrations." }, 500, origin);
+    }
+  },
+};
