@@ -5,8 +5,10 @@ on:
     branches:
       - rebuild/ngms-cloudflare-first
       - preview/ngms-cloudflare-worker
+      - 'feature/**'
   pull_request:
     branches:
+      - main
       - preview/ngms-cloudflare-worker
 
 permissions:
@@ -100,6 +102,7 @@ jobs:
           check_route "/services/solar-panel-cleaning" "SOLAR PANEL CLEANING"
           check_route "/maintenance-packages" "PLANNED"
           check_route "/body-corporate-maintenance" "CORPORATES"
+          check_route "/quote" "TELL US WHAT"
           check_route "/admin" "GOOD WORK"
           check_route "/admin/enquiries" "ENQUIRIES"
           check_route "/admin/media" "MEDIA LIBRARY"
