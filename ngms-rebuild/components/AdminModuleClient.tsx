@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
   AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, convertAcceptedQuotationToJob, createAdminCustomer, createAdminRecord,
-  createCommercialDocument, createCommercialShareLink, getAdminApiBase, getAdminApiHealthUrl, getAdminMediaDownloadUrl,
+  createCommercialDocument, createCommercialShareLink, convertEnquiryToCustomer, getAdminApiBase, getAdminApiHealthUrl, getAdminMediaDownloadUrl,
   previewWritesEnabled, readAdminCollection, readAdminCustomers, readCommercialDocument, readCommercialDocuments,
   readInvoicePayments, recordInvoicePayment, updateAdminStatus, updateCommercialDocumentStatus, uploadAdminMedia,
 } from "@/lib/admin-api";
@@ -225,16 +225,23 @@ function CommercialDocumentDetails({ id }: { id: string }) {
   </div>;
 }
 
-function ShareQuotationAction({ row, onUpdated }: { row: AdminRow; onUpdated: () => void }) {
+function ShareQuotationAction({ row, onUpdated, enquiries }: { row: AdminRow; onUpdated: () => void; enquiries: AdminRow[] }) {
   const [saving,setSaving] = useState(false);
   const [share,setShare] = useState<{url:string;expires_at:string;reference:string} | null>(null);
   const [message,setMessage] = useState("");
+  const [enquiryId,setEnquiryId] = useState("");
   const canShare = row.status === "Draft" || row.status === "Sent";
+  const matchingEnquiries = enquiries.filter((item) =>
+    item.customer_id === row.customer_id && ["Contacted", "Quoted"].includes(String(item.status ?? ""))
+  );
   async function shareQuote() {
-    if (!previewWritesEnabled() || !row.id || !canShare) return;
+    if (!previewWritesEnabled() || !row.id || !canShare || !enquiryId || share) return;
     setSaving(true); setMessage("");
-    try { setShare(await createCommercialShareLink(row.id)); setMessage("Customer link created. The quotation is now Sent."); onUpdated(); }
-    catch (error) { setMessage(adminApiErrorMessage(error)); }
+    try {
+      setShare(await createCommercialShareLink(String(row.id), enquiryId));
+      setMessage("Customer quotation link created. The originating enquiry is now marked Quoted.");
+      onUpdated();
+    } catch (error) { setMessage(adminApiErrorMessage(error)); }
     finally { setSaving(false); }
   }
   async function copyLink() {
@@ -243,7 +250,13 @@ function ShareQuotationAction({ row, onUpdated }: { row: AdminRow; onUpdated: ()
     catch { setMessage("Copy is unavailable here. Select and copy the link below."); }
   }
   return <div className="mt-2">
-    <button type="button" className="button button-small button-orange" onClick={shareQuote} disabled={!previewWritesEnabled()||saving||!row.id||!canShare||Boolean(share)}>{saving ? "Creating link…" : share ? "Link created" : "Create customer link"}</button>
+    {matchingEnquiries.length > 0 ? <label className="block mb-2 text-xs">Originating enquiry
+      <select className="w-full mt-1" value={enquiryId} onChange={(event)=>setEnquiryId(event.target.value)} disabled={!previewWritesEnabled()||saving||Boolean(share)}>
+        <option value="">Select the enquiry for this quotation</option>
+        {matchingEnquiries.map((item)=><option key={String(item.id)} value={String(item.id)}>{String(item.id)} · {String(item.service ?? "Service")} · {String(item.area ?? "Area")}</option>)}
+      </select>
+    </label> : <small className="module-footnote block mb-2">No Contacted/Quoted enquiry is linked to this CRM customer. Convert the originating enquiry to CRM first.</small>}
+    <button type="button" className="button button-small button-orange" onClick={shareQuote} disabled={!previewWritesEnabled()||saving||!row.id||!canShare||!enquiryId||Boolean(share)}>{saving ? "Creating link…" : share ? "Link created" : "Approve & issue quotation"}</button>
     {share && <div className="mt-2 max-w-[340px]">
       <a className="text-link break-all text-xs" href={share.url} target="_blank" rel="noopener noreferrer">{share.url}</a>
       <div className="mt-1 flex items-center gap-2">
@@ -252,7 +265,7 @@ function ShareQuotationAction({ row, onUpdated }: { row: AdminRow; onUpdated: ()
       </div>
     </div>}
     {message && <small className="inline-feedback block mt-1" role="status">{message}</small>}
-    {!previewWritesEnabled() && <small className="module-footnote block mt-1">Sharing is disabled until preview write testing is enabled.</small>}
+    {!previewWritesEnabled() && <small className="module-footnote block mt-1">Sharing is disabled until preview Access and persistence tests pass.</small>}
   </div>;
 }
 
@@ -352,12 +365,34 @@ function InvoicePaymentsPanel({ row, onUpdated }: { row: AdminRow; onUpdated: ()
   </div>;
 }
 
-function CommercialDocumentActions({ moduleKey, row, onUpdated }: { moduleKey: "quotes"|"invoices"; row: AdminRow; onUpdated: () => void }) {
+function ConvertEnquiryToCrmAction({ row, onUpdated }: { row: AdminRow; onUpdated: () => void }) {
+  const [saving,setSaving] = useState(false);
+  const [message,setMessage] = useState("");
+  async function convert() {
+    if (!previewWritesEnabled() || !row.id || saving) return;
+    setSaving(true); setMessage("");
+    try {
+      const result = await convertEnquiryToCustomer(String(row.id));
+      setMessage("Linked to CRM customer " + String(result.item.display_name ?? result.item.id ?? "") + ".");
+      onUpdated();
+    } catch (error) { setMessage(adminApiErrorMessage(error)); }
+    finally { setSaving(false); }
+  }
+  if (row.customer_id) return <div className="min-w-[190px]"><span className="preview-pill">LINKED TO CRM</span><small className="module-footnote block mt-1">Prepare a quotation in Quotations and select this enquiry when issuing it.</small></div>;
+  return <div className="min-w-[190px]">
+    <button type="button" className="button button-small button-orange" onClick={convert} disabled={!previewWritesEnabled()||saving||!row.id}>{saving ? "Linking…" : "Add to CRM"}</button>
+    {message && <small className="inline-feedback block mt-1" role="status">{message}</small>}
+  </div>;
+}
+
+function CommercialDocumentActions({ moduleKey, row, onUpdated, enquiries }: { moduleKey: "quotes"|"invoices"; row: AdminRow; onUpdated: () => void; enquiries: AdminRow[] }) {
   return <div className="min-w-[260px]">
     <CommercialDocumentDetails id={String(row.id ?? "")}/>
     {moduleKey === "quotes" ? <>
-      {(row.status === "Draft" || row.status === "Sent") && <ShareQuotationAction row={row} onUpdated={onUpdated}/>}
-      {row.status === "Accepted" && <ConvertQuotationToJobAction row={row} onUpdated={onUpdated}/>}
+      {(row.status === "Draft" || row.status === "Sent") && <ShareQuotationAction row={row} onUpdated={onUpdated} enquiries={enquiries}/>}
+      {row.status === "Accepted" && (row.job_id
+        ? <div className="mt-2"><span className="preview-pill">JOB CREATED</span><small className="module-footnote block mt-1">{String(row.job_id)}</small></div>
+        : <ConvertQuotationToJobAction row={row} onUpdated={onUpdated}/>) }
       {row.status === "Declined" && <small className="text-mist block mt-2">Customer declined this quotation.</small>}
     </> : <InvoicePaymentsPanel row={row} onUpdated={onUpdated}/>}
   </div>;
@@ -368,6 +403,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
   const [rows, setRows] = useState<AdminRow[]>([]);
   const [customers, setCustomers] = useState<AdminRow[]>([]);
   const [acceptedQuotes, setAcceptedQuotes] = useState<AdminRow[]>([]);
+  const [enquiryRows, setEnquiryRows] = useState<AdminRow[]>([]);
   const [quoteLines, setQuoteLines] = useState<Array<{ description: string; quantity: string; unit: string; unit_price: string }>>([
     { description: "", quantity: "1", unit: "item", unit_price: "" },
   ]);
@@ -395,6 +431,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       setRows([]);
       setCustomers([]);
       setAcceptedQuotes([]);
+      setEnquiryRows([]);
       setLoading(false);
       setError(null);
       return;
@@ -402,7 +439,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     setLoading(true);
     setError(null);
     try {
-      const [result, customerRows, acceptedRows] = await Promise.all([
+      const [result, customerRows, acceptedRows, enquiryResult] = await Promise.all([
         moduleKey === "quotes"
           ? readCommercialDocuments("Quotation", undefined, signal)
           : moduleKey === "invoices"
@@ -414,6 +451,9 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
         moduleKey === "invoices"
           ? readCommercialDocuments("Quotation", "Accepted", signal)
           : Promise.resolve([] as AdminRow[]),
+        moduleKey === "quotes"
+          ? readAdminCollection("enquiries", signal)
+          : Promise.resolve([] as AdminRow[]),
       ]);
       const filtered = module.kind && moduleKey !== "quotes" && moduleKey !== "invoices"
         ? result.filter((row) => row.kind === module.kind)
@@ -422,12 +462,14 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
         setRows(filtered);
         setCustomers(customerRows);
         setAcceptedQuotes(acceptedRows);
+        setEnquiryRows(enquiryResult);
       }
     } catch (e) {
       if (!signal.aborted) {
         setRows([]);
         setCustomers([]);
         setAcceptedQuotes([]);
+        setEnquiryRows([]);
         setError(adminApiErrorMessage(e));
       }
     } finally {
@@ -703,8 +745,8 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       :!apiConfigured?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>CONNECT THE PREVIEW API.</h2><p>Set the non-secret API base URL in Vercel Preview. Cloudflare Access and the preview origin allowlist must also match.</p></div>
       :rows.length===0?<div className="table-empty"><span aria-hidden="true">▤</span><h2>NO RECORDS RETURNED.</h2><p>The protected API returned an empty collection for this module. This is not an API error.</p></div>
       :visibleRows.length===0?<div className="table-empty"><span aria-hidden="true">⌕</span><h2>NO MATCHES.</h2><p>Try a different search term.</p></div>
-      :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<th>File action</th>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<th>Document workflow</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&<th>Status action</th>}</tr></thead>
-        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<td>{getAdminMediaDownloadUrl(row.id)?<a className="text-link" href={getAdminMediaDownloadUrl(row.id)} target="_blank" rel="noopener noreferrer">Open / download ↗</a>:<span className="inline-feedback">File link unavailable</span>}</td>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<td><CommercialDocumentActions moduleKey={moduleKey} row={row} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents"].includes(module.resource)&&<td><StatusEditor key={String(row.id)+"-"+String(row.status)} resource={module.resource as "enquiries"|"jobs"|"documents"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
+      :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<th>File action</th>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<th>Document workflow</th>}{moduleKey==="enquiries"&&<th>CRM / quotation workflow</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&<th>Status action</th>}</tr></thead>
+        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<td>{getAdminMediaDownloadUrl(row.id)?<a className="text-link" href={getAdminMediaDownloadUrl(row.id)} target="_blank" rel="noopener noreferrer">Open / download ↗</a>:<span className="inline-feedback">File link unavailable</span>}</td>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<td><CommercialDocumentActions moduleKey={moduleKey} row={row} enquiries={enquiryRows} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{moduleKey==="enquiries"&&<td><ConvertEnquiryToCrmAction row={row} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents"].includes(module.resource)&&<td><StatusEditor key={String(row.id)+"-"+String(row.status)} resource={module.resource as "enquiries"|"jobs"|"documents"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
     </section>
     {moduleKey==="invoices"&&<p className="module-footnote">Invoices are generated only from accepted quotations. The payment ledger tracks partial payments, prevents overpayment and marks an invoice Paid only when its allocated payments cover the full value. Refunds, reversals and credit-note allocation remain separate work.</p>}
     {moduleKey==="content"&&<p className="module-footnote">Content editing remains disabled until optimistic concurrency, publish/rollback and the owner-approved field schema are implemented.</p>}
