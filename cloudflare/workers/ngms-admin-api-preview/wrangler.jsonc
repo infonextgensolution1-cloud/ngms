@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ngms-admin-api-preview",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-29",
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  "vars": {
+    "MAX_UPLOAD_BYTES": "10485760",
+    "CMS_WRITE_ENABLED": "true"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ngms-admin-preview",
+      "database_id": "f12c5c48-58cd-4c48-82de-8c7341b8e6cf"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "ngmsmedia-preview"
+    }
+  ]
+}

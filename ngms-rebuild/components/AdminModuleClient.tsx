@@ -45,7 +45,7 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   },
   quotes: {
     title: "Quotations",
-    description: "Review quotation documents and their current recorded status.",
+    description: "Create formal, numbered quotations with CRM customers, itemised work, discounts and VAT.",
     resource: "documents", kind: "Quotation",
     columns: [
       { key: "reference", label: "Quote reference" }, { key: "customer_name", label: "Customer" },
@@ -55,10 +55,10 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   },
   invoices: {
     title: "Invoices",
-    description: "Review invoice documents and their recorded status.",
+    description: "Create invoices directly from accepted quotations, preserving their approved line items and VAT treatment.",
     resource: "documents", kind: "Invoice",
     columns: [
-      { key: "id", label: "Invoice reference" }, { key: "customer_name", label: "Customer" },
+      { key: "reference", label: "Invoice reference" }, { key: "customer_name", label: "Customer" },
       { key: "amount_cents", label: "Face value (ZAR)" }, { key: "created_at", label: "Created" },
       { key: "status", label: "Status" },
     ],
@@ -113,8 +113,9 @@ const STATUS_OPTIONS: Record<"enquiries" | "jobs", string[]> = {
   enquiries: ["New", "Contacted", "Quoted", "Converted", "Closed"],
   jobs: ["New", "Quoted", "In progress", "Completed", "Cancelled"],
 };
-const QUOTE_STATUS_OPTIONS = ["Draft", "Sent", "Accepted", "Declined", "Expired", "Cancelled"];
-const INVOICE_STATUS_OPTIONS = ["Draft", "Sent", "Paid", "Overdue", "Cancelled"];
+// Customer decisions arrive through the one-use public quote link; sharing changes Draft to Sent.
+const QUOTE_STATUS_OPTIONS = ["Draft", "Expired", "Cancelled"];
+const INVOICE_STATUS_OPTIONS = ["Draft", "Sent", "Overdue", "Cancelled"];
 
 function displayValue(key: string, value: unknown): string {
   if (value === null || value === undefined || value === "") return "—";
@@ -156,7 +157,11 @@ function StatusEditor({
     setSaving(true);
     setMessage("");
     try {
-      await updateAdminStatus(resource, row.id, value);
+      if (resource === "documents") {
+        await updateCommercialDocumentStatus(row.id, value);
+      } else {
+        await updateAdminStatus(resource, row.id, value);
+      }
       setMessage("Status saved.");
       onSaved();
     } catch (error) {
@@ -177,9 +182,232 @@ function StatusEditor({
   </div>;
 }
 
+function localDateTimeValue(): string {
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
+function CommercialDocumentDetails({ id }: { id: string }) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [detail, setDetail] = useState<Awaited<ReturnType<typeof readCommercialDocument>> | null>(null);
+  useEffect(() => {
+    if (!open || detail) return;
+    const controller = new AbortController();
+    setLoading(true);
+    setError("");
+    readCommercialDocument(id, controller.signal)
+      .then((result) => { if (!controller.signal.aborted) setDetail(result); })
+      .catch((e) => { if (!controller.signal.aborted) setError(adminApiErrorMessage(e)); })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [open, id, detail]);
+  return <div className="mt-1">
+    <button type="button" className="button button-small button-outline button-dark-outline" onClick={() => setOpen((value) => !value)}>{open ? "Hide lines" : "View lines"}</button>
+    {open && <div className="mt-2 min-w-[240px] rounded-card border border-darkgrey p-3">
+      {loading ? <small>Loading saved line items…</small> : error ? <small className="text-orange">{error}</small> : detail ? <>
+        <strong className="text-sm">Saved quotation / invoice lines</strong>
+        <ul className="mt-2 space-y-2">{detail.lines.map((line,index)=><li key={line.id ?? index} className="border-b border-darkgrey pb-2 text-xs">
+          <div className="font-semibold">{line.description}</div>
+          <div className="text-mist">{line.quantity} {line.unit} × {displayValue("amount_cents",line.unit_price_cents)} = {displayValue("amount_cents",line.line_total_cents)}</div>
+        </li>)}</ul>
+        <div className="mt-2 space-y-1 text-xs">
+          <div className="flex justify-between gap-4"><span>Subtotal</span><strong>{displayValue("amount_cents",detail.item.subtotal_cents)}</strong></div>
+          <div className="flex justify-between gap-4"><span>Discount</span><strong>{displayValue("amount_cents",detail.item.discount_cents)}</strong></div>
+          <div className="flex justify-between gap-4"><span>VAT</span><strong>{displayValue("amount_cents",detail.item.vat_cents)}</strong></div>
+          <div className="flex justify-between gap-4 border-t border-darkgrey pt-1"><span>Total</span><strong>{displayValue("amount_cents",detail.item.amount_cents)}</strong></div>
+        </div>
+        {typeof detail.item.notes === "string" && detail.item.notes && <p className="mt-2 text-xs text-mist whitespace-pre-wrap">{detail.item.notes}</p>}
+      </> : <small>No document details returned.</small>}
+    </div>}
+  </div>;
+}
+
+function ShareQuotationAction({ row, onUpdated, enquiries }: { row: AdminRow; onUpdated: () => void; enquiries: AdminRow[] }) {
+  const [saving,setSaving] = useState(false);
+  const [share,setShare] = useState<{url:string;expires_at:string;reference:string} | null>(null);
+  const [message,setMessage] = useState("");
+  const [enquiryId,setEnquiryId] = useState("");
+  const canShare = row.status === "Draft" || row.status === "Sent";
+  const matchingEnquiries = enquiries.filter((item) =>
+    item.customer_id === row.customer_id && ["Contacted", "Quoted"].includes(String(item.status ?? ""))
+  );
+  async function shareQuote() {
+    if (!previewWritesEnabled() || !row.id || !canShare || !enquiryId || share) return;
+    setSaving(true); setMessage("");
+    try {
+      setShare(await createCommercialShareLink(String(row.id), enquiryId));
+      setMessage("Customer quotation link created. The originating enquiry is now marked Quoted.");
+      onUpdated();
+    } catch (error) { setMessage(adminApiErrorMessage(error)); }
+    finally { setSaving(false); }
+  }
+  async function copyLink() {
+    if (!share?.url) return;
+    try { await navigator.clipboard.writeText(share.url); setMessage("Customer link copied."); }
+    catch { setMessage("Copy is unavailable here. Select and copy the link below."); }
+  }
+  return <div className="mt-2">
+    {matchingEnquiries.length > 0 ? <label className="block mb-2 text-xs">Originating enquiry
+      <select className="w-full mt-1" value={enquiryId} onChange={(event)=>setEnquiryId(event.target.value)} disabled={!previewWritesEnabled()||saving||Boolean(share)}>
+        <option value="">Select the enquiry for this quotation</option>
+        {matchingEnquiries.map((item)=><option key={String(item.id)} value={String(item.id)}>{String(item.id)} · {String(item.service ?? "Service")} · {String(item.area ?? "Area")}</option>)}
+      </select>
+    </label> : <small className="module-footnote block mb-2">No Contacted/Quoted enquiry is linked to this CRM customer. Convert the originating enquiry to CRM first.</small>}
+    <button type="button" className="button button-small button-orange" onClick={shareQuote} disabled={!previewWritesEnabled()||saving||!row.id||!canShare||!enquiryId||Boolean(share)}>{saving ? "Creating link…" : share ? "Link created" : "Approve & issue quotation"}</button>
+    {share && <div className="mt-2 max-w-[340px]">
+      <a className="text-link break-all text-xs" href={share.url} target="_blank" rel="noopener noreferrer">{share.url}</a>
+      <div className="mt-1 flex items-center gap-2">
+        <button type="button" className="button button-small button-outline button-dark-outline" onClick={copyLink}>Copy link</button>
+        <span className="text-xs text-mist">Expires {new Date(share.expires_at).toLocaleDateString("en-ZA")}</span>
+      </div>
+    </div>}
+    {message && <small className="inline-feedback block mt-1" role="status">{message}</small>}
+    {!previewWritesEnabled() && <small className="module-footnote block mt-1">Sharing is disabled until preview Access and persistence tests pass.</small>}
+  </div>;
+}
+
+function ConvertQuotationToJobAction({ row, onUpdated }: { row: AdminRow; onUpdated: () => void }) {
+  const [saving,setSaving] = useState(false);
+  const [message,setMessage] = useState("");
+  async function convert() {
+    if (!previewWritesEnabled() || !row.id) return;
+    setSaving(true); setMessage("");
+    try {
+      const job = await convertAcceptedQuotationToJob(row.id);
+      setMessage("Job " + String(job.id ?? "") + " created from the accepted quotation.");
+      onUpdated();
+    } catch (error) { setMessage(adminApiErrorMessage(error)); }
+    finally { setSaving(false); }
+  }
+  return <div className="mt-2">
+    <button type="button" className="button button-small button-orange" onClick={convert} disabled={!previewWritesEnabled()||saving||!row.id||row.status!=="Accepted"}>{saving ? "Creating job…" : "Convert to job"}</button>
+    {message && <small className="inline-feedback block mt-1" role="status">{message}</small>}
+  </div>;
+}
+
+function InvoicePaymentsPanel({ row, onUpdated }: { row: AdminRow; onUpdated: () => void }) {
+  const [open,setOpen] = useState(false);
+  const [loading,setLoading] = useState(false);
+  const [saving,setSaving] = useState(false);
+  const [summary,setSummary] = useState<Awaited<ReturnType<typeof readInvoicePayments>> | null>(null);
+  const [error,setError] = useState("");
+  const [message,setMessage] = useState("");
+  const [dateValue,setDateValue] = useState(localDateTimeValue());
+  const load = useCallback(async (signal?: AbortSignal) => {
+    if (!row.id) return;
+    setLoading(true); setError("");
+    try {
+      const result = await readInvoicePayments(row.id,signal);
+      if (!signal?.aborted) setSummary(result);
+    } catch (e) { if (!signal?.aborted) setError(adminApiErrorMessage(e)); }
+    finally { if (!signal?.aborted) setLoading(false); }
+  },[row.id]);
+  useEffect(() => {
+    if (!open) return;
+    const controller = new AbortController();
+    void load(controller.signal);
+    return () => controller.abort();
+  },[open,load]);
+  async function addPayment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!previewWritesEnabled() || !row.id) return;
+    const data = new FormData(event.currentTarget);
+    const amount = Number(data.get("amount"));
+    const method = String(data.get("method") ?? "EFT") as "EFT"|"Cash"|"Card"|"Other";
+    const paidDate = new Date(String(data.get("paid_at") ?? ""));
+    if (!Number.isFinite(amount) || amount <= 0 || !Number.isFinite(paidDate.getTime())) { setError("Enter a valid payment amount and date."); return; }
+    setSaving(true); setError(""); setMessage("");
+    try {
+      const result = await recordInvoicePayment(row.id,{
+        amount, method, paid_at: paidDate.toISOString(),
+        reference: String(data.get("reference") ?? "").trim(),
+        notes: String(data.get("notes") ?? "").trim(),
+      });
+      setMessage("Payment saved. Outstanding balance: " + displayValue("amount_cents",result.balance_cents) + ".");
+      setDateValue(localDateTimeValue());
+      await load();
+      onUpdated();
+    } catch (e) { setError(adminApiErrorMessage(e)); }
+    finally { setSaving(false); }
+  }
+  return <div className="mt-2">
+    <button type="button" className="button button-small button-outline button-dark-outline" onClick={()=>setOpen((value)=>!value)}>{open ? "Hide payments" : "Payments & balance"}</button>
+    {open && <div className="mt-2 min-w-[260px] max-w-[380px] rounded-card border border-darkgrey p-3">
+      {loading && !summary ? <small>Loading invoice payments…</small> : error && !summary ? <small className="text-orange">{error}</small> : summary ? <>
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div><span className="text-mist block">Paid to date</span><strong>{displayValue("amount_cents",summary.paid_cents)}</strong></div>
+          <div><span className="text-mist block">Balance due</span><strong>{displayValue("amount_cents",summary.balance_cents)}</strong></div>
+        </div>
+        {summary.items.length ? <ul className="mt-3 space-y-2">{summary.items.map(payment=><li key={payment.id} className="border-t border-darkgrey pt-2 text-xs">
+          <div className="flex justify-between gap-2"><strong>{displayValue("amount_cents",payment.amount_cents)}</strong><span>{payment.method}</span></div>
+          <div className="text-mist">{new Date(payment.paid_at).toLocaleString("en-ZA")} · {payment.reference || "No reference"}</div>
+          {payment.notes && <p className="text-mist">{payment.notes}</p>}
+        </li>)}</ul> : <p className="mt-2 text-xs text-mist">No payments recorded yet.</p>}
+        {summary.balance_cents > 0 ? <form className="mt-3 border-t border-darkgrey pt-3 space-y-2" onSubmit={addPayment}>
+          <strong className="text-sm">Record payment</strong>
+          <label className="block text-xs">Amount (ZAR)<input name="amount" type="number" min="0.01" max="100000000" step="0.01" required disabled={!previewWritesEnabled()||saving}/></label>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="block text-xs">Method<select name="method" defaultValue="EFT" disabled={!previewWritesEnabled()||saving}><option>EFT</option><option>Cash</option><option>Card</option><option>Other</option></select></label>
+            <label className="block text-xs">Date & time<input name="paid_at" type="datetime-local" value={dateValue} onChange={(event)=>setDateValue(event.target.value)} required disabled={!previewWritesEnabled()||saving}/></label>
+          </div>
+          <label className="block text-xs">Reference<input name="reference" maxLength={120} disabled={!previewWritesEnabled()||saving}/></label>
+          <label className="block text-xs">Notes<textarea name="notes" rows={2} maxLength={1000} disabled={!previewWritesEnabled()||saving}/></label>
+          <button type="submit" className="button button-small button-orange" disabled={!previewWritesEnabled()||saving}>{saving?"Saving payment…":"Save payment"}</button>
+          {!previewWritesEnabled() && <small className="module-footnote block">Payment recording is disabled until preview write acceptance is approved.</small>}
+        </form> : <p className="mt-3 text-xs font-semibold">Invoice paid in full.</p>}
+      </> : null}
+      {message && <small className="inline-feedback block mt-2" role="status">{message}</small>}
+      {error && summary && <small className="text-orange block mt-2" role="alert">{error}</small>}
+    </div>}
+  </div>;
+}
+
+function ConvertEnquiryToCrmAction({ row, onUpdated }: { row: AdminRow; onUpdated: () => void }) {
+  const [saving,setSaving] = useState(false);
+  const [message,setMessage] = useState("");
+  async function convert() {
+    if (!previewWritesEnabled() || !row.id || saving) return;
+    setSaving(true); setMessage("");
+    try {
+      const result = await convertEnquiryToCustomer(String(row.id));
+      setMessage("Linked to CRM customer " + String(result.item.display_name ?? result.item.id ?? "") + ".");
+      onUpdated();
+    } catch (error) { setMessage(adminApiErrorMessage(error)); }
+    finally { setSaving(false); }
+  }
+  if (row.customer_id) return <div className="min-w-[190px]"><span className="preview-pill">LINKED TO CRM</span><small className="module-footnote block mt-1">Prepare a quotation in Quotations and select this enquiry when issuing it.</small></div>;
+  return <div className="min-w-[190px]">
+    <button type="button" className="button button-small button-orange" onClick={convert} disabled={!previewWritesEnabled()||saving||!row.id}>{saving ? "Linking…" : "Add to CRM"}</button>
+    {message && <small className="inline-feedback block mt-1" role="status">{message}</small>}
+  </div>;
+}
+
+function CommercialDocumentActions({ moduleKey, row, onUpdated, enquiries }: { moduleKey: "quotes"|"invoices"; row: AdminRow; onUpdated: () => void; enquiries: AdminRow[] }) {
+  return <div className="min-w-[260px]">
+    <CommercialDocumentDetails id={String(row.id ?? "")}/>
+    {moduleKey === "quotes" ? <>
+      {(row.status === "Draft" || row.status === "Sent") && <ShareQuotationAction row={row} onUpdated={onUpdated} enquiries={enquiries}/>}
+      {row.status === "Accepted" && (row.job_id
+        ? <div className="mt-2"><span className="preview-pill">JOB CREATED</span><small className="module-footnote block mt-1">{String(row.job_id)}</small></div>
+        : <ConvertQuotationToJobAction row={row} onUpdated={onUpdated}/>) }
+      {row.status === "Declined" && <small className="text-mist block mt-2">Customer declined this quotation.</small>}
+    </> : <InvoicePaymentsPanel row={row} onUpdated={onUpdated}/>}
+  </div>;
+}
+
 export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModuleKey }) {
   const module = MODULES[moduleKey];
   const [rows, setRows] = useState<AdminRow[]>([]);
+  const [customers, setCustomers] = useState<AdminRow[]>([]);
+  const [acceptedQuotes, setAcceptedQuotes] = useState<AdminRow[]>([]);
+  const [enquiryRows, setEnquiryRows] = useState<AdminRow[]>([]);
+  const [quoteLines, setQuoteLines] = useState<Array<{ description: string; quantity: string; unit: string; unit_price: string }>>([
+    { description: "", quantity: "1", unit: "item", unit_price: "" },
+  ]);
+  const [showCustomerForm, setShowCustomerForm] = useState(false);
+  const [newCustomerId, setNewCustomerId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -202,6 +430,9 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
   const load = useCallback(async (signal: AbortSignal) => {
     if (!getAdminApiBase() || !module.resource) {
       setRows([]);
+      setCustomers([]);
+      setAcceptedQuotes([]);
+      setEnquiryRows([]);
       setLoading(false);
       setError(null);
       return;
@@ -209,18 +440,43 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     setLoading(true);
     setError(null);
     try {
-      const result = await readAdminCollection(module.resource, signal);
-      const filtered = module.kind ? result.filter((row) => row.kind === module.kind) : result;
-      if (!signal.aborted) setRows(filtered);
+      const [result, customerRows, acceptedRows, enquiryResult] = await Promise.all([
+        moduleKey === "quotes"
+          ? readCommercialDocuments("Quotation", undefined, signal)
+          : moduleKey === "invoices"
+            ? readCommercialDocuments("Invoice", undefined, signal)
+            : readAdminCollection(module.resource, signal),
+        moduleKey === "quotes" || moduleKey === "invoices"
+          ? readAdminCustomers(signal)
+          : Promise.resolve([] as AdminRow[]),
+        moduleKey === "invoices"
+          ? readCommercialDocuments("Quotation", "Accepted", signal)
+          : Promise.resolve([] as AdminRow[]),
+        moduleKey === "quotes"
+          ? readAdminCollection("enquiries", signal)
+          : Promise.resolve([] as AdminRow[]),
+      ]);
+      const filtered = module.kind && moduleKey !== "quotes" && moduleKey !== "invoices"
+        ? result.filter((row) => row.kind === module.kind)
+        : result;
+      if (!signal.aborted) {
+        setRows(filtered);
+        setCustomers(customerRows);
+        setAcceptedQuotes(acceptedRows);
+        setEnquiryRows(enquiryResult);
+      }
     } catch (e) {
       if (!signal.aborted) {
         setRows([]);
+        setCustomers([]);
+        setAcceptedQuotes([]);
+        setEnquiryRows([]);
         setError(adminApiErrorMessage(e));
       }
     } finally {
       if (!signal.aborted) setLoading(false);
     }
-  }, [module.resource, module.kind]);
+  }, [module.resource, module.kind, moduleKey]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -233,12 +489,90 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     if (!term) return rows;
     return rows.filter((row) => Object.values(row).some((value) => String(value ?? "").toLowerCase().includes(term)));
   }, [rows, query]);
+  const invoicedQuoteIds = new Set(rows.map((item) => String(item.source_document_id ?? "")));
+  const availableAcceptedQuotes = acceptedQuotes.filter((item) => item.id && !invoicedQuoteIds.has(item.id));
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!writesEnabled || !apiConfigured) return;
     const form = event.currentTarget;
     const data = new FormData(form);
+
+    if (moduleKey === "quotes") {
+      const customerId = String(data.get("customer_id") ?? "");
+      const customer = customers.find((item) => item.id === customerId);
+      const lines = quoteLines.map((line) => ({
+        description: line.description.trim(),
+        quantity: Number(line.quantity),
+        unit: line.unit.trim() || "item",
+        unit_price: Number(line.unit_price),
+      }));
+      const subtotal = lines.reduce((sum, line) => sum + Math.round(line.quantity * line.unit_price * 100), 0) / 100;
+      const discount = Number(data.get("discount_amount") ?? 0);
+      const invalidLine = lines.some((line) =>
+        !line.description || !Number.isFinite(line.quantity) || line.quantity <= 0 || line.quantity > 100000 ||
+        !Number.isFinite(line.unit_price) || line.unit_price < 0 || line.unit_price > 10000000
+      );
+      if (!customer || invalidLine || !lines.length || !Number.isFinite(discount) || discount < 0 || discount > subtotal) {
+        setActionError("Choose a CRM customer, complete every quotation line and enter a discount no greater than the subtotal.");
+        return;
+      }
+      setSaving(true);
+      setActionMessage("");
+      setActionError("");
+      try {
+        await createCommercialDocument({
+          kind: "Quotation",
+          customer_id: customerId,
+          lines,
+          discount_amount: discount,
+          vat_enabled: data.get("vat_enabled") === "on",
+          notes: String(data.get("notes") ?? "").trim(),
+        });
+        setActionMessage("Formal quotation created in preview D1. Its NGMS reference and item lines have been saved.");
+        setQuoteLines([{ description: "", quantity: "1", unit: "item", unit_price: "" }]);
+        form.reset();
+        setShowCreate(false);
+        setRefreshVersion((version) => version + 1);
+      } catch (error) {
+        setActionError(adminApiErrorMessage(error));
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
+    if (moduleKey === "invoices") {
+      const sourceDocumentId = String(data.get("source_document_id") ?? "");
+      const sourceQuote = acceptedQuotes.find((item) => item.id === sourceDocumentId);
+      const invoicedQuoteIds = new Set(rows.map((item) => String(item.source_document_id ?? "")));
+      if (!sourceQuote || !sourceQuote.customer_id || invoicedQuoteIds.has(sourceDocumentId)) {
+        setActionError("Select an accepted quotation that has not already been invoiced.");
+        return;
+      }
+      setSaving(true);
+      setActionMessage("");
+      setActionError("");
+      try {
+        await createCommercialDocument({
+          kind: "Invoice",
+          source_document_id: sourceDocumentId,
+          customer_id: sourceQuote.customer_id,
+          due_date: String(data.get("due_date") ?? "").trim() || undefined,
+          notes: String(data.get("notes") ?? "").trim(),
+        });
+        setActionMessage("Invoice created in preview D1 from the accepted quotation, carrying across its approved line items and VAT treatment.");
+        form.reset();
+        setShowCreate(false);
+        setRefreshVersion((version) => version + 1);
+      } catch (error) {
+        setActionError(adminApiErrorMessage(error));
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
     const payload: Record<string, unknown> = {
       customer_name: String(data.get("customer_name") ?? "").trim(),
       service: String(data.get("service") ?? "").trim(),
@@ -249,22 +583,12 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       payload.phone = String(data.get("phone") ?? "").trim();
       payload.email = String(data.get("email") ?? "").trim();
     }
-    if (moduleKey === "quotes" || moduleKey === "invoices") {
-      const amount = Number(data.get("amount"));
-      const amountCents = Math.round(amount * 100);
-      if (!Number.isFinite(amount) || amount < 0 || amount > 100_000_000 || !Number.isSafeInteger(amountCents)) {
-        setActionError("Enter a valid non-negative ZAR amount within the supported limit.");
-        return;
-      }
-      payload.kind = module.kind;
-      payload.amount_cents = amountCents;
-    }
     setSaving(true);
     setActionMessage("");
     setActionError("");
     try {
       await createAdminRecord(writeResource, payload);
-      setActionMessage(moduleKey === "jobs" ? "Job created in the preview database." : moduleKey === "enquiries" ? "Enquiry created in the preview database." : moduleKey === "quotes" ? "Draft quotation created in the preview database." : "Invoice document created in the preview database.");
+      setActionMessage(moduleKey === "jobs" ? "Job created in the preview database." : "Enquiry created in the preview database.");
       form.reset();
       setShowCreate(false);
       setRefreshVersion((version)=>version+1);
@@ -333,17 +657,67 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
 
     {canCreate && <section className="action-panel">
       <div className="action-panel-head"><div><strong>Create {moduleKey==="enquiries"?"enquiry":moduleKey==="jobs"?"job":moduleKey==="quotes"?"quotation":"invoice"}</strong><small>New records are only allowed when the explicit preview-write flag is enabled.</small></div>
-        <button type="button" className="button button-orange" onClick={()=>{setShowCreate(v=>!v);setActionMessage("");setActionError("");}} disabled={!writesEnabled||!apiConfigured}>{showCreate?"Close form":"+ New record"}</button>
+        <div className="flex gap-2 flex-wrap">
+          {(moduleKey === "quotes" || moduleKey === "invoices") && <button type="button" className="button button-outline button-dark-outline" onClick={()=>{setShowCustomerForm(v=>!v);setActionError("");}} disabled={!writesEnabled||!apiConfigured}>{showCustomerForm?"Close customer form":"+ Add customer"}</button>}
+          <button type="button" className="button button-orange" onClick={()=>{setShowCreate(v=>!v);setActionMessage("");setActionError("");}} disabled={!writesEnabled||!apiConfigured}>{showCreate?"Close form":"+ New record"}</button>
+        </div>
       </div>
       {!writesEnabled&&<p className="guardrail-message">Writes disabled: enable NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES only after Access, CORS and staging persistence checks pass.</p>}
       {showCreate&&writesEnabled&&apiConfigured&&<form className="admin-form-grid" onSubmit={handleCreate}>
-        <label>Customer / contact name<input name="customer_name" required maxLength={160} autoComplete="off"/></label>
-        <label>Service<select name="service" defaultValue="" required><option value="" disabled>Choose service</option>{services.map((service)=><option key={service.slug} value={service.name}>{service.name}</option>)}</select></label>
-        {(moduleKey==="quotes"||moduleKey==="invoices")&&<label>Amount (ZAR)<input name="amount" type="number" inputMode="decimal" min="0" max="100000000" step="0.01" required/></label>}
-        <label>Area / suburb<input name="area" maxLength={160} autoComplete="off"/></label>
-        {moduleKey==="enquiries"&&<><label>Phone<input name="phone" type="tel" maxLength={40} autoComplete="off"/></label><label>Email<input name="email" type="email" maxLength={254} autoComplete="off"/></label></>}
-        <label className="admin-form-wide">Job details<textarea name="details" rows={3} maxLength={4000}/></label>
-        <div className="admin-form-wide form-actions"><button className="button button-orange" type="submit" disabled={saving}>{saving?"Saving…":"Create in preview"}</button><span>Records are written only to the isolated preview D1 database.</span></div>
+        {moduleKey === "quotes" && <>
+          <label className="admin-form-wide">CRM customer
+            <select name="customer_id" value={newCustomerId} onChange={(event)=>setNewCustomerId(event.target.value)} required>
+              <option value="" disabled>Choose an active CRM customer</option>
+              {customers.filter((customer)=>customer.status !== "Archived").map((customer)=><option key={String(customer.id)} value={String(customer.id)}>{String(customer.display_name ?? customer.company_name ?? customer.id)} · {String(customer.primary_phone ?? "No phone")}</option>)}
+            </select>
+          </label>
+          {!customers.length && <p className="admin-form-wide guardrail-message">There are no CRM customers in this preview database yet. Add a customer before creating a formal quotation.</p>}
+          <div className="admin-form-wide">
+            <strong>Quotation line items</strong>
+            {quoteLines.map((line,index)=><div key={index} className="admin-form-grid mt-3 border border-darkgrey rounded-card p-3">
+              <label className="admin-form-wide">Description<input value={line.description} onChange={(event)=>setQuoteLines((current)=>current.map((item,i)=>i===index?{...item,description:event.target.value}:item))} required maxLength={240} placeholder="e.g. Solar panel cleaning — labour"/></label>
+              <label>Quantity<input type="number" min="0.001" max="100000" step="0.001" value={line.quantity} onChange={(event)=>setQuoteLines((current)=>current.map((item,i)=>i===index?{...item,quantity:event.target.value}:item))} required/></label>
+              <label>Unit<input value={line.unit} onChange={(event)=>setQuoteLines((current)=>current.map((item,i)=>i===index?{...item,unit:event.target.value}:item))} maxLength={24}/></label>
+              <label>Unit price (ZAR)<input type="number" min="0" max="10000000" step="0.01" value={line.unit_price} onChange={(event)=>setQuoteLines((current)=>current.map((item,i)=>i===index?{...item,unit_price:event.target.value}:item))} required/></label>
+              <div className="form-actions"><button type="button" className="button button-small button-outline button-dark-outline" onClick={()=>setQuoteLines((current)=>current.filter((_,i)=>i!==index))} disabled={quoteLines.length===1}>Remove line</button></div>
+            </div>)}
+            <button type="button" className="button button-small button-outline button-dark-outline mt-3" onClick={()=>setQuoteLines((current)=>[...current,{description:"",quantity:"1",unit:"item",unit_price:""}])}>+ Add line item</button>
+          </div>
+          <label>Discount (ZAR)<input name="discount_amount" type="number" min="0" step="0.01" defaultValue="0"/></label>
+          <label className="flex items-center gap-2"><input name="vat_enabled" type="checkbox" className="w-4 h-4"/> Apply VAT using saved NGMS settings</label>
+          <label className="admin-form-wide">Quotation notes<textarea name="notes" rows={3} maxLength={4000} placeholder="Scope, exclusions, access notes or payment terms"/></label>
+          <div className="admin-form-wide form-actions"><button className="button button-orange" type="submit" disabled={saving||!customers.length}>{saving?"Saving…":"Create formal quotation"}</button><span>Creates an NGMS reference and stores the itemised lines in preview D1.</span></div>
+        </>}
+        {moduleKey === "invoices" && <>
+          <label className="admin-form-wide">Accepted quotation
+            <select name="source_document_id" defaultValue="" required>
+              <option value="" disabled>Choose an accepted quotation not yet invoiced</option>
+              {availableAcceptedQuotes.map((quote)=><option key={String(quote.id)} value={String(quote.id)}>{String(quote.reference ?? quote.id)} · {String(quote.customer_name ?? "Customer")} · {displayValue("amount_cents",quote.amount_cents)}</option>)}
+            </select>
+          </label>
+          {!availableAcceptedQuotes.length && <p className="admin-form-wide guardrail-message">No accepted, uninvoiced quotations are available. An invoice must be created from an accepted quotation.</p>}
+          <label>Invoice due date<input name="due_date" type="date"/></label>
+          <label className="admin-form-wide">Invoice notes<textarea name="notes" rows={3} maxLength={4000}/></label>
+          <div className="admin-form-wide form-actions"><button className="button button-orange" type="submit" disabled={saving||!availableAcceptedQuotes.length}>{saving?"Saving…":"Create invoice from accepted quotation"}</button><span>Approved lines, discount and VAT are copied from the source quotation.</span></div>
+        </>}
+        {(moduleKey==="enquiries"||moduleKey==="jobs") && <>
+          <label>Customer / contact name<input name="customer_name" required maxLength={160} autoComplete="off"/></label>
+          <label>Service<select name="service" defaultValue="" required><option value="" disabled>Choose service</option>{services.map((service)=><option key={service.slug} value={service.name}>{service.name}</option>)}</select></label>
+          <label>Area / suburb<input name="area" maxLength={160} autoComplete="off"/></label>
+          {moduleKey==="enquiries"&&<><label>Phone<input name="phone" type="tel" maxLength={40} autoComplete="off"/></label><label>Email<input name="email" type="email" maxLength={254} autoComplete="off"/></label></>}
+          <label className="admin-form-wide">Job details<textarea name="details" rows={3} maxLength={4000}/></label>
+          <div className="admin-form-wide form-actions"><button className="button button-orange" type="submit" disabled={saving}>{saving?"Saving…":"Create in preview"}</button><span>Records are written only to the isolated preview D1 database.</span></div>
+        </>}
+      </form>}
+      {showCustomerForm&&writesEnabled&&apiConfigured&&(moduleKey==="quotes"||moduleKey==="invoices")&&<form className="admin-form-grid mt-4 border-t border-darkgrey pt-4" onSubmit={handleCustomerCreate}>
+        <strong className="admin-form-wide">Add customer to preview CRM</strong>
+        <label>Customer name<input name="display_name" required maxLength={160}/></label>
+        <label>Customer type<select name="customer_type" defaultValue="Individual"><option>Individual</option><option>Business</option><option>Body corporate</option></select></label>
+        <label>Phone<input name="primary_phone" type="tel" maxLength={40}/></label>
+        <label>Email<input name="primary_email" type="email" maxLength={254}/></label>
+        <label className="admin-form-wide">Service address<input name="service_address" maxLength={1000}/></label>
+        <label className="admin-form-wide">Billing address<input name="billing_address" maxLength={1000}/></label>
+        <div className="admin-form-wide form-actions"><button className="button button-orange" type="submit" disabled={saving}>{saving?"Saving…":"Save customer"}</button><span>Customer details are stored only in the isolated preview CRM.</span></div>
       </form>}
     </section>}
 
@@ -367,7 +741,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
         ? <button type="button" className="button button-small button-orange" onClick={()=>setQuotingEnquiry(row)}>Prepare quotation</button>
         : <button type="button" className="button button-small" onClick={()=>handleConvertEnquiry(row)} disabled={!row.id||convertingId!==null}>{convertingId===row.id?"Linking…":"Add to CRM"}</button>}</td>}{writesEnabled&&(moduleKey==="enquiries"||moduleKey==="jobs")&&module.resource&&<td><StatusEditor resource={module.resource as "enquiries"|"jobs"} statusOptions={STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
     </section>
-    {moduleKey==="invoices"&&<p className="module-footnote">The inspected document schema stores invoice face value and status, but has no partial-payment ledger. This screen does not calculate a reconciled amount due.</p>}
+    {moduleKey==="invoices"&&<p className="module-footnote">Invoices are generated only from accepted quotations. The payment ledger tracks partial payments, prevents overpayment and marks an invoice Paid only when its allocated payments cover the full value. Refunds, reversals and credit-note allocation remain separate work.</p>}
     {moduleKey==="content"&&<p className="module-footnote">Content editing remains disabled until optimistic concurrency, publish/rollback and the owner-approved field schema are implemented.</p>}
     <p className="module-footnote">Preview write controls require NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=true. The Worker independently verifies Cloudflare Access identity for every protected action.</p>
   </div>;

@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, getAdminApiBase, getAdminApiHealthUrl, readAdminCollection } from "@/lib/admin-api";
+import { AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, getAdminApiBase, getAdminApiHealthUrl, readAdminCollection, readCommercialDocuments } from "@/lib/admin-api";
 
-type DashboardData = { enquiries: AdminRow[]; jobs: AdminRow[]; documents: AdminRow[] };
+type DashboardData = { enquiries: AdminRow[]; jobs: AdminRow[]; quotations: AdminRow[]; invoices: AdminRow[] };
 type LoadState =
   | { status: "not-configured"; message: string }
   | { status: "loading"; message: string }
@@ -37,13 +37,14 @@ export default function AdminDashboardClient() {
     Promise.all([
       readAdminCollection("enquiries", controller.signal),
       readAdminCollection("jobs", controller.signal),
-      readAdminCollection("documents", controller.signal),
-    ]).then(([enquiries, jobs, documents]) => {
+      readCommercialDocuments("Quotation", undefined, controller.signal),
+      readCommercialDocuments("Invoice", undefined, controller.signal),
+    ]).then(([enquiries, jobs, quotations, invoices]) => {
       if (!controller.signal.aborted) {
         setState({
           status: "ready",
           message: "Counts reflect the most recent successful API response.",
-          data: { enquiries, jobs, documents },
+          data: { enquiries, jobs, quotations, invoices },
         });
       }
     }).catch((error: unknown) => {
@@ -56,7 +57,7 @@ export default function AdminDashboardClient() {
 
   const metrics = useMemo(() => {
     if (state.status !== "ready") return null;
-    const { enquiries, jobs, documents } = state.data;
+    const { enquiries, jobs, quotations, invoices } = state.data;
     // Keep closed/converted enquiries in the full records view for audit, but
     // exclude them from active pipeline KPIs and the recent-active feed.
     const inactiveEnquiryStatuses = new Set(["closed", "converted", "cancelled"]);
@@ -64,8 +65,8 @@ export default function AdminDashboardClient() {
       !inactiveEnquiryStatuses.has(String(item.status ?? "").trim().toLowerCase())
     );
     const activeJobs = jobs.filter((job) => !["completed", "cancelled"].includes(String(job.status ?? "").trim().toLowerCase()));
-    const draftQuotes = documents.filter((doc) => doc.kind === "Quotation" && doc.status === "Draft");
-    const issuedUnpaid = documents.filter((doc) => doc.kind === "Invoice" && ["Sent", "Overdue"].includes(String(doc.status ?? "")));
+    const draftQuotes = quotations.filter((doc) => doc.status === "Draft");
+    const issuedUnpaid = invoices.filter((doc) => ["Sent", "Overdue"].includes(String(doc.status ?? "")));
     const outstandingFaceValueCents = issuedUnpaid.reduce((sum, doc) => {
       const cents = typeof doc.amount_cents === "number" ? doc.amount_cents : 0;
       return sum + Math.max(0, cents);
@@ -99,7 +100,7 @@ export default function AdminDashboardClient() {
     <section className="metric-grid" aria-label="Business metrics">
       <article className="metric-card"><span className="metric-label">Active enquiries</span><strong>{metricValue(metrics?.enquiries)}</strong><small>{apiIsReady ? `${metrics?.newEnquiries ?? 0} new to review` : "API data not confirmed"}</small></article>
       <article className="metric-card"><span className="metric-label">Active jobs</span><strong>{metricValue(metrics?.activeJobs)}</strong><small>{apiIsReady ? "Excludes completed and cancelled jobs" : "API data not confirmed"}</small></article>
-      <article className="metric-card"><span className="metric-label">Draft quotations</span><strong>{metricValue(metrics?.draftQuotes)}</strong><small>{apiIsReady ? "Quotation documents marked Draft" : "API data not confirmed"}</small></article>
+      <article className="metric-card"><span className="metric-label">Draft quotations</span><strong>{metricValue(metrics?.draftQuotes)}</strong><small>{apiIsReady ? "Formal quotations from the commercial-document API" : "API data not confirmed"}</small></article>
       <article className="metric-card"><span className="metric-label">Issued unpaid invoices</span><strong>{metricValue(metrics ? zar(metrics.outstandingFaceValueCents) : undefined)}</strong><small>{apiIsReady ? `${metrics?.issuedUnpaidCount ?? 0} invoices · status-based face value` : "API data not confirmed"}</small></article>
     </section>
     {apiIsReady && <p className="module-footnote">Invoice figures use document status and face value. The verified database schema has no partial-payment ledger, so this is not a reconciled balance due.</p>}
