@@ -150,20 +150,21 @@ These values exist solely to test the preview interface; they must never be mist
 - [Cloudflare preview deployment](cloudflare-preview-deployment.md)
 
 
-## Workflow A — preview-only additions (3 November 2026)
+---
 
-- Preview admin API Worker: `ngms-admin-api-preview`, version **51**, deployed at 100% of that preview Worker’s traffic.
-- Preview intake Worker: `ngms-public-intake-preview`, version **38**, deployed at 100% of that preview Worker’s traffic.
-- Preview public intake: `POST /api/public/enquiries` uses Turnstile validation, honeypot handling, a UUID submission key and server-side duplicate detection. Its CORS allow-list includes the isolated Cloudflare preview website origin. The production intake Worker allow-list was not modified.
-- Preview admin conversion: `POST /api/admin/enquiries/:id/convert-to-customer` uses the existing `enquiry_customer_links` table, links to a matching CRM customer or creates one, updates the enquiry to Contacted and records customer activity. Ambiguous matches are rejected for manual resolution.
-- Preview quotation issue: `POST /api/admin/commercial-documents/:id/share` requires an originating `enquiry_id` and verifies that the quotation and enquiry refer to the same CRM customer before issuing the link.
-- Preview customer decision: the token route retrieves itemised quote data and records one customer decision. Acceptance creates one job linked through `jobs.source_document_id`, sets the enquiry to Converted, and writes customer activity. Decline records the decline without a job. The unique partial index on `jobs.source_document_id` prevents a second job from being created for the same quotation.
-- Access boundary: the existing administrator Access application remains in place. A separate Access application named `NGMS Preview Public Quote Decisions` applies a Bypass/Everyone policy only to `/api/public/quotes/*`; the Worker still requires a 256-bit random, hashed, expiring and single-use token. No admin endpoints are included in the bypass path.
-- Preview write flag: `NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=false`. The admin UI mutations remain disabled until authenticated browser testing. The quote-request form can be browser-tested with synthetic Turnstile submissions, but real customer use is not enabled.
-- Frontend: Workflow A public form, CRM action, enquiry-bound quotation issue selector and customer decision UI are committed to draft PR #283. The latest GitHub rebuild CI run passed TypeScript, dependency audit, no-Supabase guard, Next.js build, Docker build and route smoke tests. Those commits have not yet been deployed to the active frontend preview.
+## Preview public intake update — 3 November 2026
 
-## Remaining acceptance evidence
+This section supersedes the earlier note that a separate preview intake Worker and Turnstile setup were still required.
 
-- A browser test from the actual preview frontend is still required for Turnstile, CORS, Access session, form submission and D1 read-after-write.
-- A synthetic end-to-end quote must be created, issued, accepted and declined in separate test cases; verify one job on acceptance, no job on decline, duplicate/replay returns conflict, and expiry returns not found.
-- The ChatGPT tool environment blocks direct requests to the `workers.dev` origin, so it did not independently verify the public HTTP responses. Do not treat Worker version deployment or source checks as browser acceptance.
+- Preview public intake Worker: `ngms-public-intake-preview`.
+- Preview endpoint: `https://ngms-public-intake-preview.nextgensolarcleaningmaintenancesolutions.workers.dev/api/public/enquiries`.
+- Preview D1 binding: `DB` → `ngms-admin-preview` (`f12c5c48-58cd-4c48-82de-8c7341b8e6cf`).
+- Preview R2 binding: `MEDIA` → `ngmsmedia-preview`.
+- A dedicated Turnstile widget named `NGMS V4 Rebuild Preview Enquiry` was created for the rebuild preview hostname. Its public site key is configured as a public build variable; the Turnstile secret is stored only as the Worker secret binding `TURNSTILE_SECRET_KEY`.
+- The preview intake Worker's allowlist now includes `https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev`. The production public-intake Worker and production Turnstile widget were not changed.
+- The feature branch adds `QuoteRequestForm` to the rebuild quote page. It sends customer requests to the preview intake endpoint with a Turnstile token and unique submission key. The existing intake Worker validates the payload, applies its honeypot and duplicate checks, and inserts into the existing `enquiries` table. No parallel quote table is introduced.
+- The current intake Worker stores preferred date in the enquiry details because the existing D1 `enquiries` schema has no dedicated preferred-date column.
+- Public photo attachments are not part of this phase.
+- Admin notification email is not confirmed: preview intake has no configured `LEAD_NOTIFY_TO` / `LEAD_NOTIFY_FROM` values. The enquiry is intended to be reviewed through the protected admin API; email delivery must not be claimed until configured and tested.
+
+**Verification state:** Cloudflare read-back confirms the preview D1/R2 bindings, Turnstile secret binding and updated origin configuration. Browser submission, Turnstile acceptance, D1 persistence and Admin Enquiries read-back remain unverified because the preview hostname is not resolvable from the current execution environment. Do not enable the public form on production.

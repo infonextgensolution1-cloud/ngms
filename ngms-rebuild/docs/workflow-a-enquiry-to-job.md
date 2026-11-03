@@ -1,66 +1,102 @@
-# NGMS Workflow A — Enquiry to accepted quotation to job
+# NGMS Workflow A — Enquiry to job
 
-**Scope:** Isolated NGMS V4 preview only. This document describes the intended and partially implemented workflow. It is not production release approval.
+**Status:** Workflow A UI/backend source is committed and migration 0012 is applied to preview D1. Worker version 50 compiles successfully but has not yet been deployed to the active preview API. Frontend build and end-to-end tests remain release gates.  
+**Production:** No production website, Worker, D1 database, R2 bucket, DNS or Access policy was changed.
 
-## Customer journey
+## Target workflow
 
-1. Customer opens the public **Request a Quote** page at `/quote`.
-2. Customer selects a service, provides contact details and site area, describes the work, optionally selects a preferred date and completes Cloudflare Turnstile.
-3. The browser submits to the dedicated preview intake Worker at `POST /api/public/enquiries`. The Worker validates required fields, checks Turnstile, processes the honeypot and submission key, detects near-duplicate submissions and writes an enquiry to preview D1.
-4. The customer sees a receipt message. The form does not issue a formal quotation or automatically send an email/WhatsApp message.
+1. Customer submits a quote request on `/quote`.
+2. The public intake Worker validates the request and Turnstile token, applies honeypot and duplicate-submission checks, and stores the enquiry in preview D1.
+3. An authorised NGMS administrator reviews the enquiry in the Admin Enquiries module.
+4. The administrator converts/links the enquiry to a CRM customer and prepares a formal quotation with itemised lines, totals and terms.
+5. The administrator approves the quotation for sending. The customer receives a private quotation link/PDF through the approved channel.
+6. The customer accepts or declines. Acceptance is recorded against the quotation.
+7. An accepted quotation creates one linked job, preventing duplicate job conversion.
 
-## Admin journey
+The customer never directly creates a job. A formal quotation is not generated or sent automatically from an unreviewed enquiry.
 
-5. An authorised NGMS administrator opens Admin → Enquiries and reviews the new enquiry.
-6. The administrator selects **Add to CRM**. The preview API links the enquiry to an existing CRM customer where one exact email or normalised phone match is found, or creates a CRM customer when there is no match. More than one match is rejected for manual resolution. The conversion is mapped through the existing `enquiry_customer_links` table so a retry returns the same customer.
-7. The administrator prepares the formal quotation in the existing Quotations module: select the CRM customer, enter itemised work lines, quantities, units and ZAR unit prices, then apply any discount, VAT setting and notes. The quotation is saved as Draft; saving does not contact the customer.
-8. The administrator selects the originating enquiry for that same CRM customer and chooses **Approve & issue quotation**. The API verifies the customer/enquiry relationship, changes the quote to Sent, expires any previous unused link and creates a new high-entropy 30-day one-use decision link. The API stores only the SHA-256 token hash in D1.
-9. The administrator reviews the link and copies it or opens a pre-filled WhatsApp message. Sending is manual; the system does not send customer communications automatically at this stage.
+## Phase 1 — Public quote request intake
 
-## Customer decision and job creation
+### Implemented in the feature branch
 
-10. The customer opens `/quote/[token]`. The page requests only the quote bound to that token and displays the itemised lines, charges, discount, VAT (when enabled), total and notes.
-11. The customer chooses Accept or Decline. The public endpoint is routed through the narrowly scoped Cloudflare Access application for `/api/public/quotes/*`; no admin endpoints are included in that bypass. The Worker validates the token hash, expiry, quote state and source enquiry/customer relationship.
-12. On **Accept**, a D1 batch records the quote as Accepted, consumes the token, creates one job linked to the CRM customer and quotation using `jobs.source_document_id`, marks the enquiry Converted and writes customer activity. A unique index on `jobs.source_document_id` protects against duplicate job creation. The API returns the job reference and the customer confirmation displays it.
-13. On **Decline**, the decision is recorded and the token consumed. No job is created.
-14. Repeated or expired token submissions are rejected. Admin quotation lists include the linked job ID when one exists.
+- Replaced the disabled preview form with a client-side form at `ngms-rebuild/app/quote/page.tsx`.
+- Added `QuoteRequestForm.tsx` with service selection, customer name, phone/email, property area, preferred date and work description.
+- Added explicit Turnstile rendering using action `ngms_enquiry`.
+- Added unique `submissionKey`, honeypot field, client validation, submit state and success/error/reference feedback.
+- Service values are mapped to the exact allowlisted values enforced by the public intake Worker.
+- Preferred date is preserved in the enquiry details; the current D1 schema has no dedicated preferred-date column.
+- No public photo attachments are accepted in this phase.
 
-## Existing components reused
+### Preview-only Cloudflare configuration
 
-- Formal quotations and invoices: `/api/admin/commercial-documents` and `document_line_items`.
-- CRM customers and activity: `customers`, `customer_activity`.
-- Enquiry conversion map: `enquiry_customer_links` (already included by migration 0011).
-- One-use quotation links: `quote_public_links` (already included by migration 0012).
-- Job source link and unique guard: `jobs.source_document_id` and the existing unique partial index.
-- Public request protection: Cloudflare Turnstile and preview intake Worker.
+- Public intake Worker: `ngms-public-intake-preview`.
+- Intake endpoint: `https://ngms-public-intake-preview.nextgensolarcleaningmaintenancesolutions.workers.dev/api/public/enquiries`.
+- Preview D1: `ngms-admin-preview` (`f12c5c48-58cd-4c48-82de-8c7341b8e6cf`).
+- Preview Turnstile widget: `NGMS V4 Rebuild Preview Enquiry`.
+- Public site key: `0x4AAAAAAFxoO4FZHHYoj_ov` (not secret).
+- Secret binding `TURNSTILE_SECRET_KEY` is configured only on `ngms-public-intake-preview`; its value is not stored in GitHub or browser code.
+- The preview intake Worker allowlist includes `https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev`.
+- The original production `ngms-public-intake` Worker and production Turnstile widget were not changed.
 
-No additional D1 schema migration was needed for Workflow A; the required tables and uniqueness constraints are already in migrations 0011 and 0012.
+### Verification still required
 
-## Preview deployment record — 3 November 2026
+- [ ] Cloudflare build/deployment of the feature branch.
+- [ ] Confirm site key and endpoint are injected into the client bundle in the deployed preview.
+- [ ] Complete Turnstile and submit a synthetic request.
+- [ ] Verify the enquiry appears in `ngms-admin-preview`.
+- [ ] Verify the same enquiry appears in the authenticated Admin Enquiries module.
+- [ ] Test invalid Turnstile, missing required fields, honeypot and duplicate submission.
+- [ ] Verify there are no cross-origin or Access issues.
 
-- Preview API Worker `ngms-admin-api-preview`: version 51, deployed at 100% preview traffic.
-- Preview Public Intake Worker `ngms-public-intake-preview`: version 38, deployed at 100% preview traffic. Its CORS allow-list includes the isolated Cloudflare preview website origin. Production intake CORS was not modified.
-- Cloudflare Access app `NGMS Preview Public Quote Decisions`: Bypass/Everyone policy only for `ngms-admin-api-preview.../api/public/quotes/*`. The wider admin API Access application remains protected.
-- Frontend source changes: draft PR #283. GitHub rebuild CI passed dependency audit, TypeScript, Supabase guard, Next.js build, Docker build and route smoke tests. Frontend changes have not yet been promoted to the active frontend preview.
-- Admin writes remain disabled with `NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=false`.
+The current environment cannot resolve/fetch the `workers.dev` host directly, so the Worker configuration read-back is verified but browser submission is not yet verified.
 
-## Acceptance tests still required
+## Phase 2 — Administrator review and CRM conversion
 
-- [ ] Use the actual preview website in a browser and submit a synthetic enquiry with a valid Turnstile challenge.
-- [ ] Verify the public form CORS preflight and successful preview D1 write.
-- [ ] Sign in to preview Admin through Cloudflare Access and verify that the enquiry appears.
-- [ ] Convert one synthetic enquiry to CRM; verify the mapping, customer and activity. Repeat the action and confirm no duplicate.
-- [ ] Prepare an itemised quote with test amounts and independently verify subtotal, discount, VAT and total.
-- [ ] Issue the quote against its originating enquiry; verify the link and quote status.
-- [ ] Open the customer link in a signed-out/private browser; verify quote details load without admin Access sign-in.
-- [ ] Accept a test quote; verify exactly one job, quote Accepted, enquiry Converted, link consumed and customer activity recorded.
-- [ ] Replay the same token; verify conflict/no second job.
-- [ ] Decline a separate test quote; verify no job exists for that quote.
-- [ ] Verify expiry and invalid-token handling.
-- [ ] Confirm the admin Quotations view displays the created job reference.
-- [ ] Test the admin Access allow/deny/session-expiry behaviour.
-- [ ] Keep the feature flag off until the browser QA and read-after-write tests pass.
+The Enquiries module exposes an explicit “Add to CRM” action. The preview Worker conversion route links an enquiry to one exact existing CRM customer match (email or normalised phone), or creates a new CRM customer. An enquiry-to-customer link table makes retries idempotent. Ambiguous matches are rejected for manual resolution. Conversion records customer activity and moves a New enquiry to Contacted.
 
-## Production boundary
+## Phase 3 — Formal quotation
 
-Do not merge PR #283, change production DNS, alter the live Vercel project, or deploy the preview Worker to the production Worker. Production release requires the remaining acceptance tests, business-owner sign-off and an explicit release decision.
+Use the existing `customers`, `documents`, `document_line_items`, `document_sequences` and `customer_activity` tables. The preview Worker’s commercial-document route already validates customer ownership, line items, discount and VAT settings and allocates a sequential reference. The admin quotation screen must call this commercial route rather than the legacy minimal document route.
+
+Formal quotation requirements:
+- Item description, quantity, unit, unit price and line total.
+- Discount and VAT settings, with ZAR values stored as integer cents.
+- Sequential NGMS quotation reference.
+- Draft status until the administrator reviews and approves it.
+- PDF/print output and immutable issued content/versioning.
+- Human-controlled send action.
+
+## Phase 4 — Customer approval and job creation
+
+The current rebuild quote-token page is intentionally inactive. Implement a separate preview-only, high-entropy, expiring, single-use customer decision token. Store only a token hash in D1. The public page must retrieve only the quotation associated with the token, show the total and terms, and accept a clear Accept/Decline decision.
+
+On acceptance, one atomic or idempotent backend workflow must:
+1. Confirm the token is valid, unexpired and unused.
+2. Confirm the quotation is still in a sendable status.
+3. Record acceptance and timestamp.
+4. Create exactly one job linked to the CRM customer and accepted quotation.
+5. Mark the originating enquiry as converted.
+6. Record customer activity/audit events.
+
+A decline must record the decision without creating a job.
+
+## Communications
+
+The current public intake Worker has notification code but its preview environment has no configured lead-notification recipient/from values. Submission is still recorded in D1; administrators must review it in the protected dashboard. Do not claim automated email notification until an approved recipient, sender and delivery test are configured.
+
+Quotation delivery uses two explicit administrator actions: save an itemised quotation as a private Draft, then approve/issue it to create a 30-day customer link. The interface offers copy-link and a pre-filled WhatsApp compose link. No email or WhatsApp message is sent automatically; a human reviews and sends it.
+
+## Release boundary
+
+This work is preview-only. Do not merge or promote it to the live website until the full acceptance checklist passes and the owner explicitly approves production release.
+
+
+## Workflow A implementation and preview migration
+
+- Additive migration: `migrations/0012_workflow_a_quote_lifecycle.sql`.
+- New table: `enquiry_customer_links` (one CRM customer link per enquiry).
+- Extended `quote_public_links`: originating enquiry/customer, decision, decision timestamp and resulting job ID.
+- Unique partial index: one job per `source_document_id`.
+- The preview Worker source is maintained at `workers/ngms-admin-api-preview/src/index.ts`; deploy only to `ngms-admin-api-preview`.
+- Before enabling preview writes: apply the migration to `ngms-admin-preview` only; verify Access sign-in/CORS; submit a synthetic Turnstile enquiry; convert it to CRM; create and issue an itemised quote; test Accept, Decline, expiry and replay; verify exactly one job and the enquiry status in preview D1.
+- Production Worker, production D1, production R2, live domain and DNS remain out of scope.

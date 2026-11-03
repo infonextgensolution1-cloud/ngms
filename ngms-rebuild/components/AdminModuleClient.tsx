@@ -3,12 +3,11 @@
 import Link from "next/link";
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, convertAcceptedQuotationToJob, createAdminCustomer, createAdminRecord,
-  createCommercialDocument, createCommercialShareLink, convertEnquiryToCustomer, getAdminApiBase, getAdminApiHealthUrl, getAdminMediaDownloadUrl,
-  previewWritesEnabled, readAdminCollection, readAdminCustomers, readCommercialDocument, readCommercialDocuments,
-  readInvoicePayments, recordInvoicePayment, updateAdminStatus, updateCommercialDocumentStatus, uploadAdminMedia,
+  AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, convertEnquiryToCustomer, createAdminRecord, getAdminApiBase,
+  getAdminApiHealthUrl, getAdminMediaDownloadUrl, previewWritesEnabled, readAdminCollection, updateAdminStatus, uploadAdminMedia,
 } from "@/lib/admin-api";
 import { services } from "@/lib/site";
+import EnquiryQuoteBuilder from "@/components/EnquiryQuoteBuilder";
 
 export type AdminModuleKey =
   | "enquiries" | "jobs" | "quotes" | "invoices" | "calendar"
@@ -419,12 +418,14 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
+  const [convertingId, setConvertingId] = useState<string | null>(null);
+  const [quotingEnquiry, setQuotingEnquiry] = useState<AdminRow | null>(null);
   const apiConfigured = Boolean(getAdminApiBase());
   const apiHealthUrl = getAdminApiHealthUrl();
   const writesEnabled = previewWritesEnabled();
   const hasReadEndpoint = Boolean(module.resource);
-  const canCreate = ["enquiries", "jobs", "quotes", "invoices"].includes(moduleKey);
-  const writeResource = moduleKey === "enquiries" || moduleKey === "jobs" ? moduleKey : "documents";
+  const canCreate = ["enquiries", "jobs"].includes(moduleKey);
+  const writeResource: "enquiries" | "jobs" = moduleKey === "jobs" ? "jobs" : "enquiries";
 
   const load = useCallback(async (signal: AbortSignal) => {
     if (!getAdminApiBase() || !module.resource) {
@@ -598,37 +599,21 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     }
   }
 
-  async function handleCustomerCreate(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!writesEnabled || !apiConfigured) return;
-    const form = event.currentTarget;
-    const data = new FormData(form);
-    const displayName = String(data.get("display_name") ?? "").trim();
-    if (!displayName) {
-      setActionError("Enter a customer name before saving.");
-      return;
-    }
-    setSaving(true);
+  async function handleConvertEnquiry(row: AdminRow) {
+    if (!writesEnabled || !apiConfigured || !row.id || row.customer_id || convertingId) return;
+    const customerName = String(row.customer_name ?? "this enquiry");
+    if (!window.confirm(`Create or link a CRM customer for ${customerName}? This will mark a new enquiry as Contacted.`)) return;
+    setConvertingId(row.id);
     setActionMessage("");
     setActionError("");
     try {
-      const customer = await createAdminCustomer({
-        display_name: displayName,
-        customer_type: String(data.get("customer_type") ?? "Individual"),
-        primary_phone: String(data.get("primary_phone") ?? "").trim(),
-        primary_email: String(data.get("primary_email") ?? "").trim(),
-        service_address: String(data.get("service_address") ?? "").trim(),
-        billing_address: String(data.get("billing_address") ?? "").trim(),
-      });
-      if (customer.id) setNewCustomerId(customer.id);
-      setActionMessage("Customer added to the preview CRM. Select the customer when preparing the quotation.");
-      form.reset();
-      setShowCustomerForm(false);
+      const linked = await convertEnquiryToCustomer(row.id);
+      setActionMessage(`Enquiry linked to CRM customer ${String(linked.customer_id ?? linked.id ?? "")}.`);
       setRefreshVersion((version) => version + 1);
     } catch (error) {
       setActionError(adminApiErrorMessage(error));
     } finally {
-      setSaving(false);
+      setConvertingId(null);
     }
   }
 
@@ -658,11 +643,17 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     </div>
     <div className="api-notice" role="status">
       <span className="notice-dot" aria-hidden="true"/>
-      <div><strong>{error ? "API data is unavailable" : loading ? "Loading records" : !module.resource ? "API route not implemented" : !apiConfigured ? "Preview integration pending" : "Read-only API connection"}</strong>
-        <p>{error ? error : !module.resource ? "The Worker does not expose this module. No demo records are displayed." : !apiConfigured ? adminApiConfigurationMessage() + " No request was sent and no data is simulated." : "Reads use the approved preview Worker. Any write controls remain disabled by default until preview authentication and persistence tests are approved."}</p>
+      <div><strong>{error ? "API data is unavailable" : loading ? "Loading records" : !module.resource ? "API route not implemented" : !apiConfigured ? "Preview integration pending" : writesEnabled ? "Preview API write controls enabled" : "Read-only API connection"}</strong>
+        <p>{error ? error : !module.resource ? "The Worker does not expose this module. No demo records are displayed." : !apiConfigured ? adminApiConfigurationMessage() + " No request was sent and no data is simulated." : "Reads use the approved preview Worker. Supported mutations are available only when the explicit preview-write flag is enabled and Cloudflare Access independently verifies the administrator."}</p>
         {apiHealthUrl&&<p><a className="text-link" href={apiHealthUrl} target="_blank" rel="noopener noreferrer">Open secure API sign-in / health check ↗</a> <span className="module-footnote">After signing in, return here and refresh records.</span></p>}
       </div>
     </div>
+
+    {moduleKey === "enquiries" && quotingEnquiry && <EnquiryQuoteBuilder
+      enquiry={quotingEnquiry}
+      onClose={() => setQuotingEnquiry(null)}
+      onComplete={() => setRefreshVersion((version) => version + 1)}
+    />}
 
     {canCreate && <section className="action-panel">
       <div className="action-panel-head"><div><strong>Create {moduleKey==="enquiries"?"enquiry":moduleKey==="jobs"?"job":moduleKey==="quotes"?"quotation":"invoice"}</strong><small>New records are only allowed when the explicit preview-write flag is enabled.</small></div>
@@ -742,11 +733,13 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       {loading?<div className="table-empty" role="status"><span aria-hidden="true">◌</span><h2>LOADING RECORDS</h2><p>Waiting for the protected Cloudflare API response.</p></div>
       :error?<div className="table-empty"><span aria-hidden="true">!</span><h2>RECORDS COULD NOT BE LOADED.</h2><p>No empty list or zero balance is substituted for an API error.</p><button className="button button-outline button-dark-outline" type="button" onClick={()=>setRefreshVersion((v)=>v+1)}>Try again</button></div>
       :!module.resource?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>ENDPOINT NOT YET IMPLEMENTED.</h2><p>This module needs a documented API route and approved business definitions before its data can be displayed.</p></div>
-      :!apiConfigured?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>CONNECT THE PREVIEW API.</h2><p>Set the non-secret API base URL in Vercel Preview. Cloudflare Access and the preview origin allowlist must also match.</p></div>
+      :!apiConfigured?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>CONNECT THE PREVIEW API.</h2><p>Set the non-secret API base URL in the Cloudflare preview build. Cloudflare Access and the preview origin allowlist must also match.</p></div>
       :rows.length===0?<div className="table-empty"><span aria-hidden="true">▤</span><h2>NO RECORDS RETURNED.</h2><p>The protected API returned an empty collection for this module. This is not an API error.</p></div>
       :visibleRows.length===0?<div className="table-empty"><span aria-hidden="true">⌕</span><h2>NO MATCHES.</h2><p>Try a different search term.</p></div>
-      :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<th>File action</th>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<th>Document workflow</th>}{moduleKey==="enquiries"&&<th>CRM / quotation workflow</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&<th>Status action</th>}</tr></thead>
-        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<td>{getAdminMediaDownloadUrl(row.id)?<a className="text-link" href={getAdminMediaDownloadUrl(row.id)} target="_blank" rel="noopener noreferrer">Open / download ↗</a>:<span className="inline-feedback">File link unavailable</span>}</td>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<td><CommercialDocumentActions moduleKey={moduleKey} row={row} enquiries={enquiryRows} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{moduleKey==="enquiries"&&<td><ConvertEnquiryToCrmAction row={row} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents"].includes(module.resource)&&<td><StatusEditor key={String(row.id)+"-"+String(row.status)} resource={module.resource as "enquiries"|"jobs"|"documents"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
+      :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<th>File action</th>}{moduleKey==="enquiries"&&writesEnabled&&<th>CRM / quotation workflow</th>}{writesEnabled&&(moduleKey==="enquiries"||moduleKey==="jobs")&&<th>Preview action</th>}</tr></thead>
+        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<td>{getAdminMediaDownloadUrl(row.id)?<a className="text-link" href={getAdminMediaDownloadUrl(row.id)} target="_blank" rel="noopener noreferrer">Open / download ↗</a>:<span className="inline-feedback">File link unavailable</span>}</td>}{moduleKey==="enquiries"&&writesEnabled&&<td>{row.customer_id
+        ? <button type="button" className="button button-small button-orange" onClick={()=>setQuotingEnquiry(row)}>Prepare quotation</button>
+        : <button type="button" className="button button-small" onClick={()=>handleConvertEnquiry(row)} disabled={!row.id||convertingId!==null}>{convertingId===row.id?"Linking…":"Add to CRM"}</button>}</td>}{writesEnabled&&(moduleKey==="enquiries"||moduleKey==="jobs")&&module.resource&&<td><StatusEditor resource={module.resource as "enquiries"|"jobs"} statusOptions={STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
     </section>
     {moduleKey==="invoices"&&<p className="module-footnote">Invoices are generated only from accepted quotations. The payment ledger tracks partial payments, prevents overpayment and marks an invoice Paid only when its allocated payments cover the full value. Refunds, reversals and credit-note allocation remain separate work.</p>}
     {moduleKey==="content"&&<p className="module-footnote">Content editing remains disabled until optimistic concurrency, publish/rollback and the owner-approved field schema are implemented.</p>}

@@ -240,6 +240,85 @@ export async function updateAdminStatus(
   });
 }
 
+export async function convertEnquiryToCustomer(id: string): Promise<AdminRow> {
+  if (!/^[A-Za-z0-9-]{1,120}$/.test(id)) {
+    throw new AdminApiError("The enquiry reference is not valid.", "invalid-response");
+  }
+  return mutationFetch(`/api/admin/enquiries/${encodeURIComponent(id)}/convert-to-customer`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "{}",
+  });
+}
+
+async function mutationJson<T>(path: string, init: RequestInit): Promise<T> {
+  if (!previewWritesEnabled()) {
+    throw new AdminApiError("Preview write actions are disabled until staging authentication and persistence checks are complete.", "not-configured");
+  }
+  const base = getAdminApiBase();
+  if (!base) throw new AdminApiError("The protected Cloudflare API base URL is not configured for this preview.", "not-configured");
+  let response: Response;
+  try {
+    response = await fetch(`${base}${path}`, {
+      ...init,
+      credentials: "include",
+      cache: "no-store",
+      headers: { Accept: "application/json", ...(init.headers ?? {}) },
+    });
+  } catch {
+    throw new AdminApiError("The API request failed. No success has been assumed.", "network");
+  }
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message = body && typeof body === "object" && "error" in body &&
+      typeof (body as { error?: unknown }).error === "string"
+      ? (body as { error: string }).error
+      : `Cloudflare API returned HTTP ${response.status}.`;
+    throw new AdminApiError(message, "http", response.status);
+  }
+  return body as T;
+}
+
+export type CommercialQuoteResult = {
+  item: AdminRow;
+  lines: Array<Record<string, unknown>>;
+};
+
+export async function createCommercialDocument(
+  payload: Record<string, unknown>
+): Promise<CommercialQuoteResult> {
+  const result = await mutationJson<CommercialQuoteResult>("/api/admin/commercial-documents", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!result?.item || typeof result.item !== "object" || !Array.isArray(result.lines)) {
+    throw new AdminApiError("The commercial-document response did not match the expected { item, lines } contract.", "invalid-response");
+  }
+  return result;
+}
+
+export async function shareCommercialQuote(
+  documentId: string,
+  enquiryId: string
+): Promise<{ url: string; expires_at: string; reference: string }> {
+  if (!/^[A-Za-z0-9-]{1,120}$/.test(documentId) || !/^[A-Za-z0-9-]{1,120}$/.test(enquiryId)) {
+    throw new AdminApiError("The quotation or enquiry reference is not valid.", "invalid-response");
+  }
+  const result = await mutationJson<{ url: string; expires_at: string; reference: string }>(
+    `/api/admin/commercial-documents/${encodeURIComponent(documentId)}/share`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enquiry_id: enquiryId }),
+    }
+  );
+  if (!result || typeof result.url !== "string" || typeof result.reference !== "string" || typeof result.expires_at !== "string") {
+    throw new AdminApiError("The quotation-sharing response did not include a customer URL, reference and expiry.", "invalid-response");
+  }
+  return result;
+}
+
 export async function uploadAdminMedia(file: File): Promise<AdminRow> {
   const accepted = new Set(["image/jpeg", "image/png", "image/webp", "image/avif", "application/pdf"]);
   if (!accepted.has(file.type)) {
