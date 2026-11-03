@@ -36,6 +36,13 @@ export class AdminApiError extends Error {
 }
 
 const PREVIEW_ADMIN_API_HOST = "ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev";
+const PRODUCTION_ADMIN_API_HOST = "ngms-admin-api.nextgensolarcleaningmaintenancesolutions.workers.dev";
+
+function approvedAdminApiHost(): string {
+  return process.env.NEXT_PUBLIC_NGMS_ENV === "production"
+    ? PRODUCTION_ADMIN_API_HOST
+    : PREVIEW_ADMIN_API_HOST;
+}
 
 export function getAdminApiBase(): string {
   const configured = (process.env.NEXT_PUBLIC_NGMS_API_BASE ?? "").trim();
@@ -45,7 +52,7 @@ export function getAdminApiBase(): string {
     const url = new URL(configured);
     if (
       url.protocol !== "https:" ||
-      url.hostname !== PREVIEW_ADMIN_API_HOST ||
+      url.hostname !== approvedAdminApiHost() ||
       url.port ||
       url.username ||
       url.password ||
@@ -68,13 +75,13 @@ export function getAdminApiHealthUrl(): string {
 
 export function adminApiConfigurationMessage(): string {
   const configured = (process.env.NEXT_PUBLIC_NGMS_API_BASE ?? "").trim();
-  if (!configured) return "The preview API URL is not configured.";
+  if (!configured) return "The NGMS API URL is not configured."
 
   try {
     const url = new URL(configured);
     if (
       url.protocol !== "https:" ||
-      url.hostname !== PREVIEW_ADMIN_API_HOST ||
+      url.hostname !== approvedAdminApiHost() ||
       url.port ||
       url.username ||
       url.password ||
@@ -82,9 +89,9 @@ export function adminApiConfigurationMessage(): string {
       url.search ||
       url.hash
     ) {
-      return "The configured API target is blocked. This preview admin only connects to the approved HTTPS preview API host; no request was sent.";
+      return "The configured API target is blocked. This deployment only connects to its approved HTTPS NGMS API host; no request was sent."
     }
-    return "The preview API configuration is valid.";
+    return "The NGMS API configuration is valid."
   } catch {
     return "The preview API URL is invalid. No request was sent.";
   }
@@ -172,6 +179,9 @@ export function adminApiErrorMessage(error: unknown): string {
 
 
 export function previewWritesEnabled(): boolean {
+  if (process.env.NEXT_PUBLIC_NGMS_ENV === "production") {
+    return process.env.NEXT_PUBLIC_NGMS_ENABLE_PRODUCTION_WRITES === "true";
+  }
   return process.env.NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES === "true";
 }
 
