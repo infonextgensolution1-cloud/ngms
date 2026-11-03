@@ -1,6 +1,6 @@
 # NGMS V4 admin-panel integration
 
-**Status:** admin integration code deployed to preview; authenticated browser verification pending  
+**Status:** baseline admin integration deployed to preview; Workflow A feature-branch frontend changes are not yet included in the active frontend preview.  
 **Application:** `ngms-rebuild/`  
 **Admin preview:** https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev/admin  
 **Preview API:** https://ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev  
@@ -40,7 +40,7 @@ The four synthetic test fixtures documented in the backend contract belong only 
 
 The current inspected D1 schema does not provide a normalized customer CRM, quotation/invoice line items, partial-payment ledger, credit-note allocation, job assignment/status history, or scheduling/reporting datasets. The current invoice overview uses status-based invoice face value only and must not be presented as a reconciled amount due.
 
-Public enquiry submission remains disabled because the existing public-intake Worker is bound to production D1. A dedicated preview intake Worker and Turnstile configuration are required before enabling public submissions or photo attachments.
+Public enquiry submissions use the dedicated `ngms-public-intake-preview` Worker and Turnstile widget, configured for preview D1. This feature branch includes the public quote-request form and intake endpoint. A real-browser Turnstile submission and read-after-write check are still required. Photo attachments remain out of scope for this workflow phase.
 
 ## Release boundary
 
