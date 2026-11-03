@@ -41,9 +41,11 @@ export default function QuotePublicDecisionClient({ token }: { token: string }) 
       const response=await submitPublicQuotationDecision(token,next);
       setDecision(next);
       setMessage(response.decision==="Accepted"
-        ? "Thank you. Your acceptance has been recorded. NGMS can now arrange the next steps."
+        ? (response.job_id
+          ? "Thank you. Your acceptance has been recorded and a job has been created for NGMS. Your job reference is " + response.job_id + ". Our team will contact you to arrange the work."
+          : "Thank you. Your acceptance has been recorded. NGMS can now arrange the next steps.")
         : "Your response has been recorded. Contact NGMS if you would like to discuss changes.");
-      setResult((current)=>current?{...current,quote:{...current.quote,status:response.decision,used_at:new Date().toISOString()}}:current);
+      setResult((current)=>current?{...current,quote:{...current.quote,status:response.decision,decision:response.decision as "Accepted"|"Declined",job_id:response.job_id ?? null,used_at:new Date().toISOString()}}:current);
     } catch(e) {
       setError(e instanceof Error?e.message:"Your response could not be saved. Please contact NGMS.");
     } finally {
