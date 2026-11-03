@@ -19,7 +19,9 @@
 - The overview requests enquiries/jobs plus formal quotations and formal invoices from the protected preview API. It shows metrics only after all four reads succeed.
 - Enquiries, jobs, media and website content continue to use their documented collection endpoints. Quotations and invoices now use `/api/admin/commercial-documents`, not the legacy generic documents collection. The quotation screen loads CRM customers and supports itemised lines, quantities, units, unit prices, discounts, saved VAT settings and notes. A preview-only customer form creates CRM records through `POST /api/admin/customers`.
 - Invoice creation is restricted to accepted quotations that do not already have an active invoice. The invoice API copies the approved line items, discount and VAT treatment from the source quotation. The preview Worker also checks for an existing invoice, and preview D1 has a partial unique index as a database-level guard.
-- Formal quotation/invoice lists display the NGMS document reference and status. Document status updates use the formal commercial-document status route. The invoice UI does not offer a `Paid` status because no payment ledger/reconciliation flow exists.
+- Formal quotation/invoice lists display the NGMS document reference and status. The item-details panel reads saved line items and VAT/discount totals.
+- Quotations can be shared through a 30-day one-use public link. The public `/quote/:token` page reads the quotation from the preview API, displays the items and totals, and lets the customer accept or decline once. Accepted quotations can be converted to a job exactly once.
+- Invoices include a payment-history/balance panel. The UI can record partial payments using the deployed ledger API; the Worker rejects payments above the outstanding balance and marks the invoice Paid only when the full amount has been allocated. Paid is not a manual status option.
 - The media table still provides an authenticated Worker open/download link. Website-content JSON objects render as readable JSON. Scheduling endpoints exist in the API; the current generic calendar screen has not yet been connected to their date-range and mutation contract. Reports and settings remain unavailable.
 - The browser client accepts only HTTPS requests to the dedicated `ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev` host. A blank, malformed, or alternate target is blocked client-side; this preview cannot be pointed at the production API with the public build variable.
 - API requests use `credentials: "include"`, no-store caching, and typed checks for the collection `{ items: [] }` response shape. API errors remain errors; they are not presented as zero records.
@@ -36,8 +38,10 @@
 3. Select **Refresh data** on the overview. A connected result means all four KPI source reads succeeded; otherwise read the error shown by the interface.
 4. Open **Enquiries**, **Jobs**, **Quotations**, **Invoices**, **Media library** and **Website content**. Confirm returned preview records, a genuine empty response, or an explicit API error. Formal quotations/invoices must come from `/api/admin/commercial-documents`, not the generic `documents` collection.
 5. On Quotations, confirm the CRM customer list loads. In the controlled preview-write test, add a clearly synthetic customer, create a multi-line quotation, and verify the returned NGMS reference and stored line items.
-6. Mark that synthetic quotation Accepted, then create one invoice from it. Verify that the invoice inherits the source lines and VAT/discount values. Attempt a second invoice for the same quotation and confirm the Worker rejects it with HTTP 409. Do not test on production data.
-7. Confirm the write buttons/upload chooser remain disabled while the write flag is `false`. Do not enable writes until the browser login/read path has passed.
+6. Create a customer link for the synthetic quotation. Open the link in a separate browser session, confirm the itemised quote renders, then accept it once. Verify a repeat decision is rejected. Do not manually set Accepted in the admin status editor.
+7. Create one invoice from the accepted quote. Verify source lines, discount and VAT are carried over. Try to create a second invoice from the same quote and confirm HTTP 409, including if the first invoice is later Cancelled.
+8. Record a partial invoice payment and verify paid/balance amounts. Record the remaining balance and verify the invoice becomes Paid. Try an overpayment and confirm HTTP 409. Do not use real customer/payment data.
+9. Confirm the write buttons/upload chooser remain disabled while the write flag is `false`. Do not enable writes until the browser login/read path has passed.
 8. If a request fails, check Cloudflare Access sign-in/session, the preview API host, the preview Worker CORS allowlist, Access `options_preflight_bypass` and the browser's request/response details. Do not add the preview origin to the production Worker.
 
 ## What is not yet accepted
@@ -48,7 +52,7 @@ Preview-only QA fixtures may already exist in the preview D1 database. Their vis
 
 ## Data-model limitations
 
-D1 now provides CRM customers/contacts/activity, formal quotation and invoice documents with line items, yearly document sequences, job schedules and operation records. A payment ledger, partial-payment allocation, credit-note allocation, complete job assignment/status history and agreed profitability/reporting model are still absent. Invoice face value is therefore not a reconciled balance due.
+D1 now provides CRM customers/contacts/activity, formal quotation and invoice documents with line items, yearly document sequences, a partial-payment ledger, expiring one-use public quotation links, job schedules and operation records. Refunds/reversals, credit-note allocation, complete job assignment/status history and agreed profitability/reporting model remain absent. The payment API calculates invoice balance from the recorded payment ledger; it does not represent refunds or credits.
 
 Public enquiry submission remains disabled because the existing public-intake Worker is bound to production D1. A dedicated preview intake Worker and Turnstile configuration are required before enabling public submissions or photo attachments.
 
