@@ -138,12 +138,14 @@ export default function QuoteRequestForm() {
     const selected = SERVICE_OPTIONS.find((item) => item.label === String(data.get("service_display")));
     const description = String(data.get("details") ?? "").trim();
     const preferredDate = String(data.get("preferred_date") ?? "").trim();
-    const requestedService = selected?.note ?? selected?.label ?? "General property maintenance";
+    if (description.length < 10) {
+      setFeedback({ kind: "error", message: "Please describe the work in at least 10 characters." });
+      return;
+    }
     const details = [
-      `Requested service: ${requestedService}`,
       description,
       preferredDate ? `Preferred date: ${preferredDate}` : "",
-    ].filter(Boolean).join("\n\n");
+    ].filter(Boolean).join("\\n\\n");
 
     setSubmitting(true);
     try {
