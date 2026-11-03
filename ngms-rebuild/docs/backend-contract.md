@@ -38,8 +38,12 @@ Routes below are present in the `ngms-admin-api` Worker source. Their existence 
 - `GET /api/admin/commercial-documents?kind=Quotation|Invoice&status=...` — formal quotation/invoice list, filtered by document kind and optional status.
 - `POST /api/admin/commercial-documents` — create an itemised formal quotation, or create an invoice from an accepted quotation.
 - `GET /api/admin/commercial-documents/:id` — retrieve a formal document with its line items.
-- `PATCH /api/admin/commercial-documents/:id/status` — update permitted formal document statuses.
+- `PATCH /api/admin/commercial-documents/:id/status` — update permitted formal document statuses. Customer decisions are recorded through the one-use public link, not the manual status editor.
+- `POST /api/admin/commercial-documents/:id/share` — create a 30-day one-use customer link and move a Draft quotation to Sent.
+- `GET /api/admin/commercial-documents/:id/payments` and `POST /api/admin/commercial-documents/:id/payments` — view/record invoice payments, calculate paid/balance cents, reject overpayment and mark Paid only when fully paid.
+- `POST /api/admin/commercial-documents/:id/convert-to-job` — create one job from an accepted quotation.
 - `GET /api/admin/customers` and `POST /api/admin/customers` — list/create CRM customers.
+- `GET /api/public/quotes/:token` and `POST /api/public/quotes/:token` — retrieve a token-protected quotation and record its single Accepted/Declined decision.
 - `GET/POST /api/admin/schedules` and `PATCH/DELETE /api/admin/schedules/:id` — schedule records.
 - `GET/POST/PATCH/DELETE /api/admin/operations/{maintenance|suppliers|inventory|financials}/:id?` — operation records.
 - `GET /api/admin/media` and `POST /api/admin/media` — list/upload allowed media.
@@ -61,6 +65,9 @@ The production and preview D1 databases contain the core business tables below:
 - `documents`: formal quotations/invoices, customer relationship, reference, issue/due dates, amount/subtotal/discount/VAT cents, status, notes and invoice source document.
 - `document_line_items`: item description, quantity, unit, unit price cents and line total cents, linked to a document.
 - `document_sequences`: yearly formal quotation and invoice number sequences.
+- `document_payments`: invoice payment ledger with amount cents, payment date, method, reference, notes and recorder.
+- `quote_public_links`: hashed, expiring, one-use customer quote decisions, with accepted/declined outcome.
+- `enquiry_customer_links`: explicit enquiry-to-CRM customer relationship.
 - `schedules`: scheduled start/end, assigned person, customer/site, status and notes.
 - `projects`, `media`, `site_content`: project records, R2 media metadata and CMS content.
 - `operation_records`: maintenance, supplier, inventory and financial operational records.
@@ -68,9 +75,9 @@ The production and preview D1 databases contain the core business tables below:
 The formal commercial-document API is the supported route for new quotations and invoices. The generic `/api/admin/documents` endpoint remains for legacy/basic records and must not be used by the V4 commercial-document forms.
 
 Business-model limitations remain:
-- There is no partial-payment ledger or payment-to-invoice allocation. The dashboard may show invoice face value by status, but must not present it as a reconciled balance due.
-- Credit-note allocation and a complete job status/assignment history are not yet implemented.
-- Marking an invoice as paid is intentionally not offered in the formal invoice UI until a payment ledger and reconciliation flow exist.
+- The deployed payment API allocates recorded payments to one invoice, calculates the remaining balance, prevents overpayment and sets Paid only when payment allocations cover invoice face value. Refunds, payment reversals and credit-note allocation are not yet implemented.
+- One invoice is permitted per source quotation, including after cancellation, matching the stricter `idx_documents_one_invoice_per_quote` index and server-side duplicate-source check.
+- A complete job status/assignment history is not yet implemented.
 - Financial profitability reports need agreed labour/material allocation and overhead definitions.
 
 Any production schema migration requires a verified backup, duplicate/data preflight checks, non-production rehearsal and explicit release approval.
