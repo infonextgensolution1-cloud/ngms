@@ -1,7 +1,7 @@
 # NGMS backend integration contract — verified inventory
 
 **Updated:** 3 November 2026  
-**Scope:** Production inventory remained read-only. Implementation changes were restricted to the dedicated preview API Worker and `ngms-admin-preview` D1 database. No production Worker, D1, R2, DNS or customer record was changed.
+**Scope:** Production inventory remained read-only. Workflow A backend changes were deployed only to preview Workers `ngms-admin-api-preview` (version 50) and `ngms-public-intake-preview` (version 38), with their existing preview-only D1/R2 bindings. No production Worker, D1, R2, DNS or customer record was changed. The frontend changes are on draft PR #283 and are not yet promoted to the active frontend preview.
 
 ## Verified resources
 
@@ -26,9 +26,9 @@ A read-only count query on 29 October 2026 returned:
 
 These are a dated snapshot, not a guarantee that counts remain unchanged. No customer rows, document contents, or object filenames were read for this count check. The D1 database metadata endpoint reported `num_tables: 0`, but the direct read-only schema query returned the tables listed above; trust the schema query for current table inventory.
 
-## Verified admin API route map
+## Admin API route map
 
-Routes below are present in the `ngms-admin-api` Worker source. Their existence does **not** mean the new preview has successfully called or tested them.
+The base route inventory below is from the existing NGMS admin Worker source. The Workflow A additions that follow are deployed to the isolated preview Worker only; they are not production routes.
 
 - `GET /health` — health response.
 - `GET /api/admin/enquiries` — list enquiry records.
@@ -39,11 +39,11 @@ Routes below are present in the `ngms-admin-api` Worker source. Their existence 
 - `POST /api/admin/commercial-documents` — create an itemised formal quotation, or create an invoice from an accepted quotation.
 - `GET /api/admin/commercial-documents/:id` — retrieve a formal document with its line items.
 - `PATCH /api/admin/commercial-documents/:id/status` — update permitted formal document statuses. Customer decisions are recorded through the one-use public link, not the manual status editor.
-- `POST /api/admin/commercial-documents/:id/share` — create a 30-day one-use customer link and move a Draft quotation to Sent.
+- `POST /api/admin/commercial-documents/:id/share` — on the preview Worker, requires `enquiry_id`, verifies the enquiry belongs to the quotation's CRM customer, then creates a 30-day one-use customer link and moves the quotation to Sent.
 - `GET /api/admin/commercial-documents/:id/payments` and `POST /api/admin/commercial-documents/:id/payments` — view/record invoice payments, calculate paid/balance cents, reject overpayment and mark Paid only when fully paid.
 - `POST /api/admin/commercial-documents/:id/convert-to-job` — create one job from an accepted quotation.
 - `GET /api/admin/customers` and `POST /api/admin/customers` — list/create CRM customers.
-- `GET /api/public/quotes/:token` and `POST /api/public/quotes/:token` — retrieve a token-protected quotation and record its single Accepted/Declined decision.
+- `GET /api/public/quotes/:token` and `POST /api/public/quotes/:token` — on the preview Worker, retrieve a token-protected quotation and record one Accepted/Declined decision. Acceptance creates one linked job, marks the source enquiry Converted and records customer activity; decline creates no job.
 - `GET/POST /api/admin/schedules` and `PATCH/DELETE /api/admin/schedules/:id` — schedule records.
 - `GET/POST/PATCH/DELETE /api/admin/operations/{maintenance|suppliers|inventory|financials}/:id?` — operation records.
 - `GET /api/admin/media` and `POST /api/admin/media` — list/upload allowed media.
@@ -148,3 +148,22 @@ These values exist solely to test the preview interface; they must never be mist
 - [V4 blueprint-to-acceptance matrix](v4-acceptance-matrix.md) — current requirement status, available evidence, exit criteria and production release gate.
 - [Implementation status](implementation-status.md)
 - [Cloudflare preview deployment](cloudflare-preview-deployment.md)
+
+
+## Workflow A — preview-only additions (3 November 2026)
+
+- Preview admin API Worker: `ngms-admin-api-preview`, version **50**, deployed at 100% of that preview Worker’s traffic.
+- Preview intake Worker: `ngms-public-intake-preview`, version **38**, deployed at 100% of that preview Worker’s traffic.
+- Preview public intake: `POST /api/public/enquiries` uses Turnstile validation, honeypot handling, a UUID submission key and server-side duplicate detection. Its CORS allow-list includes the isolated Cloudflare preview website origin. The production intake Worker allow-list was not modified.
+- Preview admin conversion: `POST /api/admin/enquiries/:id/convert-to-customer` uses the existing `enquiry_customer_links` table, links to a matching CRM customer or creates one, updates the enquiry to Contacted and records customer activity. Ambiguous matches are rejected for manual resolution.
+- Preview quotation issue: `POST /api/admin/commercial-documents/:id/share` requires an originating `enquiry_id` and verifies that the quotation and enquiry refer to the same CRM customer before issuing the link.
+- Preview customer decision: the token route retrieves itemised quote data and records one customer decision. Acceptance creates one job linked through `jobs.source_document_id`, sets the enquiry to Converted, and writes customer activity. Decline records the decline without a job. The unique partial index on `jobs.source_document_id` prevents a second job from being created for the same quotation.
+- Access boundary: the existing administrator Access application remains in place. A separate Access application named `NGMS Preview Public Quote Decisions` applies a Bypass/Everyone policy only to `/api/public/quotes/*`; the Worker still requires a 256-bit random, hashed, expiring and single-use token. No admin endpoints are included in the bypass path.
+- Preview write flag: `NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=false`. The admin UI mutations remain disabled until authenticated browser testing. The quote-request form can be browser-tested with synthetic Turnstile submissions, but real customer use is not enabled.
+- Frontend: Workflow A public form, CRM action, enquiry-bound quotation issue selector and customer decision UI are committed to draft PR #283. The latest GitHub rebuild CI run passed TypeScript, dependency audit, no-Supabase guard, Next.js build, Docker build and route smoke tests. Those commits have not yet been deployed to the active frontend preview.
+
+## Remaining acceptance evidence
+
+- A browser test from the actual preview frontend is still required for Turnstile, CORS, Access session, form submission and D1 read-after-write.
+- A synthetic end-to-end quote must be created, issued, accepted and declined in separate test cases; verify one job on acceptance, no job on decline, duplicate/replay returns conflict, and expiry returns not found.
+- The ChatGPT tool environment blocks direct requests to the `workers.dev` origin, so it did not independently verify the public HTTP responses. Do not treat Worker version deployment or source checks as browser acceptance.
