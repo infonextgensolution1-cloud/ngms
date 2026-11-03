@@ -38,7 +38,7 @@ No additional D1 schema migration was needed for Workflow A; the required tables
 
 ## Preview deployment record — 3 November 2026
 
-- Preview API Worker `ngms-admin-api-preview`: version 50, deployed at 100% preview traffic.
+- Preview API Worker `ngms-admin-api-preview`: version 51, deployed at 100% preview traffic.
 - Preview Public Intake Worker `ngms-public-intake-preview`: version 38, deployed at 100% preview traffic. Its CORS allow-list includes the isolated Cloudflare preview website origin. Production intake CORS was not modified.
 - Cloudflare Access app `NGMS Preview Public Quote Decisions`: Bypass/Everyone policy only for `ngms-admin-api-preview.../api/public/quotes/*`. The wider admin API Access application remains protected.
 - Frontend source changes: draft PR #283. GitHub rebuild CI passed dependency audit, TypeScript, Supabase guard, Next.js build, Docker build and route smoke tests. Frontend changes have not yet been promoted to the active frontend preview.
