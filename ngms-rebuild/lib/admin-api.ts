@@ -404,10 +404,6 @@ export type PublicQuotation = {
   decision?: "Accepted" | "Declined" | null;
   job_id?: string | null;
   used_at?: string | null;
-  decision?: "Accepted" | "Declined" | null;
-  job_id?: string | null;
-  service?: string | null;
-  area?: string | null;
   notes: string;
 };
 
