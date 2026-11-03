@@ -207,7 +207,7 @@ export default function QuoteRequestForm() {
           <label htmlFor="quote-service">Service required
             <select id="quote-service" name="service_display" defaultValue="" required>
               <option value="" disabled>Choose a service</option>
-              {SERVICE_OPTIONS.map((service, index) => <option key={service.label + index} value={service.value}>{service.label}</option>)}
+              {SERVICE_OPTIONS.map((service, index) => <option key={service.label + index} value={service.label}>{service.label}</option>)}
             </select>
           </label>
           <label htmlFor="quote-customer">Your name
