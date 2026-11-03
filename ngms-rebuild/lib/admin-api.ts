@@ -399,6 +399,7 @@ export type PublicQuotation = {
   vat_cents: number;
   status: string;
   issue_date: string | null;
+  used_at?: string | null;
   notes: string;
 };
 
