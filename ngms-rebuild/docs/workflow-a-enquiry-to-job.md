@@ -1,6 +1,6 @@
 # NGMS Workflow A — Enquiry to job
 
-**Status:** Phase 1 intake and the Workflow A UI/backend source are implemented on the isolated feature branch. Preview migration, Worker deployment and end-to-end acceptance tests remain release gates.  
+**Status:** Workflow A UI/backend source is committed and migration 0012 is applied to preview D1. Worker version 50 compiles successfully but has not yet been deployed to the active preview API. Frontend build and end-to-end tests remain release gates.  
 **Production:** No production website, Worker, D1 database, R2 bucket, DNS or Access policy was changed.
 
 ## Target workflow
