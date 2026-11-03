@@ -1,6 +1,6 @@
 # NGMS Workflow A — Enquiry to job
 
-**Status:** Phase 1 implemented in an isolated feature branch; preview deployment and end-to-end submission are still pending.  
+**Status:** Phase 1 intake and the Workflow A UI/backend source are implemented on the isolated feature branch. Preview migration, Worker deployment and end-to-end acceptance tests remain release gates.  
 **Production:** No production website, Worker, D1 database, R2 bucket, DNS or Access policy was changed.
 
 ## Target workflow
@@ -52,7 +52,7 @@ The current environment cannot resolve/fetch the `workers.dev` host directly, so
 
 ## Phase 2 — Administrator review and CRM conversion
 
-The preview Admin API already exposes enquiry reads, CRM customer reads/creation and commercial-document creation. The remaining implementation is a controlled conversion action that links the enquiry to a CRM customer without duplicating customer records. This should be an explicit administrator action, with an activity record and enquiry status update.
+The Enquiries module exposes an explicit “Add to CRM” action. The preview Worker conversion route links an enquiry to one exact existing CRM customer match (email or normalised phone), or creates a new CRM customer. An enquiry-to-customer link table makes retries idempotent. Ambiguous matches are rejected for manual resolution. Conversion records customer activity and moves a New enquiry to Contacted.
 
 ## Phase 3 — Formal quotation
 
@@ -84,8 +84,19 @@ A decline must record the decision without creating a job.
 
 The current public intake Worker has notification code but its preview environment has no configured lead-notification recipient/from values. Submission is still recorded in D1; administrators must review it in the protected dashboard. Do not claim automated email notification until an approved recipient, sender and delivery test are configured.
 
-Quotation delivery should initially use an explicit administrator action. WhatsApp sharing may open a pre-filled message for a human to send. Do not automatically send a customer quotation without the administrator's approval.
+Quotation delivery uses two explicit administrator actions: save an itemised quotation as a private Draft, then approve/issue it to create a 30-day customer link. The interface offers copy-link and a pre-filled WhatsApp compose link. No email or WhatsApp message is sent automatically; a human reviews and sends it.
 
 ## Release boundary
 
 This work is preview-only. Do not merge or promote it to the live website until the full acceptance checklist passes and the owner explicitly approves production release.
+
+
+## Workflow A implementation and preview migration
+
+- Additive migration: `migrations/0002_workflow_a_quote_lifecycle.sql`.
+- New table: `enquiry_customer_links` (one CRM customer link per enquiry).
+- Extended `quote_public_links`: originating enquiry/customer, decision, decision timestamp and resulting job ID.
+- Unique partial index: one job per `source_document_id`.
+- The preview Worker source is maintained at `workers/ngms-admin-api-preview/src/index.ts`; deploy only to `ngms-admin-api-preview`.
+- Before enabling preview writes: apply the migration to `ngms-admin-preview` only; verify Access sign-in/CORS; submit a synthetic Turnstile enquiry; convert it to CRM; create and issue an itemised quote; test Accept, Decline, expiry and replay; verify exactly one job and the enquiry status in preview D1.
+- Production Worker, production D1, production R2, live domain and DNS remain out of scope.
