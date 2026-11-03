@@ -25,6 +25,7 @@
 
 - The preview is deployed on a dedicated Worker, not the existing Pages project or Vercel `ngms-new` project.
 - Admin API preview bindings point to the preview D1 database and `ngmsmedia-preview` R2 bucket only.
+- The preview UI now has a separate `NGMS Rebuild Preview Admin UI` Access application covering the exact `/admin` path and the `/admin/*` subtree. Its Allow policy is restricted to the authorised administrator; the public homepage/service routes remain outside this path-scoped app.
 - The preview API Worker CORS allowlist includes this Worker origin. The `NGMS Rebuild Preview API` Access app sets `options_preflight_bypass=true`, bypassing Access only for OPTIONS preflight. All actual API requests remain subject to the preserved single-administrator Access policy and Worker JWT validation. The API Worker binds only preview D1 and R2.
 - The preview branch includes a committed npm lockfile so the Cloudflare build runner's `npm ci` succeeds.
 - The existing public domain, production Vercel configuration, production Worker, production D1/R2, and production customer records were not changed by this deployment.
