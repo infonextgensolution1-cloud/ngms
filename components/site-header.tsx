@@ -55,6 +55,7 @@ export function SiteHeader({ hours = 'Mon–Sat 07:00–19:00' }: { hours?: stri
 
   return (
     <header
+      data-site-marketing
       className={`bg-jet/90 backdrop-blur-md text-white sticky top-0 z-50 border-b transition-shadow duration-300 ${
         scrolled ? 'border-darkgrey shadow-lg shadow-black/40' : 'border-white/5'
       }`}
