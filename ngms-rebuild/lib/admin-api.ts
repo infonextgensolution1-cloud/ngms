@@ -493,3 +493,32 @@ export async function submitPublicQuotationDecision(
     body: JSON.stringify({ decision }),
   }, false, true);
 }
+
+
+export type CommercialDocumentLine = {
+  id?: string;
+  line_order?: number;
+  description: string;
+  quantity: number;
+  unit: string;
+  unit_price_cents: number;
+  line_total_cents: number;
+};
+
+export type CommercialDocumentDetail = {
+  item: AdminRow;
+  lines: CommercialDocumentLine[];
+};
+
+export async function readCommercialDocument(id: string, signal?: AbortSignal): Promise<CommercialDocumentDetail> {
+  if (!/^[A-Za-z0-9-]{1,100}$/.test(id)) throw new AdminApiError("The document identifier is not valid.", "invalid-response");
+  const result = await requestPreviewJson<CommercialDocumentDetail>(
+    `/api/admin/commercial-documents/${encodeURIComponent(id)}`,
+    { method: "GET", signal },
+    false
+  );
+  if (!result.item || typeof result.item !== "object" || !Array.isArray(result.lines)) {
+    throw new AdminApiError("The commercial-document detail response did not match the expected item/lines contract.", "invalid-response");
+  }
+  return result;
+}
