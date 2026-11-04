@@ -103,6 +103,71 @@ export function getAdminMediaDownloadUrl(id: unknown): string {
   return `${base}/api/admin/media/${encodeURIComponent(id)}/download`;
 }
 
+async function mediaActionFetch(path: string, init: RequestInit): Promise<Record<string, unknown>> {
+  if (!previewWritesEnabled()) {
+    throw new AdminApiError("Media changes are disabled until preview write acceptance is approved.", "not-configured");
+  }
+  const base = getAdminApiBase();
+  if (!base) throw new AdminApiError("The protected preview API base URL is not configured.", "not-configured");
+  let response: Response;
+  try {
+    response = await fetch(`${base}${path}`, {
+      ...init,
+      credentials: "include",
+      cache: "no-store",
+      headers: { Accept: "application/json", ...(init.headers ?? {}) },
+    });
+  } catch {
+    throw new AdminApiError("The media request failed. No successful change has been assumed.", "network");
+  }
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message = body && typeof body === "object" && "error" in body && typeof (body as { error?: unknown }).error === "string"
+      ? (body as { error: string }).error
+      : `Cloudflare API returned HTTP ${response.status}.`;
+    throw new AdminApiError(message, "http", response.status);
+  }
+  if (!body || typeof body !== "object") {
+    throw new AdminApiError("The media endpoint returned an invalid response.", "invalid-response", response.status);
+  }
+  return body as Record<string, unknown>;
+}
+
+export async function updateAdminMediaMetadata(
+  id: string,
+  payload: { category: string; alt_text: string; tags: string[] }
+): Promise<AdminRow> {
+  if (!/^[A-Za-z0-9_-]{1,100}$/.test(id)) throw new AdminApiError("The media identifier is invalid.", "invalid-response");
+  const body = await mediaActionFetch(`/api/admin/media/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!body.item || typeof body.item !== "object") throw new AdminApiError("The metadata endpoint did not return a saved media record.", "invalid-response");
+  return body.item as AdminRow;
+}
+
+export async function replaceAdminMedia(id: string, file: File): Promise<AdminRow> {
+  const accepted = new Set(["image/jpeg", "image/png", "image/webp", "image/avif", "application/pdf"]);
+  if (!accepted.has(file.type)) throw new AdminApiError("Unsupported replacement file type.", "invalid-response");
+  if (file.size < 1 || file.size > 10 * 1024 * 1024) throw new AdminApiError("Replacement file must be between 1 byte and 10 MB.", "invalid-response");
+  if (!/^[A-Za-z0-9_-]{1,100}$/.test(id)) throw new AdminApiError("The media identifier is invalid.", "invalid-response");
+  const form = new FormData();
+  form.append("file", file);
+  const body = await mediaActionFetch(`/api/admin/media/${encodeURIComponent(id)}/replace`, {
+    method: "POST",
+    body: form,
+  });
+  if (!body.item || typeof body.item !== "object") throw new AdminApiError("The replacement endpoint did not return the updated media record.", "invalid-response");
+  return body.item as AdminRow;
+}
+
+export async function deleteAdminMedia(id: string): Promise<void> {
+  if (!/^[A-Za-z0-9_-]{1,100}$/.test(id)) throw new AdminApiError("The media identifier is invalid.", "invalid-response");
+  const body = await mediaActionFetch(`/api/admin/media/${encodeURIComponent(id)}`, { method: "DELETE" });
+  if (body.deleted !== true) throw new AdminApiError("The media delete endpoint did not confirm deletion.", "invalid-response");
+}
+
 export async function readAdminCollection(
   resource: AdminResource,
   signal?: AbortSignal
