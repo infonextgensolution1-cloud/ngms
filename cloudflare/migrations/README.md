@@ -11,7 +11,7 @@ These SQL migrations describe the Cloudflare D1 schema used by the NGMS admin AP
 
 ## Preview migration history
 
-The isolated preview database currently records migrations 0005, 0006 and 0007–0012.
+The isolated preview database currently records migrations 0005, 0006 and 0007–0013.
 
 - 0007 records the existing scheduling table/indexes in the preview migration ledger.
 - 0008 creates `operation_records` for maintenance, suppliers, inventory and financial records.
