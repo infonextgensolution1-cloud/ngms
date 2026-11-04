@@ -17,7 +17,9 @@ export type AdminResource =
   | "media"
   | "content"
   | "customers"
-  | "schedules";
+  | "schedules"
+  | "reports"
+  | "settings";
 
 export class AdminApiError extends Error {
   readonly code: "not-configured" | "http" | "invalid-response" | "network";
