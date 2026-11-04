@@ -235,8 +235,26 @@ export async function createAdminRecord(
   });
 }
 
+export async function createAdminSchedule(payload: {
+  title: string;
+  customer_name?: string;
+  service: string;
+  area?: string;
+  assigned_to?: string;
+  scheduled_start: string;
+  scheduled_end: string;
+  notes?: string;
+  status?: "Scheduled" | "Confirmed" | "In progress" | "Completed" | "Cancelled";
+}): Promise<AdminRow> {
+  return mutationFetch("/api/admin/schedules", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function updateAdminStatus(
-  resource: "enquiries" | "jobs" | "documents",
+  resource: "enquiries" | "jobs" | "documents" | "schedules",
   id: string,
   status: string
 ): Promise<AdminRow> {
