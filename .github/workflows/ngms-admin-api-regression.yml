@@ -1,0 +1,32 @@
+name: NGMS Admin API SQL Regression
+
+on:
+  push:
+    branches:
+      - fix/ngms-preview-document-insert-20261104
+    paths:
+      - "cloudflare/workers/ngms-admin-api-preview/src/index.ts"
+      - "cloudflare/workers/ngms-admin-api-preview/tests/**"
+      - ".github/workflows/ngms-admin-api-regression.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "cloudflare/workers/ngms-admin-api-preview/src/index.ts"
+      - "cloudflare/workers/ngms-admin-api-preview/tests/**"
+      - ".github/workflows/ngms-admin-api-regression.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  commercial-document-sql:
+    name: Commercial document SQL contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Run Worker SQL regression tests
+        run: node --test cloudflare/workers/ngms-admin-api-preview/tests/*.test.mjs
