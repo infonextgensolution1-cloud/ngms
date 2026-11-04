@@ -6,7 +6,7 @@ import {
   AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, convertAcceptedQuotationToJob, createAdminCustomer, createAdminRecord, createAdminSchedule,
   createCommercialDocument, createCommercialShareLink, convertEnquiryToCustomer, getAdminApiBase, getAdminApiHealthUrl, getAdminMediaDownloadUrl,
   previewWritesEnabled, readAdminCollection, readAdminCustomers, readCommercialDocument, readCommercialDocuments,
-  readInvoicePayments, recordInvoicePayment, updateAdminStatus, updateCommercialDocumentStatus, uploadAdminMedia,
+  readInvoicePayments, recordInvoicePayment, updateAdminMediaMetadata, replaceAdminMedia, deleteAdminMedia, updateAdminStatus, updateCommercialDocumentStatus, uploadAdminMedia,
 } from "@/lib/admin-api";
 import { services } from "@/lib/site";
 
@@ -80,7 +80,7 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
     description: "Review stored media metadata and approved website assets.",
     resource: "media",
     columns: [
-      { key: "original_name", label: "Asset" }, { key: "content_type", label: "Type" },
+      { key: "original_name", label: "Asset" }, { key: "category", label: "Category" }, { key: "content_type", label: "Type" },
       { key: "size_bytes", label: "Size" }, { key: "uploaded_by", label: "Uploaded by" },
       { key: "created_at", label: "Uploaded" },
     ],
@@ -401,6 +401,122 @@ function CommercialDocumentActions({ moduleKey, row, onUpdated, enquiries }: { m
   </div>;
 }
 
+
+
+const MEDIA_CATEGORIES = ["Uncategorised", "Branding", "Project Photos", "Before & After", "Website", "Documents"];
+
+function AdminMediaPreview({ row }: { row: AdminRow }) {
+  const [source, setSource] = useState("");
+  const [error, setError] = useState("");
+  const mediaUrl = getAdminMediaDownloadUrl(row.id);
+  const isImage = typeof row.content_type === "string" && row.content_type.startsWith("image/");
+
+  useEffect(() => {
+    if (!mediaUrl || !isImage) {
+      setSource("");
+      setError("");
+      return;
+    }
+    const controller = new AbortController();
+    let objectUrl = "";
+    setSource("");
+    setError("");
+    fetch(mediaUrl, { credentials: "include", cache: "no-store", signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Preview unavailable");
+        const blob = await response.blob();
+        objectUrl = URL.createObjectURL(blob);
+        if (!controller.signal.aborted) setSource(objectUrl);
+      })
+      .catch(() => { if (!controller.signal.aborted) setError("Preview unavailable"); });
+    return () => {
+      controller.abort();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [mediaUrl, isImage]);
+
+  if (!isImage) return <div className="flex h-20 w-28 items-center justify-center rounded-card border border-darkgrey text-xs text-mist">PDF / FILE</div>;
+  return <div className="flex h-20 w-28 items-center justify-center overflow-hidden rounded-card border border-darkgrey bg-black/20">
+    {source ? <img src={source} alt={String(row.alt_text ?? row.original_name ?? "NGMS media")} className="h-full w-full object-cover"/> : <span className="text-xs text-mist">{error || "Loading…"}</span>}
+  </div>;
+}
+
+function MediaItemActions({ row, apiConfigured, writesEnabled, onUpdated }: {
+  row: AdminRow;
+  apiConfigured: boolean;
+  writesEnabled: boolean;
+  onUpdated: () => void;
+}) {
+  const [category, setCategory] = useState(String(row.category ?? "Uncategorised"));
+  const [altText, setAltText] = useState(String(row.alt_text ?? ""));
+  const [tagsText, setTagsText] = useState(() => {
+    try {
+      const parsed = JSON.parse(String(row.tags_json ?? "[]"));
+      return Array.isArray(parsed) ? parsed.join(", ") : "";
+    } catch { return ""; }
+  });
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  async function saveMetadata() {
+    if (!row.id || !apiConfigured || !writesEnabled || saving) return;
+    const tags = Array.from(new Set(tagsText.split(",").map((tag) => tag.trim().toLowerCase()).filter(Boolean)));
+    if (tags.length > 12 || tags.some((tag) => tag.length > 40)) {
+      setError("Use up to 12 tags, each no longer than 40 characters.");
+      return;
+    }
+    setSaving(true); setError(""); setMessage("");
+    try {
+      await updateAdminMediaMetadata(String(row.id), { category, alt_text: altText.trim(), tags });
+      setMessage("Asset details saved.");
+      onUpdated();
+    } catch (e) { setError(adminApiErrorMessage(e)); }
+    finally { setSaving(false); }
+  }
+
+  async function replaceFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file || !row.id || !apiConfigured || !writesEnabled) return;
+    setSaving(true); setError(""); setMessage("");
+    try {
+      await replaceAdminMedia(String(row.id), file);
+      setMessage("Asset file replaced. Existing project links remain attached.");
+      onUpdated();
+      event.target.value = "";
+    } catch (e) { setError(adminApiErrorMessage(e)); }
+    finally { setSaving(false); }
+  }
+
+  async function removeFile() {
+    if (!row.id || !apiConfigured || !writesEnabled || saving) return;
+    const accepted = window.confirm("Delete this file from the preview media library? Project-linked images are protected and cannot be deleted.");
+    if (!accepted) return;
+    setSaving(true); setError(""); setMessage("");
+    try {
+      await deleteAdminMedia(String(row.id));
+      setMessage("Asset deleted from preview storage.");
+      onUpdated();
+    } catch (e) { setError(adminApiErrorMessage(e)); }
+    finally { setSaving(false); }
+  }
+
+  return <div className="min-w-[250px] max-w-[340px] space-y-2">
+    <a className="text-link text-xs" href={getAdminMediaDownloadUrl(row.id)} target="_blank" rel="noopener noreferrer">Open / download ↗</a>
+    <label className="block text-xs">Category<select className="mt-1 w-full" value={category} onChange={(event)=>setCategory(event.target.value)} disabled={!apiConfigured||!writesEnabled||saving}>
+      {MEDIA_CATEGORIES.map((item)=><option key={item} value={item}>{item}</option>)}
+    </select></label>
+    <label className="block text-xs">Alt text<input className="mt-1 w-full" value={altText} onChange={(event)=>setAltText(event.target.value)} maxLength={240} disabled={!apiConfigured||!writesEnabled||saving} placeholder="Describe the image for accessibility"/></label>
+    <label className="block text-xs">Tags<input className="mt-1 w-full" value={tagsText} onChange={(event)=>setTagsText(event.target.value)} disabled={!apiConfigured||!writesEnabled||saving} placeholder="e.g. solar, strand, before"/></label>
+    <div className="flex flex-wrap gap-2">
+      <button type="button" className="button button-small button-outline button-dark-outline" onClick={saveMetadata} disabled={!apiConfigured||!writesEnabled||saving}>Save details</button>
+      <label className="button button-small button-outline button-dark-outline cursor-pointer">Replace<input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp,image/avif,application/pdf" onChange={replaceFile} disabled={!apiConfigured||!writesEnabled||saving}/></label>
+      <button type="button" className="button button-small button-outline button-dark-outline" onClick={removeFile} disabled={!apiConfigured||!writesEnabled||saving}>Delete</button>
+    </div>
+    {message&&<small className="inline-feedback block" role="status">{message}</small>}
+    {error&&<small className="text-orange block" role="alert">{error}</small>}
+  </div>;
+}
 
 function ScheduleCreatePanel({ apiConfigured, writesEnabled, onCreated }: {
   apiConfigured: boolean;
@@ -826,8 +942,8 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       :!apiConfigured?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>CONNECT THE PREVIEW API.</h2><p>Set the non-secret API base URL in Vercel Preview. Cloudflare Access and the preview origin allowlist must also match.</p></div>
       :rows.length===0?<div className="table-empty"><span aria-hidden="true">▤</span><h2>NO RECORDS RETURNED.</h2><p>The protected API returned an empty collection for this module. This is not an API error.</p></div>
       :visibleRows.length===0?<div className="table-empty"><span aria-hidden="true">⌕</span><h2>NO MATCHES.</h2><p>Try a different search term.</p></div>
-      :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<th>File action</th>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<th>Document workflow</th>}{moduleKey==="enquiries"&&<th>CRM / quotation workflow</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices","calendar"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents","schedules"].includes(module.resource)&&<th>Status action</th>}</tr></thead>
-        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<td>{getAdminMediaDownloadUrl(row.id)?<a className="text-link" href={getAdminMediaDownloadUrl(row.id)} target="_blank" rel="noopener noreferrer">Open / download ↗</a>:<span className="inline-feedback">File link unavailable</span>}</td>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<td><CommercialDocumentActions moduleKey={moduleKey} row={row} enquiries={enquiryRows} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{moduleKey==="enquiries"&&<td><ConvertEnquiryToCrmAction row={row} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{writesEnabled&&["enquiries","jobs","quotes","invoices","calendar"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents","schedules"].includes(module.resource)&&<td><StatusEditor key={String(row.id)+"-"+String(row.status)} resource={module.resource as "enquiries"|"jobs"|"documents"|"schedules"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : module.resource === "schedules" ? SCHEDULE_STATUS_OPTIONS : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
+      :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<><th>Preview</th><th>Asset management</th></>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<th>Document workflow</th>}{moduleKey==="enquiries"&&<th>CRM / quotation workflow</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices","calendar"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents","schedules"].includes(module.resource)&&<th>Status action</th>}</tr></thead>
+        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<><td><AdminMediaPreview row={row}/></td><td><MediaItemActions key={String(row.id)} row={row} apiConfigured={apiConfigured} writesEnabled={writesEnabled} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td></>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<td><CommercialDocumentActions moduleKey={moduleKey} row={row} enquiries={enquiryRows} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{moduleKey==="enquiries"&&<td><ConvertEnquiryToCrmAction row={row} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{writesEnabled&&["enquiries","jobs","quotes","invoices","calendar"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents","schedules"].includes(module.resource)&&<td><StatusEditor key={String(row.id)+"-"+String(row.status)} resource={module.resource as "enquiries"|"jobs"|"documents"|"schedules"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : module.resource === "schedules" ? SCHEDULE_STATUS_OPTIONS : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
     </section>
     {moduleKey==="invoices"&&<p className="module-footnote">Invoices are generated only from accepted quotations. The payment ledger tracks partial payments, prevents overpayment and marks an invoice Paid only when its allocated payments cover the full value. Refunds, reversals and credit-note allocation remain separate work.</p>}
     {moduleKey==="content"&&<p className="module-footnote">Content editing remains disabled until optimistic concurrency, publish/rollback and the owner-approved field schema are implemented.</p>}
