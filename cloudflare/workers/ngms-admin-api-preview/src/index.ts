@@ -125,6 +125,15 @@ export default {
     if (url.pathname === "/health" && request.method === "GET") {
       return json({ ok: true, service: "ngms-admin-api", storage: "cloudflare-r2", database: "cloudflare-d1" }, 200, origin);
     }
+    if (url.pathname === "/" && request.method === "GET") {
+      return json({
+        ok: true,
+        service: "NGMS Admin API",
+        message: "Backend API for the NGMS preview website. Open the separate website preview for the full site.",
+        website: "https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev/",
+        health: "/health",
+      }, 200, origin);
+    }
     const publicQuoteMatch = url.pathname.match(/^\/api\/public\/quotes\/([a-f0-9]{64})$/i);
     if (publicQuoteMatch && (request.method === "GET" || request.method === "POST")) {
       try {
