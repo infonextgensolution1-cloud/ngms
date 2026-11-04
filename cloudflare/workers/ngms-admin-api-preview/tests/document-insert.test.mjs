@@ -81,3 +81,10 @@ test("all commercial document SQL placeholders are bound", () => {
   assert.equal(bindings[16], "sourceDocumentId", "source_document_id must bind to the source quotation ID.");
   assert.deepEqual(bindings.slice(17), ["sequenceKey", "year"], "The final WHERE placeholders must bind to the document sequence.");
 });
+
+test("API root identifies the service and points to the website preview", () => {
+  assert.match(
+    workerSource,
+    /if \(url\.pathname === "\/" && request\.method === "GET"\)[\s\S]{0,500}service: "NGMS Admin API"[\s\S]{0,300}website: "https:\/\/ngms-rebuild-preview-worker\.nextgensolarcleaningmaintenancesolutions\.workers\.dev\/"[\s\S]{0,100}health: "\/health"/,
+  );
+});
