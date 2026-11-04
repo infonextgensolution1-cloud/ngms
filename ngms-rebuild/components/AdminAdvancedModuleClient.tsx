@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import {
   AdminRow,
   AdminSchedule,
@@ -45,7 +45,7 @@ function zar(cents: number): string {
   return new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(cents / 100);
 }
 
-function Panel({ title, children, note }: { title: string; children: React.ReactNode; note?: string }) {
+function Panel({ title, children, note }: { title: string; children: ReactNode; note?: string }) {
   return <section className="action-panel">
     <div className="action-panel-head"><div><strong>{title}</strong>{note && <small>{note}</small>}</div></div>
     {children}
@@ -129,7 +129,8 @@ function CalendarModule() {
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!writes || !base) return;
-    const data = new FormData(event.currentTarget);
+    const form = event.currentTarget;
+    const data = new FormData(form);
     if (new Date(end) <= new Date(start)) { setError("The appointment end time must be after its start time."); return; }
     setSaving(true); setError(""); setMessage("");
     try {
@@ -145,7 +146,7 @@ function CalendarModule() {
         status: "Scheduled",
       });
       setMessage("Appointment saved to the isolated preview calendar.");
-      event.currentTarget.reset();
+      form.reset();
       setStart(localDateTimeValue(new Date(Date.now() + 60 * 60 * 1000)));
       setEnd(localDateTimeValue(new Date(Date.now() + 2 * 60 * 60 * 1000)));
       setRefresh(v => v + 1);
@@ -386,7 +387,7 @@ function CmsModule() {
   }
 
   const pending = workflow?.requests.filter(item => item.status === "Pending") ?? [];
-  const currentByModule = new Map((workflow?.current ?? []).map(item => [item.module_key, item]));
+  const currentByModule = new Map<string, CmsPublishingData["current"][number]>((workflow?.current ?? []).map(item => [item.module_key, item] as const));
   const actor = identity?.actor?.toLowerCase() ?? "";
   const currentActorIsRequester = (request: CmsPublishingData["requests"][number]) => Boolean(actor && request.requested_by.toLowerCase() === actor);
   const currentActorIsPublisher = (module: string) => Boolean(actor && currentByModule.get(module)?.published_by.toLowerCase() === actor);
@@ -513,7 +514,7 @@ function ReportsModule() {
       </tbody></table></div>}
     </Panel>
     <Notice warning>
-      **Profitability report not available yet.** Costs, supplier purchases, labour allocations, travel expenses and job-level cost attribution are not sufficiently populated in the preview database. No profit margin is inferred from turnover.
+      <strong>Profitability report not available yet.</strong> Costs, supplier purchases, labour allocations, travel expenses and job-level cost attribution are not sufficiently populated in the preview database. No profit margin is inferred from turnover.
     </Notice>
     <div className="flex justify-end"><button type="button" className="button button-orange" onClick={() => setRefresh(v => v + 1)} disabled={loading || !base}>Refresh reports</button></div>
   </div>;
