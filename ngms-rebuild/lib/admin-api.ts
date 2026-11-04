@@ -619,6 +619,89 @@ export async function submitPublicQuotationDecision(
 }
 
 
+export type AdminPublishingRequest = {
+  id: string;
+  module_key: string;
+  slug: string;
+  status: string;
+  requested_by: string;
+  reviewed_by: string | null;
+  review_note: string;
+  created_at: string;
+  reviewed_at: string | null;
+};
+export type AdminPublishingVersion = {
+  id: string;
+  module_key: string;
+  slug: string;
+  source_publication_id: string | null;
+  published_by: string;
+  published_at: string;
+};
+export type AdminPublishingSnapshot = {
+  requests: AdminPublishingRequest[];
+  current: Array<{ module_key: string; slug: string; publication_id: string; updated_at: string; content_hash: string; published_by: string; published_at: string }>;
+  history: AdminPublishingVersion[];
+  audit: Array<{ id: string; module_key: string; request_id: string | null; publication_id: string | null; action: string; actor: string; details_json: string; created_at: string }>;
+};
+
+export function cmsWritesEnabled(): boolean {
+  return previewWritesEnabled() && process.env.NEXT_PUBLIC_NGMS_CMS_WRITES_ENABLED === "true";
+}
+
+function requireCmsWrites(): void {
+  if (!cmsWritesEnabled()) {
+    throw new AdminApiError("CMS editing and publishing are disabled in this preview environment. A CMS owner must enable both preview writes and the CMS-specific write flag after approval testing.", "not-configured");
+  }
+}
+
+export async function readAdminPublishing(signal?: AbortSignal): Promise<AdminPublishingSnapshot> {
+  return requestPreviewJson<AdminPublishingSnapshot>("/api/admin/publishing", { method: "GET", signal }, false);
+}
+
+export async function saveAdminCmsDraft(moduleKey: string, value: Record<string, unknown>): Promise<void> {
+  requireCmsWrites();
+  if (!/^[A-Za-z0-9_-]{1,80}$/.test(moduleKey)) throw new AdminApiError("The CMS module key is not valid.", "invalid-response");
+  await requestPreviewJson("/api/admin/content", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: "cms_draft." + moduleKey, value }),
+  }, true);
+}
+
+export async function requestAdminPublication(moduleKey: string): Promise<{ requested: boolean; requestId: string; moduleKey: string; slug: string; approvalRequired: boolean }> {
+  requireCmsWrites();
+  if (!/^[A-Za-z0-9_-]{1,80}$/.test(moduleKey)) throw new AdminApiError("The CMS module key is not valid.", "invalid-response");
+  return requestPreviewJson("/api/admin/publishing/request", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ moduleKey }),
+  }, true);
+}
+
+export async function reviewAdminPublication(requestId: string, decision: "approve" | "reject", note: string): Promise<{ published?: boolean; rejected?: boolean; requestId: string }> {
+  requireCmsWrites();
+  if (!/^[0-9a-f-]{36}$/i.test(requestId)) throw new AdminApiError("The publication request identifier is not valid.", "invalid-response");
+  return requestPreviewJson("/api/admin/publishing/approve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ requestId, decision, note: note.trim() }),
+  }, true);
+}
+
+export async function rollbackAdminPublication(moduleKey: string, publicationId: string, note: string): Promise<{ rolledBack: boolean; moduleKey: string; publicationId: string; restoredFrom: string; slug: string }> {
+  requireCmsWrites();
+  if (!/^[A-Za-z0-9_-]{1,80}$/.test(moduleKey) || !/^[0-9a-f-]{36}$/i.test(publicationId)) {
+    throw new AdminApiError("The CMS module or publication identifier is not valid.", "invalid-response");
+  }
+  return requestPreviewJson("/api/admin/publishing/rollback", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ moduleKey, publicationId, note: note.trim() }),
+  }, true);
+}
+
+
 export type CommercialDocumentLine = {
   id?: string;
   line_order?: number;
