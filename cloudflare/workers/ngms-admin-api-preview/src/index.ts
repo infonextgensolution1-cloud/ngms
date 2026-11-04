@@ -235,7 +235,7 @@ export default {
 
     try {
       if (url.pathname === "/api/admin/media" && request.method === "GET") {
-        const result = await env.DB.prepare("SELECT id, original_name, content_type, size_bytes, uploaded_by, created_at FROM media ORDER BY created_at DESC LIMIT 100").all();
+        const result = await env.DB.prepare("SELECT id, original_name, content_type, size_bytes, uploaded_by, category, alt_text, tags_json, created_at, updated_at FROM media ORDER BY created_at DESC LIMIT 200").all();
         return json({ items: result.results }, 200, origin);
       }
       if (url.pathname === "/api/admin/media" && request.method === "POST") {
@@ -250,7 +250,7 @@ export default {
         const key = `uploads/${new Date().toISOString().slice(0, 10)}/${id}-${name}`;
         await env.MEDIA.put(key, await file.arrayBuffer(), { httpMetadata: { contentType: file.type, cacheControl: "private, no-store" }, customMetadata: { originalName: name, uploadedBy: actor } });
         try {
-          await env.DB.prepare("INSERT INTO media (id, object_key, original_name, content_type, size_bytes, uploaded_by) VALUES (?, ?, ?, ?, ?, ?)").bind(id, key, name, file.type, file.size, actor).run();
+          await env.DB.prepare("INSERT INTO media (id, object_key, original_name, content_type, size_bytes, uploaded_by, category, alt_text, tags_json) VALUES (?, ?, ?, ?, ?, ?, 'Uncategorised', '', '[]')").bind(id, key, name, file.type, file.size, actor).run();
         } catch (error) {
           await env.MEDIA.delete(key);
           throw error;
@@ -277,7 +277,7 @@ export default {
           customMetadata: { originalName: name, uploadedBy: actor },
         });
         try {
-          await env.DB.prepare("UPDATE media SET object_key = ?, original_name = ?, content_type = ?, size_bytes = ?, uploaded_by = ? WHERE id = ?")
+          await env.DB.prepare("UPDATE media SET object_key = ?, original_name = ?, content_type = ?, size_bytes = ?, uploaded_by = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?")
             .bind(key, name, file.type, file.size, actor, mediaReplaceMatch[1])
             .run();
         } catch (error) {
@@ -285,7 +285,30 @@ export default {
           throw error;
         }
         await env.MEDIA.delete(existing.object_key);
-        return json({ replaced: true, id: mediaReplaceMatch[1], name, type: file.type, size: file.size }, 200, origin);
+        const replacedItem = await env.DB.prepare("SELECT id, original_name, content_type, size_bytes, category, alt_text, tags_json, uploaded_by, created_at, updated_at FROM media WHERE id = ?").bind(mediaReplaceMatch[1]).first();
+        return json({ replaced: true, item: replacedItem }, 200, origin);
+      }
+
+
+      const mediaMetadataMatch = url.pathname.match(new RegExp("^/api/admin/media/([0-9a-f-]{36})$", "i"));
+      if (mediaMetadataMatch && request.method === "PATCH") {
+        const body = await readJson(request);
+        if (!body) return json({ error: "Request body must be a JSON object." }, 400, origin);
+        const category = textField(body, "category", 80);
+        const altText = textField(body, "alt_text", 240) ?? "";
+        const rawTags = body.tags;
+        if (!category) return json({ error: "A media category is required." }, 400, origin);
+        if (!Array.isArray(rawTags) || rawTags.length > 12 || rawTags.some((tag) => typeof tag !== "string" || tag.trim().length > 40)) {
+          return json({ error: "Provide up to 12 tags, each no longer than 40 characters." }, 400, origin);
+        }
+        const tags = Array.from(new Set(rawTags.map((tag) => String(tag).trim().toLowerCase()).filter(Boolean)));
+        const existing = await env.DB.prepare("SELECT id FROM media WHERE id = ?").bind(mediaMetadataMatch[1]).first();
+        if (!existing) return json({ error: "Media not found." }, 404, origin);
+        await env.DB.prepare("UPDATE media SET category = ?, alt_text = ?, tags_json = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?")
+          .bind(category, altText, JSON.stringify(tags), mediaMetadataMatch[1]).run();
+        const item = await env.DB.prepare("SELECT id, original_name, content_type, size_bytes, uploaded_by, category, alt_text, tags_json, created_at, updated_at FROM media WHERE id = ?")
+          .bind(mediaMetadataMatch[1]).first();
+        return json({ item }, 200, origin);
       }
 
       const mediaMatch = url.pathname.match(/^\/api\/admin\/media\/([0-9a-f-]{36})(?:\/delete)?$/i);
