@@ -19,7 +19,7 @@ type Column = { key: string; label: string };
 type ModuleDefinition = {
   title: string;
   description: string;
-  resource?: "enquiries" | "jobs" | "documents" | "media" | "content" | "schedules";
+  resource?: "enquiries" | "jobs" | "documents" | "media" | "content" | "schedules" | "reports" | "settings";
   kind?: "Quotation" | "Invoice";
   columns: Column[];
 };
@@ -99,15 +99,17 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   },
   reports: {
     title: "Reports",
-    description: "Operational and financial reports require agreed business definitions and additional data fields.",
+    description: "Live operational and verified commercial summary from the isolated Cloudflare preview database.",
+    resource: "reports",
     columns: [
-      { key: "report", label: "Report" }, { key: "period", label: "Period" },
-      { key: "last_updated", label: "Last updated" }, { key: "data_status", label: "Data status" },
+      { key: "metric", label: "Metric" }, { key: "value", label: "Value" },
+      { key: "detail", label: "Detail" }, { key: "data_status", label: "Data quality / scope" },
     ],
   },
   settings: {
     title: "Settings & access",
-    description: "Access and service-catalogue settings are not exposed by the current Worker API.",
+    description: "Review safe commercial preferences and infrastructure ownership. Authentication and security policies remain managed in Cloudflare.",
+    resource: "settings",
     columns: [
       { key: "setting", label: "Setting" }, { key: "current_value", label: "Current value" },
       { key: "owner", label: "Owner" }, { key: "last_changed", label: "Last changed" },
@@ -134,7 +136,7 @@ function displayValue(key: string, value: unknown): string {
     if (value < 1024 * 1024) return (value / 1024).toFixed(1) + " KB";
     return (value / (1024 * 1024)).toFixed(1) + " MB";
   }
-  if ((key === "created_at" || key === "updated_at" || key === "scheduled_start" || key === "scheduled_end") && typeof value === "string") {
+  if ((key === "created_at" || key === "updated_at" || key === "scheduled_start" || key === "scheduled_end" || key === "last_changed") && typeof value === "string" && value !== "System default" && value !== "Managed outside the NGMS dashboard") {
     const parsed = new Date(value);
     return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString("en-ZA", { dateStyle: "medium", timeStyle: "short" });
   }
@@ -1143,6 +1145,8 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<><th>Preview</th><th>Asset management</th></>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<th>Document workflow</th>}{moduleKey==="enquiries"&&<th>CRM / quotation workflow</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices","calendar"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents","schedules"].includes(module.resource)&&<th>Status action</th>}</tr></thead>
         <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<><td><AdminMediaPreview key={String(row.id)+"-"+String(row.updated_at??row.size_bytes)} row={row}/></td><td><MediaItemActions key={String(row.id)} row={row} apiConfigured={apiConfigured} writesEnabled={writesEnabled} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td></>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<td><CommercialDocumentActions moduleKey={moduleKey} row={row} enquiries={enquiryRows} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{moduleKey==="enquiries"&&<td><ConvertEnquiryToCrmAction row={row} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{writesEnabled&&["enquiries","jobs","quotes","invoices","calendar"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents","schedules"].includes(module.resource)&&<td>{module.resource === "documents" && !row.reference ? <small className="module-footnote">Legacy document — read-only</small> : <StatusEditor key={String(row.id)+"-"+String(row.status)} resource={module.resource as "enquiries"|"jobs"|"documents"|"schedules"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : module.resource === "schedules" ? SCHEDULE_STATUS_OPTIONS : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/>}</td>}</tr>)}</tbody></table></div>}
     </section>
+    {moduleKey==="reports"&&<p className="module-footnote">Commercial value figures include only referenced documents with at least one line item whose total equals the saved subtotal. Incomplete legacy documents are counted separately, not treated as verified turnover or revenue.</p>}
+    {moduleKey==="settings"&&<p className="module-footnote">This screen does not expose Access policies, API secrets, DNS, or production credentials. VAT preferences are reviewed here; changes to financial settings remain a separately guarded action.</p>}
     {moduleKey==="invoices"&&<p className="module-footnote">Invoices are generated only from accepted quotations. The payment ledger tracks partial payments, prevents overpayment and marks an invoice Paid only when its allocated payments cover the full value. Refunds, reversals and credit-note allocation remain separate work.</p>}
     {moduleKey==="content"&&<p className="module-footnote">The CMS has versioned drafts, independent approval, publication history, audit logging and rollback controls. Editing and publishing remain blocked until the CMS-specific preview gate is approved.</p>}
     <p className="module-footnote">Preview write controls require NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=true. The Worker independently verifies Cloudflare Access identity for every protected action.</p>
