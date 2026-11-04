@@ -7,6 +7,7 @@ import {
   createCommercialDocument, createCommercialShareLink, convertEnquiryToCustomer, getAdminApiBase, getAdminApiHealthUrl, getAdminMediaDownloadUrl,
   previewWritesEnabled, readAdminCollection, readAdminCustomers, readCommercialDocument, readCommercialDocuments,
   readInvoicePayments, recordInvoicePayment, updateAdminMediaMetadata, replaceAdminMedia, deleteAdminMedia, updateAdminStatus, updateCommercialDocumentStatus, uploadAdminMedia,
+  AdminPublishingSnapshot, cmsWritesEnabled, readAdminPublishing, saveAdminCmsDraft, requestAdminPublication, reviewAdminPublication, rollbackAdminPublication,
 } from "@/lib/admin-api";
 import { services } from "@/lib/site";
 
@@ -522,6 +523,190 @@ function MediaItemActions({ row, apiConfigured, writesEnabled, onUpdated }: {
   </div>;
 }
 
+
+function CmsDraftEditor({ row, apiConfigured, writesEnabled, onUpdated }: {
+  row: AdminRow;
+  apiConfigured: boolean;
+  writesEnabled: boolean;
+  onUpdated: () => void;
+}) {
+  const key = String(row.content_key ?? "");
+  const moduleKey = key.startsWith("cms_draft.") ? key.slice("cms_draft.".length) : "";
+  const initialValue = typeof row.content_json === "string" ? row.content_json : JSON.stringify(row.content_json ?? {}, null, 2);
+  const [draftText, setDraftText] = useState(initialValue);
+  const [saving, setSaving] = useState(false);
+  const [requesting, setRequesting] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  async function saveDraft() {
+    if (!apiConfigured || !writesEnabled || saving || !moduleKey) return;
+    let parsed: unknown;
+    try { parsed = JSON.parse(draftText); }
+    catch { setError("Draft must be valid JSON before it can be saved."); return; }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      setError("Draft JSON must be a page object.");
+      return;
+    }
+    setSaving(true); setError(""); setMessage("");
+    try {
+      await saveAdminCmsDraft(moduleKey, parsed as Record<string, unknown>);
+      setMessage("CMS draft saved to preview D1.");
+      onUpdated();
+    } catch (e) { setError(adminApiErrorMessage(e)); }
+    finally { setSaving(false); }
+  }
+
+  async function submitForReview() {
+    if (!apiConfigured || !writesEnabled || requesting || !moduleKey) return;
+    setRequesting(true); setError(""); setMessage("");
+    try {
+      const result = await requestAdminPublication(moduleKey);
+      setMessage("Publication request " + result.requestId + " created. A different authorised administrator must approve it.");
+      onUpdated();
+    } catch (e) { setError(adminApiErrorMessage(e)); }
+    finally { setRequesting(false); }
+  }
+
+  let parsedPreview: Record<string, unknown> | null = null;
+  try {
+    const parsed: unknown = JSON.parse(draftText);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) parsedPreview = parsed as Record<string, unknown>;
+  } catch { /* Invalid JSON is reported when the owner attempts to save. */ }
+  const blockCount = Array.isArray(parsedPreview?.blocks) ? parsedPreview.blocks.length : 0;
+
+  return <section className="action-panel">
+    <div className="action-panel-head"><div><strong>Draft editor · {moduleKey}</strong><small>Versioned CMS draft. Publication is a separate, second-person approval.</small></div><span className="preview-pill">PREVIEW CMS</span></div>
+    <div className="grid gap-2 text-xs md:grid-cols-3">
+      <div><span className="text-mist block">Page title</span><strong>{String(parsedPreview?.title ?? "Draft title not set")}</strong></div>
+      <div><span className="text-mist block">URL slug</span><strong>{String(parsedPreview?.slug ?? moduleKey)}</strong></div>
+      <div><span className="text-mist block">Content blocks</span><strong>{blockCount}</strong></div>
+    </div>
+    <label className="block text-xs mt-3">Draft JSON
+      <textarea className="mt-1 w-full font-mono text-xs" rows={12} value={draftText} onChange={(event)=>setDraftText(event.target.value)} spellCheck={false} disabled={!apiConfigured||!writesEnabled||saving||requesting}/>
+    </label>
+    <div className="flex flex-wrap gap-2 mt-3">
+      <button type="button" className="button button-small button-outline button-dark-outline" onClick={saveDraft} disabled={!apiConfigured||!writesEnabled||saving||requesting}>{saving?"Saving draft…":"Save draft"}</button>
+      <button type="button" className="button button-small button-orange" onClick={submitForReview} disabled={!apiConfigured||!writesEnabled||saving||requesting}>{requesting?"Submitting…":"Request publication approval"}</button>
+    </div>
+    {!writesEnabled&&<p className="guardrail-message mt-2">CMS editing and publication requests are disabled on this preview. Both the preview-write flag and the CMS-specific Worker flag must be approved before writes can be enabled.</p>}
+    {message&&<p className="inline-feedback mt-2" role="status">{message}</p>}
+    {error&&<p className="action-result action-result-error mt-2" role="alert">{error}</p>}
+  </section>;
+}
+
+function CmsPublishingReview({ apiConfigured, writesEnabled, onUpdated }: {
+  apiConfigured: boolean;
+  writesEnabled: boolean;
+  onUpdated: () => void;
+}) {
+  const [snapshot,setSnapshot] = useState<AdminPublishingSnapshot | null>(null);
+  const [loading,setLoading] = useState(false);
+  const [error,setError] = useState("");
+  const [note,setNote] = useState("");
+  const [busyRequest,setBusyRequest] = useState("");
+  const [message,setMessage] = useState("");
+  const [rollbackTarget,setRollbackTarget] = useState("");
+  const [rollbackNote,setRollbackNote] = useState("");
+  const [rollbackBusy,setRollbackBusy] = useState(false);
+
+  const load = useCallback(async (signal?: AbortSignal) => {
+    if (!apiConfigured) { setSnapshot(null); return; }
+    setLoading(true); setError("");
+    try {
+      const data = await readAdminPublishing(signal);
+      if (!signal?.aborted) setSnapshot(data);
+    } catch (e) { if (!signal?.aborted) setError(adminApiErrorMessage(e)); }
+    finally { if (!signal?.aborted) setLoading(false); }
+  },[apiConfigured]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void load(controller.signal);
+    return () => controller.abort();
+  },[load]);
+
+  async function review(requestId: string, decision: "approve"|"reject") {
+    if (!writesEnabled || busyRequest) return;
+    setBusyRequest(requestId); setError(""); setMessage("");
+    try {
+      const result = await reviewAdminPublication(requestId,decision,note);
+      setMessage(result.published ? "CMS publication approved and versioned." : "CMS publication request rejected.");
+      setNote("");
+      await load();
+      onUpdated();
+    } catch (e) { setError(adminApiErrorMessage(e)); }
+    finally { setBusyRequest(""); }
+  }
+
+  async function rollback() {
+    if (!writesEnabled || !rollbackTarget || rollbackBusy) return;
+    const version = snapshot?.history.find((item)=>item.id===rollbackTarget);
+    if (!version) return;
+    setRollbackBusy(true); setError(""); setMessage("");
+    try {
+      await rollbackAdminPublication(version.module_key,version.id,rollbackNote);
+      setMessage("A new rollback publication was created from the selected historical version.");
+      setRollbackNote(""); setRollbackTarget("");
+      await load();
+      onUpdated();
+    } catch (e) { setError(adminApiErrorMessage(e)); }
+    finally { setRollbackBusy(false); }
+  }
+
+  return <section className="data-panel">
+    <div className="data-toolbar"><div><strong>Publication review & history</strong><small>{loading?"Loading publication records…":snapshot ? snapshot.requests.length+" requests · "+snapshot.current.length+" live modules · "+snapshot.history.length+" versions":"Publication records unavailable"}</small></div>
+      <button type="button" className="button button-outline button-dark-outline" onClick={()=>void load()} disabled={!apiConfigured||loading}>Refresh</button>
+    </div>
+    {error&&<p className="action-result action-result-error" role="alert">{error}</p>}
+    {message&&<p className="inline-feedback" role="status">{message}</p>}
+    {!apiConfigured?<div className="table-empty"><h2>CONNECT THE PREVIEW API</h2><p>Publication history is read from the protected preview Worker.</p></div>
+    :loading&&!snapshot?<div className="table-empty"><h2>LOADING PUBLICATION RECORDS</h2></div>
+    :snapshot&&<>
+      <div className="p-3 border-b border-darkgrey">
+        <strong className="text-sm">Pending review</strong>
+        {snapshot.requests.filter((request)=>request.status==="Pending").length===0
+          ? <p className="text-xs text-mist mt-2">No publication requests are awaiting review.</p>
+          : <div className="mt-2 space-y-3">{snapshot.requests.filter((request)=>request.status==="Pending").map((request)=><div key={request.id} className="rounded-card border border-darkgrey p-3">
+            <div className="flex flex-wrap justify-between gap-2"><strong>{request.module_key} · /{request.slug}</strong><span className="preview-pill">PENDING</span></div>
+            <p className="text-xs text-mist mt-1">Requested by {request.requested_by} · {displayValue("created_at",request.created_at)}</p>
+            <label className="block text-xs mt-2">Reviewer note<input className="w-full mt-1" value={note} onChange={(event)=>setNote(event.target.value)} maxLength={1000} disabled={!writesEnabled||Boolean(busyRequest)}/></label>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <button type="button" className="button button-small button-orange" onClick={()=>void review(request.id,"approve")} disabled={!writesEnabled||Boolean(busyRequest)}>{busyRequest===request.id?"Reviewing…":"Approve & publish"}</button>
+              <button type="button" className="button button-small button-outline button-dark-outline" onClick={()=>void review(request.id,"reject")} disabled={!writesEnabled||Boolean(busyRequest)}>Reject request</button>
+            </div>
+            <small className="module-footnote block mt-2">The Worker enforces independent approval: the person who requested publication cannot approve or reject their own request.</small>
+          </div>)}</div>}
+      </div>
+      <div className="grid gap-3 p-3 md:grid-cols-2">
+        <div><strong className="text-sm">Currently published</strong>
+          {snapshot.current.length ? <ul className="mt-2 space-y-2 text-xs">{snapshot.current.map((item)=><li key={item.module_key} className="border-t border-darkgrey pt-2"><strong>{item.module_key} · /{item.slug}</strong><div className="text-mist">Published {displayValue("created_at",item.published_at)} by {item.published_by}</div><div className="text-mist">Version {item.publication_id}</div></li>)}</ul> : <p className="text-xs text-mist mt-2">No CMS publication is recorded as live in this preview database.</p>}
+        </div>
+        <div><strong className="text-sm">Version history</strong>
+          {snapshot.history.length ? <ul className="mt-2 space-y-2 text-xs">{snapshot.history.slice(0,10).map((item)=><li key={item.id} className="border-t border-darkgrey pt-2"><strong>{item.module_key} · /{item.slug}</strong><div className="text-mist">{displayValue("created_at",item.published_at)} · {item.published_by}</div><div className="text-mist">Version {item.id}</div></li>)}</ul> : <p className="text-xs text-mist mt-2">No historical publication versions.</p>}
+        </div>
+      </div>
+      <div className="p-3 border-t border-darkgrey">
+        <strong className="text-sm">Rollback to a previous version</strong>
+        <div className="grid gap-2 md:grid-cols-[1fr_1fr_auto] mt-2">
+          <select value={rollbackTarget} onChange={(event)=>setRollbackTarget(event.target.value)} disabled={!writesEnabled||rollbackBusy}>
+            <option value="">Select a previous publication</option>
+            {snapshot.history.map((item)=><option key={item.id} value={item.id}>{item.module_key} · /{item.slug} · {new Date(item.published_at).toLocaleDateString("en-ZA")}</option>)}
+          </select>
+          <input value={rollbackNote} onChange={(event)=>setRollbackNote(event.target.value)} maxLength={1000} placeholder="Rollback reason" disabled={!writesEnabled||rollbackBusy}/>
+          <button type="button" className="button button-small button-outline button-dark-outline" onClick={rollback} disabled={!writesEnabled||!rollbackTarget||rollbackBusy}>{rollbackBusy?"Rolling back…":"Create rollback version"}</button>
+        </div>
+        {!writesEnabled&&<p className="guardrail-message mt-2">Approvals and rollbacks are disabled in this preview environment.</p>}
+      </div>
+      <div className="p-3 border-t border-darkgrey">
+        <strong className="text-sm">Audit trail</strong>
+        {snapshot.audit.length ? <ul className="mt-2 space-y-1 text-xs">{snapshot.audit.slice(0,12).map((item)=><li key={item.id} className="border-t border-darkgrey pt-1"><strong>{item.action}</strong> · {item.module_key} · {item.actor} · {displayValue("created_at",item.created_at)}</li>)}</ul> : <p className="text-xs text-mist mt-2">No CMS audit events recorded.</p>}
+      </div>
+    </>}
+    {!writesEnabled&&<p className="module-footnote p-3">This dashboard is read-only. CMS changes require both the general preview write gate and the CMS-specific preview write gate; the Worker independently validates permissions and second-person approval.</p>}
+  </section>;
+}
+
 function ScheduleCreatePanel({ apiConfigured, writesEnabled, onCreated }: {
   apiConfigured: boolean;
   writesEnabled: boolean;
@@ -612,6 +797,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [refreshVersion, setRefreshVersion] = useState(0);
+  const [cmsDraftKey, setCmsDraftKey] = useState("cms_draft.home");
   const [showCreate, setShowCreate] = useState(false);
   const [actionMessage, setActionMessage] = useState("");
   const [actionError, setActionError] = useState("");
@@ -931,6 +1117,14 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       </form>}
     </section>}
 
+    {moduleKey==="content"&&<>
+      <section className="action-panel"><strong>CMS workflow controls</strong><p className="text-xs text-mist mt-1">Drafts are stored separately from live content. Publication requests require an independent authorised reviewer; every decision and rollback is audited.</p>
+        {rows.filter((row)=>typeof row.content_key==="string"&&String(row.content_key).startsWith("cms_draft.")).length===0?<p className="text-xs mt-2">No CMS drafts are currently stored.</p>:<label className="block text-xs mt-2">Select a draft<select className="mt-1 w-full" value={String(rows.find((row)=>typeof row.content_key==="string"&&String(row.content_key).startsWith("cms_draft."))?.content_key??"")} onChange={(event)=>setCmsDraftKey(event.target.value)}><option value="">Choose draft</option>{rows.filter((row)=>typeof row.content_key==="string"&&String(row.content_key).startsWith("cms_draft.")).map((row)=><option key={String(row.content_key)} value={String(row.content_key)}>{String(row.content_key)}</option>)}</select></label>}
+      </section>
+      {rows.find((row)=>row.content_key===cmsDraftKey)&&<CmsDraftEditor key={cmsDraftKey} row={rows.find((row)=>row.content_key===cmsDraftKey) as AdminRow} apiConfigured={apiConfigured} writesEnabled={cmsWritesEnabled()} onUpdated={()=>setRefreshVersion((version)=>version+1)}/>}
+      <CmsPublishingReview apiConfigured={apiConfigured} writesEnabled={cmsWritesEnabled()} onUpdated={()=>setRefreshVersion((version)=>version+1)}/>
+    </>}
+
     {moduleKey==="media"&&<section className="action-panel"><div className="action-panel-head"><div><strong>Upload media</strong><small>JPEG, PNG, WebP, AVIF or PDF · maximum 10 MB.</small></div><span className="preview-pill">PREVIEW BUCKET</span></div><label className="upload-control">Choose a file<input type="file" accept="image/jpeg,image/png,image/webp,image/avif,application/pdf" disabled={!writesEnabled||!apiConfigured||uploading} onChange={handleUpload}/></label>{uploading&&<p className="inline-feedback" role="status">Uploading to preview storage…</p>}{uploadMessage&&<p className="inline-feedback" role="status">{uploadMessage}</p>}{!writesEnabled&&<p className="guardrail-message">Uploads remain disabled until preview Access/CORS and persistence checks are approved.</p>}</section>}
 
     {(actionMessage||actionError)&&<div className={actionError?"action-result action-result-error":"action-result"} role="status"><strong>{actionError?"Action failed":"Action complete"}</strong><p>{actionError||actionMessage}</p></div>}
@@ -950,7 +1144,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
         <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<><td><AdminMediaPreview row={row}/></td><td><MediaItemActions key={String(row.id)} row={row} apiConfigured={apiConfigured} writesEnabled={writesEnabled} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td></>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<td><CommercialDocumentActions moduleKey={moduleKey} row={row} enquiries={enquiryRows} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{moduleKey==="enquiries"&&<td><ConvertEnquiryToCrmAction row={row} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{writesEnabled&&["enquiries","jobs","quotes","invoices","calendar"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents","schedules"].includes(module.resource)&&<td>{module.resource === "documents" && !row.reference ? <small className="module-footnote">Legacy document — read-only</small> : <StatusEditor key={String(row.id)+"-"+String(row.status)} resource={module.resource as "enquiries"|"jobs"|"documents"|"schedules"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : module.resource === "schedules" ? SCHEDULE_STATUS_OPTIONS : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/>}</td>}</tr>)}</tbody></table></div>}
     </section>
     {moduleKey==="invoices"&&<p className="module-footnote">Invoices are generated only from accepted quotations. The payment ledger tracks partial payments, prevents overpayment and marks an invoice Paid only when its allocated payments cover the full value. Refunds, reversals and credit-note allocation remain separate work.</p>}
-    {moduleKey==="content"&&<p className="module-footnote">Content editing remains disabled until optimistic concurrency, publish/rollback and the owner-approved field schema are implemented.</p>}
+    {moduleKey==="content"&&<p className="module-footnote">The CMS has versioned drafts, independent approval, publication history, audit logging and rollback controls. Editing and publishing remain blocked until the CMS-specific preview gate is approved.</p>}
     <p className="module-footnote">Preview write controls require NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=true. The Worker independently verifies Cloudflare Access identity for every protected action.</p>
   </div>;
 }
