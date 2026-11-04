@@ -50,7 +50,8 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
     resource: "documents", kind: "Quotation",
     columns: [
       { key: "reference", label: "Quote reference" }, { key: "customer_name", label: "Customer" },
-      { key: "amount_cents", label: "Amount (ZAR)" }, { key: "created_at", label: "Created" },
+      { key: "amount_cents", label: "Amount (ZAR)" }, { key: "line_item_count", label: "Items" },
+      { key: "integrity_status", label: "Data check" }, { key: "created_at", label: "Created" },
       { key: "status", label: "Status" },
     ],
   },
@@ -60,7 +61,8 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
     resource: "documents", kind: "Invoice",
     columns: [
       { key: "reference", label: "Invoice reference" }, { key: "customer_name", label: "Customer" },
-      { key: "amount_cents", label: "Face value (ZAR)" }, { key: "created_at", label: "Created" },
+      { key: "amount_cents", label: "Face value (ZAR)" }, { key: "line_item_count", label: "Items" },
+      { key: "integrity_status", label: "Data check" }, { key: "created_at", label: "Created" },
       { key: "status", label: "Status" },
     ],
   },
@@ -389,9 +391,11 @@ function ConvertEnquiryToCrmAction({ row, onUpdated }: { row: AdminRow; onUpdate
 }
 
 function CommercialDocumentActions({ moduleKey, row, onUpdated, enquiries }: { moduleKey: "quotes"|"invoices"; row: AdminRow; onUpdated: () => void; enquiries: AdminRow[] }) {
+  const documentComplete = Boolean(row.reference) && row.integrity_status === "Complete" && Number(row.line_item_count) > 0;
   return <div className="min-w-[260px]">
     <CommercialDocumentDetails id={String(row.id ?? "")}/>
-    {moduleKey === "quotes" ? <>
+    {!documentComplete ? <small className="module-footnote block mt-2">Legacy record — {String(row.integrity_status ?? "incomplete")}. Customer issue, payment and job-conversion actions are blocked until the document is accurately reconstructed.</small>
+    : moduleKey === "quotes" ? <>
       {(row.status === "Draft" || row.status === "Sent") && <ShareQuotationAction row={row} onUpdated={onUpdated} enquiries={enquiries}/>}
       {row.status === "Accepted" && (row.job_id
         ? <div className="mt-2"><span className="preview-pill">JOB CREATED</span><small className="module-footnote block mt-1">{String(row.job_id)}</small></div>
@@ -943,7 +947,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       :rows.length===0?<div className="table-empty"><span aria-hidden="true">▤</span><h2>NO RECORDS RETURNED.</h2><p>The protected API returned an empty collection for this module. This is not an API error.</p></div>
       :visibleRows.length===0?<div className="table-empty"><span aria-hidden="true">⌕</span><h2>NO MATCHES.</h2><p>Try a different search term.</p></div>
       :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<><th>Preview</th><th>Asset management</th></>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<th>Document workflow</th>}{moduleKey==="enquiries"&&<th>CRM / quotation workflow</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices","calendar"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents","schedules"].includes(module.resource)&&<th>Status action</th>}</tr></thead>
-        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<><td><AdminMediaPreview row={row}/></td><td><MediaItemActions key={String(row.id)} row={row} apiConfigured={apiConfigured} writesEnabled={writesEnabled} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td></>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<td><CommercialDocumentActions moduleKey={moduleKey} row={row} enquiries={enquiryRows} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{moduleKey==="enquiries"&&<td><ConvertEnquiryToCrmAction row={row} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{writesEnabled&&["enquiries","jobs","quotes","invoices","calendar"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents","schedules"].includes(module.resource)&&<td><StatusEditor key={String(row.id)+"-"+String(row.status)} resource={module.resource as "enquiries"|"jobs"|"documents"|"schedules"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : module.resource === "schedules" ? SCHEDULE_STATUS_OPTIONS : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
+        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<><td><AdminMediaPreview row={row}/></td><td><MediaItemActions key={String(row.id)} row={row} apiConfigured={apiConfigured} writesEnabled={writesEnabled} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td></>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<td><CommercialDocumentActions moduleKey={moduleKey} row={row} enquiries={enquiryRows} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{moduleKey==="enquiries"&&<td><ConvertEnquiryToCrmAction row={row} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{writesEnabled&&["enquiries","jobs","quotes","invoices","calendar"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents","schedules"].includes(module.resource)&&<td>{module.resource === "documents" && !row.reference ? <small className="module-footnote">Legacy document — read-only</small> : <StatusEditor key={String(row.id)+"-"+String(row.status)} resource={module.resource as "enquiries"|"jobs"|"documents"|"schedules"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : module.resource === "schedules" ? SCHEDULE_STATUS_OPTIONS : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/>}</td>}</tr>)}</tbody></table></div>}
     </section>
     {moduleKey==="invoices"&&<p className="module-footnote">Invoices are generated only from accepted quotations. The payment ledger tracks partial payments, prevents overpayment and marks an invoice Paid only when its allocated payments cover the full value. Refunds, reversals and credit-note allocation remain separate work.</p>}
     {moduleKey==="content"&&<p className="module-footnote">Content editing remains disabled until optimistic concurrency, publish/rollback and the owner-approved field schema are implemented.</p>}
