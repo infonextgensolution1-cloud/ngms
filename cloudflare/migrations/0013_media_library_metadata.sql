@@ -3,7 +3,7 @@
 ALTER TABLE media ADD COLUMN category TEXT NOT NULL DEFAULT 'Uncategorised';
 ALTER TABLE media ADD COLUMN alt_text TEXT NOT NULL DEFAULT '';
 ALTER TABLE media ADD COLUMN tags_json TEXT NOT NULL DEFAULT '[]';
-ALTER TABLE media ADD COLUMN updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));
+ALTER TABLE media ADD COLUMN updated_at TEXT NOT NULL DEFAULT '';
 
 CREATE INDEX IF NOT EXISTS idx_media_category_created_at
   ON media(category, created_at DESC);
