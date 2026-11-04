@@ -52,7 +52,7 @@ function Panel({ title, children, note }: { title: string; children: ReactNode; 
   </section>;
 }
 
-function Notice({ children, warning = false }: { children: React.ReactNode; warning?: boolean }) {
+function Notice({ children, warning = false }: { children: ReactNode; warning?: boolean }) {
   return <div className={warning ? "guardrail-message" : "api-notice"} role="status">{children}</div>;
 }
 
