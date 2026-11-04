@@ -383,6 +383,8 @@ export default {
         ).bind(commercialShareMatch[1]).first<{ id: string; reference: string; status: string; customer_id: string | null }>();
         if (!quote) return json({ error: "Quotation not found." }, 404, origin);
         if (quote.status !== "Draft" && quote.status !== "Sent") return json({ error: "Only draft or sent quotations can be shared." }, 409, origin);
+        const quoteLineCount = await env.DB.prepare("SELECT COUNT(*) AS line_count FROM document_line_items WHERE document_id = ?").bind(quote.id).first<{ line_count: number }>();
+        if (Number(quoteLineCount?.line_count || 0) < 1) return json({ error: "This quotation has no saved line items and cannot be issued to a customer." }, 409, origin);
         const enquiry = await env.DB.prepare(
           "SELECT id, customer_id, status FROM enquiries WHERE id = ?"
         ).bind(enquiryId).first<{ id: string; customer_id: string | null; status: string }>();
@@ -458,6 +460,7 @@ export default {
         const existing = await env.DB.prepare("SELECT id FROM jobs WHERE source_document_id = ?").bind(quote.id).first<{id:string}>();
         if (existing) return json({error:"A job has already been created from this quotation.",job_id:existing.id},409,origin);
         const lines = await env.DB.prepare("SELECT description,quantity,unit FROM document_line_items WHERE document_id=? ORDER BY line_order").bind(quote.id).all<{description:string;quantity:number;unit:string}>();
+        if (!lines.results.length) return json({error:"This accepted quotation has no saved line items and cannot be converted into a job."},409,origin);
         const service = lines.results[0]?.description || "Quoted work";
         const details = [quote.reference,quote.notes,...lines.results.map(line=>String(line.quantity)+" "+line.unit+" — "+line.description)].filter(Boolean).join("\n");
         const id = newId("J");
@@ -477,7 +480,7 @@ export default {
         const status = url.searchParams.get("status");
         if (kind !== "Quotation" && kind !== "Invoice") return json({ error: "Choose Quotation or Invoice." }, 400, origin);
         if (status && !["Draft", "Sent", "Accepted", "Declined", "Expired", "Overdue", "Cancelled"].includes(status)) return json({ error: "Invalid document status filter." }, 400, origin);
-        const result = await env.DB.prepare("SELECT d.id, d.reference, d.customer_id, COALESCE(c.display_name, d.customer_name) AS customer_name, d.kind, d.amount_cents, d.subtotal_cents, d.discount_cents, d.vat_enabled, d.vat_rate_basis_points, d.vat_cents, d.status, d.issue_date, d.created_at, d.source_document_id, (SELECT j.id FROM jobs j WHERE j.source_document_id = d.id LIMIT 1) AS job_id FROM documents d LEFT JOIN customers c ON c.id = d.customer_id WHERE d.reference IS NOT NULL AND d.kind = ? AND (? IS NULL OR d.status = ?) ORDER BY d.created_at DESC LIMIT 200").bind(kind, status, status).all();
+        const result = await env.DB.prepare("SELECT d.id, d.reference, d.customer_id, COALESCE(c.display_name, d.customer_name) AS customer_name, d.kind, d.amount_cents, d.subtotal_cents, d.discount_cents, d.vat_enabled, d.vat_rate_basis_points, d.vat_cents, d.status, d.issue_date, d.created_at, d.source_document_id, (SELECT j.id FROM jobs j WHERE j.source_document_id = d.id LIMIT 1) AS job_id, COALESCE(li.line_item_count, 0) AS line_item_count, COALESCE(li.line_total_cents, 0) AS line_total_cents, CASE WHEN d.reference IS NULL OR TRIM(d.reference) = '' THEN 'Missing reference' WHEN COALESCE(li.line_item_count, 0) = 0 THEN 'Missing line items' WHEN COALESCE(li.line_total_cents, 0) <> d.subtotal_cents THEN 'Subtotal mismatch' ELSE 'Complete' END AS integrity_status FROM documents d LEFT JOIN customers c ON c.id = d.customer_id LEFT JOIN (SELECT document_id, COUNT(*) AS line_item_count, COALESCE(SUM(line_total_cents), 0) AS line_total_cents FROM document_line_items GROUP BY document_id) li ON li.document_id = d.id WHERE d.kind = ? AND (? IS NULL OR d.status = ?) ORDER BY d.created_at DESC LIMIT 200").bind(kind, status, status).all();
         return json({ items: result.results }, 200, origin);
       }
 
@@ -582,7 +585,7 @@ export default {
       }
 
       if (commercialDetailMatch && request.method === "GET") {
-        const item = await env.DB.prepare("SELECT * FROM documents WHERE id = ? AND reference IS NOT NULL").bind(commercialDetailMatch[1]).first();
+        const item = await env.DB.prepare("SELECT * FROM documents WHERE id = ?").bind(commercialDetailMatch[1]).first();
         if (!item) return json({ error: "Commercial document not found." }, 404, origin);
         const lines = await env.DB.prepare("SELECT id, line_order, description, quantity, unit, unit_price_cents, line_total_cents FROM document_line_items WHERE document_id = ? ORDER BY line_order").bind(commercialDetailMatch[1]).all();
         return json({ item, lines: lines.results }, 200, origin);
