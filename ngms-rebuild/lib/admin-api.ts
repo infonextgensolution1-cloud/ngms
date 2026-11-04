@@ -616,7 +616,8 @@ export async function readAdminSchedules(
   const params = new URLSearchParams();
   if (from) params.set("from", from);
   if (to) params.set("to", to);
-  const query = params.size ? "?" + params.toString() : "";
+  const encodedParams = params.toString();
+  const query = encodedParams ? "?" + encodedParams : "";
   const result = await requestPreviewJson<{ items?: AdminSchedule[] }>(
     "/api/admin/schedules" + query,
     { method: "GET", signal },
@@ -717,7 +718,7 @@ export async function reviewCmsPublication(
   note = ""
 ): Promise<{ approved?: boolean; rejected?: boolean; publicationId?: string }> {
   if (!/^[0-9a-f-]{36}$/i.test(requestId)) throw new AdminApiError("The CMS request identifier is not valid.", "invalid-response");
-  return requestPreviewJson(
+  return requestPreviewJson<{ approved?: boolean; rejected?: boolean; publicationId?: string }>(
     "/api/admin/publishing/approve",
     { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ requestId, decision, note }) },
     true
@@ -728,7 +729,7 @@ export async function rollbackCmsPublication(moduleKey: string, publicationId: s
   if (!/^[a-zA-Z0-9_-]{1,80}$/.test(moduleKey) || !/^[0-9a-f-]{36}$/i.test(publicationId)) {
     throw new AdminApiError("The CMS rollback selection is not valid.", "invalid-response");
   }
-  return requestPreviewJson(
+  return requestPreviewJson<{ rolledBack?: boolean; publicationId?: string }>(
     "/api/admin/publishing/rollback",
     { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ moduleKey, publicationId, note }) },
     true
