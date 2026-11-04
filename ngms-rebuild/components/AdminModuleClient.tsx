@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, convertAcceptedQuotationToJob, createAdminCustomer, createAdminRecord,
+  AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, convertAcceptedQuotationToJob, createAdminCustomer, createAdminRecord, createAdminSchedule,
   createCommercialDocument, createCommercialShareLink, convertEnquiryToCustomer, getAdminApiBase, getAdminApiHealthUrl, getAdminMediaDownloadUrl,
   previewWritesEnabled, readAdminCollection, readAdminCustomers, readCommercialDocument, readCommercialDocuments,
   readInvoicePayments, recordInvoicePayment, updateAdminStatus, updateCommercialDocumentStatus, uploadAdminMedia,
@@ -18,7 +18,7 @@ type Column = { key: string; label: string };
 type ModuleDefinition = {
   title: string;
   description: string;
-  resource?: "enquiries" | "jobs" | "documents" | "media" | "content";
+  resource?: "enquiries" | "jobs" | "documents" | "media" | "content" | "schedules";
   kind?: "Quotation" | "Invoice";
   columns: Column[];
 };
@@ -66,11 +66,13 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   },
   calendar: {
     title: "Job calendar",
-    description: "Calendar scheduling is not available in the current D1 schema. This module remains read-only and clearly marked.",
+    description: "Review scheduled work from the protected Cloudflare D1 calendar. Appointments are ordered by scheduled start time.",
+    resource: "schedules",
     columns: [
-      { key: "date", label: "Date" }, { key: "job", label: "Job" },
-      { key: "site", label: "Site" }, { key: "assigned_to", label: "Assigned to" },
-      { key: "status", label: "Status" },
+      { key: "title", label: "Appointment" }, { key: "customer_name", label: "Customer / site" },
+      { key: "service", label: "Service" }, { key: "area", label: "Area" },
+      { key: "assigned_to", label: "Assigned to" }, { key: "scheduled_start", label: "Starts" },
+      { key: "scheduled_end", label: "Ends" }, { key: "status", label: "Status" },
     ],
   },
   media: {
@@ -117,6 +119,7 @@ const STATUS_OPTIONS: Record<"enquiries" | "jobs", string[]> = {
 // Customer decisions arrive through the one-use public quote link; sharing changes Draft to Sent.
 const QUOTE_STATUS_OPTIONS = ["Draft", "Expired", "Cancelled"];
 const INVOICE_STATUS_OPTIONS = ["Draft", "Sent", "Overdue", "Cancelled"];
+const SCHEDULE_STATUS_OPTIONS = ["Scheduled", "Confirmed", "In progress", "Completed", "Cancelled"];
 
 function displayValue(key: string, value: unknown): string {
   if (value === null || value === undefined || value === "") return "—";
@@ -128,7 +131,7 @@ function displayValue(key: string, value: unknown): string {
     if (value < 1024 * 1024) return (value / 1024).toFixed(1) + " KB";
     return (value / (1024 * 1024)).toFixed(1) + " MB";
   }
-  if ((key === "created_at" || key === "updated_at") && typeof value === "string") {
+  if ((key === "created_at" || key === "updated_at" || key === "scheduled_start" || key === "scheduled_end") && typeof value === "string") {
     const parsed = new Date(value);
     return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString("en-ZA", { dateStyle: "medium", timeStyle: "short" });
   }
@@ -143,7 +146,7 @@ function displayValue(key: string, value: unknown): string {
 function StatusEditor({
   resource, row, onSaved, statusOptions,
 }: {
-  resource: "enquiries" | "jobs" | "documents";
+  resource: "enquiries" | "jobs" | "documents" | "schedules";
   row: AdminRow;
   onSaved: () => void;
   statusOptions: string[];
@@ -396,6 +399,82 @@ function CommercialDocumentActions({ moduleKey, row, onUpdated, enquiries }: { m
       {row.status === "Declined" && <small className="text-mist block mt-2">Customer declined this quotation.</small>}
     </> : <InvoicePaymentsPanel row={row} onUpdated={onUpdated}/>}
   </div>;
+}
+
+
+function ScheduleCreatePanel({ apiConfigured, writesEnabled, onCreated }: {
+  apiConfigured: boolean;
+  writesEnabled: boolean;
+  onCreated: () => void;
+}) {
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!apiConfigured || !writesEnabled || saving) return;
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const startValue = String(data.get("scheduled_start") ?? "");
+    const endValue = String(data.get("scheduled_end") ?? "");
+    const start = new Date(startValue);
+    const end = new Date(endValue);
+    if (!startValue || !endValue || !Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) {
+      setError("Enter a valid start and end time. The end must be after the start.");
+      return;
+    }
+    const title = String(data.get("title") ?? "").trim();
+    const service = String(data.get("service") ?? "").trim();
+    if (!title || !service) {
+      setError("Enter an appointment title and select a service.");
+      return;
+    }
+    setSaving(true);
+    setMessage("");
+    setError("");
+    try {
+      await createAdminSchedule({
+        title,
+        customer_name: String(data.get("customer_name") ?? "").trim(),
+        service,
+        area: String(data.get("area") ?? "").trim(),
+        assigned_to: String(data.get("assigned_to") ?? "").trim(),
+        scheduled_start: start.toISOString(),
+        scheduled_end: end.toISOString(),
+        notes: String(data.get("notes") ?? "").trim(),
+        status: "Scheduled",
+      });
+      setMessage("Appointment saved to the isolated preview calendar.");
+      form.reset();
+      onCreated();
+    } catch (e) {
+      setError(adminApiErrorMessage(e));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return <section className="action-panel">
+    <div className="action-panel-head">
+      <div><strong>Schedule an appointment</strong><small>Creates a calendar entry in preview D1 only.</small></div>
+      <span className="preview-pill">PREVIEW</span>
+    </div>
+    <form className="admin-form-grid" onSubmit={submit}>
+      <label className="admin-form-wide">Appointment title<input name="title" required maxLength={180} disabled={!writesEnabled || !apiConfigured || saving} placeholder="e.g. Solar panel cleaning — site visit"/></label>
+      <label>Customer / site<input name="customer_name" maxLength={160} disabled={!writesEnabled || !apiConfigured || saving}/></label>
+      <label>Service<select name="service" required defaultValue="" disabled={!writesEnabled || !apiConfigured || saving}><option value="" disabled>Choose service</option>{services.map((service)=><option key={service.slug} value={service.name}>{service.name}</option>)}</select></label>
+      <label>Area / suburb<input name="area" maxLength={160} disabled={!writesEnabled || !apiConfigured || saving}/></label>
+      <label>Assigned to<input name="assigned_to" maxLength={160} disabled={!writesEnabled || !apiConfigured || saving}/></label>
+      <label>Starts<input name="scheduled_start" type="datetime-local" required disabled={!writesEnabled || !apiConfigured || saving}/></label>
+      <label>Ends<input name="scheduled_end" type="datetime-local" required disabled={!writesEnabled || !apiConfigured || saving}/></label>
+      <label className="admin-form-wide">Notes<textarea name="notes" rows={2} maxLength={4000} disabled={!writesEnabled || !apiConfigured || saving}/></label>
+      <div className="admin-form-wide form-actions"><button type="submit" className="button button-orange" disabled={!writesEnabled || !apiConfigured || saving}>{saving ? "Saving appointment…" : "Save appointment"}</button><span>New appointments start with Scheduled status.</span></div>
+    </form>
+    {!writesEnabled && <p className="guardrail-message">Calendar writes remain disabled until the preview write-acceptance checks are approved.</p>}
+    {message && <p className="inline-feedback" role="status">{message}</p>}
+    {error && <p className="action-result action-result-error" role="alert">{error}</p>}
+  </section>;
 }
 
 export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModuleKey }) {
@@ -664,6 +743,8 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       </div>
     </div>
 
+    {moduleKey === "calendar" && <ScheduleCreatePanel apiConfigured={apiConfigured} writesEnabled={writesEnabled} onCreated={()=>setRefreshVersion((version)=>version+1)}/>}
+
     {canCreate && <section className="action-panel">
       <div className="action-panel-head"><div><strong>Create {moduleKey==="enquiries"?"enquiry":moduleKey==="jobs"?"job":moduleKey==="quotes"?"quotation":"invoice"}</strong><small>New records are only allowed when the explicit preview-write flag is enabled.</small></div>
         <div className="flex gap-2 flex-wrap">
@@ -745,8 +826,8 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       :!apiConfigured?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>CONNECT THE PREVIEW API.</h2><p>Set the non-secret API base URL in Vercel Preview. Cloudflare Access and the preview origin allowlist must also match.</p></div>
       :rows.length===0?<div className="table-empty"><span aria-hidden="true">▤</span><h2>NO RECORDS RETURNED.</h2><p>The protected API returned an empty collection for this module. This is not an API error.</p></div>
       :visibleRows.length===0?<div className="table-empty"><span aria-hidden="true">⌕</span><h2>NO MATCHES.</h2><p>Try a different search term.</p></div>
-      :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<th>File action</th>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<th>Document workflow</th>}{moduleKey==="enquiries"&&<th>CRM / quotation workflow</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&<th>Status action</th>}</tr></thead>
-        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<td>{getAdminMediaDownloadUrl(row.id)?<a className="text-link" href={getAdminMediaDownloadUrl(row.id)} target="_blank" rel="noopener noreferrer">Open / download ↗</a>:<span className="inline-feedback">File link unavailable</span>}</td>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<td><CommercialDocumentActions moduleKey={moduleKey} row={row} enquiries={enquiryRows} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{moduleKey==="enquiries"&&<td><ConvertEnquiryToCrmAction row={row} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{writesEnabled&&["enquiries","jobs","quotes","invoices"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents"].includes(module.resource)&&<td><StatusEditor key={String(row.id)+"-"+String(row.status)} resource={module.resource as "enquiries"|"jobs"|"documents"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
+      :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<th>File action</th>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<th>Document workflow</th>}{moduleKey==="enquiries"&&<th>CRM / quotation workflow</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices","calendar"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents","schedules"].includes(module.resource)&&<th>Status action</th>}</tr></thead>
+        <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<td>{getAdminMediaDownloadUrl(row.id)?<a className="text-link" href={getAdminMediaDownloadUrl(row.id)} target="_blank" rel="noopener noreferrer">Open / download ↗</a>:<span className="inline-feedback">File link unavailable</span>}</td>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<td><CommercialDocumentActions moduleKey={moduleKey} row={row} enquiries={enquiryRows} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{moduleKey==="enquiries"&&<td><ConvertEnquiryToCrmAction row={row} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{writesEnabled&&["enquiries","jobs","quotes","invoices","calendar"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents","schedules"].includes(module.resource)&&<td><StatusEditor key={String(row.id)+"-"+String(row.status)} resource={module.resource as "enquiries"|"jobs"|"documents"|"schedules"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : module.resource === "schedules" ? SCHEDULE_STATUS_OPTIONS : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/></td>}</tr>)}</tbody></table></div>}
     </section>
     {moduleKey==="invoices"&&<p className="module-footnote">Invoices are generated only from accepted quotations. The payment ledger tracks partial payments, prevents overpayment and marks an invoice Paid only when its allocated payments cover the full value. Refunds, reversals and credit-note allocation remain separate work.</p>}
     {moduleKey==="content"&&<p className="module-footnote">Content editing remains disabled until optimistic concurrency, publish/rollback and the owner-approved field schema are implemented.</p>}
