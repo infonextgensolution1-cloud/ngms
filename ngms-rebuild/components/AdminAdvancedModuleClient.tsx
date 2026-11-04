@@ -546,7 +546,6 @@ function SettingsModule() {
     ["Write actions", writes ? "Enabled by environment flag" : "Disabled by safety guard"],
     ["Live website protection", "No production deployment from this branch"],
     ["Backend", "Cloudflare Workers + D1 + R2"],
-    ["Supabase", "Not used by this rebuild"],
   ];
 
   return <div className="space-y-5">
