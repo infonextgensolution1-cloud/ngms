@@ -235,7 +235,7 @@ export default {
 
     try {
       if (url.pathname === "/api/admin/media" && request.method === "GET") {
-        const result = await env.DB.prepare("SELECT id, original_name, content_type, size_bytes, uploaded_by, created_at FROM media ORDER BY created_at DESC LIMIT 100").all();
+        const result = await env.DB.prepare("SELECT id, original_name, content_type, size_bytes, uploaded_by, category, alt_text, tags_json, created_at, updated_at FROM media ORDER BY created_at DESC LIMIT 200").all();
         return json({ items: result.results }, 200, origin);
       }
       if (url.pathname === "/api/admin/media" && request.method === "POST") {
@@ -250,7 +250,7 @@ export default {
         const key = `uploads/${new Date().toISOString().slice(0, 10)}/${id}-${name}`;
         await env.MEDIA.put(key, await file.arrayBuffer(), { httpMetadata: { contentType: file.type, cacheControl: "private, no-store" }, customMetadata: { originalName: name, uploadedBy: actor } });
         try {
-          await env.DB.prepare("INSERT INTO media (id, object_key, original_name, content_type, size_bytes, uploaded_by) VALUES (?, ?, ?, ?, ?, ?)").bind(id, key, name, file.type, file.size, actor).run();
+          await env.DB.prepare("INSERT INTO media (id, object_key, original_name, content_type, size_bytes, uploaded_by, category, alt_text, tags_json) VALUES (?, ?, ?, ?, ?, ?, 'Uncategorised', '', '[]')").bind(id, key, name, file.type, file.size, actor).run();
         } catch (error) {
           await env.MEDIA.delete(key);
           throw error;
@@ -277,7 +277,7 @@ export default {
           customMetadata: { originalName: name, uploadedBy: actor },
         });
         try {
-          await env.DB.prepare("UPDATE media SET object_key = ?, original_name = ?, content_type = ?, size_bytes = ?, uploaded_by = ? WHERE id = ?")
+          await env.DB.prepare("UPDATE media SET object_key = ?, original_name = ?, content_type = ?, size_bytes = ?, uploaded_by = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?")
             .bind(key, name, file.type, file.size, actor, mediaReplaceMatch[1])
             .run();
         } catch (error) {
@@ -285,7 +285,30 @@ export default {
           throw error;
         }
         await env.MEDIA.delete(existing.object_key);
-        return json({ replaced: true, id: mediaReplaceMatch[1], name, type: file.type, size: file.size }, 200, origin);
+        const replacedItem = await env.DB.prepare("SELECT id, original_name, content_type, size_bytes, category, alt_text, tags_json, uploaded_by, created_at, updated_at FROM media WHERE id = ?").bind(mediaReplaceMatch[1]).first();
+        return json({ replaced: true, item: replacedItem }, 200, origin);
+      }
+
+
+      const mediaMetadataMatch = url.pathname.match(new RegExp("^/api/admin/media/([0-9a-f-]{36})$", "i"));
+      if (mediaMetadataMatch && request.method === "PATCH") {
+        const body = await readJson(request);
+        if (!body) return json({ error: "Request body must be a JSON object." }, 400, origin);
+        const category = textField(body, "category", 80);
+        const altText = textField(body, "alt_text", 240) ?? "";
+        const rawTags = body.tags;
+        if (!category) return json({ error: "A media category is required." }, 400, origin);
+        if (!Array.isArray(rawTags) || rawTags.length > 12 || rawTags.some((tag) => typeof tag !== "string" || tag.trim().length > 40)) {
+          return json({ error: "Provide up to 12 tags, each no longer than 40 characters." }, 400, origin);
+        }
+        const tags = Array.from(new Set(rawTags.map((tag) => String(tag).trim().toLowerCase()).filter(Boolean)));
+        const existing = await env.DB.prepare("SELECT id FROM media WHERE id = ?").bind(mediaMetadataMatch[1]).first();
+        if (!existing) return json({ error: "Media not found." }, 404, origin);
+        await env.DB.prepare("UPDATE media SET category = ?, alt_text = ?, tags_json = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?")
+          .bind(category, altText, JSON.stringify(tags), mediaMetadataMatch[1]).run();
+        const item = await env.DB.prepare("SELECT id, original_name, content_type, size_bytes, uploaded_by, category, alt_text, tags_json, created_at, updated_at FROM media WHERE id = ?")
+          .bind(mediaMetadataMatch[1]).first();
+        return json({ item }, 200, origin);
       }
 
       const mediaMatch = url.pathname.match(/^\/api\/admin\/media\/([0-9a-f-]{36})(?:\/delete)?$/i);
@@ -360,6 +383,8 @@ export default {
         ).bind(commercialShareMatch[1]).first<{ id: string; reference: string; status: string; customer_id: string | null }>();
         if (!quote) return json({ error: "Quotation not found." }, 404, origin);
         if (quote.status !== "Draft" && quote.status !== "Sent") return json({ error: "Only draft or sent quotations can be shared." }, 409, origin);
+        const quoteLineCount = await env.DB.prepare("SELECT COUNT(*) AS line_count FROM document_line_items WHERE document_id = ?").bind(quote.id).first<{ line_count: number }>();
+        if (Number(quoteLineCount?.line_count || 0) < 1) return json({ error: "This quotation has no saved line items and cannot be issued to a customer." }, 409, origin);
         const enquiry = await env.DB.prepare(
           "SELECT id, customer_id, status FROM enquiries WHERE id = ?"
         ).bind(enquiryId).first<{ id: string; customer_id: string | null; status: string }>();
@@ -435,6 +460,7 @@ export default {
         const existing = await env.DB.prepare("SELECT id FROM jobs WHERE source_document_id = ?").bind(quote.id).first<{id:string}>();
         if (existing) return json({error:"A job has already been created from this quotation.",job_id:existing.id},409,origin);
         const lines = await env.DB.prepare("SELECT description,quantity,unit FROM document_line_items WHERE document_id=? ORDER BY line_order").bind(quote.id).all<{description:string;quantity:number;unit:string}>();
+        if (!lines.results.length) return json({error:"This accepted quotation has no saved line items and cannot be converted into a job."},409,origin);
         const service = lines.results[0]?.description || "Quoted work";
         const details = [quote.reference,quote.notes,...lines.results.map(line=>String(line.quantity)+" "+line.unit+" — "+line.description)].filter(Boolean).join("\n");
         const id = newId("J");
@@ -454,7 +480,7 @@ export default {
         const status = url.searchParams.get("status");
         if (kind !== "Quotation" && kind !== "Invoice") return json({ error: "Choose Quotation or Invoice." }, 400, origin);
         if (status && !["Draft", "Sent", "Accepted", "Declined", "Expired", "Overdue", "Cancelled"].includes(status)) return json({ error: "Invalid document status filter." }, 400, origin);
-        const result = await env.DB.prepare("SELECT d.id, d.reference, d.customer_id, COALESCE(c.display_name, d.customer_name) AS customer_name, d.kind, d.amount_cents, d.subtotal_cents, d.discount_cents, d.vat_enabled, d.vat_rate_basis_points, d.vat_cents, d.status, d.issue_date, d.created_at, d.source_document_id, (SELECT j.id FROM jobs j WHERE j.source_document_id = d.id LIMIT 1) AS job_id FROM documents d LEFT JOIN customers c ON c.id = d.customer_id WHERE d.reference IS NOT NULL AND d.kind = ? AND (? IS NULL OR d.status = ?) ORDER BY d.created_at DESC LIMIT 200").bind(kind, status, status).all();
+        const result = await env.DB.prepare("SELECT d.id, d.reference, d.customer_id, COALESCE(c.display_name, d.customer_name) AS customer_name, d.kind, d.amount_cents, d.subtotal_cents, d.discount_cents, d.vat_enabled, d.vat_rate_basis_points, d.vat_cents, d.status, d.issue_date, d.created_at, d.source_document_id, (SELECT j.id FROM jobs j WHERE j.source_document_id = d.id LIMIT 1) AS job_id, COALESCE(li.line_item_count, 0) AS line_item_count, COALESCE(li.line_total_cents, 0) AS line_total_cents, CASE WHEN d.reference IS NULL OR TRIM(d.reference) = '' THEN 'Missing reference' WHEN COALESCE(li.line_item_count, 0) = 0 THEN 'Missing line items' WHEN COALESCE(li.line_total_cents, 0) <> d.subtotal_cents THEN 'Subtotal mismatch' ELSE 'Complete' END AS integrity_status FROM documents d LEFT JOIN customers c ON c.id = d.customer_id LEFT JOIN (SELECT document_id, COUNT(*) AS line_item_count, COALESCE(SUM(line_total_cents), 0) AS line_total_cents FROM document_line_items GROUP BY document_id) li ON li.document_id = d.id WHERE d.kind = ? AND (? IS NULL OR d.status = ?) ORDER BY d.created_at DESC LIMIT 200").bind(kind, status, status).all();
         return json({ items: result.results }, 200, origin);
       }
 
@@ -559,7 +585,7 @@ export default {
       }
 
       if (commercialDetailMatch && request.method === "GET") {
-        const item = await env.DB.prepare("SELECT * FROM documents WHERE id = ? AND reference IS NOT NULL").bind(commercialDetailMatch[1]).first();
+        const item = await env.DB.prepare("SELECT * FROM documents WHERE id = ?").bind(commercialDetailMatch[1]).first();
         if (!item) return json({ error: "Commercial document not found." }, 404, origin);
         const lines = await env.DB.prepare("SELECT id, line_order, description, quantity, unit, unit_price_cents, line_total_cents FROM document_line_items WHERE document_id = ? ORDER BY line_order").bind(commercialDetailMatch[1]).all();
         return json({ item, lines: lines.results }, 200, origin);
@@ -903,6 +929,66 @@ export default {
           const item = await env.DB.prepare("SELECT id, title, service, area, description, status, before_media_id, after_media_id, created_at, updated_at FROM projects WHERE id = ?").bind(projectId).first();
           return json({ item }, 200, origin);
         }
+      }
+
+
+      // Read-only operational reporting: only complete commercial documents contribute to verified values.
+      if (url.pathname === "/api/admin/reports" && request.method === "GET") {
+        const [customers, enquiries, jobs, schedules, media, operations, quotationValue, invoiceFinance, documentIntegrity] = await Promise.all([
+          env.DB.prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) AS active FROM customers").first<{ total: number; active: number }>(),
+          env.DB.prepare("SELECT status, COUNT(*) AS count FROM enquiries GROUP BY status ORDER BY status").all<{ status: string; count: number }>(),
+          env.DB.prepare("SELECT status, COUNT(*) AS count FROM jobs GROUP BY status ORDER BY status").all<{ status: string; count: number }>(),
+          env.DB.prepare("SELECT status, COUNT(*) AS count FROM schedules GROUP BY status ORDER BY status").all<{ status: string; count: number }>(),
+          env.DB.prepare("SELECT COUNT(*) AS total FROM media").first<{ total: number }>(),
+          env.DB.prepare("SELECT category, COUNT(*) AS count FROM operation_records GROUP BY category ORDER BY category").all<{ category: string; count: number }>(),
+          env.DB.prepare("SELECT COUNT(*) AS count, COALESCE(SUM(d.amount_cents),0) AS value_cents FROM documents d WHERE d.kind = 'Quotation' AND d.status <> 'Cancelled' AND d.reference IS NOT NULL AND EXISTS (SELECT 1 FROM document_line_items li WHERE li.document_id = d.id GROUP BY li.document_id HAVING COUNT(*) > 0 AND SUM(li.line_total_cents) = d.subtotal_cents)").first<{ count: number; value_cents: number }>(),
+          env.DB.prepare("SELECT COUNT(*) AS count, COALESCE(SUM(d.amount_cents),0) AS value_cents, COALESCE(SUM(COALESCE(p.paid_cents,0)),0) AS paid_cents FROM documents d LEFT JOIN (SELECT document_id, SUM(amount_cents) AS paid_cents FROM document_payments GROUP BY document_id) p ON p.document_id = d.id WHERE d.kind = 'Invoice' AND d.status <> 'Cancelled' AND d.reference IS NOT NULL AND EXISTS (SELECT 1 FROM document_line_items li WHERE li.document_id = d.id GROUP BY li.document_id HAVING COUNT(*) > 0 AND SUM(li.line_total_cents) = d.subtotal_cents)").first<{ count: number; value_cents: number; paid_cents: number }>(),
+          env.DB.prepare("SELECT kind, COUNT(*) AS total, SUM(CASE WHEN reference IS NOT NULL AND EXISTS (SELECT 1 FROM document_line_items li WHERE li.document_id = documents.id GROUP BY li.document_id HAVING COUNT(*) > 0 AND SUM(li.line_total_cents) = documents.subtotal_cents) THEN 1 ELSE 0 END) AS verified FROM documents GROUP BY kind ORDER BY kind").all<{ kind: string; total: number; verified: number }>()
+        ]);
+
+        const money = (cents: number) => new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(Number(cents || 0) / 100);
+        const enquiryOpen = enquiries.results.filter((row) => !["Converted", "Closed"].includes(row.status)).reduce((sum, row) => sum + Number(row.count), 0);
+        const jobsInProgress = jobs.results.filter((row) => row.status === "In progress").reduce((sum, row) => sum + Number(row.count), 0);
+        const verifiedInvoiceValue = Number(invoiceFinance?.value_cents || 0);
+        const recordedPayments = Number(invoiceFinance?.paid_cents || 0);
+        const incompleteDocuments = documentIntegrity.results.reduce((sum, row) => sum + Number(row.total) - Number(row.verified), 0);
+        const operationCount = operations.results.reduce((sum, row) => sum + Number(row.count), 0);
+        const items = [
+          { metric: "Active CRM customers", value: String(customers?.active || 0), detail: String(customers?.total || 0) + " total customer records", data_status: "Recorded count" },
+          { metric: "Open enquiries", value: String(enquiryOpen), detail: String(enquiries.results.reduce((sum,row)=>sum+Number(row.count),0)) + " total enquiries", data_status: "Recorded count" },
+          { metric: "Jobs in progress", value: String(jobsInProgress), detail: String(jobs.results.reduce((sum,row)=>sum+Number(row.count),0)) + " total jobs", data_status: "Recorded count" },
+          { metric: "Scheduled appointments", value: String(schedules.results.reduce((sum,row)=>sum+Number(row.count),0)), detail: String(schedules.results.length) + " appointment status groups", data_status: "Recorded count" },
+          { metric: "Media library assets", value: String(media?.total || 0), detail: "Assets registered in preview D1", data_status: "Metadata count; R2 object integrity checked separately" },
+          { metric: "Maintenance / supplier / stock / finance records", value: String(operationCount), detail: operations.results.map((row)=>row.category + ": " + row.count).join(" · ") || "No operation records", data_status: "Recorded count" },
+          { metric: "Verified quotation value", value: money(Number(quotationValue?.value_cents || 0)), detail: String(quotationValue?.count || 0) + " complete, referenced quotations", data_status: "Excludes incomplete and cancelled documents" },
+          { metric: "Verified invoice face value", value: money(verifiedInvoiceValue), detail: String(invoiceFinance?.count || 0) + " complete, referenced invoices", data_status: "Excludes incomplete and cancelled documents" },
+          { metric: "Payments recorded against verified invoices", value: money(recordedPayments), detail: "Based on document payment allocations", data_status: "Not a bank reconciliation" },
+          { metric: "Outstanding balance on verified invoices", value: money(Math.max(0, verifiedInvoiceValue - recordedPayments)), detail: "Face value less recorded payment allocations", data_status: "Excludes incomplete and cancelled documents" },
+          { metric: "Incomplete commercial documents", value: String(incompleteDocuments), detail: documentIntegrity.results.map((row)=>row.kind + ": " + (Number(row.total)-Number(row.verified)) + " of " + row.total).join(" · "), data_status: "Requires source-document review before financial reliance" },
+        ];
+        return json({ items, generated_at: new Date().toISOString() }, 200, origin);
+      }
+
+      // Settings endpoint deliberately exposes only the commercial VAT preference; Access/security stays in Cloudflare.
+      if (url.pathname === "/api/admin/settings" && request.method === "GET") {
+        const row = await env.DB.prepare("SELECT setting_json, updated_at FROM business_settings WHERE setting_key = 'commercial.vat'").first<{ setting_json: string; updated_at: string }>();
+        let settings = { vat_enabled: false, vat_rate_basis_points: 1500 };
+        if (row?.setting_json) {
+          try {
+            const saved = JSON.parse(row.setting_json) as Record<string, unknown>;
+            settings = {
+              vat_enabled: saved.vat_enabled === true,
+              vat_rate_basis_points: Number.isInteger(saved.vat_rate_basis_points) && Number(saved.vat_rate_basis_points) >= 0 && Number(saved.vat_rate_basis_points) <= 3000 ? Number(saved.vat_rate_basis_points) : 1500,
+            };
+          } catch { /* Use safe defaults for a malformed setting. */ }
+        }
+        const changedAt = row?.updated_at || "System default";
+        return json({ items: [
+          { setting: "VAT enabled", current_value: settings.vat_enabled ? "Enabled" : "Disabled", owner: "Commercial documents", last_changed: changedAt },
+          { setting: "VAT rate", current_value: (settings.vat_rate_basis_points / 100).toFixed(2).replace(/\\.00$/, "") + "%", owner: "Commercial documents", last_changed: changedAt },
+          { setting: "Admin authentication", current_value: "Cloudflare Access · One-Time PIN", owner: "Cloudflare Zero Trust", last_changed: "Managed outside the NGMS dashboard" },
+          { setting: "Data storage", current_value: "Cloudflare D1 + R2", owner: "NGMS infrastructure", last_changed: "Managed outside the NGMS dashboard" },
+        ] }, 200, origin);
       }
 
       if (url.pathname === "/api/admin/content" && request.method === "GET") {

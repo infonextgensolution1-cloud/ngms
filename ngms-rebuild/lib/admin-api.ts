@@ -17,7 +17,9 @@ export type AdminResource =
   | "media"
   | "content"
   | "customers"
-  | "schedules";
+  | "schedules"
+  | "reports"
+  | "settings";
 
 export class AdminApiError extends Error {
   readonly code: "not-configured" | "http" | "invalid-response" | "network";
@@ -101,6 +103,71 @@ export function getAdminMediaDownloadUrl(id: unknown): string {
   const base = getAdminApiBase();
   if (typeof id !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(id) || !base) return "";
   return `${base}/api/admin/media/${encodeURIComponent(id)}/download`;
+}
+
+async function mediaActionFetch(path: string, init: RequestInit): Promise<Record<string, unknown>> {
+  if (!previewWritesEnabled()) {
+    throw new AdminApiError("Media changes are disabled until preview write acceptance is approved.", "not-configured");
+  }
+  const base = getAdminApiBase();
+  if (!base) throw new AdminApiError("The protected preview API base URL is not configured.", "not-configured");
+  let response: Response;
+  try {
+    response = await fetch(`${base}${path}`, {
+      ...init,
+      credentials: "include",
+      cache: "no-store",
+      headers: { Accept: "application/json", ...(init.headers ?? {}) },
+    });
+  } catch {
+    throw new AdminApiError("The media request failed. No successful change has been assumed.", "network");
+  }
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message = body && typeof body === "object" && "error" in body && typeof (body as { error?: unknown }).error === "string"
+      ? (body as { error: string }).error
+      : `Cloudflare API returned HTTP ${response.status}.`;
+    throw new AdminApiError(message, "http", response.status);
+  }
+  if (!body || typeof body !== "object") {
+    throw new AdminApiError("The media endpoint returned an invalid response.", "invalid-response", response.status);
+  }
+  return body as Record<string, unknown>;
+}
+
+export async function updateAdminMediaMetadata(
+  id: string,
+  payload: { category: string; alt_text: string; tags: string[] }
+): Promise<AdminRow> {
+  if (!/^[A-Za-z0-9_-]{1,100}$/.test(id)) throw new AdminApiError("The media identifier is invalid.", "invalid-response");
+  const body = await mediaActionFetch(`/api/admin/media/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!body.item || typeof body.item !== "object") throw new AdminApiError("The metadata endpoint did not return a saved media record.", "invalid-response");
+  return body.item as AdminRow;
+}
+
+export async function replaceAdminMedia(id: string, file: File): Promise<AdminRow> {
+  const accepted = new Set(["image/jpeg", "image/png", "image/webp", "image/avif", "application/pdf"]);
+  if (!accepted.has(file.type)) throw new AdminApiError("Unsupported replacement file type.", "invalid-response");
+  if (file.size < 1 || file.size > 10 * 1024 * 1024) throw new AdminApiError("Replacement file must be between 1 byte and 10 MB.", "invalid-response");
+  if (!/^[A-Za-z0-9_-]{1,100}$/.test(id)) throw new AdminApiError("The media identifier is invalid.", "invalid-response");
+  const form = new FormData();
+  form.append("file", file);
+  const body = await mediaActionFetch(`/api/admin/media/${encodeURIComponent(id)}/replace`, {
+    method: "POST",
+    body: form,
+  });
+  if (!body.item || typeof body.item !== "object") throw new AdminApiError("The replacement endpoint did not return the updated media record.", "invalid-response");
+  return body.item as AdminRow;
+}
+
+export async function deleteAdminMedia(id: string): Promise<void> {
+  if (!/^[A-Za-z0-9_-]{1,100}$/.test(id)) throw new AdminApiError("The media identifier is invalid.", "invalid-response");
+  const body = await mediaActionFetch(`/api/admin/media/${encodeURIComponent(id)}`, { method: "DELETE" });
+  if (body.deleted !== true) throw new AdminApiError("The media delete endpoint did not confirm deletion.", "invalid-response");
 }
 
 export async function readAdminCollection(
@@ -235,8 +302,26 @@ export async function createAdminRecord(
   });
 }
 
+export async function createAdminSchedule(payload: {
+  title: string;
+  customer_name?: string;
+  service: string;
+  area?: string;
+  assigned_to?: string;
+  scheduled_start: string;
+  scheduled_end: string;
+  notes?: string;
+  status?: "Scheduled" | "Confirmed" | "In progress" | "Completed" | "Cancelled";
+}): Promise<AdminRow> {
+  return mutationFetch("/api/admin/schedules", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function updateAdminStatus(
-  resource: "enquiries" | "jobs" | "documents",
+  resource: "enquiries" | "jobs" | "documents" | "schedules",
   id: string,
   status: string
 ): Promise<AdminRow> {
@@ -533,6 +618,89 @@ export async function submitPublicQuotationDecision(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ decision }),
   }, false, true);
+}
+
+
+export type AdminPublishingRequest = {
+  id: string;
+  module_key: string;
+  slug: string;
+  status: string;
+  requested_by: string;
+  reviewed_by: string | null;
+  review_note: string;
+  created_at: string;
+  reviewed_at: string | null;
+};
+export type AdminPublishingVersion = {
+  id: string;
+  module_key: string;
+  slug: string;
+  source_publication_id: string | null;
+  published_by: string;
+  published_at: string;
+};
+export type AdminPublishingSnapshot = {
+  requests: AdminPublishingRequest[];
+  current: Array<{ module_key: string; slug: string; publication_id: string; updated_at: string; content_hash: string; published_by: string; published_at: string }>;
+  history: AdminPublishingVersion[];
+  audit: Array<{ id: string; module_key: string; request_id: string | null; publication_id: string | null; action: string; actor: string; details_json: string; created_at: string }>;
+};
+
+export function cmsWritesEnabled(): boolean {
+  return previewWritesEnabled() && process.env.NEXT_PUBLIC_NGMS_CMS_WRITES_ENABLED === "true";
+}
+
+function requireCmsWrites(): void {
+  if (!cmsWritesEnabled()) {
+    throw new AdminApiError("CMS editing and publishing are disabled in this preview environment. A CMS owner must enable both preview writes and the CMS-specific write flag after approval testing.", "not-configured");
+  }
+}
+
+export async function readAdminPublishing(signal?: AbortSignal): Promise<AdminPublishingSnapshot> {
+  return requestPreviewJson<AdminPublishingSnapshot>("/api/admin/publishing", { method: "GET", signal }, false);
+}
+
+export async function saveAdminCmsDraft(moduleKey: string, value: Record<string, unknown>): Promise<void> {
+  requireCmsWrites();
+  if (!/^[A-Za-z0-9_-]{1,80}$/.test(moduleKey)) throw new AdminApiError("The CMS module key is not valid.", "invalid-response");
+  await requestPreviewJson("/api/admin/content", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: "cms_draft." + moduleKey, value }),
+  }, true);
+}
+
+export async function requestAdminPublication(moduleKey: string): Promise<{ requested: boolean; requestId: string; moduleKey: string; slug: string; approvalRequired: boolean }> {
+  requireCmsWrites();
+  if (!/^[A-Za-z0-9_-]{1,80}$/.test(moduleKey)) throw new AdminApiError("The CMS module key is not valid.", "invalid-response");
+  return requestPreviewJson("/api/admin/publishing/request", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ moduleKey }),
+  }, true);
+}
+
+export async function reviewAdminPublication(requestId: string, decision: "approve" | "reject", note: string): Promise<{ published?: boolean; rejected?: boolean; requestId: string }> {
+  requireCmsWrites();
+  if (!/^[0-9a-f-]{36}$/i.test(requestId)) throw new AdminApiError("The publication request identifier is not valid.", "invalid-response");
+  return requestPreviewJson("/api/admin/publishing/approve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ requestId, decision, note: note.trim() }),
+  }, true);
+}
+
+export async function rollbackAdminPublication(moduleKey: string, publicationId: string, note: string): Promise<{ rolledBack: boolean; moduleKey: string; publicationId: string; restoredFrom: string; slug: string }> {
+  requireCmsWrites();
+  if (!/^[A-Za-z0-9_-]{1,80}$/.test(moduleKey) || !/^[0-9a-f-]{36}$/i.test(publicationId)) {
+    throw new AdminApiError("The CMS module or publication identifier is not valid.", "invalid-response");
+  }
+  return requestPreviewJson("/api/admin/publishing/rollback", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ moduleKey, publicationId, note: note.trim() }),
+  }, true);
 }
 
 
