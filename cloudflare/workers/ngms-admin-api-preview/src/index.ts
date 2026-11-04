@@ -931,6 +931,66 @@ export default {
         }
       }
 
+
+      // Read-only operational reporting: only complete commercial documents contribute to verified values.
+      if (url.pathname === "/api/admin/reports" && request.method === "GET") {
+        const [customers, enquiries, jobs, schedules, media, operations, quotationValue, invoiceFinance, documentIntegrity] = await Promise.all([
+          env.DB.prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) AS active FROM customers").first<{ total: number; active: number }>(),
+          env.DB.prepare("SELECT status, COUNT(*) AS count FROM enquiries GROUP BY status ORDER BY status").all<{ status: string; count: number }>(),
+          env.DB.prepare("SELECT status, COUNT(*) AS count FROM jobs GROUP BY status ORDER BY status").all<{ status: string; count: number }>(),
+          env.DB.prepare("SELECT status, COUNT(*) AS count FROM schedules GROUP BY status ORDER BY status").all<{ status: string; count: number }>(),
+          env.DB.prepare("SELECT COUNT(*) AS total FROM media").first<{ total: number }>(),
+          env.DB.prepare("SELECT category, COUNT(*) AS count FROM operation_records GROUP BY category ORDER BY category").all<{ category: string; count: number }>(),
+          env.DB.prepare("SELECT COUNT(*) AS count, COALESCE(SUM(d.amount_cents),0) AS value_cents FROM documents d WHERE d.kind = 'Quotation' AND d.status <> 'Cancelled' AND d.reference IS NOT NULL AND EXISTS (SELECT 1 FROM document_line_items li WHERE li.document_id = d.id GROUP BY li.document_id HAVING COUNT(*) > 0 AND SUM(li.line_total_cents) = d.subtotal_cents)").first<{ count: number; value_cents: number }>(),
+          env.DB.prepare("SELECT COUNT(*) AS count, COALESCE(SUM(d.amount_cents),0) AS value_cents, COALESCE(SUM(COALESCE(p.paid_cents,0)),0) AS paid_cents FROM documents d LEFT JOIN (SELECT document_id, SUM(amount_cents) AS paid_cents FROM document_payments GROUP BY document_id) p ON p.document_id = d.id WHERE d.kind = 'Invoice' AND d.status <> 'Cancelled' AND d.reference IS NOT NULL AND EXISTS (SELECT 1 FROM document_line_items li WHERE li.document_id = d.id GROUP BY li.document_id HAVING COUNT(*) > 0 AND SUM(li.line_total_cents) = d.subtotal_cents)").first<{ count: number; value_cents: number; paid_cents: number }>(),
+          env.DB.prepare("SELECT kind, COUNT(*) AS total, SUM(CASE WHEN reference IS NOT NULL AND EXISTS (SELECT 1 FROM document_line_items li WHERE li.document_id = documents.id GROUP BY li.document_id HAVING COUNT(*) > 0 AND SUM(li.line_total_cents) = documents.subtotal_cents) THEN 1 ELSE 0 END) AS verified FROM documents GROUP BY kind ORDER BY kind").all<{ kind: string; total: number; verified: number }>()
+        ]);
+
+        const money = (cents: number) => new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(Number(cents || 0) / 100);
+        const enquiryOpen = enquiries.results.filter((row) => !["Converted", "Closed"].includes(row.status)).reduce((sum, row) => sum + Number(row.count), 0);
+        const jobsInProgress = jobs.results.filter((row) => row.status === "In progress").reduce((sum, row) => sum + Number(row.count), 0);
+        const verifiedInvoiceValue = Number(invoiceFinance?.value_cents || 0);
+        const recordedPayments = Number(invoiceFinance?.paid_cents || 0);
+        const incompleteDocuments = documentIntegrity.results.reduce((sum, row) => sum + Number(row.total) - Number(row.verified), 0);
+        const operationCount = operations.results.reduce((sum, row) => sum + Number(row.count), 0);
+        const items = [
+          { metric: "Active CRM customers", value: String(customers?.active || 0), detail: String(customers?.total || 0) + " total customer records", data_status: "Recorded count" },
+          { metric: "Open enquiries", value: String(enquiryOpen), detail: String(enquiries.results.reduce((sum,row)=>sum+Number(row.count),0)) + " total enquiries", data_status: "Recorded count" },
+          { metric: "Jobs in progress", value: String(jobsInProgress), detail: String(jobs.results.reduce((sum,row)=>sum+Number(row.count),0)) + " total jobs", data_status: "Recorded count" },
+          { metric: "Scheduled appointments", value: String(schedules.results.reduce((sum,row)=>sum+Number(row.count),0)), detail: String(schedules.results.length) + " appointment status groups", data_status: "Recorded count" },
+          { metric: "Media library assets", value: String(media?.total || 0), detail: "Assets registered in preview D1", data_status: "Metadata count; R2 object integrity checked separately" },
+          { metric: "Maintenance / supplier / stock / finance records", value: String(operationCount), detail: operations.results.map((row)=>row.category + ": " + row.count).join(" · ") || "No operation records", data_status: "Recorded count" },
+          { metric: "Verified quotation value", value: money(Number(quotationValue?.value_cents || 0)), detail: String(quotationValue?.count || 0) + " complete, referenced quotations", data_status: "Excludes incomplete and cancelled documents" },
+          { metric: "Verified invoice face value", value: money(verifiedInvoiceValue), detail: String(invoiceFinance?.count || 0) + " complete, referenced invoices", data_status: "Excludes incomplete and cancelled documents" },
+          { metric: "Payments recorded against verified invoices", value: money(recordedPayments), detail: "Based on document payment allocations", data_status: "Not a bank reconciliation" },
+          { metric: "Outstanding balance on verified invoices", value: money(Math.max(0, verifiedInvoiceValue - recordedPayments)), detail: "Face value less recorded payment allocations", data_status: "Excludes incomplete and cancelled documents" },
+          { metric: "Incomplete commercial documents", value: String(incompleteDocuments), detail: documentIntegrity.results.map((row)=>row.kind + ": " + (Number(row.total)-Number(row.verified)) + " of " + row.total).join(" · "), data_status: "Requires source-document review before financial reliance" },
+        ];
+        return json({ items, generated_at: new Date().toISOString() }, 200, origin);
+      }
+
+      // Settings endpoint deliberately exposes only the commercial VAT preference; Access/security stays in Cloudflare.
+      if (url.pathname === "/api/admin/settings" && request.method === "GET") {
+        const row = await env.DB.prepare("SELECT setting_json, updated_at FROM business_settings WHERE setting_key = 'commercial.vat'").first<{ setting_json: string; updated_at: string }>();
+        let settings = { vat_enabled: false, vat_rate_basis_points: 1500 };
+        if (row?.setting_json) {
+          try {
+            const saved = JSON.parse(row.setting_json) as Record<string, unknown>;
+            settings = {
+              vat_enabled: saved.vat_enabled === true,
+              vat_rate_basis_points: Number.isInteger(saved.vat_rate_basis_points) && Number(saved.vat_rate_basis_points) >= 0 && Number(saved.vat_rate_basis_points) <= 3000 ? Number(saved.vat_rate_basis_points) : 1500,
+            };
+          } catch { /* Use safe defaults for a malformed setting. */ }
+        }
+        const changedAt = row?.updated_at || "System default";
+        return json({ items: [
+          { setting: "VAT enabled", current_value: settings.vat_enabled ? "Enabled" : "Disabled", owner: "Commercial documents", last_changed: changedAt },
+          { setting: "VAT rate", current_value: (settings.vat_rate_basis_points / 100).toFixed(2).replace(/\\.00$/, "") + "%", owner: "Commercial documents", last_changed: changedAt },
+          { setting: "Admin authentication", current_value: "Cloudflare Access · One-Time PIN", owner: "Cloudflare Zero Trust", last_changed: "Managed outside the NGMS dashboard" },
+          { setting: "Data storage", current_value: "Cloudflare D1 + R2", owner: "NGMS infrastructure", last_changed: "Managed outside the NGMS dashboard" },
+        ] }, 200, origin);
+      }
+
       if (url.pathname === "/api/admin/content" && request.method === "GET") {
         const result = await env.DB.prepare("SELECT content_key, content_json, updated_by, updated_at FROM site_content ORDER BY content_key").all();
         return json({ items: result.results }, 200, origin);
