@@ -126,6 +126,10 @@ export default function QuoteRequestForm() {
       setFeedback({ kind: "error", message: "Please provide a contact number or email address." });
       return;
     }
+    if (!Boolean(data.get("consent"))) {
+      setFeedback({ kind: "error", message: "Please confirm the privacy consent before submitting your enquiry." });
+      return;
+    }
     if (!turnstileToken) {
       setSecurityError("Please complete the security check before submitting.");
       return;
@@ -142,10 +146,15 @@ export default function QuoteRequestForm() {
       setFeedback({ kind: "error", message: "Please describe the work in at least 10 characters." });
       return;
     }
+    if (!selected) {
+      setFeedback({ kind: "error", message: "Please choose a service from the list." });
+      return;
+    }
     const details = [
       description,
-      selected?.value === "Other" ? `Specific request: ${selected.label}` : "",
+      selected.value === "Other" ? `Specific request: ${selected.label}` : "",
       preferredDate ? `Preferred date: ${preferredDate}` : "",
+      `POPIA enquiry consent confirmed: ${new Date().toISOString()}`,
     ].filter(Boolean).join("\n\n");
 
     setSubmitting(true);
@@ -164,6 +173,7 @@ export default function QuoteRequestForm() {
           turnstileToken,
           submissionKey: crypto.randomUUID(),
           website: String(data.get("website") ?? ""),
+          consent: Boolean(data.get("consent")),
         }),
       });
       const result: unknown = await response.json().catch(() => null);
@@ -207,7 +217,7 @@ export default function QuoteRequestForm() {
           <label htmlFor="quote-service">Service required
             <select id="quote-service" name="service_display" defaultValue="" required>
               <option value="" disabled>Choose a service</option>
-              {SERVICE_OPTIONS.map((service, index) => <option key={service.label + index} value={service.value}>{service.label}</option>)}
+              {SERVICE_OPTIONS.map((service, index) => <option key={service.label + index} value={service.label}>{service.label}</option>)}
             </select>
           </label>
           <label htmlFor="quote-customer">Your name
@@ -228,6 +238,10 @@ export default function QuoteRequestForm() {
           <label htmlFor="quote-details">Describe the work
             <textarea id="quote-details" name="details" placeholder="Include the issue, approximate size, access requirements and preferred timing." rows={5} minLength={10} maxLength={3500} required />
           </label>
+          <label className="form-consent" htmlFor="quote-consent">
+            <input id="quote-consent" name="consent" type="checkbox" value="yes" required />
+            <span>I agree that NGMS may use and store these details to respond to this enquiry and prepare a quotation. Read the <a href="/privacy" target="_blank" rel="noreferrer">privacy notice</a>.</span>
+          </label>
           <div className="quote-honeypot" aria-hidden="true">
             <label htmlFor="quote-website">Leave this field empty</label>
             <input id="quote-website" name="website" tabIndex={-1} autoComplete="off" />
@@ -240,7 +254,7 @@ export default function QuoteRequestForm() {
           <button className="button button-orange" type="submit" disabled={submitting || !turnstileToken}>
             {submitting ? "Sending request…" : "Submit quote request ↗"}
           </button>
-          <p className="form-help">Your request is recorded in the isolated NGMS preview system. A quotation is prepared only after an NGMS administrator reviews the scope.</p>
+          <p className="form-help">Your enquiry is securely submitted to the NGMS intake system for review. A formal quotation is prepared only after an NGMS administrator checks the scope.</p>
         </fieldset>
       </form>
       {feedback && (
