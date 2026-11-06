@@ -392,6 +392,9 @@ var index_default = {
     if (typeof body.website === "string" && body.website.trim()) {
       return json({ ok: true, message: "Thank you. Your enquiry has been received." }, 202, origin);
     }
+    if (body.consent !== true) {
+      return json({ error: "Please confirm the privacy consent before submitting your enquiry." }, 400, origin);
+    }
     const customer = cleanText(body.customer_name, 160);
     const phone = typeof body.phone === "string" ? body.phone.trim().slice(0, 40) : "";
     const email = typeof body.email === "string" ? body.email.trim().slice(0, 254) : "";
