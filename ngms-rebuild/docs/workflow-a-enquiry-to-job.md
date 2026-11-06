@@ -20,8 +20,9 @@ The customer never directly creates a job. A formal quotation is not generated o
 ### Implemented in the feature branch
 
 - Replaced the disabled preview form with a client-side form at `ngms-rebuild/app/quote/page.tsx`.
-- Added `QuoteRequestForm.tsx` with service selection, customer name, phone/email, property area, preferred date and work description.
+- Added the shared `QuoteRequestForm.tsx` to both `/quote` and `/contact`, capturing customer name, phone or email, service, suburb/town, optional preferred date and required job description.
 - Added explicit Turnstile rendering using action `ngms_enquiry`.
+- Added a required privacy-consent checkbox, checked again by the public intake Worker before D1 insertion. The D1 record creation timestamp is the server-side submission/consent time.
 - Added unique `submissionKey`, honeypot field, client validation, submit state and success/error/reference feedback.
 - Service values are mapped to the exact allowlisted values enforced by the public intake Worker.
 - Preferred date is preserved in the enquiry details; the current D1 schema has no dedicated preferred-date column.
