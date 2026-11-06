@@ -154,7 +154,6 @@ export default function QuoteRequestForm() {
       description,
       selected.value === "Other" ? `Specific request: ${selected.label}` : "",
       preferredDate ? `Preferred date: ${preferredDate}` : "",
-      `POPIA enquiry consent confirmed: ${new Date().toISOString()}`,
     ].filter(Boolean).join("\n\n");
 
     setSubmitting(true);
