@@ -42,7 +42,7 @@ export default async function InfoPage({ params }: { params: Promise<{ page: str
                 </ol>
                 <a className="button button-orange" href={site.whatsappHref} target="_blank" rel="noreferrer">WhatsApp NGMS ↗</a>
                 <a className="button button-outline button-dark-outline" href={"tel:" + site.phoneHref}>Call {site.phoneDisplay}</a>
-                <small>For urgent maintenance requests, contact NGMS directly. Please do not include passwords, identity numbers or sensitive personal information in the job description.</small>
+                <small>This preview form writes to isolated test data, not the live production inbox. Use synthetic test details only until production intake is approved. For current service requests, contact NGMS directly.</small>
               </aside>
             </div>
           ) : (
