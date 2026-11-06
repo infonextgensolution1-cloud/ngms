@@ -187,8 +187,8 @@ export default function QuoteRequestForm() {
       setFeedback({
         kind: "success",
         message: record.duplicate
-          ? "This request was already received. NGMS has your details."
-          : "Thank you. Your quote request has been sent to NGMS for review.",
+          ? "This request was already received in the isolated preview intake system."
+          : "Thank you. Your preview enquiry has been saved for NGMS intake testing.",
         reference: record.reference,
       });
       form.reset();
@@ -254,7 +254,7 @@ export default function QuoteRequestForm() {
           <button className="button button-orange" type="submit" disabled={submitting || !turnstileToken}>
             {submitting ? "Sending request…" : "Submit quote request ↗"}
           </button>
-          <p className="form-help">Your enquiry is securely submitted to the NGMS intake system for review. A formal quotation is prepared only after an NGMS administrator checks the scope.</p>
+          <p className="form-help">Preview submissions are saved to the isolated NGMS test database, not the live production system. Use test details only until production intake is approved.</p>
         </fieldset>
       </form>
       {feedback && (
@@ -262,7 +262,7 @@ export default function QuoteRequestForm() {
           <strong>{feedback.kind === "success" ? "Request received" : "Submission not completed"}</strong>
           <p>{feedback.message}</p>
           {feedback.reference && <p><strong>Reference:</strong> {feedback.reference}</p>}
-          {feedback.kind === "success" && <p>Please keep this reference for your records. NGMS will review the request before preparing a quotation.</p>}
+          {feedback.kind === "success" && <p>Please keep this reference for testing. Preview enquiries are not live jobs or formal quotations.</p>}
         </div>
       )}
     </div>
