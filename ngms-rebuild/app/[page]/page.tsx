@@ -3,9 +3,10 @@ import Link from "next/link";
 import {notFound} from "next/navigation";
 import {CTASection,PageIntro,PublicShell} from "@/components/PublicShell";
 import {site} from "@/lib/site";
+import QuoteRequestForm from "@/components/QuoteRequestForm";
 const content:Record<string,{title:string;eyebrow:string;intro:string;paragraphs:string[]}>={
  about:{title:"LOCAL SERVICE.\nCLEAR NEXT STEPS.",eyebrow:"ABOUT NGMS",intro:"NextGen Maintenance Solutions supports property maintenance and solar cleaning requests across the Helderberg and surrounding Western Cape areas.",paragraphs:["The goal is to make maintenance easier through clear scope, communication and an agreed next step.","Specific capacity, credentials, warranties and project outcomes must be confirmed before being published as claims."]},
- contact:{title:"LET'S TALK\nABOUT THE JOB.",eyebrow:"CONTACT NGMS",intro:"Choose the contact channel that works for you. Confirm availability directly for time-sensitive work.",paragraphs:["Phone: "+site.phoneDisplay,"Service area: "+site.serviceArea]},
+ contact:{title:"LET'S TALK\nABOUT THE JOB.",eyebrow:"CONTACT NGMS",intro:"Share your contact details, choose the service and property area, and describe the work. NGMS will review your request and confirm the next step.",paragraphs:["Phone: "+site.phoneDisplay,"Service area: "+site.serviceArea]},
  portfolio:{title:"WORK THAT\nSPEAKS FOR ITSELF.",eyebrow:"PROJECT GALLERY",intro:"The gallery should show authentic, approved NGMS work and accurately caption each project.",paragraphs:["No project records or approved media are connected to this isolated rebuild yet.","Only genuine, approved project imagery will be published after media inventory and storage integration."]},
  "maintenance-packages":{title:"PLANNED CARE.\nFEWER SURPRISES.",eyebrow:"MAINTENANCE PLANS",intro:"Explore a recurring maintenance arrangement for your property or site.",paragraphs:["Plan scope, visit cadence, exclusions, response expectations and current pricing must be confirmed with NGMS before a package is accepted.","Request an assessment to discuss site requirements and service frequency."]},
  "body-corporate-maintenance":{title:"ONE PARTNER FOR\nSHARED SPACES.",eyebrow:"BODY CORPORATES",intro:"A clear maintenance pathway for trustees, managing agents and property managers.",paragraphs:["Describe the property, shared areas, recurring tasks and reporting requirements so a practical scope can be assessed.","Schedules, service levels and pricing should be agreed in writing for each property."]},
@@ -18,4 +19,48 @@ const content:Record<string,{title:string;eyebrow:string;intro:string;paragraphs
 };
 export function generateStaticParams(){return Object.keys(content).map((page)=>({page}));}
 export async function generateMetadata({params}:{params:Promise<{page:string}>}):Promise<Metadata>{const {page}=await params;return {title:content[page]?.eyebrow??"NGMS"};}
-export default async function InfoPage({params}:{params:Promise<{page:string}>}){const {page}=await params;const c=content[page];if(!c)notFound();return <PublicShell active={"/"+page}><main id="main-content"><PageIntro eyebrow={c.eyebrow} title={c.title} intro={c.intro}/><section className="page-section"><div className="container prose-panel">{c.paragraphs.map((p,i)=><p key={i}>{p}</p>)}{page==="contact"&&<div className="contact-actions"><a className="button button-orange" href={site.whatsappHref} target="_blank" rel="noreferrer">WhatsApp NGMS ↗</a><a className="button button-outline button-dark-outline" href={"tel:"+site.phoneHref}>Call {site.phoneDisplay}</a></div>}{page==="portfolio"&&<div className="empty-gallery"><span aria-hidden="true">▧</span><h2>APPROVED PROJECTS WILL APPEAR HERE.</h2><p>Authentic project imagery only. Media integration is part of the next phase.</p></div>}<Link className="text-link" href="/quote">REQUEST A QUOTE ↗</Link></div></section><CTASection/></main></PublicShell>;}
+export default async function InfoPage({ params }: { params: Promise<{ page: string }> }) {
+  const { page } = await params;
+  const c = content[page];
+  if (!c) notFound();
+
+  return (
+    <PublicShell active={"/" + page}>
+      <main id="main-content">
+        <PageIntro eyebrow={c.eyebrow} title={c.title} intro={c.intro} />
+        <section className="page-section">
+          {page === "contact" ? (
+            <div className="container form-layout">
+              <QuoteRequestForm />
+              <aside className="form-aside">
+                <p className="eyebrow">WHAT HAPPENS NEXT</p>
+                <h2>FROM ENQUIRY<br />TO QUOTATION.</h2>
+                <ol className="quote-next-steps">
+                  <li><strong>01 / REQUEST RECEIVED</strong><span>Your details and job description are submitted securely and given a reference.</span></li>
+                  <li><strong>02 / NGMS REVIEW</strong><span>Our team checks the service, suburb and work required. We may contact you for more information.</span></li>
+                  <li><strong>03 / WRITTEN QUOTE</strong><span>We prepare a written scope and quotation for your review.</span></li>
+                </ol>
+                <a className="button button-orange" href={site.whatsappHref} target="_blank" rel="noreferrer">WhatsApp NGMS ↗</a>
+                <a className="button button-outline button-dark-outline" href={"tel:" + site.phoneHref}>Call {site.phoneDisplay}</a>
+                <small>For urgent maintenance requests, contact NGMS directly. Please do not include passwords, identity numbers or sensitive personal information in the job description.</small>
+              </aside>
+            </div>
+          ) : (
+            <div className="container prose-panel">
+              {c.paragraphs.map((p, i) => <p key={i}>{p}</p>)}
+              {page === "portfolio" && (
+                <div className="empty-gallery">
+                  <span aria-hidden="true">▧</span>
+                  <h2>APPROVED PROJECTS WILL APPEAR HERE.</h2>
+                  <p>Authentic project imagery only. Media integration is part of the next phase.</p>
+                </div>
+              )}
+              <Link className="text-link" href="/quote">REQUEST A QUOTE ↗</Link>
+            </div>
+          )}
+        </section>
+        <CTASection />
+      </main>
+    </PublicShell>
+  );
+}
