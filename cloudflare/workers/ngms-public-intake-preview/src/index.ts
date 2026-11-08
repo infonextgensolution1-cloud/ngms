@@ -479,17 +479,18 @@ Privacy consent: confirmed at ${new Date().toISOString()}`;
           const extension = allowedUploadTypes.get(file.type);
           if (!extension) continue;
           const objectKey = `private/enquiries/${saved.id}/${mediaId}.${extension}`;
+          const safeOriginalName = file.name.split(String.fromCharCode(47)).join("_").split(String.fromCharCode(92)).join("_").slice(0, 180);
           try {
             await env.MEDIA.put(objectKey, file.stream(), {
               httpMetadata: { contentType: file.type, cacheControl: "private, no-store" },
-              customMetadata: { enquiryId: saved.id, originalName: file.name.slice(0, 180) }
+              customMetadata: { enquiryId: saved.id, originalName: safeOriginalName }
             });
             await env.DB.prepare(
               "INSERT INTO media (id, object_key, original_name, content_type, size_bytes, uploaded_by) VALUES (?, ?, ?, ?, ?, ?)"
-            ).bind(mediaId, objectKey, file.name.replace(/[\\/\\\\]/g, "_").slice(0, 180), file.type, file.size, "public-enquiry:" + saved.id).run();
+            ).bind(mediaId, objectKey, safeOriginalName, file.type, file.size, "public-enquiry:" + saved.id).run();
             await env.DB.prepare(
               "INSERT INTO enquiry_attachments (id, enquiry_id, media_id, original_name, content_type, size_bytes) VALUES (?, ?, ?, ?, ?, ?)"
-            ).bind(crypto.randomUUID(), saved.id, mediaId, file.name.replace(/[\\/\\\\]/g, "_").slice(0, 180), file.type, file.size).run();
+            ).bind(crypto.randomUUID(), saved.id, mediaId, safeOriginalName, file.type, file.size).run();
             attachmentsSaved += 1;
           } catch (attachmentError) {
             await env.MEDIA.delete(objectKey).catch(() => void 0);
