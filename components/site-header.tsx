@@ -55,7 +55,8 @@ export function SiteHeader({ hours = 'Mon–Sat 07:00–19:00' }: { hours?: stri
 
   return (
     <header
-      className={`bg-jet/90 backdrop-blur-md text-white sticky top-0 z-50 border-b transition-shadow duration-300 ${
+      data-ngms-site-header
+      className={`site-header bg-[#17191C] text-white sticky top-0 z-50 border-b border-[#343B44] transition-shadow duration-300 ${
         scrolled ? 'border-darkgrey shadow-lg shadow-black/40' : 'border-white/5'
       }`}
     >
@@ -73,7 +74,7 @@ export function SiteHeader({ hours = 'Mon–Sat 07:00–19:00' }: { hours?: stri
                 href={l.href}
                 aria-current={active ? 'page' : undefined}
                 className={`px-2.5 py-2 rounded-btn transition-colors ${
-                  active ? 'text-paper bg-white/5' : 'text-mist hover:text-paper hover:bg-white/5'
+                  active ? 'text-[#F47721] bg-white/5' : 'text-white hover:text-[#F47721] hover:bg-white/5'
                 }`}
               >
                 {l.label}
@@ -123,7 +124,7 @@ export function SiteHeader({ hours = 'Mon–Sat 07:00–19:00' }: { hours?: stri
         <nav
           id="mobile-nav"
           aria-label="Mobile"
-          className="xl:hidden border-t border-darkgrey px-4 pt-4 pb-6 flex flex-col text-base font-medium max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain"
+          className="site-header__mobile-nav xl:hidden border-t border-[#343B44] bg-[#17191C] text-white px-4 pt-4 pb-6 flex flex-col text-base font-medium max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain"
         >
           <div className="grid grid-cols-2 gap-2 mb-3">
             <Link href="/quote" className="btn-quote">Get a quote</Link>
@@ -136,14 +137,14 @@ export function SiteHeader({ hours = 'Mon–Sat 07:00–19:00' }: { hours?: stri
                 key={l.href}
                 href={l.href}
                 aria-current={active ? 'page' : undefined}
-                className={`flex items-center min-h-12 border-b border-darkgrey/60 ${active ? 'text-blue' : 'text-paper hover:text-blue'}`}
+                className={`flex items-center min-h-12 border-b border-darkgrey/60 ${active ? 'text-[#F47721]' : 'text-white hover:text-[#F47721]'}`}
               >
                 {l.label}
               </Link>
             )
           })}
-          <a href={`tel:${SITE.phone}`} className="mt-4 text-mist">
-            Call <span className="text-paper font-semibold">{SITE.phoneDisplay}</span> · {hours}
+          <a href={`tel:${SITE.phone}`} className="mt-4 text-white">
+            Call <span className="text-white font-semibold">{SITE.phoneDisplay}</span> · {hours}
           </a>
         </nav>
       )}
