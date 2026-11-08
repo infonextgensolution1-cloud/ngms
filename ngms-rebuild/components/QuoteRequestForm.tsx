@@ -150,21 +150,32 @@ export default function QuoteRequestForm() {
 
     setSubmitting(true);
     try {
+      const photos = data.getAll("attachments").filter((value): value is File => value instanceof File && value.size > 0);
+      if (photos.length > 4) {
+        setFeedback({ kind: "error", message: "Please attach no more than four photographs." });
+        return;
+      }
+      if (photos.some((file) => file.size > 5 * 1024 * 1024)) {
+        setFeedback({ kind: "error", message: "Each photograph must be 5 MB or smaller." });
+        return;
+      }
+      const body = new FormData();
+      body.set("customer_name", String(data.get("customer_name") ?? "").trim());
+      body.set("phone", phone);
+      body.set("email", email);
+      body.set("service", selected?.value ?? "");
+      body.set("area", String(data.get("area") ?? "").trim());
+      body.set("details", details);
+      body.set("turnstileToken", turnstileToken);
+      body.set("submissionKey", crypto.randomUUID());
+      body.set("website", String(data.get("website") ?? ""));
+      body.set("consent", data.get("consent") === "true" ? "true" : "false");
+      for (const photo of photos) body.append("attachments", photo, photo.name);
       const response = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        headers: { Accept: "application/json" },
         cache: "no-store",
-        body: JSON.stringify({
-          customer_name: String(data.get("customer_name") ?? "").trim(),
-          phone,
-          email,
-          service: selected?.value ?? "",
-          area: String(data.get("area") ?? "").trim(),
-          details,
-          turnstileToken,
-          submissionKey: crypto.randomUUID(),
-          website: String(data.get("website") ?? ""),
-        }),
+        body,
       });
       const result: unknown = await response.json().catch(() => null);
       if (!response.ok || !result || typeof result !== "object" || !("ok" in result) || (result as { ok?: unknown }).ok !== true) {
@@ -173,12 +184,14 @@ export default function QuoteRequestForm() {
           : "Your request could not be submitted. Please try again or contact NGMS on WhatsApp.";
         throw new Error(message);
       }
-      const record = result as { reference?: string; duplicate?: boolean };
+      const record = result as { reference?: string; duplicate?: boolean; attachmentsWarning?: boolean; attachmentsSaved?: number };
       setFeedback({
         kind: "success",
-        message: record.duplicate
-          ? "This request was already received. NGMS has your details."
-          : "Thank you. Your quote request has been sent to NGMS for review.",
+        message: record.attachmentsWarning
+          ? "Your enquiry was received, but one or more photographs could not be saved. Please send those photographs to NGMS on WhatsApp and quote your reference."
+          : record.duplicate
+            ? "This request was already received. NGMS has your details."
+            : "Thank you. Your quote request has been sent to NGMS for review.",
         reference: record.reference,
       });
       form.reset();
@@ -227,6 +240,14 @@ export default function QuoteRequestForm() {
           </label>
           <label htmlFor="quote-details">Describe the work
             <textarea id="quote-details" name="details" placeholder="Include the issue, approximate size, access requirements and preferred timing." rows={5} minLength={10} maxLength={3500} required />
+          </label>
+          <label htmlFor="quote-attachments">Attach photographs (optional)
+            <input id="quote-attachments" name="attachments" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple />
+            <span className="form-help">Up to four photographs. Maximum 5 MB each; JPG, PNG, WebP or AVIF.</span>
+          </label>
+          <label className="quote-consent">
+            <input name="consent" type="checkbox" value="true" required />
+            I agree that NGMS may use these details and photographs to assess and respond to my enquiry.
           </label>
           <div className="quote-honeypot" aria-hidden="true">
             <label htmlFor="quote-website">Leave this field empty</label>
