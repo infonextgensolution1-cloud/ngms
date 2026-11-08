@@ -318,6 +318,8 @@ export default {
         const projectUsage = await env.DB.prepare("SELECT id FROM projects WHERE before_media_id = ? OR after_media_id = ? LIMIT 1")
           .bind(mediaMatch[1], mediaMatch[1]).first();
         if (projectUsage) return json({ error: "This photograph is linked to a project. Remove the project reference before deleting the media." }, 409, origin);
+        const enquiryAttachmentUsage = await env.DB.prepare("SELECT id FROM enquiry_attachments WHERE media_id = ? LIMIT 1").bind(mediaMatch[1]).first();
+        if (enquiryAttachmentUsage) return json({ error: "This file is attached to a customer enquiry. Preserve it as part of the enquiry record." }, 409, origin);
         await env.MEDIA.delete(row.object_key);
         await env.DB.prepare("DELETE FROM media WHERE id = ?").bind(mediaMatch[1]).run();
         return json({ deleted: true }, 200, origin);
@@ -438,7 +440,7 @@ export default {
         const amountCents = Math.round(amount*100);
         if (Number(already?.paid || 0)+amountCents > invoice.amount_cents) return json({error:"Payment exceeds the outstanding invoice balance."},409,origin);
         const id = newId("PAY"), newPaid = Number(already?.paid || 0)+amountCents;
-        const nextStatus = newPaid >= invoice.amount_cents ? "Paid" : "Sent";
+        const nextStatus = newPaid >= invoice.amount_cents ? "Paid" : invoice.status === "Overdue" ? "Overdue" : "Sent";
         try {
           await env.DB.batch([
           env.DB.prepare("INSERT INTO document_payments (id,document_id,amount_cents,paid_at,method,reference,notes,recorded_by) VALUES (?,?,?,?,?,?,?,?)").bind(id,invoice.id,amountCents,new Date(paidAt).toISOString(),method,reference,notes,actor),
@@ -720,6 +722,21 @@ export default {
         const customer = await env.DB.prepare("SELECT * FROM customers WHERE id = ?").bind(linked.customer_id).first<Record<string, unknown>>();
         if (!customer) return json({ error: "CRM customer record could not be loaded after conversion." }, 500, origin);
         return json({ item: { ...customer, customer_id: linked.customer_id }, enquiry: linked }, 200, origin);
+      }
+
+      const enquiryAttachmentsMatch = url.pathname.match(/^\\/api\\/admin\\/enquiries\\/([A-Za-z0-9-]+)\\/attachments$/);
+      if (enquiryAttachmentsMatch && request.method === "GET") {
+        const enquiry = await env.DB.prepare("SELECT id FROM enquiries WHERE id = ?").bind(enquiryAttachmentsMatch[1]).first();
+        if (!enquiry) return json({ error: "Enquiry not found." }, 404, origin);
+        const result = await env.DB.prepare(
+          "SELECT a.id, a.media_id, a.original_name, a.content_type, a.size_bytes, a.created_at FROM enquiry_attachments a WHERE a.enquiry_id = ? ORDER BY a.created_at DESC"
+        ).bind(enquiry.id).all();
+        return json({
+          items: (result.results ?? []).map((item) => ({
+            ...item,
+            download_url: `/api/admin/media/${encodeURIComponent(item.media_id)}/download`
+          }))
+        }, 200, origin);
       }
 
       const collectionMatch = url.pathname.match(/^\/api\/admin\/(enquiries|jobs|documents)$/);
