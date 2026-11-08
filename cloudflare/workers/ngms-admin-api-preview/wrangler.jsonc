@@ -8,7 +8,7 @@
   "observability": { "enabled": true },
   "vars": {
     "MAX_UPLOAD_BYTES": "10485760",
-    "CMS_WRITE_ENABLED": "false",
+    "CMS_WRITE_ENABLED": "true",
     "CF_ACCESS_TEAM_DOMAIN": "https://shiny-wood-b438.cloudflareaccess.com",
     "CF_ACCESS_AUD": "6dd6ecc7ba60b1f60a13959064fb091afc3a0262d96b8f1c026cdb0141357459"
   },
