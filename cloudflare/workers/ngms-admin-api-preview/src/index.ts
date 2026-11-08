@@ -724,7 +724,7 @@ export default {
         return json({ item: { ...customer, customer_id: linked.customer_id }, enquiry: linked }, 200, origin);
       }
 
-      const enquiryAttachmentsMatch = url.pathname.match(/^\\/api\\/admin\\/enquiries\\/([A-Za-z0-9-]+)\\/attachments$/);
+      const enquiryAttachmentsMatch = url.pathname.match(new RegExp("^/api/admin/enquiries/([A-Za-z0-9-]+)/attachments$"));
       if (enquiryAttachmentsMatch && request.method === "GET") {
         const enquiry = await env.DB.prepare("SELECT id FROM enquiries WHERE id = ?").bind(enquiryAttachmentsMatch[1]).first();
         if (!enquiry) return json({ error: "Enquiry not found." }, 404, origin);
