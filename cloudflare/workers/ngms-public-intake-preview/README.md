@@ -14,7 +14,7 @@ The preview Worker needs the following secrets/bindings:
 - `LEAD_NOTIFY_TO`
 - `LEAD_NOTIFY_FROM`
 
-The current preview Worker has Turnstile and notification address bindings, but no `RESEND_API_KEY` binding was present during the 8 November 2026 audit. Do not commit the key to Git. Add it only to the isolated preview Worker using the Cloudflare dashboard's secret configuration or the project's approved secret-management workflow. A Wrangler secret write creates and deploys a new Worker version immediately, so verify the preview target before using it.
+The current preview Worker has only `TURNSTILE_SECRET_KEY`; `RESEND_API_KEY`, `LEAD_NOTIFY_TO` and `LEAD_NOTIFY_FROM` were not present during the 8 November 2026 audit. Email notifications therefore remain disabled. Do not commit any of these values to Git. Add them only to the isolated preview Worker using the Cloudflare dashboard's secret configuration or the project's approved secret-management workflow. A Wrangler secret write creates and deploys a new Worker version immediately, so verify the preview target before using it.
 
 ## Attachment contract
 
