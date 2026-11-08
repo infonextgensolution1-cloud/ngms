@@ -519,7 +519,7 @@ Photographs attached: ${attachmentsSaved}` : "")
         reference: saved.id,
         duplicate: !created,
         attachmentsSaved,
-        attachmentsWarning: uploadedFiles.length > attachmentsSaved,
+        attachmentsWarning: created && uploadedFiles.length > attachmentsSaved,
         notificationSent
       }, created ? 201 : 200, origin);
     } catch (error) {
