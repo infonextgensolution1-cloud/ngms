@@ -153,6 +153,18 @@ async function verifyTurnstile(token, secret, ip, origin) {
   return result.success === true && result.action === "ngms_enquiry" && result.hostname === new URL(origin).hostname;
 }
 __name(verifyTurnstile, "verifyTurnstile");
+async function fileSignatureMatches(file) {
+  const bytes = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+  const ascii = (start, end) => String.fromCharCode(...bytes.slice(start, end));
+  switch (file.type.toLowerCase()) {
+    case "image/jpeg": return bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255;
+    case "image/png": return bytes.length >= 8 && bytes[0] === 137 && ascii(1, 4) === "PNG" && bytes[4] === 13 && bytes[5] === 10 && bytes[6] === 26 && bytes[7] === 10;
+    case "image/webp": return ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP";
+    case "image/avif": return ascii(4, 8) === "ftyp" && /(?:avif|avis)/.test(ascii(8, 16));
+    default: return false;
+  }
+}
+__name(fileSignatureMatches, "fileSignatureMatches");
 var index_default = {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -378,20 +390,42 @@ var index_default = {
     if (request.method !== "POST") return json({ error: "Method not allowed." }, 405, origin);
     if (!origin || !ALLOWED_ORIGINS.has(origin)) return json({ error: "Origin not allowed." }, 403);
     const contentType = (request.headers.get("Content-Type") ?? "").toLowerCase();
-    if (!contentType.includes("application/json")) return json({ error: "JSON content type required." }, 415, origin);
+    const isMultipart = contentType.includes("multipart/form-data");
+    if (!isMultipart && !contentType.includes("application/json")) return json({ error: "Multipart form data or JSON is required." }, 415, origin);
     const contentLength = Number(request.headers.get("Content-Length") ?? "0");
-    if (contentLength > 12288) return json({ error: "Request is too large." }, 413, origin);
+    if (contentLength > 21 * 1024 * 1024) return json({ error: "The enquiry and attachments exceed the 21 MB limit." }, 413, origin);
     let raw;
+    const uploadedFiles = [];
     try {
-      raw = await request.json();
+      if (isMultipart) {
+        const form = await request.formData();
+        const fields = {};
+        for (const [key, value] of form.entries()) {
+          if (value instanceof File) {
+            if (value.size > 0) uploadedFiles.push(value);
+          } else fields[key] = value;
+        }
+        fields.consent = fields.consent === "true" || fields.consent === "on";
+        raw = fields;
+      } else raw = await request.json();
     } catch {
-      return json({ error: "Invalid JSON." }, 400, origin);
+      return json({ error: "Invalid enquiry submission." }, 400, origin);
     }
     if (!raw || typeof raw !== "object" || Array.isArray(raw)) return json({ error: "A JSON object is required." }, 400, origin);
     const body = raw;
+    if (uploadedFiles.length > 4) return json({ error: "Please attach no more than four photographs." }, 400, origin);
+    const totalUploadBytes = uploadedFiles.reduce((total, file) => total + file.size, 0);
+    if (totalUploadBytes > 20 * 1024 * 1024 || uploadedFiles.some((file) => file.size > 5 * 1024 * 1024)) {
+      return json({ error: "Each photograph must be 5 MB or smaller, with a 20 MB total upload limit." }, 413, origin);
+    }
+    const allowedUploadTypes = new Map([["image/jpeg", "jpg"], ["image/png", "png"], ["image/webp", "webp"], ["image/avif", "avif"]]);
+    if (uploadedFiles.some((file) => !allowedUploadTypes.has(file.type) || !fileSignatureMatches(file))) {
+      return json({ error: "Only valid JPG, PNG, WebP and AVIF photographs are accepted." }, 415, origin);
+    }
     if (typeof body.website === "string" && body.website.trim()) {
       return json({ ok: true, message: "Thank you. Your enquiry has been received." }, 202, origin);
     }
+    if (body.consent !== true) return json({ error: "Please confirm the privacy consent before submitting your enquiry." }, 400, origin);
     const customer = cleanText(body.customer_name, 160);
     const phone = typeof body.phone === "string" ? body.phone.trim().slice(0, 40) : "";
     const email = typeof body.email === "string" ? body.email.trim().slice(0, 254) : "";
@@ -411,6 +445,9 @@ var index_default = {
     const ip = request.headers.get("CF-Connecting-IP") ?? "";
     const verified = await verifyTurnstile(turnstileToken, env.TURNSTILE_SECRET_KEY, ip, origin);
     if (!verified) return json({ error: "The security check expired or could not be verified. Please try again." }, 400, origin);
+    const recordedDetails = `${details}
+
+Privacy consent: confirmed at ${new Date().toISOString()}`;
     try {
       const normalise = /* @__PURE__ */ __name((value) => value.trim().toLowerCase().replace(/\s+/g, " "), "normalise");
       const fingerprintInput = [
@@ -429,12 +466,38 @@ var index_default = {
       const id = `EN-${crypto.randomUUID()}`;
       const inserted = await env.DB.prepare(
         "INSERT OR IGNORE INTO enquiries (id, customer_name, phone, email, service, area, details, status, created_by, submission_key, dedupe_key) VALUES (?, ?, ?, ?, ?, ?, ?, 'New', 'public-contact-form', ?, ?)"
-      ).bind(id, customer, phone, email, service, area, details, submissionKey, dedupeKey).run();
+      ).bind(id, customer, phone, email, service, area, recordedDetails, submissionKey, dedupeKey).run();
       const saved = await env.DB.prepare(
         "SELECT id FROM enquiries WHERE submission_key = ? OR dedupe_key IN (?, ?) LIMIT 1"
       ).bind(submissionKey, dedupeKey, previousDedupeKey).first();
       if (!saved?.id) throw new Error("Enquiry was not persisted.");
       const created = Number(inserted.meta?.changes ?? 0) > 0;
+      let attachmentsSaved = 0;
+      if (created && uploadedFiles.length) {
+        for (const file of uploadedFiles) {
+          const mediaId = crypto.randomUUID();
+          const extension = allowedUploadTypes.get(file.type);
+          if (!extension) continue;
+          const objectKey = `private/enquiries/${saved.id}/${mediaId}.${extension}`;
+          try {
+            await env.MEDIA.put(objectKey, file.stream(), {
+              httpMetadata: { contentType: file.type, cacheControl: "private, no-store" },
+              customMetadata: { enquiryId: saved.id, originalName: file.name.slice(0, 180) }
+            });
+            await env.DB.prepare(
+              "INSERT INTO media (id, object_key, original_name, content_type, size_bytes, uploaded_by) VALUES (?, ?, ?, ?, ?, ?)"
+            ).bind(mediaId, objectKey, file.name.replace(/[\\/\\\\]/g, "_").slice(0, 180), file.type, file.size, "public-enquiry:" + saved.id).run();
+            await env.DB.prepare(
+              "INSERT INTO enquiry_attachments (id, enquiry_id, media_id, original_name, content_type, size_bytes) VALUES (?, ?, ?, ?, ?, ?)"
+            ).bind(crypto.randomUUID(), saved.id, mediaId, file.name.replace(/[\\/\\\\]/g, "_").slice(0, 180), file.type, file.size).run();
+            attachmentsSaved += 1;
+          } catch (attachmentError) {
+            await env.MEDIA.delete(objectKey).catch(() => void 0);
+            await env.DB.prepare("DELETE FROM media WHERE id = ?").bind(mediaId).run().catch(() => void 0);
+            console.error("Enquiry attachment could not be saved", attachmentError instanceof Error ? attachmentError.message : "unknown error");
+          }
+        }
+      }
       let notificationSent = false;
       if (created) {
         notificationSent = await notifyNewLead(env, {
@@ -444,7 +507,9 @@ var index_default = {
           email,
           service,
           area,
-          details
+          details: recordedDetails + (attachmentsSaved ? `
+
+Photographs attached: ${attachmentsSaved}` : "")
         });
       }
       return json({
@@ -452,6 +517,8 @@ var index_default = {
         message: created ? "Thank you. Your enquiry has been sent to NGMS." : "This enquiry was already received. NGMS has your request.",
         reference: saved.id,
         duplicate: !created,
+        attachmentsSaved,
+        attachmentsWarning: uploadedFiles.length > attachmentsSaved,
         notificationSent
       }, created ? 201 : 200, origin);
     } catch (error) {
