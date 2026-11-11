@@ -1,9 +1,9 @@
 import { Resend } from 'resend'
 import { site } from '@/lib/site'
 
-export const NOTIFY_TO = site.email
-export const NOTIFY_FROM = 'NGSMS Website <leads@nextgensolarmaintenance.co.za>'
-export const REPLY_FROM = 'NextGen Solar Clean & Maintenance <leads@nextgensolarmaintenance.co.za>'
+export const NOTIFY_TO = process.env.NGMS_ENQUIRY_TO_EMAIL?.trim() || site.email
+export const NOTIFY_FROM = process.env.RESEND_FROM_EMAIL?.trim() || 'NGSMS Website <leads@nextgensolarmaintenance.co.za>'
+export const REPLY_FROM = process.env.RESEND_FROM_EMAIL?.trim() || 'NextGen Solar Clean & Maintenance <leads@nextgensolarmaintenance.co.za>'
 
 export async function sendLeadEmail(subject: string, lines: string[], replyTo?: string | null): Promise<void> {
   const resend = new Resend(process.env.RESEND_API_KEY)
