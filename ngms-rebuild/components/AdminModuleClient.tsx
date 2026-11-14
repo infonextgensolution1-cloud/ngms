@@ -90,7 +90,7 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   },
   content: {
     title: "Website content",
-    description: "Review content records currently stored for the website. Editing remains disabled until publish/rollback and concurrency controls are implemented.",
+    description: "Prepare website content drafts, request approval, review publication history and roll back approved changes.",
     resource: "content",
     columns: [
       { key: "content_key", label: "Content key" }, { key: "content_json", label: "Content value" },
@@ -1056,7 +1056,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       <span className="notice-dot" aria-hidden="true"/>
       <div><strong>{error ? "API data is unavailable" : loading ? "Loading records" : !module.resource ? "API route not implemented" : !apiConfigured ? "HostAfrica integration pending" : "HostAfrica API connected"}</strong>
         <p>{error ? error : !module.resource ? "The HostAfrica application does not expose this module. No demo records are displayed." : !apiConfigured ? adminApiConfigurationMessage() + " No request was sent and no data is simulated." : "Reads and writes use the same-origin HostAfrica application API. Administrator actions are audited."}</p>
-        {apiHealthUrl&&<p><a className="text-link" href={apiHealthUrl} target="_blank" rel="noopener noreferrer">Open secure API sign-in / health check ↗</a> <span className="module-footnote">After signing in, return here and refresh records.</span></p>}
+        {apiHealthUrl&&<p><a className="text-link" href={apiHealthUrl} target="_blank" rel="noopener noreferrer">Check HostAfrica database health ↗</a> <span className="module-footnote">This checks the application database connection; sign-in is handled on this website.</span></p>}
       </div>
     </div>
 
