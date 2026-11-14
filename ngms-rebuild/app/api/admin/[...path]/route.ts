@@ -701,6 +701,19 @@ function safeSlideUrl(value:string):string {
     }
   }
 
+  if(resource==="customers"&&id&&action==="portal-link"&&method==="POST"){
+    const customer=await ensureCustomer(id);
+    const token=randomBytes(32).toString("hex");
+    const expires=new Date(Date.now()+30*86400000).toISOString().slice(0,19).replace("T"," ");
+    await execute(
+      "INSERT INTO customer_portal_links (token_hash,customer_id,expires_at,created_by) VALUES (?,?,?,?)",
+      [createHash("sha256").update(token).digest("hex"),id,expires,user.id],
+    );
+    await audit(user,request,"create_portal_link","customer",id,{expires_at:expires});
+    const base=(process.env.APP_BASE_URL||new URL(request.url).origin).replace(/\/$/,"");
+    return send({url:base+"/portal/"+token,expires_at:new Date(expires+"Z").toISOString(),customer_name:customer.display_name},201);
+  }
+
   if(resource==="operations"){
     const category=id;
     const recordId=action;
