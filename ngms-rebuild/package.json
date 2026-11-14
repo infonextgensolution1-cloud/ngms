@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node server.cjs",
     "typecheck": "tsc --noEmit",
     "db:migrate": "node scripts/migrate.mjs"
   },
