@@ -514,7 +514,8 @@ function MediaItemActions({ row, apiConfigured, writesEnabled, onUpdated }: {
     <label className="block text-xs">Category<select className="mt-1 w-full" value={category} onChange={(event)=>setCategory(event.target.value)} disabled={!apiConfigured||!writesEnabled||saving}>
       {MEDIA_CATEGORIES.map((item)=><option key={item} value={item}>{item}</option>)}
     </select></label>
-    <label className="block text-xs">Alt text<input className="mt-1 w-full" value={altText} onChange={(event)=>setAltText(event.target.value)} maxLength={240} disabled={!apiConfigured||!writesEnabled||saving} placeholder="Describe the image for accessibility"/></label>
+    <label className="block text-xs">Alt text<input className="mt-1 w-full" value={altText} onChange={(event)=>setAltText(event.target.value)} maxLength={500} disabled={!apiConfigured||!writesEnabled||saving} placeholder="Describe the image for accessibility"/></label>
+    <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={isPublished} onChange={event=>setIsPublished(event.target.checked)} disabled={!apiConfigured||!writesEnabled||saving}/> Publish on public website</label>
     <label className="block text-xs">Tags<input className="mt-1 w-full" value={tagsText} onChange={(event)=>setTagsText(event.target.value)} disabled={!apiConfigured||!writesEnabled||saving} placeholder="e.g. solar, strand, before"/></label>
     <div className="flex flex-wrap gap-2">
       <button type="button" className="button button-small button-outline button-dark-outline" onClick={saveMetadata} disabled={!apiConfigured||!writesEnabled||saving}>Save details</button>
