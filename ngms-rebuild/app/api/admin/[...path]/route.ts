@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomBytes, randomUUID, createHash } from "node:crypto";
 import { assertSameOrigin, AuthError, requireAdmin, type StaffUser, requestIpHash } from "@/lib/server/auth";
-import { execute, getDb, row, rows, transaction } from "@/lib/server/db";
+import { execute, executeOn, getDb, row, rows, transaction } from "@/lib/server/db";
 import { getMediaRecord, listMedia, readMediaBytes, removeMedia, replaceMedia, saveMedia, updateMedia } from "@/lib/server/media";
 
 export const runtime = "nodejs";
@@ -103,23 +103,23 @@ async function createCommercialDocument(input: Body, user: StaffUser, request: R
     if (kind === "Invoice") {
       const sourceId = text(input.source_document_id,80);
       if (!sourceId) throw new Error("Choose an accepted quotation.");
-      const [sourceRows] = await connection.execute("SELECT * FROM documents WHERE id=? AND kind='Quotation' FOR UPDATE", [sourceId]);
+      const [sourceRows] = await executeOn(connection,"SELECT * FROM documents WHERE id=? AND kind='Quotation' FOR UPDATE", [sourceId]);
       const source = (sourceRows as Array<Record<string,unknown>>)[0];
       if (!source || source.status !== "Accepted") throw new Error("Invoices can only be created from accepted quotations.");
-      const [existingRows] = await connection.execute("SELECT id FROM documents WHERE source_document_id=? AND kind='Invoice' LIMIT 1", [sourceId]);
+      const [existingRows] = await executeOn(connection,"SELECT id FROM documents WHERE source_document_id=? AND kind='Invoice' LIMIT 1", [sourceId]);
       if ((existingRows as unknown[]).length) throw new Error("An invoice has already been created from this quotation.");
       const ref = "INV-" + new Date().toISOString().slice(0,10).replace(/-/g,"") + "-" + id.slice(0,6).toUpperCase();
-      await connection.execute(
+      await executeOn(connection,
         "INSERT INTO documents (id,reference,customer_id,customer_name,kind,amount_cents,subtotal_cents,discount_cents,vat_enabled,vat_rate_basis_points,vat_cents,status,issue_date,due_date,notes,source_document_id) VALUES (?,?,?,?, 'Invoice',?,?,?,?,? ,?,'Draft',UTC_DATE(),?,?,?)",
         [id,ref,source.customer_id,source.customer_name,source.amount_cents,source.subtotal_cents,source.discount_cents,source.vat_enabled,source.vat_rate_basis_points,source.vat_cents,text(input.due_date,20) || null,text(input.notes,4000) || source.notes || "",sourceId],
       );
-      await connection.execute(
+      await executeOn(connection,
         "INSERT INTO document_lines (id,document_id,description,quantity,unit,unit_price_cents,line_total_cents,sort_order) SELECT UUID(),?,description,quantity,unit,unit_price_cents,line_total_cents,sort_order FROM document_lines WHERE document_id=?",
         [id,sourceId],
       );
     } else {
       const customerId = text(input.customer_id,80);
-      const [customerRows] = await connection.execute("SELECT id,display_name FROM customers WHERE id=? LIMIT 1", [customerId]);
+      const [customerRows] = await executeOn(connection,"SELECT id,display_name FROM customers WHERE id=? LIMIT 1", [customerId]);
       const customer = (customerRows as Array<Record<string,unknown>>)[0];
       if (!customer) throw new Error("Select an existing customer from the CRM.");
       const lines = Array.isArray(input.lines) ? input.lines as Body[] : [];
@@ -143,22 +143,22 @@ async function createCommercialDocument(input: Body, user: StaffUser, request: R
       const vat = vatEnabled ? Math.round(net * vatRate / 10000) : 0;
       const total = net + vat;
       const ref = "QT-" + new Date().toISOString().slice(0,10).replace(/-/g,"") + "-" + id.slice(0,6).toUpperCase();
-      await connection.execute(
+      await executeOn(connection,
         "INSERT INTO documents (id,reference,customer_id,customer_name,kind,amount_cents,subtotal_cents,discount_cents,vat_enabled,vat_rate_basis_points,vat_cents,status,issue_date,notes) VALUES (?,?,?,?, 'Quotation',?,?,?,?,?,?,'Draft',UTC_DATE(),?)",
         [id,ref,customer.id,customer.display_name,total,subtotal,discount,vatEnabled?1:0,vatRate,vat,text(input.notes,4000)],
       );
       for (const line of normalized) {
-        await connection.execute(
+        await executeOn(connection,
           "INSERT INTO document_lines (id,document_id,description,quantity,unit,unit_price_cents,line_total_cents,sort_order) VALUES (?,?,?,?,?,?,?,?)",
           [randomUUID(),id,line.description,line.quantity,line.unit,line.unitPrice,line.lineTotal,line.index],
         );
       }
     }
-    await connection.execute(
+    await executeOn(connection,
       "INSERT INTO audit_logs (id,actor_id,action,entity_type,entity_id,details_json) VALUES (?,?,?,?,?,?)",
       [randomUUID(),user.id,"create",kind.toLowerCase(),id,JSON.stringify({kind})],
     );
-    const [savedRows] = await connection.execute("SELECT * FROM documents WHERE id=?", [id]);
+    const [savedRows] = await executeOn(connection,"SELECT * FROM documents WHERE id=?", [id]);
     return (savedRows as Array<Record<string,unknown>>)[0];
   });
 }
@@ -212,21 +212,21 @@ async function invoicePayments(id: string, request: Request, user: StaffUser) {
   if (!["EFT","Cash","Card","Other"].includes(method)) throw new Error("Choose a valid payment method.");
   const paidAt = dateTime(input.paid_at || new Date().toISOString());
   return transaction(async connection => {
-    const [docs] = await connection.execute("SELECT amount_cents FROM documents WHERE id=? AND kind='Invoice' FOR UPDATE",[id]);
+    const [docs] = await executeOn(connection,"SELECT amount_cents FROM documents WHERE id=? AND kind='Invoice' FOR UPDATE",[id]);
     const current = (docs as Array<{amount_cents:number}>)[0];
     if (!current) throw new Error("Invoice not found.");
-    const [totals] = await connection.execute("SELECT COALESCE(SUM(amount_cents),0) AS paid FROM invoice_payments WHERE document_id=?",[id]);
+    const [totals] = await executeOn(connection,"SELECT COALESCE(SUM(amount_cents),0) AS paid FROM invoice_payments WHERE document_id=?",[id]);
     const alreadyPaid = Number((totals as Array<{paid:number}>)[0]?.paid ?? 0);
     const balance = Number(current.amount_cents)-alreadyPaid;
     if (amount > balance) throw new Error("Payment exceeds the outstanding invoice balance.");
-    await connection.execute(
+    await executeOn(connection,
       "INSERT INTO invoice_payments (id,document_id,amount_cents,method,paid_at,reference,notes,recorded_by) VALUES (?,?,?,?,?,?,?,?)",
       [randomUUID(),id,amount,method,paidAt,text(input.reference,160),text(input.notes,2000),user.id],
     );
     const newPaid = alreadyPaid + amount;
     const newBalance = Number(current.amount_cents)-newPaid;
-    if (newBalance === 0) await connection.execute("UPDATE documents SET status='Paid' WHERE id=?",[id]);
-    await connection.execute(
+    if (newBalance === 0) await executeOn(connection,"UPDATE documents SET status='Paid' WHERE id=?",[id]);
+    await executeOn(connection,
       "INSERT INTO audit_logs (id,actor_id,action,entity_type,entity_id,details_json) VALUES (UUID(),?,'payment_recorded','invoice',?,?)",
       [user.id,id,JSON.stringify({amount_cents:amount,method})],
     );
@@ -236,29 +236,29 @@ async function invoicePayments(id: string, request: Request, user: StaffUser) {
 
 async function convertEnquiry(id: string, user: StaffUser, request: Request) {
   return transaction(async connection => {
-    const [enquiries] = await connection.execute("SELECT * FROM enquiries WHERE id=? FOR UPDATE",[id]);
+    const [enquiries] = await executeOn(connection,"SELECT * FROM enquiries WHERE id=? FOR UPDATE",[id]);
     const enquiry = (enquiries as Array<Record<string,unknown>>)[0];
     if (!enquiry) return null;
     let customerId = enquiry.customer_id ? String(enquiry.customer_id) : "";
     if (!customerId) {
-      const [customers] = await connection.execute(
+      const [customers] = await executeOn(connection,
         "SELECT id FROM customers WHERE (primary_phone<>'' AND primary_phone=?) OR (primary_email<>'' AND primary_email=?) ORDER BY created_at LIMIT 1",
         [enquiry.phone,enquiry.email],
       );
       customerId = String((customers as Array<{id:string}>)[0]?.id || "");
       if (!customerId) {
         customerId = randomUUID();
-        await connection.execute(
+        await executeOn(connection,
           "INSERT INTO customers (id,display_name,customer_type,primary_phone,primary_email,service_address) VALUES (?,?, 'Individual',?,?,?)",
           [customerId,enquiry.customer_name,enquiry.phone,enquiry.email,enquiry.area],
         );
       }
-      await connection.execute("UPDATE enquiries SET customer_id=?,status='Contacted' WHERE id=?",[customerId,id]);
+      await executeOn(connection,"UPDATE enquiries SET customer_id=?,status='Contacted' WHERE id=?",[customerId,id]);
     }
-    const [customerRows] = await connection.execute("SELECT * FROM customers WHERE id=?",[customerId]);
+    const [customerRows] = await executeOn(connection,"SELECT * FROM customers WHERE id=?",[customerId]);
     const customer = (customerRows as Array<Record<string,unknown>>)[0];
     await audit(user,request,"convert_to_customer","enquiry",id,{customer_id:customerId});
-    const [updatedEnquiry] = await connection.execute("SELECT * FROM enquiries WHERE id=?",[id]);
+    const [updatedEnquiry] = await executeOn(connection,"SELECT * FROM enquiries WHERE id=?",[id]);
     return {item:customer,enquiry:(updatedEnquiry as Array<Record<string,unknown>>)[0]};
   });
 }
@@ -283,22 +283,22 @@ async function shareQuotation(id: string, input: Body, user: StaffUser, request:
 
 async function convertAcceptedQuote(id: string, user: StaffUser, request: Request) {
   return transaction(async connection => {
-    const [documents] = await connection.execute("SELECT * FROM documents WHERE id=? AND kind='Quotation' FOR UPDATE",[id]);
+    const [documents] = await executeOn(connection,"SELECT * FROM documents WHERE id=? AND kind='Quotation' FOR UPDATE",[id]);
     const doc = (documents as Array<Record<string,unknown>>)[0];
     if (!doc || doc.status !== "Accepted") throw new Error("Only an accepted quotation can be converted into a job.");
-    const [existing] = await connection.execute("SELECT * FROM jobs WHERE source_document_id=? LIMIT 1",[id]);
+    const [existing] = await executeOn(connection,"SELECT * FROM jobs WHERE source_document_id=? LIMIT 1",[id]);
     const found = (existing as Array<Record<string,unknown>>)[0];
     if (found) return found;
     const jobId = randomUUID();
     const ref = "JOB-" + new Date().toISOString().slice(0,10).replace(/-/g,"") + "-" + jobId.slice(0,6).toUpperCase();
-    const [enquiries] = await connection.execute("SELECT service,area,details FROM enquiries WHERE customer_id=? ORDER BY created_at DESC LIMIT 1",[doc.customer_id]);
+    const [enquiries] = await executeOn(connection,"SELECT service,area,details FROM enquiries WHERE customer_id=? ORDER BY created_at DESC LIMIT 1",[doc.customer_id]);
     const enquiry = (enquiries as Array<Record<string,unknown>>)[0];
-    await connection.execute(
+    await executeOn(connection,
       "INSERT INTO jobs (id,reference,customer_id,source_document_id,customer_name,service,area,details,status) VALUES (?,?,?,?,?,?,?,?, 'New')",
       [jobId,ref,doc.customer_id,id,doc.customer_name,enquiry?.service || "Property maintenance",enquiry?.area || "",enquiry?.details || doc.notes || ""],
     );
     await audit(user,request,"convert_quote_to_job","quotation",id,{job_id:jobId});
-    const [jobRows] = await connection.execute("SELECT * FROM jobs WHERE id=?",[jobId]);
+    const [jobRows] = await executeOn(connection,"SELECT * FROM jobs WHERE id=?",[jobId]);
     return (jobRows as Array<Record<string,unknown>>)[0];
   });
 }
@@ -342,16 +342,16 @@ async function handleAdmin(request: Request, path: string[], user: StaffUser): P
       const stage = text(input.stage,20);
       if (!/^[0-9a-f-]{36}$/i.test(mediaId) || !["before","after","general"].includes(stage)) return send({error:"Choose a valid media item and project photo stage."},400);
       const result = await transaction(async connection => {
-        const [projectRows] = await connection.execute("SELECT id,status FROM projects WHERE id=? FOR UPDATE",[id]);
+        const [projectRows] = await executeOn(connection,"SELECT id,status FROM projects WHERE id=? FOR UPDATE",[id]);
         const project = (projectRows as Array<Record<string,unknown>>)[0];
         if (!project) throw new Error("Project not found.");
-        const [mediaRows] = await connection.execute("SELECT id FROM media_assets WHERE id=?",[mediaId]);
+        const [mediaRows] = await executeOn(connection,"SELECT id FROM media_assets WHERE id=?",[mediaId]);
         if (!(mediaRows as unknown[]).length) throw new Error("Media item not found.");
-        const [orders] = await connection.execute("SELECT COALESCE(MAX(sort_order),-1)+1 AS next_order FROM project_photos WHERE project_id=? AND stage=?",[id,stage]);
+        const [orders] = await executeOn(connection,"SELECT COALESCE(MAX(sort_order),-1)+1 AS next_order FROM project_photos WHERE project_id=? AND stage=?",[id,stage]);
         const sortOrder=Number((orders as Array<{next_order:number}>)[0]?.next_order ?? 0);
         const photoId=randomUUID();
-        await connection.execute("INSERT INTO project_photos (id,project_id,media_id,stage,sort_order) VALUES (?,?,?,?,?)",[photoId,id,mediaId,stage,sortOrder]);
-        if (project.status === "Published") await connection.execute("UPDATE media_assets SET is_published=1 WHERE id=?",[mediaId]);
+        await executeOn(connection,"INSERT INTO project_photos (id,project_id,media_id,stage,sort_order) VALUES (?,?,?,?,?)",[photoId,id,mediaId,stage,sortOrder]);
+        if (project.status === "Published") await executeOn(connection,"UPDATE media_assets SET is_published=1 WHERE id=?",[mediaId]);
         return photoId;
       });
       await audit(user,request,"attach_photo","project",id,{media_id:mediaId,stage});
@@ -489,22 +489,22 @@ async function handleAdmin(request: Request, path: string[], user: StaffUser): P
       const note = text(input.note,1000);
       if (!/^[0-9a-f-]{36}$/i.test(requestId) || !["approve","reject"].includes(decision)) return send({error:"Invalid publication review."},400);
       const result = await transaction(async connection => {
-        const [requestRows] = await connection.execute("SELECT * FROM publication_requests WHERE id=? FOR UPDATE",[requestId]);
+        const [requestRows] = await executeOn(connection,"SELECT * FROM publication_requests WHERE id=? FOR UPDATE",[requestId]);
         const req = (requestRows as Array<Record<string,unknown>>)[0];
         if (!req || req.status !== "Pending") throw new Error("Publication request is no longer pending.");
-        const [draftRows] = await connection.execute("SELECT content_json FROM site_content WHERE content_key=?",["cms_draft."+req.module_key]);
+        const [draftRows] = await executeOn(connection,"SELECT content_json FROM site_content WHERE content_key=?",["cms_draft."+req.module_key]);
         const draft = (draftRows as Array<{content_json:string}>)[0];
         if (!draft) throw new Error("Website content draft is missing.");
         if (decision === "approve") {
           const hash = createHash("sha256").update(draft.content_json).digest("hex");
           const publicationId = randomUUID();
-          await connection.execute("INSERT INTO publication_versions (id,module_key,slug,content_json,content_hash,published_by) VALUES (?,?,?,?,?,?)",[publicationId,req.module_key,req.slug,draft.content_json,hash,user.id]);
-          await connection.execute("UPDATE publication_requests SET status='Approved',reviewed_by=?,review_note=?,reviewed_at=UTC_TIMESTAMP() WHERE id=?",[user.id,note,requestId]);
-          await connection.execute("INSERT INTO publication_audit (id,module_key,request_id,publication_id,action,actor,details_json) VALUES (?,?,? ,?,'published',?,?)",[randomUUID(),req.module_key,requestId,publicationId,user.id,JSON.stringify({hash,note})]);
+          await executeOn(connection,"INSERT INTO publication_versions (id,module_key,slug,content_json,content_hash,published_by) VALUES (?,?,?,?,?,?)",[publicationId,req.module_key,req.slug,draft.content_json,hash,user.id]);
+          await executeOn(connection,"UPDATE publication_requests SET status='Approved',reviewed_by=?,review_note=?,reviewed_at=UTC_TIMESTAMP() WHERE id=?",[user.id,note,requestId]);
+          await executeOn(connection,"INSERT INTO publication_audit (id,module_key,request_id,publication_id,action,actor,details_json) VALUES (?,?,? ,?,'published',?,?)",[randomUUID(),req.module_key,requestId,publicationId,user.id,JSON.stringify({hash,note})]);
           return {published:true,requestId,publicationId};
         }
-        await connection.execute("UPDATE publication_requests SET status='Rejected',reviewed_by=?,review_note=?,reviewed_at=UTC_TIMESTAMP() WHERE id=?",[user.id,note,requestId]);
-        await connection.execute("INSERT INTO publication_audit (id,module_key,request_id,action,actor,details_json) VALUES (?,?,?,'rejected',?,?)",[randomUUID(),req.module_key,requestId,user.id,JSON.stringify({note})]);
+        await executeOn(connection,"UPDATE publication_requests SET status='Rejected',reviewed_by=?,review_note=?,reviewed_at=UTC_TIMESTAMP() WHERE id=?",[user.id,note,requestId]);
+        await executeOn(connection,"INSERT INTO publication_audit (id,module_key,request_id,action,actor,details_json) VALUES (?,?,?,'rejected',?,?)",[randomUUID(),req.module_key,requestId,user.id,JSON.stringify({note})]);
         return {rejected:true,requestId};
       });
       return send(result);
