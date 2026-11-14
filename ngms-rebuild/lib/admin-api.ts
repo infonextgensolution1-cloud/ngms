@@ -224,7 +224,7 @@ async function mutationFetch(path: string, init: RequestInit): Promise<AdminRow>
   if (!base) throw new AdminApiError("The NGMS application API is not available in this browser.", "not-configured");
   let response: Response;
   try {
-    response = await fetch(`${base}${path}`, {
+    response = await fetch(path, {
       ...init,
       credentials: "include",
       cache: "no-store",
@@ -298,7 +298,7 @@ export async function uploadAdminMedia(file: File): Promise<AdminRow> {
   form.append("file", file);
   let response: Response;
   try {
-    response = await fetch(`${base}/api/admin/media`, {
+    response = await fetch("/api/admin/media", {
       method: "POST",
       body: form,
       credentials: "include",
