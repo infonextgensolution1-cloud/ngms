@@ -8,6 +8,7 @@ const items = [
   {href:"/admin",label:"Overview",glyph:"▦"},
   {href:"/admin/enquiries",label:"Enquiries & customers",glyph:"↗"},
   {href:"/admin/jobs",label:"Jobs",glyph:"◇"},
+  {href:"/admin/projects",label:"Projects & before/after",glyph:"▧"},
   {href:"/admin/quotes",label:"Quotations",glyph:"▤"},
   {href:"/admin/invoices",label:"Invoices",glyph:"R"},
   {href:"/admin/calendar",label:"Calendar",glyph:"▦"},
