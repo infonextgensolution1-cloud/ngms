@@ -86,7 +86,7 @@ async function mediaActionFetch(path: string, init: RequestInit): Promise<Record
 
 export async function updateAdminMediaMetadata(
   id: string,
-  payload: { category: string; alt_text: string; tags: string[] }
+  payload: { category: string; alt_text: string; tags: string[]; is_published?: boolean }
 ): Promise<AdminRow> {
   if (!/^[A-Za-z0-9_-]{1,100}$/.test(id)) throw new AdminApiError("The media identifier is invalid.", "invalid-response");
   const body = await mediaActionFetch(`/api/admin/media/${encodeURIComponent(id)}`, {
