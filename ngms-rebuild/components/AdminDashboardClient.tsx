@@ -38,7 +38,8 @@ export default function AdminDashboardClient() {
       readAdminCollection("enquiries", controller.signal),
       readAdminCollection("jobs", controller.signal),
       readCommercialDocuments("Quotation", undefined, controller.signal),
-      readCommercialDocuments("Invoice", undefined, controller.signal),\n      readAdminCollection("reports", controller.signal),
+      readCommercialDocuments("Invoice", undefined, controller.signal),
+      readAdminCollection("reports", controller.signal),
     ]).then(([enquiries, jobs, quotations, invoices, reports]) => {
       if (!controller.signal.aborted) {
         setState({
@@ -83,7 +84,9 @@ export default function AdminDashboardClient() {
     };
   }, [state]);
 
-  const apiIsReady = state.status === "ready";\n  const reportCards = apiIsReady ? state.data.reports.filter(item => ["Outstanding invoice balance","Payments received this month","Paid expenses this month","Maintenance due within 30 days","Low / out-of-stock items"].includes(String(item.metric))) : [];\n  const reportValue = (item:AdminRow) => item.format === "ZAR_CENTS" && typeof item.value === "number" ? zar(item.value) : String(item.value ?? "—");
+  const apiIsReady = state.status === "ready";
+  const reportCards = apiIsReady ? state.data.reports.filter(item => ["Outstanding invoice balance","Payments received this month","Paid expenses this month","Maintenance due within 30 days","Low / out-of-stock items"].includes(String(item.metric))) : [];
+  const reportValue = (item:AdminRow) => item.format === "ZAR_CENTS" && typeof item.value === "number" ? zar(item.value) : String(item.value ?? "—");
   const metricValue = (value: number | string | undefined) => apiIsReady && value !== undefined ? value : "—";
   const recentEnquiries = metrics?.recentEnquiries ?? [];
   const recentJobs = metrics?.recentJobs ?? [];
@@ -103,7 +106,10 @@ export default function AdminDashboardClient() {
       <article className="metric-card"><span className="metric-label">Draft quotations</span><strong>{metricValue(metrics?.draftQuotes)}</strong><small>{apiIsReady ? "Formal quotations from the commercial-document API" : "API data not confirmed"}</small></article>
       <article className="metric-card"><span className="metric-label">Issued unpaid invoices</span><strong>{metricValue(metrics ? zar(metrics.outstandingFaceValueCents) : undefined)}</strong><small>{apiIsReady ? `${metrics?.issuedUnpaidCount ?? 0} invoices · status-based face value` : "API data not confirmed"}</small></article>
     </section>
-    <section className="metric-grid" aria-label="Finance and resource metrics">\n      {reportCards.map(item=><article key={String(item.metric)} className="metric-card"><span className="metric-label">{String(item.metric)}</span><strong>{reportValue(item)}</strong><small>{String(item.detail??"Live Operations Manager metric")}</small></article>)}\n      {!apiIsReady&&<article className="metric-card"><span className="metric-label">Finance & resources</span><strong>—</strong><small>Live database data not yet confirmed</small></article>}\n    </section>
+    <section className="metric-grid" aria-label="Finance and resource metrics">
+      {reportCards.map(item=><article key={String(item.metric)} className="metric-card"><span className="metric-label">{String(item.metric)}</span><strong>{reportValue(item)}</strong><small>{String(item.detail??"Live Operations Manager metric")}</small></article>)}
+      {!apiIsReady&&<article className="metric-card"><span className="metric-label">Finance & resources</span><strong>—</strong><small>Live database data not yet confirmed</small></article>}
+    </section>
 
     <section className="admin-section">
       <div className="admin-section-heading"><div><p className="eyebrow">WORKSPACE</p><h2>CORE OPERATIONS</h2></div><span className="section-id">01 — 04</span></div>
