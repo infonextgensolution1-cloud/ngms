@@ -568,7 +568,10 @@ function safeSlideUrl(value:string):string {
   }
 
   if (resource === "media") {
-    if (!id && method === "GET") return send({items:await listMedia()});
+    if (!id && method === "GET") {
+      const items=await listMedia();
+      return send({items:items.map(item=>({...item,url:"/api/admin/media/"+encodeURIComponent(String(item.id))+"/file"}))});
+    }
     if (!id && method === "POST") {
       const form = await request.formData();
       const file = form.get("file");
