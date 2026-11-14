@@ -394,7 +394,7 @@ function ConvertEnquiryToCrmAction({ row, onUpdated }: { row: AdminRow; onUpdate
 }
 
 function CommercialDocumentActions({ moduleKey, row, onUpdated, enquiries }: { moduleKey: "quotes"|"invoices"; row: AdminRow; onUpdated: () => void; enquiries: AdminRow[] }) {
-  const documentComplete = Boolean(row.reference) && row.integrity_status === "Complete" && Number(row.line_item_count) > 0;
+  const documentComplete = Boolean(row.reference) && ["Complete","OK"].includes(String(row.integrity_status ?? "")) && Number(row.line_item_count) > 0;
   return <div className="min-w-[260px]">
     <CommercialDocumentDetails id={String(row.id ?? "")}/>
     {!documentComplete ? <small className="module-footnote block mt-2">Legacy record — {String(row.integrity_status ?? "incomplete")}. Customer issue, payment and job-conversion actions are blocked until the document is accurately reconstructed.</small>
