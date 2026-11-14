@@ -20,7 +20,7 @@ export async function GET(_request:Request,context:Context){
   }
   const customerId=String(link.customer_id);
   const [documents,jobs,maintenance]=await Promise.all([
-   rows("SELECT reference,kind,amount_cents,status,issue_date,due_date,created_at FROM documents WHERE customer_id=? ORDER BY created_at DESC LIMIT 50",[customerId]),
+   rows("SELECT reference,kind,amount_cents,status,issue_date,due_date,created_at FROM documents WHERE customer_id=? AND status NOT IN ('Draft','Cancelled') ORDER BY created_at DESC LIMIT 50",[customerId]),
    rows("SELECT reference,service,area,status,scheduled_start,scheduled_end,created_at FROM jobs WHERE customer_id=? ORDER BY created_at DESC LIMIT 50",[customerId]),
    rows("SELECT service,property_area,frequency,next_due_date,amount_cents,status FROM maintenance_plans WHERE customer_id=? ORDER BY next_due_date LIMIT 50",[customerId]),
   ]);
