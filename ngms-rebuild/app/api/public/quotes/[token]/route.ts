@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createHash, randomUUID } from "node:crypto";
-import { execute, row, rows, transaction } from "@/lib/server/db";
+import { execute, executeOn, row, rows, transaction } from "@/lib/server/db";
 import { assertSameOrigin } from "@/lib/server/auth";
 
 export const runtime = "nodejs";
@@ -48,7 +48,7 @@ export async function POST(request: Request, context: Context) {
     if (decision !== "Accepted" && decision !== "Declined") return NextResponse.json({error:"Choose whether to accept or decline this quotation."},{status:400});
 
     const result = await transaction(async connection => {
-      const [linkRows] = await connection.execute(
+      const [linkRows] = await executeOn(connection,
         "SELECT l.*,d.reference,d.customer_name,d.kind,d.status AS document_status,d.amount_cents,e.service,e.area,e.details FROM quote_public_links l JOIN documents d ON d.id=l.document_id LEFT JOIN enquiries e ON e.id=l.enquiry_id WHERE l.token_hash=? FOR UPDATE",
         [hash],
       );
@@ -61,17 +61,17 @@ export async function POST(request: Request, context: Context) {
       if (decision === "Accepted") {
         jobId = randomUUID();
         const jobReference = "JOB-" + new Date().toISOString().slice(0,10).replace(/-/g,"") + "-" + jobId.slice(0,6).toUpperCase();
-        await connection.execute(
+        await executeOn(connection,
           "INSERT INTO jobs (id,reference,customer_id,source_document_id,customer_name,service,area,details,status) VALUES (?,?,?,?,?,?,?,?, 'New')",
           [jobId,jobReference,link.customer_id,link.document_id,link.customer_name,link.service || "Property maintenance",link.area || "",link.details || ""],
         );
-        await connection.execute("UPDATE documents SET status='Accepted' WHERE id=?",[link.document_id]);
-        await connection.execute("UPDATE enquiries SET status='Converted' WHERE id=?",[link.enquiry_id]);
+        await executeOn(connection,"UPDATE documents SET status='Accepted' WHERE id=?",[link.document_id]);
+        await executeOn(connection,"UPDATE enquiries SET status='Converted' WHERE id=?",[link.enquiry_id]);
       } else {
-        await connection.execute("UPDATE documents SET status='Declined' WHERE id=?",[link.document_id]);
-        await connection.execute("UPDATE enquiries SET status='Closed' WHERE id=?",[link.enquiry_id]);
+        await executeOn(connection,"UPDATE documents SET status='Declined' WHERE id=?",[link.document_id]);
+        await executeOn(connection,"UPDATE enquiries SET status='Closed' WHERE id=?",[link.enquiry_id]);
       }
-      await connection.execute("UPDATE quote_public_links SET decision=?,used_at=UTC_TIMESTAMP(),job_id=? WHERE token_hash=?",[decision,jobId,hash]);
+      await executeOn(connection,"UPDATE quote_public_links SET decision=?,used_at=UTC_TIMESTAMP(),job_id=? WHERE token_hash=?",[decision,jobId,hash]);
       return {saved:true,decision,reference:String(link.reference),job_id:jobId};
     });
     return NextResponse.json(result,{headers:{"Cache-Control":"no-store"}});
