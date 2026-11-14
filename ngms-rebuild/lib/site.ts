@@ -29,6 +29,7 @@ export const publicNav = [
   {href:"/body-corporate-maintenance",label:"Body corporates"},
   {href:"/portfolio",label:"Projects"},
   {href:"/before-after",label:"Before & After"},
+  {href:"/before-after",label:"Before & After"},
   {href:"/price-list",label:"Prices"},
   {href:"/contact",label:"Contact"}
 ];
