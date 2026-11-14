@@ -418,6 +418,65 @@ async function handleAdmin(request: Request, path: string[], user: StaffUser): P
   const [resource, id, action, extraId] = path;
   const input = method === "POST" || method === "PATCH" || method === "PUT" ? await bodyOf(request) : {};
 
+  if(resource==="slides"){
+    if(!id&&method==="GET"){
+      const items=await rows(
+        "SELECT s.*,m.original_name,m.content_type FROM homepage_slides s JOIN media_assets m ON m.id=s.media_id ORDER BY s.sort_order,s.created_at",
+      );
+      return send({items:items.map(item=>({...item,url:"/api/admin/media/"+encodeURIComponent(String(item.media_id))+"/file"}))});
+    }
+    if(!id&&method==="POST"){
+      const mediaId=text(input.media_id,36),title=text(input.title,220);
+      if(!/^[0-9a-f-]{36}$/i.test(mediaId)||title.length<2)return send({error:"Choose an image and enter a slide title."},400);
+      const media=await row("SELECT id,content_type FROM media_assets WHERE id=?",[mediaId]);
+      if(!media||!String(media.content_type).startsWith("image/"))return send({error:"Choose an existing image from the Media Manager."},404);
+      const active=input.is_active===true;
+      if(active){
+        const count=await row("SELECT COUNT(*) AS total FROM homepage_slides WHERE is_active=1");
+        if(Number(count?.total??0)>=12)return send({error:"The homepage carousel can have a maximum of 12 active slides. Deactivate a slide before adding another active one."},409);
+      }
+      const slideId=randomUUID();
+      const sort=Number.isInteger(Number(input.sort_order))?Math.max(0,Math.min(999,Number(input.sort_order))):0;
+      await execute(
+        "INSERT INTO homepage_slides (id,media_id,eyebrow,title,description,button_label,button_url,sort_order,is_active,created_by) VALUES (?,?,?,?,?,?,?,?,?,?)",
+        [slideId,mediaId,text(input.eyebrow,120),title,text(input.description,600),text(input.button_label,80)||"Get a quote",safeSlideUrl(text(input.button_url,500)||"/quote"),sort,active?1:0,user.id],
+      );
+      if(active)await execute("UPDATE media_assets SET is_published=1 WHERE id=?",[mediaId]);
+      await audit(user,request,"create","homepage_slide",slideId,{media_id:mediaId,is_active:active});
+      return send({item:await row("SELECT * FROM homepage_slides WHERE id=?",[slideId])},201);
+    }
+    if(id&&method==="PATCH"){
+      const existing=await row("SELECT * FROM homepage_slides WHERE id=?",[id]);
+      if(!existing)return send({error:"Homepage slide not found."},404);
+      const nextActive=typeof input.is_active==="boolean"?input.is_active:Number(existing.is_active)===1;
+      if(nextActive&&Number(existing.is_active)!==1){
+        const count=await row("SELECT COUNT(*) AS total FROM homepage_slides WHERE is_active=1");
+        if(Number(count?.total??0)>=12)return send({error:"The homepage carousel is limited to 12 active slides."},409);
+      }
+      const sort= input.sort_order===undefined?Number(existing.sort_order):Number(input.sort_order);
+      if(!Number.isInteger(sort)||sort<0||sort>999)return send({error:"Slide order must be between 0 and 999."},400);
+      await execute("UPDATE homepage_slides SET eyebrow=?,title=?,description=?,button_label=?,button_url=?,sort_order=?,is_active=? WHERE id=?",
+        [input.eyebrow===undefined?existing.eyebrow:text(input.eyebrow,120),input.title===undefined?existing.title:text(input.title,220),input.description===undefined?existing.description:text(input.description,600),input.button_label===undefined?existing.button_label:text(input.button_label,80),input.button_url===undefined?existing.button_url:safeSlideUrl(text(input.button_url,500)),sort,nextActive?1:0,id]);
+      if(nextActive)await execute("UPDATE media_assets SET is_published=1 WHERE id=?",[existing.media_id]);
+      await audit(user,request,"update","homepage_slide",id,{is_active:nextActive,sort_order:sort});
+      return send({item:await row("SELECT * FROM homepage_slides WHERE id=?",[id])});
+    }
+    if(id&&method==="DELETE"){
+      const result=await execute("DELETE FROM homepage_slides WHERE id=?",[id]);
+      if(!result.affectedRows)return send({error:"Homepage slide not found."},404);
+      await audit(user,request,"delete","homepage_slide",id);
+      return send({deleted:true});
+    }
+  }
+
+function safeSlideUrl(value:string):string {
+  if(value.startsWith("/")&&!value.startsWith("//"))return value.slice(0,500);
+  try{
+    const parsed=new URL(value);
+    return ["https:","http:"].includes(parsed.protocol)?parsed.toString().slice(0,500):"/quote";
+  }catch{return "/quote";}
+}
+
   if (resource === "projects") {
     if (!id && method === "GET") {
       const items = await rows(
