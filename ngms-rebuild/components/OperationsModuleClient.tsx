@@ -57,7 +57,8 @@ export default function OperationsModuleClient({category}:{category:Category}){
  const [message,setMessage]=useState("");
  const [showForm,setShowForm]=useState(false);
  const [search,setSearch]=useState("");
- const [refresh,setRefresh]=useState(0);\n const [lookups,setLookups]=useState<Record<string,Array<Record<string,unknown>>>>({});
+ const [refresh,setRefresh]=useState(0);
+ const [lookups,setLookups]=useState<Record<string,Array<Record<string,unknown>>>>({});
 
  const load=useCallback(async()=>{
   setLoading(true);setError("");
@@ -67,7 +68,8 @@ export default function OperationsModuleClient({category}:{category:Category}){
   }catch(e){setItems([]);setError(e instanceof Error?e.message:"Records could not be loaded.");}
   finally{setLoading(false);}
  },[category]);
- useEffect(()=>{void load();},[load,refresh]);\n useEffect(()=>{let active=true;const endpoints=["suppliers","materials","staff","customers","jobs"];Promise.all(endpoints.map(async key=>{const url=key==="customers"||key==="jobs"?"/api/admin/"+key:"/api/admin/operations/"+key;const response=await fetch(url,{cache:"no-store"});return [key,(await getJson(response)).items??[]] as const;})).then(results=>{if(active)setLookups(Object.fromEntries(results));}).catch(()=>{if(active)setLookups({});});return()=>{active=false;};},[refresh]);
+ useEffect(()=>{void load();},[load,refresh]);
+ useEffect(()=>{let active=true;const endpoints=["suppliers","materials","staff","customers","jobs"];Promise.all(endpoints.map(async key=>{const url=key==="customers"||key==="jobs"?"/api/admin/"+key:"/api/admin/operations/"+key;const response=await fetch(url,{cache:"no-store"});return [key,(await getJson(response)).items??[]] as const;})).then(results=>{if(active)setLookups(Object.fromEntries(results));}).catch(()=>{if(active)setLookups({});});return()=>{active=false;};},[refresh]);
 
  const visible=useMemo(()=>{
   const term=search.trim().toLowerCase();
