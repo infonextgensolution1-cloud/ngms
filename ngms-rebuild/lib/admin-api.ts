@@ -38,7 +38,7 @@ export class AdminApiError extends Error {
 }
 
 export function getAdminApiBase(): string {
-  return typeof window === "undefined" ? "" : window.location.origin;
+  return "/";
 }
 
 export function getAdminApiHealthUrl(): string {
@@ -62,7 +62,7 @@ async function mediaActionFetch(path: string, init: RequestInit): Promise<Record
   if (!base) throw new AdminApiError("The NGMS application API is not available in this browser.", "not-configured");
   let response: Response;
   try {
-    response = await fetch(`${base}${path}`, {
+    response = await fetch(path, {
       ...init,
       credentials: "include",
       cache: "no-store",
@@ -133,7 +133,7 @@ export async function readAdminCollection(
 
   let response: Response;
   try {
-    response = await fetch(`${base}/api/admin/${resource}`, {
+    response = await fetch(`/api/admin/${resource}`, {
       method: "GET",
       credentials: "include",
       cache: "no-store",
@@ -347,7 +347,7 @@ export async function readCommercialDocuments(
   if (status) params.set("status", status);
   let response: Response;
   try {
-    response = await fetch(`${base}/api/admin/commercial-documents?${params.toString()}`, {
+    response = await fetch(`/api/admin/commercial-documents?${params.toString()}`, {
       method: "GET",
       credentials: "include",
       cache: "no-store",
