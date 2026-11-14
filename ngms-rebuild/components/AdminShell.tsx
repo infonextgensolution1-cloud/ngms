@@ -6,7 +6,8 @@ import { useState } from "react";
 import { Brand } from "@/components/PublicShell";
 const items = [
   {href:"/admin",label:"Overview",glyph:"▦"},
-  {href:"/admin/enquiries",label:"Enquiries & customers",glyph:"↗"},
+  {href:"/admin/enquiries",label:"Enquiries",glyph:"↗"},
+  {href:"/admin/customers",label:"Customers & portal",glyph:"♙"},
   {href:"/admin/jobs",label:"Jobs",glyph:"◇"},
   {href:"/admin/projects",label:"Projects & before/after",glyph:"▧"},
   {href:"/admin/quotes",label:"Quotations",glyph:"▤"},
