@@ -65,8 +65,8 @@ export async function POST(request: Request, context: Context) {
       [email],
     );
     const valid = !!user && Number(user.is_active) === 1 && await verifyPassword(password, String(user.password_hash));
-    await execute("INSERT INTO login_attempts (email_hash,ip_hash) VALUES (?,?)", [emailHash, ipHash]);
     if (!valid || !user) {
+      await execute("INSERT INTO login_attempts (email_hash,ip_hash) VALUES (?,?)", [emailHash, ipHash]);
       return NextResponse.json({ error: "Email or password is incorrect." }, { status: 401 });
     }
 
