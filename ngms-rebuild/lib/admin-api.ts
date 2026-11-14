@@ -281,13 +281,42 @@ export async function updateAdminStatus(
   });
 }
 
+async function optimiseMediaUpload(source:File):Promise<File>{
+  if(!source.type.startsWith("image/"))return source;
+  if(source.size>20*1024*1024)throw new AdminApiError("Image source exceeds the 20 MB upload limit. Resize it before uploading.","invalid-response");
+  try{
+    const bitmap=await createImageBitmap(source);
+    try{
+      const scale=Math.min(1,2400/Math.max(bitmap.width,bitmap.height));
+      const width=Math.max(1,Math.round(bitmap.width*scale));
+      const height=Math.max(1,Math.round(bitmap.height*scale));
+      if(scale===1&&source.size<=400*1024)return source;
+      const canvas=document.createElement("canvas");
+      canvas.width=width;canvas.height=height;
+      const context=canvas.getContext("2d",{alpha:true});
+      if(!context)return source;
+      context.drawImage(bitmap,0,0,width,height);
+      const blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,"image/webp",0.84));
+      if(!blob||blob.size>=source.size)return source;
+      const filename=source.name.replace(/\.[^.]+$/,"")||"ngms-image";
+      return new File([blob],filename+".webp",{type:"image/webp",lastModified:source.lastModified||Date.now()});
+    }finally{bitmap.close();}
+  }catch{
+    return source;
+  }
+}
+
 export async function uploadAdminMedia(file: File, category = "Uncategorised"): Promise<AdminRow> {
   const accepted = new Set(["image/jpeg", "image/png", "image/webp", "image/avif", "application/pdf"]);
   if (!accepted.has(file.type)) {
     throw new AdminApiError("Unsupported file type. Use JPEG, PNG, WebP, AVIF or PDF.", "invalid-response");
   }
-  if (file.size < 1 || file.size > 10 * 1024 * 1024) {
-    throw new AdminApiError("File must be between 1 byte and 10 MB.", "invalid-response");
+  if (file.size < 1 || file.size > 20 * 1024 * 1024) {
+    throw new AdminApiError("File must be between 1 byte and 20 MB before image optimisation.", "invalid-response");
+  }
+  const uploadFile=await optimiseMediaUpload(file);
+  if(uploadFile.size>10*1024*1024){
+    throw new AdminApiError("The optimised file is still larger than 10 MB. Resize it before uploading.","invalid-response");
   }
   if (!previewWritesEnabled()) {
     throw new AdminApiError("Uploads are unavailable until the NGMS administrator session is active.", "not-configured");
