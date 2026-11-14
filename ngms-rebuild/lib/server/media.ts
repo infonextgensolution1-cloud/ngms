@@ -77,7 +77,10 @@ export async function listMedia(): Promise<Record<string, unknown>[]> {
 
 export async function readMediaBytes(id: string, publicOnly: boolean): Promise<{ bytes: Buffer; type: string; filename: string } | null> {
   const item = await row("SELECT object_name,original_name,content_type,is_published FROM media_assets WHERE id=? LIMIT 1", [id]);
-  if (!item || (publicOnly && Number(item.is_published) !== 1)) return null;
+  if (!item) return null;
+  // Only explicitly published image assets may be served through the public media route.
+  // PDFs and other documents remain behind the authenticated administrator endpoint.
+  if (publicOnly && (Number(item.is_published) !== 1 || !String(item.content_type).startsWith("image/"))) return null;
   const safeName = String(item.object_name);
   if (!/^[a-f0-9-]{36}\.(jpg|png|webp|avif|pdf)$/.test(safeName)) return null;
   const bytes = await readFile(path.join(mediaRoot(), "uploads", safeName));
@@ -85,12 +88,15 @@ export async function readMediaBytes(id: string, publicOnly: boolean): Promise<{
 }
 
 export async function updateMedia(id: string, body: Record<string, unknown>): Promise<Record<string, unknown> | null> {
-  const current = await row("SELECT id FROM media_assets WHERE id=?", [id]);
+  const current = await row("SELECT id,content_type FROM media_assets WHERE id=?", [id]);
   if (!current) return null;
   const category = typeof body.category === "string" ? body.category.trim().slice(0, 80) : null;
   const alt = typeof body.alt_text === "string" ? body.alt_text.trim().slice(0, 500) : null;
   const tags = Array.isArray(body.tags) ? JSON.stringify(body.tags.filter(v => typeof v === "string").map(v => v.trim().slice(0, 50)).slice(0, 20)) : null;
   const published = typeof body.is_published === "boolean" ? (body.is_published ? 1 : 0) : null;
+  if (published === 1 && !String(current.content_type).startsWith("image/")) {
+    throw new Error("Only image files can be published to the public website.");
+  }
   const sets: string[] = [];
   const values: unknown[] = [];
   if (category !== null) { sets.push("category=?"); values.push(category || "Uncategorised"); }
@@ -106,18 +112,29 @@ export async function updateMedia(id: string, body: Record<string, unknown>): Pr
 }
 
 export async function replaceMedia(id: string, file: File, user: StaffUser): Promise<Record<string, unknown> | null> {
-  const current = await row("SELECT object_name FROM media_assets WHERE id=?", [id]);
+  const current = await row("SELECT object_name,content_type FROM media_assets WHERE id=?", [id]);
   if (!current) return null;
   if (!(file instanceof File) || file.size < 1 || file.size > MAX_FILE_BYTES || !TYPES[file.type]) throw new Error("Unsupported replacement file. Use an image or PDF up to 10 MB.");
+  const replacementIsImage = file.type.startsWith("image/");
+  if (!replacementIsImage) {
+    const [projectUsage, slideUsage] = await Promise.all([
+      row("SELECT id FROM project_photos WHERE media_id=? LIMIT 1", [id]),
+      row("SELECT id FROM homepage_slides WHERE media_id=? LIMIT 1", [id]),
+    ]);
+    if (projectUsage || slideUsage) {
+      throw new Error("This photograph is used by a published or scheduled website placement. Replace it with another image, or remove its project/slide links first.");
+    }
+  }
   const bytes = Buffer.from(await file.arrayBuffer());
   if (!TYPES[file.type].signature(bytes)) throw new Error("The uploaded file signature does not match its declared type.");
   const objectName = randomUUID() + "." + TYPES[file.type].ext;
   const directory = path.join(mediaRoot(), "uploads");
+  await mkdir(directory, { recursive: true, mode: 0o750 });
   await writeFile(path.join(directory, objectName), bytes, { flag: "wx", mode: 0o640 });
   try {
     await execute(
-      "UPDATE media_assets SET object_name=?,original_name=?,content_type=?,size_bytes=?,uploaded_by=?,updated_at=CURRENT_TIMESTAMP WHERE id=?",
-      [objectName, file.name.slice(0, 240), file.type, bytes.length, user.id, id],
+      "UPDATE media_assets SET object_name=?,original_name=?,content_type=?,size_bytes=?,uploaded_by=?,is_published=IF(?=1,is_published,0),updated_at=CURRENT_TIMESTAMP WHERE id=?",
+      [objectName, file.name.slice(0, 240), file.type, bytes.length, user.id, replacementIsImage ? 1 : 0, id],
     );
   } catch (error) {
     await unlink(path.join(directory, objectName)).catch(() => undefined);
@@ -130,12 +147,17 @@ export async function replaceMedia(id: string, file: File, user: StaffUser): Pro
 export async function removeMedia(id: string): Promise<boolean> {
   const current = await row("SELECT object_name FROM media_assets WHERE id=?", [id]);
   if (!current) return false;
-  const usage = await row(
-    "SELECT id FROM project_photos WHERE media_id=? LIMIT 1",
-    [id],
-  );
-  if (usage) throw new Error("This photo is linked to a project. Remove the project reference before deleting it.");
+  const [projectUsage, slideUsage] = await Promise.all([
+    row("SELECT id FROM project_photos WHERE media_id=? LIMIT 1", [id]),
+    row("SELECT id FROM homepage_slides WHERE media_id=? LIMIT 1", [id]),
+  ]);
+  if (projectUsage) throw new Error("This photo is linked to a project. Remove the project reference before deleting it.");
+  if (slideUsage) throw new Error("This photo is linked to a homepage slide. Remove the slide before deleting the media file.");
+  const objectName = String(current.object_name);
+  if (!/^[a-f0-9-]{36}\.(jpg|png|webp|avif|pdf)$/.test(objectName)) {
+    throw new Error("The stored media reference is invalid. The file was kept for administrator review.");
+  }
   await execute("DELETE FROM media_assets WHERE id=?", [id]);
-  await unlink(path.join(mediaRoot(), "uploads", String(current.object_name))).catch(() => undefined);
+  await unlink(path.join(mediaRoot(), "uploads", objectName)).catch(() => undefined);
   return true;
 }
