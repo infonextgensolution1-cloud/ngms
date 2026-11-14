@@ -1,0 +1,66 @@
+name: NGMS HostAfrica Native Build
+
+on:
+  push:
+    branches:
+      - feat/hostafrica-native-ops-rebuild
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ngms-hostafrica-native-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hostafrica-build:
+    name: Lockfile, TypeScript and Next.js production build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ngms-rebuild
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          persist-credentials: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ngms-rebuild/package-lock.json
+
+      - name: Regenerate lockfile for the HostAfrica dependency set
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Commit generated lockfile when it changed
+        working-directory: .
+        run: |
+          if ! git diff --quiet -- ngms-rebuild/package-lock.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add ngms-rebuild/package-lock.json
+            git commit -m "build: regenerate HostAfrica rebuild lockfile"
+            git push origin HEAD:${{ github.head_ref || github.ref_name }}
+          fi
+
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: TypeScript validation
+        run: npm run typecheck
+
+      - name: Production build
+        run: npm run build
+
+      - name: Verify third-party backend dependencies are absent
+        run: |
+          if grep -RniE 'supabase|NEXT_PUBLIC_SUPABASE|workers.dev|cloudflare' app components lib package.json package-lock.json next.config.mjs .env.hostafrica.example; then
+            echo "A legacy external backend reference remains in the HostAfrica application."
+            exit 1
+          fi
