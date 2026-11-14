@@ -69,7 +69,7 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   },
   calendar: {
     title: "Job calendar",
-    description: "Review scheduled work from the protected Cloudflare D1 calendar. Appointments are ordered by scheduled start time.",
+    description: "Review scheduled work from the HostAfrica job calendar. Appointments are ordered by scheduled start time.",
     resource: "schedules",
     columns: [
       { key: "title", label: "Appointment" }, { key: "customer_name", label: "Customer / site" },
@@ -410,7 +410,7 @@ function CommercialDocumentActions({ moduleKey, row, onUpdated, enquiries }: { m
 
 
 
-const MEDIA_CATEGORIES = ["Uncategorised", "Branding", "Project Photos", "Before & After", "Website", "Documents"];
+const MEDIA_CATEGORIES = ["Uncategorised","Branding","Homepage Hero Slides","Homepage Featured","Website","Solar Panel Cleaning","Painting","Waterproofing","Plumbing","Electrical","Paving","Pool Fibre Lining","High-Pressure Cleaning","Steelwork & Welding","Handyman","Rubble Removal","Subcontractor Work","Body Corporate Projects","Project Photos","Before & After","Portfolio","Documents"];
 
 function AdminMediaPreview({ row }: { row: AdminRow }) {
   const [source, setSource] = useState("");
@@ -456,6 +456,7 @@ function MediaItemActions({ row, apiConfigured, writesEnabled, onUpdated }: {
 }) {
   const [category, setCategory] = useState(String(row.category ?? "Uncategorised"));
   const [altText, setAltText] = useState(String(row.alt_text ?? ""));
+  const [isPublished, setIsPublished] = useState(Number(row.is_published ?? 0) === 1);
   const [tagsText, setTagsText] = useState(() => {
     try {
       const parsed = JSON.parse(String(row.tags_json ?? "[]"));
@@ -475,7 +476,7 @@ function MediaItemActions({ row, apiConfigured, writesEnabled, onUpdated }: {
     }
     setSaving(true); setError(""); setMessage("");
     try {
-      await updateAdminMediaMetadata(String(row.id), { category, alt_text: altText.trim(), tags });
+      await updateAdminMediaMetadata(String(row.id), { category, alt_text: altText.trim(), tags, is_published: isPublished });
       setMessage("Asset details saved.");
       onUpdated();
     } catch (e) { setError(adminApiErrorMessage(e)); }
@@ -497,7 +498,7 @@ function MediaItemActions({ row, apiConfigured, writesEnabled, onUpdated }: {
 
   async function removeFile() {
     if (!row.id || !apiConfigured || !writesEnabled || saving) return;
-    const accepted = window.confirm("Delete this file from the preview media library? Project-linked images are protected and cannot be deleted.");
+    const accepted = window.confirm("Delete this file from the HostAfrica media library? Project-linked images are protected and cannot be deleted.");
     if (!accepted) return;
     setSaving(true); setError(""); setMessage("");
     try {
@@ -553,7 +554,7 @@ function CmsDraftEditor({ row, apiConfigured, writesEnabled, onUpdated }: {
     setSaving(true); setError(""); setMessage("");
     try {
       await saveAdminCmsDraft(moduleKey, parsed as Record<string, unknown>);
-      setMessage("CMS draft saved to preview D1.");
+      setMessage("CMS draft saved to HostAfrica MySQL.");
       onUpdated();
     } catch (e) { setError(adminApiErrorMessage(e)); }
     finally { setSaving(false); }
@@ -1020,18 +1021,24 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
   }
 
   async function handleUpload(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file || !writesEnabled || !apiConfigured) return;
+    const files = Array.from(event.target.files ?? []);
+    if (!files.length || !writesEnabled || !apiConfigured) return;
+    if (files.length > 30) { setActionError("Choose up to 30 files per upload batch."); event.target.value = ""; return; }
     setUploading(true);
     setUploadMessage("");
     setActionError("");
+    let completed = 0;
+    const failures: string[] = [];
     try {
-      const record = await uploadAdminMedia(file);
-      setUploadMessage("Upload stored in the preview media bucket: "+String(record.original_name ?? record.id ?? file.name));
+      for (const file of files) {
+        try { await uploadAdminMedia(file); completed++; }
+        catch (error) { failures.push(file.name + ": " + adminApiErrorMessage(error)); }
+        setUploadMessage("Uploaded " + completed + " of " + files.length + " file(s).");
+      }
+      if (failures.length) setActionError(failures.join(" | "));
+      else setUploadMessage("Uploaded " + completed + " file(s) to the HostAfrica media library.");
       setRefreshVersion((version)=>version+1);
       event.target.value = "";
-    } catch (error) {
-      setActionError(adminApiErrorMessage(error));
     } finally {
       setUploading(false);
     }
@@ -1046,7 +1053,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     <div className="api-notice" role="status">
       <span className="notice-dot" aria-hidden="true"/>
       <div><strong>{error ? "API data is unavailable" : loading ? "Loading records" : !module.resource ? "API route not implemented" : !apiConfigured ? "Preview integration pending" : "Read-only API connection"}</strong>
-        <p>{error ? error : !module.resource ? "The Worker does not expose this module. No demo records are displayed." : !apiConfigured ? adminApiConfigurationMessage() + " No request was sent and no data is simulated." : "Reads use the approved preview Worker. Any write controls remain disabled by default until preview authentication and persistence tests are approved."}</p>
+        <p>{error ? error : !module.resource ? "The Worker does not expose this module. No demo records are displayed." : !apiConfigured ? adminApiConfigurationMessage() + " No request was sent and no data is simulated." : "Reads use the same-origin NGMS API. Any write controls remain disabled by default until preview authentication and persistence tests are approved."}</p>
         {apiHealthUrl&&<p><a className="text-link" href={apiHealthUrl} target="_blank" rel="noopener noreferrer">Open secure API sign-in / health check ↗</a> <span className="module-footnote">After signing in, return here and refresh records.</span></p>}
       </div>
     </div>
@@ -1127,19 +1134,19 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       <CmsPublishingReview apiConfigured={apiConfigured} writesEnabled={cmsWritesEnabled()} onUpdated={()=>setRefreshVersion((version)=>version+1)}/>
     </>}
 
-    {moduleKey==="media"&&<section className="action-panel"><div className="action-panel-head"><div><strong>Upload media</strong><small>JPEG, PNG, WebP, AVIF or PDF · maximum 10 MB.</small></div><span className="preview-pill">PREVIEW BUCKET</span></div><label className="upload-control">Choose a file<input type="file" accept="image/jpeg,image/png,image/webp,image/avif,application/pdf" disabled={!writesEnabled||!apiConfigured||uploading} onChange={handleUpload}/></label>{uploading&&<p className="inline-feedback" role="status">Uploading to preview storage…</p>}{uploadMessage&&<p className="inline-feedback" role="status">{uploadMessage}</p>}{!writesEnabled&&<p className="guardrail-message">Uploads remain disabled until preview Access/CORS and persistence checks are approved.</p>}</section>}
+    {moduleKey==="media"&&<section className="action-panel"><div className="action-panel-head"><div><strong>Upload media</strong><small>JPEG, PNG, WebP, AVIF or PDF · maximum 10 MB.</small></div><span className="preview-pill">HOSTAFRICA MEDIA</span></div><label className="upload-control">Choose files<input type="file" multiple accept="image/jpeg,image/png,image/webp,image/avif,application/pdf" disabled={!writesEnabled||!apiConfigured||uploading} onChange={handleUpload}/></label>{uploading&&<p className="inline-feedback" role="status">Uploading to HostAfrica media storage…</p>}{uploadMessage&&<p className="inline-feedback" role="status">{uploadMessage}</p>}{!writesEnabled&&<p className="guardrail-message">Uploads remain disabled until preview Access/CORS and persistence checks are approved.</p>}</section>}
 
     {(actionMessage||actionError)&&<div className={actionError?"action-result action-result-error":"action-result"} role="status"><strong>{actionError?"Action failed":"Action complete"}</strong><p>{actionError||actionMessage}</p></div>}
 
     <section className="data-panel">
-      <div className="data-toolbar"><div><strong>{title}</strong><small>{error?"Could not verify the current record count":loading?"Retrieving from protected API…":hasReadEndpoint&&apiConfigured?rows.length+" records returned by API":"Live record retrieval is not active"}</small></div>
+      <div className="data-toolbar"><div><strong>{title}</strong><small>{error?"Could not verify the current record count":loading?"Retrieving from HostAfrica API…":hasReadEndpoint&&apiConfigured?rows.length+" records returned by API":"Live record retrieval is not active"}</small></div>
         <input aria-label={"Search "+title} placeholder="Search loaded records…" value={query} onChange={(event)=>setQuery(event.target.value)} disabled={!rows.length}/>
         <button className="button button-orange" type="button" onClick={()=>setRefreshVersion((v)=>v+1)} disabled={loading||!module.resource||!apiConfigured}>Refresh</button>
       </div>
-      {loading?<div className="table-empty" role="status"><span aria-hidden="true">◌</span><h2>LOADING RECORDS</h2><p>Waiting for the protected Cloudflare API response.</p></div>
+      {loading?<div className="table-empty" role="status"><span aria-hidden="true">◌</span><h2>LOADING RECORDS</h2><p>Waiting for the protected NGMS API response.</p></div>
       :error?<div className="table-empty"><span aria-hidden="true">!</span><h2>RECORDS COULD NOT BE LOADED.</h2><p>No empty list or zero balance is substituted for an API error.</p><button className="button button-outline button-dark-outline" type="button" onClick={()=>setRefreshVersion((v)=>v+1)}>Try again</button></div>
       :!module.resource?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>ENDPOINT NOT YET IMPLEMENTED.</h2><p>This module needs a documented API route and approved business definitions before its data can be displayed.</p></div>
-      :!apiConfigured?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>CONNECT THE PREVIEW API.</h2><p>Set the non-secret API base URL in Vercel Preview. Cloudflare Access and the preview origin allowlist must also match.</p></div>
+      :!apiConfigured?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>CONNECT THE PREVIEW API.</h2><p>Set the non-secret API base URL in Vercel Preview. NGMS administrator session and the preview origin allowlist must also match.</p></div>
       :rows.length===0?<div className="table-empty"><span aria-hidden="true">▤</span><h2>NO RECORDS RETURNED.</h2><p>The protected API returned an empty collection for this module. This is not an API error.</p></div>
       :visibleRows.length===0?<div className="table-empty"><span aria-hidden="true">⌕</span><h2>NO MATCHES.</h2><p>Try a different search term.</p></div>
       :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<><th>Preview</th><th>Asset management</th></>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<th>Document workflow</th>}{moduleKey==="enquiries"&&<th>CRM / quotation workflow</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices","calendar"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents","schedules"].includes(module.resource)&&<th>Status action</th>}</tr></thead>
