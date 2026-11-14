@@ -3752,3 +3752,50 @@ button, a, input, select, textarea { max-width: 100%; }
     height: auto;
   }
 }
+
+
+/* NGMS global header contrast lock.
+   Keep the shared site header black and its navigation white on every route,
+   including mobile and scrolled/sticky states. These scoped !important rules
+   defeat legacy page utilities and accidental opacity/colour overrides. */
+[data-ngms-site-header],
+[data-ngms-site-header].site-header {
+  background: #17191C !important;
+  background-color: #17191C !important;
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+  isolation: isolate;
+  border-bottom: 1px solid #343B44 !important;
+}
+[data-ngms-site-header] > div,
+[data-ngms-site-header] nav,
+[data-ngms-site-header] .site-header__mobile-nav {
+  background-color: #17191C !important;
+  color: #FFFFFF !important;
+}
+[data-ngms-site-header] nav a,
+[data-ngms-site-header] > div > a:not(.btn-quote),
+[data-ngms-site-header] a[href^="tel:"] {
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #FFFFFF;
+}
+[data-ngms-site-header] nav a[aria-current="page"],
+[data-ngms-site-header] nav a:hover,
+[data-ngms-site-header] nav a:focus-visible {
+  color: #F47721 !important;
+  -webkit-text-fill-color: #F47721;
+}
+[data-ngms-site-header] img {
+  opacity: 1 !important;
+  filter: none !important;
+}
+[data-ngms-site-header] button {
+  color: #FFFFFF !important;
+}
+@media (max-width: 1279px) {
+  [data-ngms-site-header] .site-header__mobile-nav {
+    background: #17191C !important;
+    color: #FFFFFF !important;
+  }
+}
