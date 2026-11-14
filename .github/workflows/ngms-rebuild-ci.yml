@@ -1,4 +1,4 @@
-name: NGMS Cloudflare-first Rebuild CI
+name: NGMS Legacy Rebuild CI
 
 on:
   push:
@@ -9,7 +9,6 @@ on:
   pull_request:
     branches:
       - preview/ngms-cloudflare-worker
-      - main
 
 permissions:
   contents: read
