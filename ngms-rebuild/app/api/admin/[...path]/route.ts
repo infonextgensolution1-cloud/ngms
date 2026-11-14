@@ -445,7 +445,7 @@ async function handleAdmin(request: Request, path: string[], user: StaffUser): P
         "SELECT pp.id AS project_photo_id,pp.media_id,pp.stage,pp.sort_order,m.original_name,m.category,m.alt_text,m.is_published FROM project_photos pp JOIN media_assets m ON m.id=pp.media_id WHERE pp.project_id=? ORDER BY FIELD(pp.stage,'before','after','general'),pp.sort_order",
         [id],
       );
-      return send({item:project,photos:photos.map(photo=>({...photo,url:"/api/media/"+encodeURIComponent(String(photo.media_id))}))});
+      return send({item:project,photos:photos.map(photo=>({...photo,url:"/api/admin/media/"+encodeURIComponent(String(photo.media_id))+"/file"}))});
     }
     if (id && action === "photos" && method === "POST") {
       const mediaId = text(input.media_id,36);
@@ -602,6 +602,7 @@ async function handleAdmin(request: Request, path: string[], user: StaffUser): P
         const [requestRows] = await executeOn(connection,"SELECT * FROM publication_requests WHERE id=? FOR UPDATE",[requestId]);
         const req = (requestRows as Array<Record<string,unknown>>)[0];
         if (!req || req.status !== "Pending") throw new Error("Publication request is no longer pending.");
+        if (String(req.requested_by) === user.id) throw new Error("A different owner or administrator must review this publication request.");
         const [draftRows] = await executeOn(connection,"SELECT content_json FROM site_content WHERE content_key=?",["cms_draft."+req.module_key]);
         const draft = (draftRows as Array<{content_json:string}>)[0];
         if (!draft) throw new Error("Website content draft is missing.");
