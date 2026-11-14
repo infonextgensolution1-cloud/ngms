@@ -233,6 +233,10 @@ export default {
     const actor = claims.email || claims.sub;
     if (!actor) return json({ error: "Access identity is missing." }, 403, origin);
 
+    if (url.pathname === "/api/admin/identity" && request.method === "GET") {
+      return json({ item: { email: claims.email || "", actor } }, 200, origin);
+    }
+
     try {
       if (url.pathname === "/api/admin/media" && request.method === "GET") {
         const result = await env.DB.prepare("SELECT id, original_name, content_type, size_bytes, uploaded_by, category, alt_text, tags_json, created_at, updated_at FROM media ORDER BY created_at DESC LIMIT 200").all();

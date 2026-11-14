@@ -731,3 +731,175 @@ export async function readCommercialDocument(id: string, signal?: AbortSignal): 
   }
   return result;
 }
+
+
+export type AdminSchedule = {
+  id: string;
+  title: string;
+  customer_name: string;
+  service: string;
+  area: string;
+  assigned_to: string;
+  scheduled_start: string;
+  scheduled_end: string;
+  status: "Scheduled" | "Confirmed" | "In progress" | "Completed" | "Cancelled" | string;
+  notes: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type CmsPublicationRequest = {
+  id: string;
+  module_key: string;
+  slug: string;
+  status: "Pending" | "Approved" | "Rejected" | string;
+  requested_by: string;
+  reviewed_by?: string | null;
+  review_note?: string;
+  created_at: string;
+  reviewed_at?: string | null;
+};
+
+export type CmsPublication = {
+  id: string;
+  module_key: string;
+  slug: string;
+  source_publication_id?: string | null;
+  published_by: string;
+  published_at: string;
+};
+
+export type CmsPublishingData = {
+  requests: CmsPublicationRequest[];
+  current: Array<{ module_key: string; slug: string; publication_id: string; updated_at: string; content_hash: string; published_by: string; published_at: string }>;
+  history: CmsPublication[];
+  audit: Array<{ id: string; module_key: string; request_id?: string | null; publication_id?: string | null; action: string; actor: string; details_json: string; created_at: string }>;
+};
+
+export async function readAdminSchedules(
+  from?: string,
+  to?: string,
+  signal?: AbortSignal
+): Promise<AdminSchedule[]> {
+  const params = new URLSearchParams();
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+  const encodedParams = params.toString();
+  const query = encodedParams ? "?" + encodedParams : "";
+  const result = await requestPreviewJson<{ items?: AdminSchedule[] }>(
+    "/api/admin/schedules" + query,
+    { method: "GET", signal },
+    false
+  );
+  if (!Array.isArray(result.items)) {
+    throw new AdminApiError("The schedules response did not match the expected { items: [] } contract.", "invalid-response");
+  }
+  return result.items;
+}
+
+export async function createAdminSchedule(payload: Partial<AdminSchedule>): Promise<AdminSchedule> {
+  const result = await requestPreviewJson<{ item?: AdminSchedule }>(
+    "/api/admin/schedules",
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) },
+    true
+  );
+  if (!result.item || typeof result.item.id !== "string") {
+    throw new AdminApiError("The schedule creation response did not contain a valid item.", "invalid-response");
+  }
+  return result.item;
+}
+
+export async function updateAdminSchedule(id: string, payload: Partial<AdminSchedule>): Promise<AdminSchedule> {
+  if (!/^[A-Za-z0-9-]{1,100}$/.test(id)) throw new AdminApiError("The schedule identifier is not valid.", "invalid-response");
+  const result = await requestPreviewJson<{ item?: AdminSchedule }>(
+    `/api/admin/schedules/${encodeURIComponent(id)}`,
+    { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) },
+    true
+  );
+  if (!result.item || typeof result.item.id !== "string") {
+    throw new AdminApiError("The schedule update response did not contain a valid item.", "invalid-response");
+  }
+  return result.item;
+}
+
+export async function deleteAdminSchedule(id: string): Promise<boolean> {
+  if (!/^[A-Za-z0-9-]{1,100}$/.test(id)) throw new AdminApiError("The schedule identifier is not valid.", "invalid-response");
+  const result = await requestPreviewJson<{ deleted?: boolean }>(
+    `/api/admin/schedules/${encodeURIComponent(id)}`,
+    { method: "DELETE" },
+    true
+  );
+  if (result.deleted !== true) throw new AdminApiError("The schedule delete response was not confirmed.", "invalid-response");
+  return true;
+}
+
+export async function readAdminIdentity(signal?: AbortSignal): Promise<{ email: string; actor: string }> {
+  const result = await requestPreviewJson<{ item?: { email?: string; actor?: string } }>(
+    "/api/admin/identity",
+    { method: "GET", signal },
+    false
+  );
+  if (!result.item || typeof result.item.actor !== "string" || typeof result.item.email !== "string") {
+    throw new AdminApiError("The identity response did not match the expected email/actor contract.", "invalid-response");
+  }
+  return { email: result.item.email, actor: result.item.actor };
+}
+
+export async function readCmsPublishing(signal?: AbortSignal): Promise<CmsPublishingData> {
+  const result = await requestPreviewJson<CmsPublishingData>(
+    "/api/admin/publishing",
+    { method: "GET", signal },
+    false
+  );
+  if (!Array.isArray(result.requests) || !Array.isArray(result.current) || !Array.isArray(result.history) || !Array.isArray(result.audit)) {
+    throw new AdminApiError("The CMS publishing response did not match the expected workflow contract.", "invalid-response");
+  }
+  return result;
+}
+
+export async function saveCmsDraft(moduleKey: string, value: Record<string, unknown>): Promise<void> {
+  if (!/^[a-zA-Z0-9_-]{1,80}$/.test(moduleKey)) throw new AdminApiError("The CMS module key is not valid.", "invalid-response");
+  const result = await requestPreviewJson<{ saved?: boolean; key?: string }>(
+    "/api/admin/content",
+    { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key: "cms_draft." + moduleKey, value }) },
+    true
+  );
+  if (result.saved !== true) throw new AdminApiError("The CMS draft save was not confirmed.", "invalid-response");
+}
+
+export async function requestCmsPublication(moduleKey: string): Promise<{ requested: boolean; requestId: string; approvalRequired: boolean }> {
+  if (!/^[a-zA-Z0-9_-]{1,80}$/.test(moduleKey)) throw new AdminApiError("The CMS module key is not valid.", "invalid-response");
+  const result = await requestPreviewJson<{ requested?: boolean; requestId?: string; approvalRequired?: boolean }>(
+    "/api/admin/publishing/request",
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ moduleKey }) },
+    true
+  );
+  if (result.requested !== true || typeof result.requestId !== "string") {
+    throw new AdminApiError("The CMS publication request was not confirmed.", "invalid-response");
+  }
+  return { requested: true, requestId: result.requestId, approvalRequired: result.approvalRequired === true };
+}
+
+export async function reviewCmsPublication(
+  requestId: string,
+  decision: "approve" | "reject",
+  note = ""
+): Promise<{ approved?: boolean; rejected?: boolean; publicationId?: string }> {
+  if (!/^[0-9a-f-]{36}$/i.test(requestId)) throw new AdminApiError("The CMS request identifier is not valid.", "invalid-response");
+  return requestPreviewJson<{ approved?: boolean; rejected?: boolean; publicationId?: string }>(
+    "/api/admin/publishing/approve",
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ requestId, decision, note }) },
+    true
+  );
+}
+
+export async function rollbackCmsPublication(moduleKey: string, publicationId: string, note = ""): Promise<{ rolledBack?: boolean; publicationId?: string }> {
+  if (!/^[a-zA-Z0-9_-]{1,80}$/.test(moduleKey) || !/^[0-9a-f-]{36}$/i.test(publicationId)) {
+    throw new AdminApiError("The CMS rollback selection is not valid.", "invalid-response");
+  }
+  return requestPreviewJson<{ rolledBack?: boolean; publicationId?: string }>(
+    "/api/admin/publishing/rollback",
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ moduleKey, publicationId, note }) },
+    true
+  );
+}

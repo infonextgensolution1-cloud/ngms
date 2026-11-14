@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import AdminAdvancedModuleClient from "@/components/AdminAdvancedModuleClient";
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
   AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, convertAcceptedQuotationToJob, createAdminCustomer, createAdminRecord, createAdminSchedule,
@@ -212,11 +213,24 @@ function CommercialDocumentDetails({ id }: { id: string }) {
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [open, id, detail]);
+  const warnings = detail ? [
+    !String(detail.item.reference ?? "").trim() ? "Document reference is missing." : "",
+    !String(detail.item.customer_id ?? "").trim() ? "Document is not linked to a CRM customer." : "",
+    detail.lines.length === 0 ? "No saved line items were found." : "",
+    detail.lines.length > 0 && detail.lines.reduce((sum, line) => sum + Number(line.line_total_cents || 0), 0) !== Number(detail.item.subtotal_cents || 0)
+      ? "Line-item totals do not match the saved subtotal." : "",
+    Number(detail.item.subtotal_cents || 0) - Number(detail.item.discount_cents || 0) + Number(detail.item.vat_cents || 0) !== Number(detail.item.amount_cents || 0)
+      ? "Subtotal, discount, VAT and document total do not reconcile." : "",
+  ].filter(Boolean) : [];
   return <div className="mt-1">
-    <button type="button" className="button button-small button-outline button-dark-outline" onClick={() => setOpen((value) => !value)}>{open ? "Hide lines" : "View lines"}</button>
+    <button type="button" className="button button-small button-outline button-dark-outline" onClick={() => setOpen((value) => !value)}>{open ? "Hide lines" : "Validate document"}</button>
     {open && <div className="mt-2 min-w-[240px] rounded-card border border-darkgrey p-3">
       {loading ? <small>Loading saved line items…</small> : error ? <small className="text-orange">{error}</small> : detail ? <>
-        <strong className="text-sm">Saved quotation / invoice lines</strong>
+        <strong className="text-sm">Document integrity check</strong>
+        {warnings.length > 0
+          ? <div className="guardrail-message mt-2"><strong>Needs attention</strong><ul className="mt-1 list-disc pl-4">{warnings.map(item => <li key={item}>{item}</li>)}</ul></div>
+          : <p className="inline-feedback mt-2">Reference, CRM link, line items and totals passed the saved-data checks.</p>}
+        <div className="mt-3 text-xs"><span className="text-mist">Reference:</span> <strong>{String(detail.item.reference ?? "Missing")}</strong></div>
         <ul className="mt-2 space-y-2">{detail.lines.map((line,index)=><li key={line.id ?? index} className="border-b border-darkgrey pb-2 text-xs">
           <div className="font-semibold">{line.description}</div>
           <div className="text-mist">{line.quantity} {line.unit} × {displayValue("amount_cents",line.unit_price_cents)} = {displayValue("amount_cents",line.line_total_cents)}</div>
@@ -1151,4 +1165,12 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     {moduleKey==="content"&&<p className="module-footnote">The CMS has versioned drafts, independent approval, publication history, audit logging and rollback controls. Editing and publishing remain blocked until the CMS-specific preview gate is approved.</p>}
     <p className="module-footnote">Preview write controls require NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=true. The Worker independently verifies Cloudflare Access identity for every protected action.</p>
   </div>;
+}
+
+
+export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModuleKey }) {
+  if (moduleKey === "calendar" || moduleKey === "media" || moduleKey === "content" || moduleKey === "reports" || moduleKey === "settings") {
+    return <AdminAdvancedModuleClient moduleKey={moduleKey}/>;
+  }
+  return <BasicAdminModuleClient moduleKey={moduleKey}/>;
 }
