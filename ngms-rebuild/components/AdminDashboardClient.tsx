@@ -95,7 +95,7 @@ export default function AdminDashboardClient() {
       <div className="admin-head-actions"><Link className="button button-orange" href="/admin/enquiries">Review enquiries ↗</Link><button className="button button-outline button-dark-outline" type="button" onClick={() => setRefreshVersion(v=>v+1)} disabled={state.status==="loading"}>Refresh data</button></div>
     </div>
 
-    <div className="api-notice" role="status"><span className="notice-dot" aria-hidden="true"/><div><strong>{state.status==="ready"?"HostAfrica API connected":state.status==="loading"?"Connecting to Cloudflare API":state.status==="error"?"Live data unavailable":"Preview integration pending"}</strong><p>{state.message}</p>{apiHealthUrl&&<p><a className="text-link" href={apiHealthUrl} target="_blank" rel="noopener noreferrer">Open secure API sign-in / health check ↗</a> <span className="module-footnote">After signing in, return here and refresh data.</span></p>}</div></div>
+    <div className="api-notice" role="status"><span className="notice-dot" aria-hidden="true"/><div><strong>{state.status==="ready"?"HostAfrica API connected":state.status==="loading"?"Connecting to HostAfrica":state.status==="error"?"Live data unavailable":"HostAfrica integration pending"}</strong><p>{state.message}</p>{apiHealthUrl&&<p><a className="text-link" href={apiHealthUrl} target="_blank" rel="noopener noreferrer">Open secure API sign-in / health check ↗</a> <span className="module-footnote">After signing in, return here and refresh data.</span></p>}</div></div>
 
     <section className="metric-grid" aria-label="Business metrics">
       <article className="metric-card"><span className="metric-label">Active enquiries</span><strong>{metricValue(metrics?.enquiries)}</strong><small>{apiIsReady ? `${metrics?.newEnquiries ?? 0} new to review` : "API data not confirmed"}</small></article>
@@ -124,6 +124,6 @@ export default function AdminDashboardClient() {
       </div>
     </section>
 
-    <div className="admin-callout"><span className="callout-mark" aria-hidden="true">!</span><div><strong>Write operations are still disabled in this rebuild.</strong><p>Read-only API mapping is based on the verified Worker contract. Enquiry creation, status changes, quotation/invoice edits and R2 uploads remain off until preview-origin access, authorisation and write tests are completed.</p></div></div>
+    <div className="admin-callout"><span className="callout-mark" aria-hidden="true">✓</span><div><strong>HostAfrica operations workspace.</strong><p>Staff actions are protected by NGMS administrator sessions. Quotation sharing, customer decisions, invoice payments and public content publication are recorded in the HostAfrica database with audit history.</p></div></div>
   </div>;
 }
