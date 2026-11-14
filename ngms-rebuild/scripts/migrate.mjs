@@ -21,10 +21,14 @@ const connection = await mysql.createConnection({
 
 try {
   const sql = await readFile(new URL("../database/schema.sql", import.meta.url), "utf8");
-  const statements = sql
+  const withoutComments = sql
+    .split(/\r?\n/)
+    .filter(line => !line.trimStart().startsWith("--"))
+    .join("\n");
+  const statements = withoutComments
     .split(";")
     .map(part => part.trim())
-    .filter(part => part && !part.startsWith("--"));
+    .filter(Boolean);
   for (const statement of statements) {
     await connection.query(statement);
   }
