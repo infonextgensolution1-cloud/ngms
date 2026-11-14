@@ -706,6 +706,13 @@ function safeSlideUrl(value:string):string {
     }
   }
 
+  if(resource==="customers"&&id&&action==="portal-link"&&extraId==="revoke"&&method==="POST"){
+    await ensureCustomer(id);
+    const result=await execute("UPDATE customer_portal_links SET revoked_at=UTC_TIMESTAMP() WHERE customer_id=? AND revoked_at IS NULL AND expires_at>UTC_TIMESTAMP()",[id]);
+    await audit(user,request,"revoke_portal_links","customer",id,{revoked:Number(result.affectedRows||0)});
+    return send({revoked:Number(result.affectedRows||0)});
+  }
+
   if(resource==="customers"&&id&&action==="portal-link"&&method==="POST"){
     const customer=await ensureCustomer(id);
     const token=randomBytes(32).toString("hex");
