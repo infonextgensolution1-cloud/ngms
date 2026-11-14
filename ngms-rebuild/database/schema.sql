@@ -117,6 +117,7 @@ CREATE TABLE IF NOT EXISTS documents (
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uq_document_reference (reference),
+  UNIQUE KEY uq_document_source_kind (kind,source_document_id),
   KEY idx_documents_kind_status (kind,status,created_at),
   KEY idx_documents_customer (customer_id),
   KEY idx_documents_source (source_document_id),
