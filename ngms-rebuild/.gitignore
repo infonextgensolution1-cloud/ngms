@@ -5,6 +5,7 @@ node_modules
 out
 .env*
 !.env.example
+!.env.hostafrica.example
 *.tsbuildinfo
 .dev.vars
 worker-configuration.d.ts
