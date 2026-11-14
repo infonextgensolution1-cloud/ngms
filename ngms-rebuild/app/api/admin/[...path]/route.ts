@@ -305,8 +305,98 @@ async function convertAcceptedQuote(id: string, user: StaffUser, request: Reques
 
 async function handleAdmin(request: Request, path: string[], user: StaffUser): Promise<NextResponse> {
   const method = request.method.toUpperCase();
-  const [resource, id, action] = path;
+  const [resource, id, action, extraId] = path;
   const input = method === "POST" || method === "PATCH" || method === "PUT" ? await bodyOf(request) : {};
+
+  if (resource === "projects") {
+    if (!id && method === "GET") {
+      const items = await rows(
+        "SELECT p.*, (SELECT COUNT(*) FROM project_photos pp WHERE pp.project_id=p.id) AS photo_count FROM projects p ORDER BY p.created_at DESC LIMIT 200",
+      );
+      return send({items});
+    }
+    if (!id && method === "POST") {
+      const title = text(input.title,180);
+      const service = text(input.service,180);
+      const location = text(input.location,180);
+      if (title.length < 2 || !service) return send({error:"Project title and service are required."},400);
+      const projectId = randomUUID();
+      await execute(
+        "INSERT INTO projects (id,title,service,location,description,completed_at,status,created_by) VALUES (?,?,?,?,?,?, 'Draft',?)",
+        [projectId,title,service,location,text(input.description,4000),text(input.completed_at,20)||null,user.id],
+      );
+      await audit(user,request,"create","project",projectId);
+      return send({item:await row("SELECT * FROM projects WHERE id=?",[projectId])},201);
+    }
+    if (id && !action && method === "GET") {
+      const project = await row("SELECT * FROM projects WHERE id=?",[id]);
+      if (!project) return send({error:"Project not found."},404);
+      const photos = await rows(
+        "SELECT pp.id AS project_photo_id,pp.media_id,pp.stage,pp.sort_order,m.original_name,m.category,m.alt_text,m.is_published FROM project_photos pp JOIN media_assets m ON m.id=pp.media_id WHERE pp.project_id=? ORDER BY FIELD(pp.stage,'before','after','general'),pp.sort_order",
+        [id],
+      );
+      return send({item:project,photos:photos.map(photo=>({...photo,url:"/api/media/"+encodeURIComponent(String(photo.media_id))}))});
+    }
+    if (id && action === "photos" && method === "POST") {
+      const mediaId = text(input.media_id,36);
+      const stage = text(input.stage,20);
+      if (!/^[0-9a-f-]{36}$/i.test(mediaId) || !["before","after","general"].includes(stage)) return send({error:"Choose a valid media item and project photo stage."},400);
+      const result = await transaction(async connection => {
+        const [projectRows] = await connection.execute("SELECT id,status FROM projects WHERE id=? FOR UPDATE",[id]);
+        const project = (projectRows as Array<Record<string,unknown>>)[0];
+        if (!project) throw new Error("Project not found.");
+        const [mediaRows] = await connection.execute("SELECT id FROM media_assets WHERE id=?",[mediaId]);
+        if (!(mediaRows as unknown[]).length) throw new Error("Media item not found.");
+        const [orders] = await connection.execute("SELECT COALESCE(MAX(sort_order),-1)+1 AS next_order FROM project_photos WHERE project_id=? AND stage=?",[id,stage]);
+        const sortOrder=Number((orders as Array<{next_order:number}>)[0]?.next_order ?? 0);
+        const photoId=randomUUID();
+        await connection.execute("INSERT INTO project_photos (id,project_id,media_id,stage,sort_order) VALUES (?,?,?,?,?)",[photoId,id,mediaId,stage,sortOrder]);
+        if (project.status === "Published") await connection.execute("UPDATE media_assets SET is_published=1 WHERE id=?",[mediaId]);
+        return photoId;
+      });
+      await audit(user,request,"attach_photo","project",id,{media_id:mediaId,stage});
+      return send({saved:true,project_photo_id:result},201);
+    }
+    if (id && action === "photos" && extraId && method === "DELETE") {
+      const existing=await row("SELECT media_id FROM project_photos WHERE id=? AND project_id=?",[extraId,id]);
+      if(!existing) return send({error:"Project photo not found."},404);
+      await execute("DELETE FROM project_photos WHERE id=? AND project_id=?",[extraId,id]);
+      await execute(
+        "UPDATE media_assets SET is_published=IF(EXISTS(SELECT 1 FROM project_photos pp JOIN projects p ON p.id=pp.project_id WHERE pp.media_id=media_assets.id AND p.status='Published'),1,0) WHERE id=?",
+        [existing.media_id],
+      );
+      await audit(user,request,"detach_photo","project",id,{project_photo_id:extraId});
+      return send({deleted:true});
+    }
+    if (id && !action && method === "PATCH") {
+      const current=await row("SELECT id FROM projects WHERE id=?",[id]);
+      if(!current) return send({error:"Project not found."},404);
+      const status=text(input.status,20);
+      if(!["Draft","Published","Archived"].includes(status)) return send({error:"Choose Draft, Published or Archived."},400);
+      if(input.title!==undefined) await execute("UPDATE projects SET title=?,service=?,location=?,description=?,completed_at=?,status=? WHERE id=?",
+        [text(input.title,180),text(input.service,180),text(input.location,180),text(input.description,4000),text(input.completed_at,20)||null,status,id]);
+      else await execute("UPDATE projects SET status=? WHERE id=?",[status,id]);
+      if(status==="Published") {
+        await execute("UPDATE media_assets m JOIN project_photos pp ON pp.media_id=m.id SET m.is_published=1 WHERE pp.project_id=?",[id]);
+      } else {
+        await execute(
+          "UPDATE media_assets m JOIN project_photos pp ON pp.media_id=m.id SET m.is_published=IF(EXISTS(SELECT 1 FROM project_photos pp2 JOIN projects p2 ON p2.id=pp2.project_id WHERE pp2.media_id=m.id AND p2.status='Published'),1,0) WHERE pp.project_id=?",
+          [id],
+        );
+      }
+      await audit(user,request,"project_status","project",id,{status});
+      return send({item:await row("SELECT * FROM projects WHERE id=?",[id])});
+    }
+    if(id && !action && method==="DELETE") {
+      const result=await execute("DELETE FROM projects WHERE id=?",[id]);
+      if(!result.affectedRows) return send({error:"Project not found."},404);
+      await execute(
+        "UPDATE media_assets m SET is_published=IF(EXISTS(SELECT 1 FROM project_photos pp JOIN projects p ON p.id=pp.project_id WHERE pp.media_id=m.id AND p.status='Published'),1,0) WHERE m.id IN (SELECT media_id FROM (SELECT media_id FROM project_photos) linked)",
+      ).catch(()=>undefined);
+      await audit(user,request,"delete","project",id);
+      return send({deleted:true});
+    }
+  }
 
   if (resource === "media") {
     if (!id && method === "GET") return send({items:await listMedia()});
