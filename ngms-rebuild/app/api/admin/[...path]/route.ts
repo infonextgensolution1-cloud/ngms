@@ -187,11 +187,15 @@ async function commercialDetails(id: string) {
 }
 
 async function updateDocumentStatus(id: string, status: string, user: StaffUser, request: Request) {
-  const allowed = ["Draft","Sent","Accepted","Declined","Expired","Overdue","Cancelled","Paid"];
-  if (!allowed.includes(status)) throw new Error("Invalid document status.");
-  const existing = await row("SELECT id,kind FROM documents WHERE id=?", [id]);
+  const allowed = ["Draft","Sent","Expired","Overdue","Cancelled","Paid"];
+  if (!allowed.includes(status)) throw new Error("Accepted and declined quotation decisions must be recorded through the customer's one-use link.");
+  const existing = await row("SELECT id,kind,amount_cents FROM documents WHERE id=?", [id]);
   if (!existing) return null;
   if (status === "Paid" && existing.kind !== "Invoice") throw new Error("Only invoices can be marked paid.");
+  if(status==="Paid"){
+    const paymentTotal=await row("SELECT COALESCE(SUM(amount_cents),0) AS paid FROM invoice_payments WHERE document_id=?",[id]);
+    if(Number(paymentTotal?.paid??0)<Number(existing.amount_cents??0))throw new Error("An invoice can only be marked paid after its full balance has been covered by recorded payments.");
+  }
   await execute("UPDATE documents SET status=? WHERE id=?", [status,id]);
   await audit(user,request,"status_change",String(existing.kind).toLowerCase(),id,{status});
   return await row("SELECT * FROM documents WHERE id=?", [id]);
