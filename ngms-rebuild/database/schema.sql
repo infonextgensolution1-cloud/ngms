@@ -514,3 +514,17 @@ CREATE TABLE IF NOT EXISTS homepage_slides (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT IGNORE INTO schema_migrations (version) VALUES ('003_hostafrica_homepage_slides');
+
+CREATE TABLE IF NOT EXISTS customer_portal_links (
+  token_hash CHAR(64) NOT NULL PRIMARY KEY,
+  customer_id CHAR(36) NOT NULL,
+  expires_at DATETIME NOT NULL,
+  revoked_at DATETIME NULL,
+  created_by CHAR(36) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_customer_portal_customer (customer_id,expires_at),
+  CONSTRAINT fk_customer_portal_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+  CONSTRAINT fk_customer_portal_creator FOREIGN KEY (created_by) REFERENCES staff_users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO schema_migrations (version) VALUES ('004_hostafrica_customer_portal');
