@@ -10,7 +10,7 @@ export const metadata:Metadata = {title:"One Call. All Solutions.",description:"
 
 export default async function HomePage() {
  const [media,heroSlides]=await Promise.all([getPublishedMedia(),getPublishedHeroSlides()]);
- const hero=media.find(item=>item.category==="Homepage Hero Slides"||item.category==="Homepage Featured");
+ const hero=media.find(item=>item.category==="Homepage Featured");
  const solar=media.find(item=>item.category==="Solar Panel Cleaning");
  const heroImage=hero?.url || "/brand-assets/house-array.webp";
  const solarImage=solar?.url || "/brand-assets/panels-closeup.webp";
