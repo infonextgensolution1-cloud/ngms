@@ -274,11 +274,13 @@ CREATE TABLE IF NOT EXISTS quote_public_links (
   decision VARCHAR(20) NULL,
   expires_at DATETIME NOT NULL,
   used_at DATETIME NULL,
+  job_id CHAR(36) NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   KEY idx_quote_link_document (document_id),
   CONSTRAINT fk_quote_link_document FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
   CONSTRAINT fk_quote_link_enquiry FOREIGN KEY (enquiry_id) REFERENCES enquiries(id) ON DELETE CASCADE,
-  CONSTRAINT fk_quote_link_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+  CONSTRAINT fk_quote_link_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+  CONSTRAINT fk_quote_link_job FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS audit_logs (
@@ -295,7 +297,12 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   CONSTRAINT fk_audit_actor FOREIGN KEY (actor_id) REFERENCES staff_users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS public_intake_attempts (\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,\n  ip_hash CHAR(64) NOT NULL,\n  attempted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  KEY idx_public_intake_rate (ip_hash,attempted_at)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\nCREATE TABLE IF NOT EXISTS login_attempts (
+CREATE TABLE IF NOT EXISTS public_intake_attempts (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  ip_hash CHAR(64) NOT NULL,
+  attempted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_public_intake_rate (ip_hash,attempted_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\nCREATE TABLE IF NOT EXISTS login_attempts (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   email_hash CHAR(64) NOT NULL,
   ip_hash CHAR(64) NOT NULL,
