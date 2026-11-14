@@ -493,3 +493,23 @@ CREATE TABLE IF NOT EXISTS maintenance_visits (
 
 INSERT IGNORE INTO schema_migrations (version) VALUES ('002_hostafrica_operations');
 
+
+CREATE TABLE IF NOT EXISTS homepage_slides (
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  media_id CHAR(36) NOT NULL,
+  eyebrow VARCHAR(120) NOT NULL DEFAULT '',
+  title VARCHAR(220) NOT NULL,
+  description VARCHAR(600) NOT NULL DEFAULT '',
+  button_label VARCHAR(80) NOT NULL DEFAULT 'Get a quote',
+  button_url VARCHAR(500) NOT NULL DEFAULT '/quote',
+  sort_order INT NOT NULL DEFAULT 0,
+  is_active TINYINT(1) NOT NULL DEFAULT 0,
+  created_by CHAR(36) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_homepage_slides_active_order (is_active,sort_order),
+  CONSTRAINT fk_homepage_slide_media FOREIGN KEY (media_id) REFERENCES media_assets(id),
+  CONSTRAINT fk_homepage_slide_user FOREIGN KEY (created_by) REFERENCES staff_users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO schema_migrations (version) VALUES ('003_hostafrica_homepage_slides');
