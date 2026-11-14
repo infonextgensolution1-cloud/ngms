@@ -295,7 +295,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   CONSTRAINT fk_audit_actor FOREIGN KEY (actor_id) REFERENCES staff_users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS login_attempts (
+CREATE TABLE IF NOT EXISTS public_intake_attempts (\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,\n  ip_hash CHAR(64) NOT NULL,\n  attempted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  KEY idx_public_intake_rate (ip_hash,attempted_at)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\nCREATE TABLE IF NOT EXISTS login_attempts (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   email_hash CHAR(64) NOT NULL,
   ip_hash CHAR(64) NOT NULL,
