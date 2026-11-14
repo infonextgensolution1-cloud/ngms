@@ -104,7 +104,7 @@ export async function replaceAdminMedia(id: string, file: File): Promise<AdminRo
   if (file.size < 1 || file.size > 10 * 1024 * 1024) throw new AdminApiError("Replacement file must be between 1 byte and 10 MB.", "invalid-response");
   if (!/^[A-Za-z0-9_-]{1,100}$/.test(id)) throw new AdminApiError("The media identifier is invalid.", "invalid-response");
   const form = new FormData();
-  form.append("file", file);
+  form.append("file", file);\n  form.append("category", category);
   const body = await mediaActionFetch(`/api/admin/media/${encodeURIComponent(id)}/replace`, {
     method: "POST",
     body: form,
@@ -281,7 +281,7 @@ export async function updateAdminStatus(
   });
 }
 
-export async function uploadAdminMedia(file: File): Promise<AdminRow> {
+export async function uploadAdminMedia(file: File, category = "Uncategorised"): Promise<AdminRow> {
   const accepted = new Set(["image/jpeg", "image/png", "image/webp", "image/avif", "application/pdf"]);
   if (!accepted.has(file.type)) {
     throw new AdminApiError("Unsupported file type. Use JPEG, PNG, WebP, AVIF or PDF.", "invalid-response");
@@ -290,7 +290,7 @@ export async function uploadAdminMedia(file: File): Promise<AdminRow> {
     throw new AdminApiError("File must be between 1 byte and 10 MB.", "invalid-response");
   }
   if (!previewWritesEnabled()) {
-    throw new AdminApiError("Preview uploads are disabled until staging authentication and persistence checks are complete.", "not-configured");
+    throw new AdminApiError("Uploads are unavailable until the NGMS administrator session is active.", "not-configured");
   }
   const base = getAdminApiBase();
   if (!base) throw new AdminApiError("The NGMS application API is not available in this browser.", "not-configured");
