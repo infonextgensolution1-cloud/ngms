@@ -74,3 +74,36 @@ export async function getPublishedProjects(): Promise<PublishedProject[]> {
     return [];
   }
 }
+
+export type PublishedHeroSlide = {
+  id:string;
+  eyebrow:string;
+  title:string;
+  description:string;
+  button_label:string;
+  button_url:string;
+  sort_order:number;
+  url:string;
+  alt_text:string;
+};
+
+export async function getPublishedHeroSlides():Promise<PublishedHeroSlide[]> {
+  try {
+    const items=await rows(
+      "SELECT s.id,s.eyebrow,s.title,s.description,s.button_label,s.button_url,s.sort_order,m.id AS media_id,m.alt_text,m.original_name FROM homepage_slides s JOIN media_assets m ON m.id=s.media_id WHERE s.is_active=1 AND m.is_published=1 AND m.content_type LIKE 'image/%' ORDER BY s.sort_order,s.created_at LIMIT 12",
+    );
+    return items.map(item=>({
+      id:String(item.id),
+      eyebrow:String(item.eyebrow||"NEXTGEN MAINTENANCE SOLUTIONS"),
+      title:String(item.title),
+      description:String(item.description||""),
+      button_label:String(item.button_label||"Get a quote"),
+      button_url:String(item.button_url||"/quote"),
+      sort_order:Number(item.sort_order||0),
+      url:"/api/media/"+encodeURIComponent(String(item.media_id)),
+      alt_text:String(item.alt_text||item.original_name||item.title),
+    }));
+  } catch {
+    return [];
+  }
+}
