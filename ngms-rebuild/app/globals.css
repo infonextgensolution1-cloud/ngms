@@ -496,3 +496,37 @@
 .quote-next-steps li strong{color:var(--orange);font-size:.68rem;letter-spacing:.1em}
 .quote-next-steps li span{color:#5e5952;font-size:.86rem;line-height:1.55}
 @media(max-width:760px){.form-layout{grid-template-columns:1fr}.form-card,.form-aside{padding:20px}.quote-security{overflow:hidden}}
+
+/* Published NGMS media and project comparison layouts */
+.published-media-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.published-media-grid figure,.ngms-photo-strip figure{margin:0;min-width:0;background:#17191d;border:1px solid #383d45}
+.published-media-grid img{display:block;width:100%;height:clamp(180px,24vw,340px);object-fit:cover}
+.published-media-grid figcaption{padding:10px 12px;color:#c7cbd1;font-size:.72rem;text-transform:uppercase;letter-spacing:.1em}
+.published-media-empty{padding:22px;border:1px solid #383d45;color:#b9bdc4;font-size:.9rem}
+.ngms-project-grid{display:grid;gap:22px}
+.ngms-project-card{padding:clamp(18px,3vw,32px);border:1px solid #383d45;background:#17191d;color:#fff}
+.ngms-project-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.ngms-project-card h2{font-size:clamp(1.35rem,3vw,2.2rem);margin:0 0 8px}
+.ngms-project-card-head p:last-child{font-size:.8rem;color:#b9bdc4;margin:0}
+.ngms-before-after-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:20px}
+.ngms-photo-label{display:inline-block;color:#ff8a3d;font-size:.67rem;font-weight:850;letter-spacing:.18em;margin-bottom:8px}
+.ngms-photo-strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ngms-photo-strip figure{overflow:hidden}
+.ngms-photo-strip img{display:block;width:100%;height:clamp(130px,18vw,250px);object-fit:cover}
+.ngms-photo-strip--general{margin-top:14px}
+.ngms-project-description{margin:18px 0 0;color:#c7cbd1;font-size:.9rem;white-space:pre-line}
+@media(max-width:680px){.published-media-grid{grid-template-columns:1fr}.ngms-before-after-grid{grid-template-columns:1fr}.ngms-photo-strip img{height:180px}}
+
+/* NGMS homepage carousel controls and slide overlays */
+.hero-art .hero-carousel{pointer-events:auto}
+.hero-carousel{isolation:isolate}
+.solar-art:after{z-index:1}
+.hero-carousel-caption{position:absolute;z-index:2;left:20px;right:20px;bottom:30px;display:grid;gap:5px;padding:14px 16px;background:linear-gradient(90deg,rgba(8,9,11,.9),rgba(8,9,11,.35));border-left:3px solid var(--orange);color:#fff;transform:rotate(7deg);transform-origin:left bottom;pointer-events:none}
+.hero-carousel-caption p{margin:0;color:#ffb27c;font-size:.58rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.hero-carousel-caption strong{font-size:clamp(.9rem,1.45vw,1.35rem);line-height:1.05;text-transform:uppercase;letter-spacing:-.03em}
+.hero-carousel-caption span{font-size:.68rem;color:#ddd;line-height:1.35;max-width:45ch}
+.hero-carousel-caption a{pointer-events:auto;display:inline-flex;width:max-content;margin-top:4px;color:#fff;background:var(--orange);padding:7px 10px;font-size:.62rem;font-weight:850;text-transform:uppercase;letter-spacing:.06em}
+.hero-carousel-controls{position:absolute;z-index:3;right:12px;bottom:12px;display:flex;align-items:center;gap:7px;transform:rotate(7deg);pointer-events:auto}
+.hero-carousel-controls button{min-width:28px;min-height:28px;border:1px solid #ffffff99;background:#101216e8;color:#fff;font-size:.82rem;font-weight:800;cursor:pointer;padding:3px 7px}
+.hero-carousel-controls span{color:#fff;font-size:.62rem;font-weight:800;letter-spacing:.08em;text-shadow:0 1px 4px #000}
+@media(max-width:760px){.hero-carousel-caption{left:10px;right:10px;bottom:34px;padding:9px 10px;gap:3px}.hero-carousel-caption span{font-size:.6rem}.hero-carousel-caption a{padding:5px 8px}.hero-carousel-controls{right:6px;bottom:6px;gap:4px}.hero-carousel-controls button{min-width:25px;min-height:25px}.hero-stamp{width:88px;height:88px}}
