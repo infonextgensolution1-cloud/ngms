@@ -8,6 +8,6 @@ export const metadata={title:"NGMS Business Control",robots:{index:false,follow:
 export default async function AdminLayout({children}:{children:ReactNode}){
   let user=null;
   try { user=await getSessionUser(); } catch { user=null; }
-  if(!user) redirect("/login");
+  if(!user || !["owner","admin","manager"].includes(user.role)) redirect("/login");
   return <AdminShell>{children}</AdminShell>;
 }
