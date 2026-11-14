@@ -1,5 +1,5 @@
 import "server-only";
-import mysql, { type Pool, type RowDataPacket, type ResultSetHeader } from "mysql2/promise";
+import mysql, { type Pool, type PoolConnection, type RowDataPacket, type ResultSetHeader } from "mysql2/promise";
 
 let pool: Pool | null = null;
 
@@ -37,7 +37,7 @@ export async function rows<T extends RowDataPacket = RowDataPacket>(
   sql: string,
   values: unknown[] = [],
 ): Promise<T[]> {
-  const [result] = await getDb().execute<T[]>(sql, values);
+  const [result] = await getDb().execute<T[]>(sql, values as never[]);
   return result;
 }
 
@@ -53,11 +53,17 @@ export async function execute(
   sql: string,
   values: unknown[] = [],
 ): Promise<ResultSetHeader> {
-  const [result] = await getDb().execute<ResultSetHeader>(sql, values);
+  const [result] = await getDb().execute<ResultSetHeader>(sql, values as never[]);
   return result;
 }
 
-export async function transaction<T>(work: (connection: import("mysql2/promise").PoolConnection) => Promise<T>): Promise<T> {
+export async function executeOn(connection: PoolConnection, sql: string, values: unknown[] = []): Promise<any> {
+  // mysql2's ExecuteValues union is narrower than validated JSON/DB values.
+  // Keep this cast at the database boundary rather than scattering it through routes.
+  return connection.execute(sql, values as never[]);
+}
+
+export async function transaction<T>(work: (connection: PoolConnection) => Promise<T>): Promise<T> {
   const connection = await getDb().getConnection();
   try {
     await connection.beginTransaction();
