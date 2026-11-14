@@ -92,7 +92,7 @@ export async function createStaffSession(user: StaffUser, userAgent: string, ipH
 export async function revokeStaffSession(token: string): Promise<void> {
   const payload = decodeToken(token);
   if (payload) {
-    await execute("UPDATE staff_sessions SET revoked_at = CURRENT_TIMESTAMP WHERE id = ?", [payload.sid]);
+    await execute("UPDATE staff_sessions SET revoked_at = UTC_TIMESTAMP() WHERE id = ?", [payload.sid]);
   }
 }
 
@@ -108,7 +108,7 @@ export async function getSessionUser(): Promise<StaffUser | null> {
      FROM staff_sessions s
      JOIN staff_users u ON u.id=s.user_id
      WHERE s.id=? AND s.user_id=? AND s.revoked_at IS NULL
-       AND s.expires_at > CURRENT_TIMESTAMP AND u.is_active=1
+       AND s.expires_at > UTC_TIMESTAMP() AND u.is_active=1
      LIMIT 1`,
     [payload.sid, payload.sub],
   );
