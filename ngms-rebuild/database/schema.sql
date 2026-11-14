@@ -313,3 +313,183 @@ CREATE TABLE IF NOT EXISTS login_attempts (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT IGNORE INTO schema_migrations (version) VALUES ('001_hostafrica_core');
+
+-- Operations Manager extensions: suppliers, inventory, purchases, expenses,
+-- staff, subcontractors, wages and recurring maintenance plans.
+
+CREATE TABLE IF NOT EXISTS suppliers (
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  name VARCHAR(180) NOT NULL,
+  contact_name VARCHAR(160) NOT NULL DEFAULT '',
+  phone VARCHAR(40) NOT NULL DEFAULT '',
+  email VARCHAR(254) NOT NULL DEFAULT '',
+  category VARCHAR(100) NOT NULL DEFAULT '',
+  address VARCHAR(500) NOT NULL DEFAULT '',
+  notes TEXT NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'Active',
+  created_by CHAR(36) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_suppliers_name (name),
+  KEY idx_suppliers_status (status),
+  CONSTRAINT fk_suppliers_created_by FOREIGN KEY (created_by) REFERENCES staff_users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS materials (
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  name VARCHAR(180) NOT NULL,
+  sku VARCHAR(100) NOT NULL DEFAULT '',
+  category VARCHAR(100) NOT NULL DEFAULT '',
+  unit VARCHAR(40) NOT NULL DEFAULT 'unit',
+  quantity DECIMAL(14,3) NOT NULL DEFAULT 0,
+  minimum_quantity DECIMAL(14,3) NOT NULL DEFAULT 0,
+  unit_cost_cents BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  supplier_id CHAR(36) NULL,
+  notes TEXT NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'In stock',
+  created_by CHAR(36) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_materials_name (name),
+  KEY idx_materials_status (status),
+  KEY idx_materials_supplier (supplier_id),
+  CONSTRAINT fk_materials_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE SET NULL,
+  CONSTRAINT fk_materials_created_by FOREIGN KEY (created_by) REFERENCES staff_users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS purchase_records (
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  supplier_id CHAR(36) NULL,
+  material_id CHAR(36) NULL,
+  invoice_reference VARCHAR(120) NOT NULL DEFAULT '',
+  description VARCHAR(500) NOT NULL,
+  quantity DECIMAL(14,3) NOT NULL DEFAULT 1,
+  unit_cost_cents BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  total_cents BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  purchased_at DATE NOT NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'Recorded',
+  notes TEXT NULL,
+  created_by CHAR(36) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_purchase_date (purchased_at,status),
+  KEY idx_purchase_supplier (supplier_id),
+  CONSTRAINT fk_purchase_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE SET NULL,
+  CONSTRAINT fk_purchase_material FOREIGN KEY (material_id) REFERENCES materials(id) ON DELETE SET NULL,
+  CONSTRAINT fk_purchase_created_by FOREIGN KEY (created_by) REFERENCES staff_users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS expenses (
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  expense_date DATE NOT NULL,
+  category VARCHAR(100) NOT NULL DEFAULT 'General',
+  description VARCHAR(500) NOT NULL,
+  amount_cents BIGINT UNSIGNED NOT NULL,
+  job_id CHAR(36) NULL,
+  supplier_id CHAR(36) NULL,
+  invoice_reference VARCHAR(120) NOT NULL DEFAULT '',
+  status VARCHAR(30) NOT NULL DEFAULT 'Pending',
+  notes TEXT NULL,
+  created_by CHAR(36) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_expenses_date_status (expense_date,status),
+  KEY idx_expenses_job (job_id),
+  KEY idx_expenses_supplier (supplier_id),
+  CONSTRAINT fk_expenses_job FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE SET NULL,
+  CONSTRAINT fk_expenses_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE SET NULL,
+  CONSTRAINT fk_expenses_created_by FOREIGN KEY (created_by) REFERENCES staff_users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS staff_profiles (
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  staff_user_id CHAR(36) NULL,
+  full_name VARCHAR(180) NOT NULL,
+  phone VARCHAR(40) NOT NULL DEFAULT '',
+  email VARCHAR(254) NOT NULL DEFAULT '',
+  position VARCHAR(120) NOT NULL DEFAULT '',
+  employment_type VARCHAR(40) NOT NULL DEFAULT 'Employee',
+  hourly_rate_cents BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  status VARCHAR(30) NOT NULL DEFAULT 'Active',
+  notes TEXT NULL,
+  created_by CHAR(36) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_staff_profile_user (staff_user_id),
+  KEY idx_staff_profiles_name (full_name),
+  KEY idx_staff_profiles_status (status),
+  CONSTRAINT fk_staff_profile_user FOREIGN KEY (staff_user_id) REFERENCES staff_users(id) ON DELETE SET NULL,
+  CONSTRAINT fk_staff_profile_created_by FOREIGN KEY (created_by) REFERENCES staff_users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS subcontractors (
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  company_name VARCHAR(180) NOT NULL,
+  contact_name VARCHAR(160) NOT NULL DEFAULT '',
+  phone VARCHAR(40) NOT NULL DEFAULT '',
+  email VARCHAR(254) NOT NULL DEFAULT '',
+  service VARCHAR(180) NOT NULL DEFAULT '',
+  compliance_notes TEXT NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'Pending approval',
+  created_by CHAR(36) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_subcontractors_company (company_name),
+  KEY idx_subcontractors_status (status),
+  CONSTRAINT fk_subcontractors_created_by FOREIGN KEY (created_by) REFERENCES staff_users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS wage_records (
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  staff_profile_id CHAR(36) NOT NULL,
+  period_start DATE NOT NULL,
+  period_end DATE NOT NULL,
+  hours_worked DECIMAL(10,2) NOT NULL DEFAULT 0,
+  rate_cents BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  gross_cents BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  deductions_cents BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  net_cents BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  status VARCHAR(30) NOT NULL DEFAULT 'Draft',
+  notes TEXT NULL,
+  created_by CHAR(36) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_wages_period (period_start,period_end,status),
+  CONSTRAINT fk_wages_staff_profile FOREIGN KEY (staff_profile_id) REFERENCES staff_profiles(id),
+  CONSTRAINT fk_wages_created_by FOREIGN KEY (created_by) REFERENCES staff_users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS maintenance_plans (
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  customer_id CHAR(36) NULL,
+  customer_name VARCHAR(180) NOT NULL,
+  service VARCHAR(180) NOT NULL,
+  property_area VARCHAR(180) NOT NULL DEFAULT '',
+  frequency VARCHAR(40) NOT NULL,
+  start_date DATE NULL,
+  next_due_date DATE NULL,
+  amount_cents BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  status VARCHAR(30) NOT NULL DEFAULT 'Draft',
+  notes TEXT NULL,
+  created_by CHAR(36) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_maintenance_due (status,next_due_date),
+  KEY idx_maintenance_customer (customer_id),
+  CONSTRAINT fk_maintenance_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
+  CONSTRAINT fk_maintenance_created_by FOREIGN KEY (created_by) REFERENCES staff_users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS maintenance_visits (
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  plan_id CHAR(36) NOT NULL,
+  scheduled_date DATE NOT NULL,
+  completed_at DATETIME NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'Scheduled',
+  notes TEXT NULL,
+  created_by CHAR(36) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_maintenance_visits_date (scheduled_date,status),
+  CONSTRAINT fk_maintenance_visit_plan FOREIGN KEY (plan_id) REFERENCES maintenance_plans(id) ON DELETE CASCADE,
+  CONSTRAINT fk_maintenance_visit_created_by FOREIGN KEY (created_by) REFERENCES staff_users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO schema_migrations (version) VALUES ('002_hostafrica_operations');
+
