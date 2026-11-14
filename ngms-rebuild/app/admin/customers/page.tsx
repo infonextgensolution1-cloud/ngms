@@ -31,6 +31,17 @@ export default function AdminCustomersPage(){
   finally{setBusy(null);}
  }
 
+ async function revokeLinks(customer:Customer){
+  if(!window.confirm("Revoke all active portal links for "+customer.display_name+"?"))return;
+  setBusy(customer.id);setError("");setMessage("");
+  try{
+   const data=await json(await fetch("/api/admin/customers/"+encodeURIComponent(customer.id)+"/portal-link/revoke",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"}));
+   setGenerated(null);
+   setMessage(String(data.revoked||0)+" active customer portal link(s) revoked.");
+  }catch(e){setError(e instanceof Error?e.message:"Portal links could not be revoked.");}
+  finally{setBusy(null);}
+ }
+
  async function copyLink(){
   if(!generated)return;
   try{await navigator.clipboard.writeText(generated.url);setMessage("Customer portal link copied to clipboard.");}
@@ -45,7 +56,7 @@ export default function AdminCustomersPage(){
   {generated&&<section className="action-panel mt-4"><div className="action-panel-head"><div><strong>Portal access link for {generated.name}</strong><small>Expires {new Date(generated.expires_at).toLocaleString("en-ZA")}. Anyone with this link can view this customer's portal until expiry or revocation.</small></div><button className="button button-small button-orange" onClick={()=>void copyLink()}>Copy link</button></div><input readOnly value={generated.url} onFocus={e=>e.currentTarget.select()} className="mt-2 w-full"/></section>}
   <section className="data-panel mt-5">
    <div className="data-toolbar"><div><strong>Customer register</strong><small>{loading?"Loading…":visible.length+" customers"}</small></div><input aria-label="Search customers" placeholder="Search name, phone, email…" value={search} onChange={e=>setSearch(e.target.value)}/></div>
-   {loading?<p className="table-empty">Loading customer records…</p>:visible.length===0?<p className="table-empty">No customer records found.</p>:<div className="table-scroll"><table><thead><tr><th>Customer</th><th>Contact</th><th>Property / site</th><th>Type</th><th>Portal access</th></tr></thead><tbody>{visible.map(customer=><tr key={customer.id}><td><strong>{customer.display_name}</strong></td><td>{customer.primary_phone||"—"}<br/><span className="text-xs text-mist">{customer.primary_email}</span></td><td>{customer.service_address||"—"}</td><td>{customer.customer_type}</td><td><button className="button button-small" disabled={busy===customer.id} onClick={()=>void createPortal(customer)}>{busy===customer.id?"Creating…":"Generate portal link"}</button></td></tr>)}</tbody></table></div>}
+   {loading?<p className="table-empty">Loading customer records…</p>:visible.length===0?<p className="table-empty">No customer records found.</p>:<div className="table-scroll"><table><thead><tr><th>Customer</th><th>Contact</th><th>Property / site</th><th>Type</th><th>Portal access</th></tr></thead><tbody>{visible.map(customer=><tr key={customer.id}><td><strong>{customer.display_name}</strong></td><td>{customer.primary_phone||"—"}<br/><span className="text-xs text-mist">{customer.primary_email}</span></td><td>{customer.service_address||"—"}</td><td>{customer.customer_type}</td><td><div className="flex flex-wrap gap-2"><button className="button button-small" disabled={busy===customer.id} onClick={()=>void createPortal(customer)}>{busy===customer.id?"Working…":"Generate portal link"}</button><button className="button button-small button-outline button-dark-outline" disabled={busy===customer.id} onClick={()=>void revokeLinks(customer)}>Revoke links</button></div></td></tr>)}</tbody></table></div>}
   </section>
  </div>;
 }
