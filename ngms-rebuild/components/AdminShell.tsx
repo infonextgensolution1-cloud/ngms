@@ -20,6 +20,7 @@ const items = [
   {href:"/admin/operations/staff",label:"Staff & wages",glyph:"♙"},
   {href:"/admin/operations/subcontractors",label:"Subcontractors",glyph:"◇"},
   {href:"/admin/media",label:"Media library",glyph:"▧"},
+  {href:"/admin/slides",label:"Homepage carousel",glyph:"▣"},
   {href:"/admin/content",label:"Website content",glyph:"☷"},
   {href:"/admin/reports",label:"Reports",glyph:"▥"},
   {href:"/admin/settings",label:"Settings & access",glyph:"⚙"}
