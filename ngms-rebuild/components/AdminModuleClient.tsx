@@ -99,7 +99,7 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   },
   reports: {
     title: "Reports",
-    description: "Live operational and verified commercial summary from the isolated Cloudflare preview database.",
+    description: "Live operational and verified commercial summary from the HostAfrica database.",
     resource: "reports",
     columns: [
       { key: "metric", label: "Metric" }, { key: "value", label: "Value" },
@@ -108,7 +108,7 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   },
   settings: {
     title: "Settings & access",
-    description: "Review safe commercial preferences and infrastructure ownership. Authentication and security policies remain managed in Cloudflare.",
+    description: "Review safe commercial preferences and infrastructure ownership. Authentication and security policies are managed by NGMS in this application.",
     resource: "settings",
     columns: [
       { key: "setting", label: "Setting" }, { key: "current_value", label: "Current value" },
@@ -503,7 +503,7 @@ function MediaItemActions({ row, apiConfigured, writesEnabled, onUpdated }: {
     setSaving(true); setError(""); setMessage("");
     try {
       await deleteAdminMedia(String(row.id));
-      setMessage("Asset deleted from preview storage.");
+      setMessage("Asset deleted from HostAfrica media storage.");
       onUpdated();
     } catch (e) { setError(adminApiErrorMessage(e)); }
     finally { setSaving(false); }
@@ -580,7 +580,7 @@ function CmsDraftEditor({ row, apiConfigured, writesEnabled, onUpdated }: {
   const blockCount = Array.isArray(parsedPreview?.blocks) ? parsedPreview.blocks.length : 0;
 
   return <section className="action-panel">
-    <div className="action-panel-head"><div><strong>Draft editor · {moduleKey}</strong><small>Versioned CMS draft. Publication is a separate, second-person approval.</small></div><span className="preview-pill">PREVIEW CMS</span></div>
+    <div className="action-panel-head"><div><strong>Draft editor · {moduleKey}</strong><small>Versioned CMS draft. Publication is a separate, second-person approval.</small></div><span className="preview-pill">HOSTAFRICA CMS</span></div>
     <div className="grid gap-2 text-xs md:grid-cols-3">
       <div><span className="text-mist block">Page title</span><strong>{String(parsedPreview?.title ?? "Draft title not set")}</strong></div>
       <div><span className="text-mist block">URL slug</span><strong>{String(parsedPreview?.slug ?? moduleKey)}</strong></div>
@@ -593,7 +593,7 @@ function CmsDraftEditor({ row, apiConfigured, writesEnabled, onUpdated }: {
       <button type="button" className="button button-small button-outline button-dark-outline" onClick={saveDraft} disabled={!apiConfigured||!writesEnabled||saving||requesting}>{saving?"Saving draft…":"Save draft"}</button>
       <button type="button" className="button button-small button-orange" onClick={submitForReview} disabled={!apiConfigured||!writesEnabled||saving||requesting}>{requesting?"Submitting…":"Request publication approval"}</button>
     </div>
-    {!writesEnabled&&<p className="guardrail-message mt-2">CMS editing and publication requests are disabled on this preview. Both the preview-write flag and the CMS-specific Worker flag must be approved before writes can be enabled.</p>}
+    {!writesEnabled&&<p className="guardrail-message mt-2">CMS publishing requires an authenticated owner or administrator approval.</p>}
     {message&&<p className="inline-feedback mt-2" role="status">{message}</p>}
     {error&&<p className="action-result action-result-error mt-2" role="alert">{error}</p>}
   </section>;
@@ -684,7 +684,7 @@ function CmsPublishingReview({ apiConfigured, writesEnabled, onUpdated }: {
       </div>
       <div className="grid gap-3 p-3 md:grid-cols-2">
         <div><strong className="text-sm">Currently published</strong>
-          {snapshot.current.length ? <ul className="mt-2 space-y-2 text-xs">{snapshot.current.map((item)=><li key={item.module_key} className="border-t border-darkgrey pt-2"><strong>{item.module_key} · /{item.slug}</strong><div className="text-mist">Published {displayValue("created_at",item.published_at)} by {item.published_by}</div><div className="text-mist">Version {item.publication_id}</div></li>)}</ul> : <p className="text-xs text-mist mt-2">No CMS publication is recorded as live in this preview database.</p>}
+          {snapshot.current.length ? <ul className="mt-2 space-y-2 text-xs">{snapshot.current.map((item)=><li key={item.module_key} className="border-t border-darkgrey pt-2"><strong>{item.module_key} · /{item.slug}</strong><div className="text-mist">Published {displayValue("created_at",item.published_at)} by {item.published_by}</div><div className="text-mist">Version {item.publication_id}</div></li>)}</ul> : <p className="text-xs text-mist mt-2">No CMS publication is recorded as live in this HostAfrica database.</p>}
         </div>
         <div><strong className="text-sm">Version history</strong>
           {snapshot.history.length ? <ul className="mt-2 space-y-2 text-xs">{snapshot.history.slice(0,10).map((item)=><li key={item.id} className="border-t border-darkgrey pt-2"><strong>{item.module_key} · /{item.slug}</strong><div className="text-mist">{displayValue("created_at",item.published_at)} · {item.published_by}</div><div className="text-mist">Version {item.id}</div></li>)}</ul> : <p className="text-xs text-mist mt-2">No historical publication versions.</p>}
@@ -766,7 +766,7 @@ function ScheduleCreatePanel({ apiConfigured, writesEnabled, onCreated }: {
 
   return <section className="action-panel">
     <div className="action-panel-head">
-      <div><strong>Schedule an appointment</strong><small>Creates a calendar entry in preview D1 only.</small></div>
+      <div><strong>Schedule an appointment</strong><small>Creates a calendar entry in HostAfrica MySQL only.</small></div>
       <span className="preview-pill">PREVIEW</span>
     </div>
     <form className="admin-form-grid" onSubmit={submit}>
@@ -1157,6 +1157,6 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     {moduleKey==="settings"&&<p className="module-footnote">This screen does not expose Access policies, API secrets, DNS, or production credentials. VAT preferences are reviewed here; changes to financial settings remain a separately guarded action.</p>}
     {moduleKey==="invoices"&&<p className="module-footnote">Invoices are generated only from accepted quotations. The payment ledger tracks partial payments, prevents overpayment and marks an invoice Paid only when its allocated payments cover the full value. Refunds, reversals and credit-note allocation remain separate work.</p>}
     {moduleKey==="content"&&<p className="module-footnote">The CMS has versioned drafts, independent approval, publication history, audit logging and rollback controls. Editing and publishing remain blocked until the CMS-specific preview gate is approved.</p>}
-    <p className="module-footnote">Preview write controls require NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=true. The Worker independently verifies Cloudflare Access identity for every protected action.</p>
+    <p className="module-footnote">Preview write controls require NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=true. The Worker independently verifies NGMS administrator session identity for every protected action.</p>
   </div>;
 }
