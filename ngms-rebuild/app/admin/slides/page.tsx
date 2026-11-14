@@ -3,7 +3,7 @@
 import {useCallback,useEffect,useState} from "react";
 
 type Media={id:string;original_name:string;content_type:string;category:string;alt_text:string;url:string};
-type Slide={id:string;media_id:string;original_name?:string;title:string;eyebrow:string;description:string;button_label:string;button_url:string;sort_order:number;is_active:number;url?:string};
+type Slide={id:string;media_id:string;original_name?:string;title:string;eyebrow:string;description:string;button_label:string;button_url:string;sort_order:number;is_active:number|boolean;url?:string};
 
 async function json(response:Response){
  const data=await response.json().catch(()=>null);
