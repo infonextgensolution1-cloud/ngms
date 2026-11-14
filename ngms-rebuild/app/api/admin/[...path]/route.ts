@@ -664,19 +664,35 @@ async function handleAdmin(request: Request, path: string[], user: StaffUser): P
   }
 
   if (resource === "reports" && method === "GET") {
-    const [enquiries,jobs,quotes,invoices,paid] = await Promise.all([
+    const [
+      enquiries,jobs,quotes,invoices,paid,paidExpenses,recordedExpenses,invoiceBalance,
+      maintenanceDue,lowStock,supplierCount,subcontractorCount
+    ] = await Promise.all([
       row("SELECT COUNT(*) AS total FROM enquiries"),
       row("SELECT COUNT(*) AS total FROM jobs WHERE status NOT IN ('Completed','Cancelled')"),
       row("SELECT COUNT(*) AS total FROM documents WHERE kind='Quotation' AND status IN ('Draft','Sent')"),
       row("SELECT COUNT(*) AS total FROM documents WHERE kind='Invoice' AND status IN ('Sent','Overdue')"),
       row("SELECT COALESCE(SUM(amount_cents),0) AS total FROM invoice_payments WHERE paid_at >= DATE_FORMAT(UTC_DATE(),'%Y-%m-01')"),
+      row("SELECT COALESCE(SUM(amount_cents),0) AS total FROM expenses WHERE status='Paid' AND expense_date >= DATE_FORMAT(UTC_DATE(),'%Y-%m-01')"),
+      row("SELECT COALESCE(SUM(amount_cents),0) AS total FROM expenses WHERE status IN ('Approved','Paid') AND expense_date >= DATE_FORMAT(UTC_DATE(),'%Y-%m-01')"),
+      row("SELECT COALESCE(SUM(d.amount_cents-COALESCE(p.paid_cents,0)),0) AS total FROM documents d LEFT JOIN (SELECT document_id,SUM(amount_cents) AS paid_cents FROM invoice_payments GROUP BY document_id) p ON p.document_id=d.id WHERE d.kind='Invoice' AND d.status IN ('Sent','Overdue')"),
+      row("SELECT COUNT(*) AS total FROM maintenance_plans WHERE status IN ('Active','Due') AND next_due_date<=DATE_ADD(UTC_DATE(),INTERVAL 30 DAY)"),
+      row("SELECT COUNT(*) AS total FROM materials WHERE status IN ('Low stock','Out of stock') OR quantity<=minimum_quantity"),
+      row("SELECT COUNT(*) AS total FROM suppliers WHERE status='Active'"),
+      row("SELECT COUNT(*) AS total FROM subcontractors WHERE status='Approved'"),
     ]);
     const items = [
       {metric:"Total enquiries",value:Number(enquiries?.total||0),detail:"All recorded customer requests",data_status:"Live database"},
       {metric:"Active jobs",value:Number(jobs?.total||0),detail:"Jobs not completed or cancelled",data_status:"Live database"},
       {metric:"Open quotations",value:Number(quotes?.total||0),detail:"Draft and sent quotations",data_status:"Live database"},
-      {metric:"Outstanding invoices",value:Number(invoices?.total||0),detail:"Sent and overdue invoices",data_status:"Live database"},
-      {metric:"Payments this month",value:Number(paid?.total||0),detail:"Recorded payment value in cents",data_status:"Live database"},
+      {metric:"Outstanding invoice balance",value:Number(invoiceBalance?.total||0),format:"ZAR_CENTS",detail:"Invoice face value less all recorded payments for sent/overdue invoices",data_status:"Calculated from payment ledger"},
+      {metric:"Payments received this month",value:Number(paid?.total||0),format:"ZAR_CENTS",detail:"Recorded invoice payments received this month",data_status:"Payment ledger"},
+      {metric:"Paid expenses this month",value:Number(paidExpenses?.total||0),format:"ZAR_CENTS",detail:"Expenses marked paid this month",data_status:"Expense register"},
+      {metric:"Approved or paid expenses this month",value:Number(recordedExpenses?.total||0),format:"ZAR_CENTS",detail:"Approved and paid expenses recorded this month",data_status:"Expense register"},
+      {metric:"Maintenance due within 30 days",value:Number(maintenanceDue?.total||0),detail:"Active or due plans with a next service date within 30 days",data_status:"Maintenance register"},
+      {metric:"Low / out-of-stock items",value:Number(lowStock?.total||0),detail:"Items at or below their reorder threshold",data_status:"Inventory register"},
+      {metric:"Active suppliers",value:Number(supplierCount?.total||0),detail:"Suppliers marked active",data_status:"Supplier register"},
+      {metric:"Approved subcontractors",value:Number(subcontractorCount?.total||0),detail:"Subcontractors approved for consideration",data_status:"Subcontractor register"},
     ];
     return send({items});
   }
