@@ -466,7 +466,7 @@ async function requestPreviewJson<T>(
   if (!base) throw new AdminApiError("The NGMS application API is not available in this browser.", "not-configured");
   let response: Response;
   try {
-    response = await fetch(`${base}${path}`, {
+    response = await fetch(path, {
       ...init,
       credentials: publicTokenRequest ? "omit" : "include",
       cache: "no-store",
