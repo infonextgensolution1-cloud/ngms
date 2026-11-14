@@ -807,7 +807,8 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
   const [actionError, setActionError] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [uploadMessage, setUploadMessage] = useState("");\n  const [mediaCategory, setMediaCategory] = useState("Uncategorised");
+  const [uploadMessage, setUploadMessage] = useState("");
+  const [mediaCategory, setMediaCategory] = useState("Uncategorised");
   const apiConfigured = Boolean(getAdminApiBase());
   const apiHealthUrl = getAdminApiHealthUrl();
   const writesEnabled = previewWritesEnabled();
@@ -1135,7 +1136,8 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       <CmsPublishingReview apiConfigured={apiConfigured} writesEnabled={cmsWritesEnabled()} onUpdated={()=>setRefreshVersion((version)=>version+1)}/>
     </>}
 
-    {moduleKey==="media"&&<section className="action-panel"><div className="action-panel-head"><div><strong>Upload media</strong><small>JPEG, PNG, WebP, AVIF or PDF · maximum 10 MB.</small></div><span className="preview-pill">HOSTAFRICA MEDIA</span></div><label className="block text-xs mb-3">Upload category<select className="mt-1 w-full" value={mediaCategory} onChange={(event)=>setMediaCategory(event.target.value)} disabled={!writesEnabled||!apiConfigured||uploading}>{MEDIA_CATEGORIES.map((item)=><option key={item} value={item}>{item}</option>)}</select></label>\n    <label className="upload-control">Choose files<input type="file" multiple accept="image/jpeg,image/png,image/webp,image/avif,application/pdf" disabled={!writesEnabled||!apiConfigured||uploading} onChange={handleUpload}/></label>{uploading&&<p className="inline-feedback" role="status">Uploading to HostAfrica media storage…</p>}{uploadMessage&&<p className="inline-feedback" role="status">{uploadMessage}</p>}{!writesEnabled&&<p className="guardrail-message">Uploads require an authorised NGMS administrator session and a configured media directory.</p>}</section>}
+    {moduleKey==="media"&&<section className="action-panel"><div className="action-panel-head"><div><strong>Upload media</strong><small>JPEG, PNG, WebP, AVIF or PDF · maximum 10 MB.</small></div><span className="preview-pill">HOSTAFRICA MEDIA</span></div><label className="block text-xs mb-3">Upload category<select className="mt-1 w-full" value={mediaCategory} onChange={(event)=>setMediaCategory(event.target.value)} disabled={!writesEnabled||!apiConfigured||uploading}>{MEDIA_CATEGORIES.map((item)=><option key={item} value={item}>{item}</option>)}</select></label>
+    <label className="upload-control">Choose files<input type="file" multiple accept="image/jpeg,image/png,image/webp,image/avif,application/pdf" disabled={!writesEnabled||!apiConfigured||uploading} onChange={handleUpload}/></label>{uploading&&<p className="inline-feedback" role="status">Uploading to HostAfrica media storage…</p>}{uploadMessage&&<p className="inline-feedback" role="status">{uploadMessage}</p>}{!writesEnabled&&<p className="guardrail-message">Uploads require an authorised NGMS administrator session and a configured media directory.</p>}</section>}
 
     {(actionMessage||actionError)&&<div className={actionError?"action-result action-result-error":"action-result"} role="status"><strong>{actionError?"Action failed":"Action complete"}</strong><p>{actionError||actionMessage}</p></div>}
 
