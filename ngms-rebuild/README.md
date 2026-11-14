@@ -63,7 +63,7 @@ The first owner setup closes itself after the first administrator has been creat
 - Jobs and scheduling.
 - Media upload, preview, metadata, replacement, publication and deletion checks.
 - Project Manager with before/after image linking and project publication.
-- Website content drafts, approval and publication history.
+- Website content drafts, approval and publication history.\n- A read-only customer portal using expiring per-customer access links, with admin creation and revocation.
 - Operational reporting and audit events.
 
 ## Verification
