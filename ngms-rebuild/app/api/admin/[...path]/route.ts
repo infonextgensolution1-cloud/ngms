@@ -352,6 +352,8 @@ async function createOperation(category:string,input:Body,user:StaffUser,request
     const description=text(input.description,500),quantity=Number(input.quantity??1),unitCost=cents(input.unit_cost);
     if(description.length<2||!Number.isFinite(quantity)||quantity<=0)throw new Error("Enter a purchase description, quantity and unit cost.");
     const total=Math.round(quantity*unitCost);
+    const purchaseStatus=text(input.status,30)||"Recorded";
+    if(!OPERATION_STATUS.purchases.includes(purchaseStatus))throw new Error("Invalid purchase status.");
     await execute("INSERT INTO purchase_records (id,supplier_id,material_id,invoice_reference,description,quantity,unit_cost_cents,total_cents,purchased_at,status,notes,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
       [id,text(input.supplier_id,36)||null,text(input.material_id,36)||null,text(input.invoice_reference,120),description,quantity,unitCost,total,text(input.purchased_at,20)||new Date().toISOString().slice(0,10),purchaseStatus,text(input.notes,4000),createdBy]);
   } else if(category==="expenses"){
@@ -393,7 +395,7 @@ async function createOperation(category:string,input:Body,user:StaffUser,request
     const status=text(input.status,30)||"Draft";
     if(!OPERATION_STATUS.maintenance.includes(status))throw new Error("Invalid maintenance plan status.");
     await execute("INSERT INTO maintenance_plans (id,customer_id,customer_name,service,property_area,frequency,start_date,next_due_date,amount_cents,status,notes,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-      [id,text(input.customer_id,36)||null,customerName,service,text(input.property_area,180),frequency,text(input.start_date,20)||null,text(input.next_due_date,20)||null,cents(input.amount),status,text(input.notes,4000),createdBy]);
+      [id,text(input.customer_id,36)||null,customerName,service,text(input.property_area,180),frequency,text(input.start_date,20)||null,text(input.next_due_date,20)||null,cents(input.amount ?? 0),status,text(input.notes,4000),createdBy]);
   } else {
     throw new Error("Unknown Operations Manager module.");
   }
