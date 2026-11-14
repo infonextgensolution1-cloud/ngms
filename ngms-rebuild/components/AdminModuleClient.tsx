@@ -273,7 +273,7 @@ function ShareQuotationAction({ row, onUpdated, enquiries }: { row: AdminRow; on
       </div>
     </div>}
     {message && <small className="inline-feedback block mt-1" role="status">{message}</small>}
-    {!previewWritesEnabled() && <small className="module-footnote block mt-1">Sharing is disabled until preview Access and persistence tests pass.</small>}
+    {!previewWritesEnabled() && <small className="module-footnote block mt-1">Quotation sharing requires an active NGMS administrator session.</small>}
   </div>;
 }
 
@@ -364,7 +364,7 @@ function InvoicePaymentsPanel({ row, onUpdated }: { row: AdminRow; onUpdated: ()
           <label className="block text-xs">Reference<input name="reference" maxLength={120} disabled={!previewWritesEnabled()||saving}/></label>
           <label className="block text-xs">Notes<textarea name="notes" rows={2} maxLength={1000} disabled={!previewWritesEnabled()||saving}/></label>
           <button type="submit" className="button button-small button-orange" disabled={!previewWritesEnabled()||saving}>{saving?"Saving payment…":"Save payment"}</button>
-          {!previewWritesEnabled() && <small className="module-footnote block">Payment recording is disabled until preview write acceptance is approved.</small>}
+          {!previewWritesEnabled() && <small className="module-footnote block">Payment recording requires an active NGMS administrator session.</small>}
         </form> : <p className="mt-3 text-xs font-semibold">Invoice paid in full.</p>}
       </> : null}
       {message && <small className="inline-feedback block mt-2" role="status">{message}</small>}
@@ -754,7 +754,7 @@ function ScheduleCreatePanel({ apiConfigured, writesEnabled, onCreated }: {
         notes: String(data.get("notes") ?? "").trim(),
         status: "Scheduled",
       });
-      setMessage("Appointment saved to the isolated preview calendar.");
+      setMessage("Appointment saved to the HostAfrica job calendar.");
       form.reset();
       onCreated();
     } catch (e) {
@@ -767,7 +767,7 @@ function ScheduleCreatePanel({ apiConfigured, writesEnabled, onCreated }: {
   return <section className="action-panel">
     <div className="action-panel-head">
       <div><strong>Schedule an appointment</strong><small>Creates a calendar entry in HostAfrica MySQL only.</small></div>
-      <span className="preview-pill">PREVIEW</span>
+      <span className="preview-pill">HOSTAFRICA</span>
     </div>
     <form className="admin-form-grid" onSubmit={submit}>
       <label className="admin-form-wide">Appointment title<input name="title" required maxLength={180} disabled={!writesEnabled || !apiConfigured || saving} placeholder="e.g. Solar panel cleaning — site visit"/></label>
@@ -918,7 +918,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
           vat_enabled: data.get("vat_enabled") === "on",
           notes: String(data.get("notes") ?? "").trim(),
         });
-        setActionMessage("Formal quotation created in preview D1. Its NGMS reference and item lines have been saved.");
+        setActionMessage("Formal quotation created in HostAfrica MySQL. Its NGMS reference and item lines have been saved.");
         setQuoteLines([{ description: "", quantity: "1", unit: "item", unit_price: "" }]);
         form.reset();
         setShowCreate(false);
@@ -1149,7 +1149,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       {loading?<div className="table-empty" role="status"><span aria-hidden="true">◌</span><h2>LOADING RECORDS</h2><p>Waiting for the protected NGMS API response.</p></div>
       :error?<div className="table-empty"><span aria-hidden="true">!</span><h2>RECORDS COULD NOT BE LOADED.</h2><p>No empty list or zero balance is substituted for an API error.</p><button className="button button-outline button-dark-outline" type="button" onClick={()=>setRefreshVersion((v)=>v+1)}>Try again</button></div>
       :!module.resource?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>ENDPOINT NOT YET IMPLEMENTED.</h2><p>This module needs a documented API route and approved business definitions before its data can be displayed.</p></div>
-      :!apiConfigured?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>CONNECT THE PREVIEW API.</h2><p>The same-origin HostAfrica API is not responding. Check the Node.js application and MySQL configuration.</p></div>
+      :!apiConfigured?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>NGMS API UNAVAILABLE.</h2><p>The same-origin HostAfrica API is not responding. Check the Node.js application and MySQL configuration.</p></div>
       :rows.length===0?<div className="table-empty"><span aria-hidden="true">▤</span><h2>NO RECORDS RETURNED.</h2><p>The HostAfrica API returned an empty collection for this module.</p></div>
       :visibleRows.length===0?<div className="table-empty"><span aria-hidden="true">⌕</span><h2>NO MATCHES.</h2><p>Try a different search term.</p></div>
       :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<><th>Preview</th><th>Asset management</th></>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<th>Document workflow</th>}{moduleKey==="enquiries"&&<th>CRM / quotation workflow</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices","calendar"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents","schedules"].includes(module.resource)&&<th>Status action</th>}</tr></thead>
