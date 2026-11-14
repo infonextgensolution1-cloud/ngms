@@ -105,7 +105,6 @@ export async function replaceAdminMedia(id: string, file: File): Promise<AdminRo
   if (!/^[A-Za-z0-9_-]{1,100}$/.test(id)) throw new AdminApiError("The media identifier is invalid.", "invalid-response");
   const form = new FormData();
   form.append("file", file);
-  form.append("category", category);
   const body = await mediaActionFetch(`/api/admin/media/${encodeURIComponent(id)}/replace`, {
     method: "POST",
     body: form,
@@ -297,6 +296,7 @@ export async function uploadAdminMedia(file: File, category = "Uncategorised"): 
   if (!base) throw new AdminApiError("The NGMS application API is not available in this browser.", "not-configured");
   const form = new FormData();
   form.append("file", file);
+  form.append("category", category);
   let response: Response;
   try {
     response = await fetch("/api/admin/media", {
