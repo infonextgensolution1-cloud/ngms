@@ -303,6 +303,114 @@ async function convertAcceptedQuote(id: string, user: StaffUser, request: Reques
   });
 }
 
+const OPERATION_STATUS: Record<string,string[]> = {
+  suppliers:["Active","Pending approval","On hold","Inactive"],
+  materials:["In stock","Low stock","Out of stock","Discontinued"],
+  purchases:["Recorded","Pending payment","Paid","Cancelled"],
+  expenses:["Pending","Approved","Paid","Rejected"],
+  staff:["Active","On leave","Inactive"],
+  subcontractors:["Pending approval","Approved","On hold","Inactive"],
+  wages:["Draft","Approved","Paid","Cancelled"],
+  maintenance:["Draft","Active","Due","Paused","Completed","Cancelled"],
+};
+
+async function listOperationRecords(category:string): Promise<Record<string,unknown>[]> {
+  const queries:Record<string,string> = {
+    suppliers:"SELECT * FROM suppliers ORDER BY created_at DESC LIMIT 500",
+    materials:"SELECT m.*,s.name AS supplier_name FROM materials m LEFT JOIN suppliers s ON s.id=m.supplier_id ORDER BY m.name LIMIT 500",
+    purchases:"SELECT p.*,s.name AS supplier_name,m.name AS material_name FROM purchase_records p LEFT JOIN suppliers s ON s.id=p.supplier_id LEFT JOIN materials m ON m.id=p.material_id ORDER BY p.purchased_at DESC,p.created_at DESC LIMIT 500",
+    expenses:"SELECT e.*,j.reference AS job_reference,s.name AS supplier_name FROM expenses e LEFT JOIN jobs j ON j.id=e.job_id LEFT JOIN suppliers s ON s.id=e.supplier_id ORDER BY e.expense_date DESC,e.created_at DESC LIMIT 500",
+    staff:"SELECT * FROM staff_profiles ORDER BY full_name LIMIT 500",
+    subcontractors:"SELECT * FROM subcontractors ORDER BY company_name LIMIT 500",
+    wages:"SELECT w.*,sp.full_name AS staff_name FROM wage_records w JOIN staff_profiles sp ON sp.id=w.staff_profile_id ORDER BY w.period_start DESC,w.created_at DESC LIMIT 500",
+    maintenance:"SELECT * FROM maintenance_plans ORDER BY COALESCE(next_due_date,'9999-12-31'),created_at DESC LIMIT 500",
+  };
+  const sql=queries[category];
+  if(!sql) throw new Error("Unknown Operations Manager module.");
+  return rows(sql);
+}
+
+async function createOperation(category:string,input:Body,user:StaffUser,request:Request):Promise<Record<string,unknown>> {
+  const id=randomUUID();
+  const createdBy=user.id;
+  if(category==="suppliers"){
+    const name=text(input.name,180);
+    if(name.length<2)throw new Error("Supplier name is required.");
+    const status=text(input.status,30)||"Active";
+    if(!OPERATION_STATUS.suppliers.includes(status))throw new Error("Invalid supplier status.");
+    await execute("INSERT INTO suppliers (id,name,contact_name,phone,email,category,address,notes,status,created_by) VALUES (?,?,?,?,?,?,?,?,?,?)",
+      [id,name,text(input.contact_name,160),text(input.phone,40),text(input.email,254).toLowerCase(),text(input.category,100),text(input.address,500),text(input.notes,4000),status,createdBy]);
+  } else if(category==="materials"){
+    const name=text(input.name,180);
+    const quantity=Number(input.quantity??0),minimum=Number(input.minimum_quantity??0);
+    if(name.length<2||!Number.isFinite(quantity)||quantity<0||!Number.isFinite(minimum)||minimum<0)throw new Error("Enter a material name and valid stock quantities.");
+    const status=text(input.status,30)||(quantity<=minimum?"Low stock":"In stock");
+    if(!OPERATION_STATUS.materials.includes(status))throw new Error("Invalid materials status.");
+    await execute("INSERT INTO materials (id,name,sku,category,unit,quantity,minimum_quantity,unit_cost_cents,supplier_id,notes,status,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+      [id,name,text(input.sku,100),text(input.category,100),text(input.unit,40)||"unit",quantity,minimum,cents(input.unit_cost),text(input.supplier_id,36)||null,text(input.notes,4000),status,createdBy]);
+  } else if(category==="purchases"){
+    const description=text(input.description,500),quantity=Number(input.quantity??1),unitCost=cents(input.unit_cost);
+    if(description.length<2||!Number.isFinite(quantity)||quantity<=0)throw new Error("Enter a purchase description, quantity and unit cost.");
+    const total=Math.round(quantity*unitCost);
+    await execute("INSERT INTO purchase_records (id,supplier_id,material_id,invoice_reference,description,quantity,unit_cost_cents,total_cents,purchased_at,status,notes,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+      [id,text(input.supplier_id,36)||null,text(input.material_id,36)||null,text(input.invoice_reference,120),description,quantity,unitCost,total,text(input.purchased_at,20)||new Date().toISOString().slice(0,10),text(input.status,30)||"Recorded",text(input.notes,4000),createdBy]);
+  } else if(category==="expenses"){
+    const description=text(input.description,500);
+    if(description.length<2)throw new Error("Expense description is required.");
+    const status=text(input.status,30)||"Pending";
+    if(!OPERATION_STATUS.expenses.includes(status))throw new Error("Invalid expense status.");
+    await execute("INSERT INTO expenses (id,expense_date,category,description,amount_cents,job_id,supplier_id,invoice_reference,status,notes,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+      [id,text(input.expense_date,20)||new Date().toISOString().slice(0,10),text(input.category,100)||"General",description,cents(input.amount),text(input.job_id,36)||null,text(input.supplier_id,36)||null,text(input.invoice_reference,120),status,text(input.notes,4000),createdBy]);
+  } else if(category==="staff"){
+    const name=text(input.full_name,180);
+    if(name.length<2)throw new Error("Staff member name is required.");
+    const status=text(input.status,30)||"Active";
+    if(!OPERATION_STATUS.staff.includes(status))throw new Error("Invalid staff status.");
+    await execute("INSERT INTO staff_profiles (id,full_name,phone,email,position,employment_type,hourly_rate_cents,status,notes,created_by) VALUES (?,?,?,?,?,?,?,?,?,?)",
+      [id,name,text(input.phone,40),text(input.email,254).toLowerCase(),text(input.position,120),text(input.employment_type,40)||"Employee",cents(input.hourly_rate),status,text(input.notes,4000),createdBy]);
+  } else if(category==="subcontractors"){
+    const name=text(input.company_name,180);
+    if(name.length<2)throw new Error("Subcontractor company name is required.");
+    const status=text(input.status,30)||"Pending approval";
+    if(!OPERATION_STATUS.subcontractors.includes(status))throw new Error("Invalid subcontractor status.");
+    await execute("INSERT INTO subcontractors (id,company_name,contact_name,phone,email,service,compliance_notes,status,created_by) VALUES (?,?,?,?,?,?,?,?,?)",
+      [id,name,text(input.contact_name,160),text(input.phone,40),text(input.email,254).toLowerCase(),text(input.service,180),text(input.compliance_notes,4000),status,createdBy]);
+  } else if(category==="wages"){
+    const staffId=text(input.staff_profile_id,36),hours=Number(input.hours_worked),rate=cents(input.rate);
+    if(!/^[0-9a-f-]{36}$/i.test(staffId)||!Number.isFinite(hours)||hours<=0||hours>744)throw new Error("Choose a staff profile and enter valid hours worked.");
+    const profile=await row("SELECT id,hourly_rate_cents FROM staff_profiles WHERE id=?",[staffId]);
+    if(!profile)throw new Error("Staff profile was not found.");
+    const selectedRate=Number.isFinite(Number(input.rate))&&Number(input.rate)>0?rate:Number(profile.hourly_rate_cents);
+    const gross=Math.round(hours*selectedRate),deductions=cents(input.deductions);
+    if(deductions>gross)throw new Error("Deductions cannot exceed gross wages.");
+    const start=text(input.period_start,20),end=text(input.period_end,20);
+    if(!start||!end||end<start)throw new Error("Enter a valid wage period.");
+    await execute("INSERT INTO wage_records (id,staff_profile_id,period_start,period_end,hours_worked,rate_cents,gross_cents,deductions_cents,net_cents,status,notes,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+      [id,staffId,start,end,hours,selectedRate,gross,deductions,gross-deductions,text(input.status,30)||"Draft",text(input.notes,4000),createdBy]);
+  } else if(category==="maintenance"){
+    const customerName=text(input.customer_name,180),service=text(input.service,180),frequency=text(input.frequency,40);
+    if(customerName.length<2||!service||!frequency)throw new Error("Enter a customer, service and maintenance frequency.");
+    const status=text(input.status,30)||"Draft";
+    if(!OPERATION_STATUS.maintenance.includes(status))throw new Error("Invalid maintenance plan status.");
+    await execute("INSERT INTO maintenance_plans (id,customer_id,customer_name,service,property_area,frequency,start_date,next_due_date,amount_cents,status,notes,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+      [id,text(input.customer_id,36)||null,customerName,service,text(input.property_area,180),frequency,text(input.start_date,20)||null,text(input.next_due_date,20)||null,cents(input.amount),status,text(input.notes,4000),createdBy]);
+  } else {
+    throw new Error("Unknown Operations Manager module.");
+  }
+  await audit(user,request,"create",category,id);
+  return {id,category};
+}
+
+async function updateOperationStatus(category:string,id:string,status:string,user:StaffUser,request:Request){
+  const tables:Record<string,string>={suppliers:"suppliers",materials:"materials",purchases:"purchase_records",expenses:"expenses",staff:"staff_profiles",subcontractors:"subcontractors",wages:"wage_records",maintenance:"maintenance_plans"};
+  const table=tables[category];
+  if(!table||!OPERATION_STATUS[category]?.includes(status))throw new Error("Unsupported status for this Operations Manager record.");
+  const result=await execute(`UPDATE ${table} SET status=? WHERE id=?`,[status,id]);
+  if(!result.affectedRows)return null;
+  await audit(user,request,"status_change",category,id,{status});
+  return await row(`SELECT * FROM ${table} WHERE id=?`,[id]);
+}
+
 async function handleAdmin(request: Request, path: string[], user: StaffUser): Promise<NextResponse> {
   const method = request.method.toUpperCase();
   const [resource, id, action, extraId] = path;
@@ -521,6 +629,21 @@ async function handleAdmin(request: Request, path: string[], user: StaffUser): P
       await execute("INSERT INTO publication_versions (id,module_key,slug,content_json,content_hash,published_by) VALUES (?,?,?,?,?,?)",[rollbackId,moduleKey,prior.slug,prior.content_json,hash,user.id]);
       await execute("INSERT INTO publication_audit (id,module_key,publication_id,action,actor,details_json) VALUES (?,?,?,'rollback',?,?)",[randomUUID(),moduleKey,rollbackId,user.id,JSON.stringify({restoredFrom:publicationId,note})]);
       return send({rolledBack:true,moduleKey,publicationId:rollbackId,restoredFrom:publicationId,slug:prior.slug});
+    }
+  }
+
+  if(resource==="operations"){
+    const category=id;
+    const recordId=action;
+    if(!category||!OPERATION_STATUS[category])return send({error:"Unknown Operations Manager module."},404);
+    if(!recordId&&method==="GET")return send({items:await listOperationRecords(category)});
+    if(!recordId&&method==="POST"){
+      const item=await createOperation(category,input,user,request);
+      return send({item},201);
+    }
+    if(recordId&&method==="PATCH"){
+      const saved=await updateOperationStatus(category,recordId,text(input.status,40),user,request);
+      return saved?send({item:saved}):send({error:"Record not found."},404);
     }
   }
 
