@@ -347,13 +347,13 @@ async function createOperation(category:string,input:Body,user:StaffUser,request
     const status=text(input.status,30)||(quantity<=minimum?"Low stock":"In stock");
     if(!OPERATION_STATUS.materials.includes(status))throw new Error("Invalid materials status.");
     await execute("INSERT INTO materials (id,name,sku,category,unit,quantity,minimum_quantity,unit_cost_cents,supplier_id,notes,status,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-      [id,name,text(input.sku,100),text(input.category,100),text(input.unit,40)||"unit",quantity,minimum,cents(input.unit_cost),text(input.supplier_id,36)||null,text(input.notes,4000),status,createdBy]);
+      [id,name,text(input.sku,100),text(input.category,100),text(input.unit,40)||"unit",quantity,minimum,cents(input.unit_cost ?? 0),text(input.supplier_id,36)||null,text(input.notes,4000),status,createdBy]);
   } else if(category==="purchases"){
     const description=text(input.description,500),quantity=Number(input.quantity??1),unitCost=cents(input.unit_cost);
     if(description.length<2||!Number.isFinite(quantity)||quantity<=0)throw new Error("Enter a purchase description, quantity and unit cost.");
     const total=Math.round(quantity*unitCost);
     await execute("INSERT INTO purchase_records (id,supplier_id,material_id,invoice_reference,description,quantity,unit_cost_cents,total_cents,purchased_at,status,notes,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-      [id,text(input.supplier_id,36)||null,text(input.material_id,36)||null,text(input.invoice_reference,120),description,quantity,unitCost,total,text(input.purchased_at,20)||new Date().toISOString().slice(0,10),text(input.status,30)||"Recorded",text(input.notes,4000),createdBy]);
+      [id,text(input.supplier_id,36)||null,text(input.material_id,36)||null,text(input.invoice_reference,120),description,quantity,unitCost,total,text(input.purchased_at,20)||new Date().toISOString().slice(0,10),purchaseStatus,text(input.notes,4000),createdBy]);
   } else if(category==="expenses"){
     const description=text(input.description,500);
     if(description.length<2)throw new Error("Expense description is required.");
@@ -367,7 +367,7 @@ async function createOperation(category:string,input:Body,user:StaffUser,request
     const status=text(input.status,30)||"Active";
     if(!OPERATION_STATUS.staff.includes(status))throw new Error("Invalid staff status.");
     await execute("INSERT INTO staff_profiles (id,full_name,phone,email,position,employment_type,hourly_rate_cents,status,notes,created_by) VALUES (?,?,?,?,?,?,?,?,?,?)",
-      [id,name,text(input.phone,40),text(input.email,254).toLowerCase(),text(input.position,120),text(input.employment_type,40)||"Employee",cents(input.hourly_rate),status,text(input.notes,4000),createdBy]);
+      [id,name,text(input.phone,40),text(input.email,254).toLowerCase(),text(input.position,120),text(input.employment_type,40)||"Employee",cents(input.hourly_rate ?? 0),status,text(input.notes,4000),createdBy]);
   } else if(category==="subcontractors"){
     const name=text(input.company_name,180);
     if(name.length<2)throw new Error("Subcontractor company name is required.");
@@ -376,12 +376,12 @@ async function createOperation(category:string,input:Body,user:StaffUser,request
     await execute("INSERT INTO subcontractors (id,company_name,contact_name,phone,email,service,compliance_notes,status,created_by) VALUES (?,?,?,?,?,?,?,?,?)",
       [id,name,text(input.contact_name,160),text(input.phone,40),text(input.email,254).toLowerCase(),text(input.service,180),text(input.compliance_notes,4000),status,createdBy]);
   } else if(category==="wages"){
-    const staffId=text(input.staff_profile_id,36),hours=Number(input.hours_worked),rate=cents(input.rate);
+    const staffId=text(input.staff_profile_id,36),hours=Number(input.hours_worked),rate=cents(input.rate ?? 0);
     if(!/^[0-9a-f-]{36}$/i.test(staffId)||!Number.isFinite(hours)||hours<=0||hours>744)throw new Error("Choose a staff profile and enter valid hours worked.");
     const profile=await row("SELECT id,hourly_rate_cents FROM staff_profiles WHERE id=?",[staffId]);
     if(!profile)throw new Error("Staff profile was not found.");
     const selectedRate=Number.isFinite(Number(input.rate))&&Number(input.rate)>0?rate:Number(profile.hourly_rate_cents);
-    const gross=Math.round(hours*selectedRate),deductions=cents(input.deductions);
+    const gross=Math.round(hours*selectedRate),deductions=cents(input.deductions ?? 0);
     if(deductions>gross)throw new Error("Deductions cannot exceed gross wages.");
     const start=text(input.period_start,20),end=text(input.period_end,20);
     if(!start||!end||end<start)throw new Error("Enter a valid wage period.");
