@@ -302,7 +302,9 @@ CREATE TABLE IF NOT EXISTS public_intake_attempts (
   ip_hash CHAR(64) NOT NULL,
   attempted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   KEY idx_public_intake_rate (ip_hash,attempted_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\nCREATE TABLE IF NOT EXISTS login_attempts (
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS login_attempts (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   email_hash CHAR(64) NOT NULL,
   ip_hash CHAR(64) NOT NULL,
