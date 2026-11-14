@@ -33,6 +33,9 @@ function dateTime(value: unknown): string {
 function slug(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 120) || "item";
 }
+function safeHeaderFilename(value: unknown): string {
+  return String(value ?? "download").replace(/[^A-Za-z0-9._-]/g, "_").slice(0, 120) || "download";
+}
 async function audit(user: StaffUser, request: Request, action: string, type: string, id: string, details: unknown = {}) {
   await execute(
     "INSERT INTO audit_logs (id,actor_id,action,entity_type,entity_id,details_json,ip_hash) VALUES (?,?,?,?,?,?,?)",
@@ -518,8 +521,10 @@ function safeSlideUrl(value:string):string {
         const [projectRows] = await executeOn(connection,"SELECT id,status FROM projects WHERE id=? FOR UPDATE",[id]);
         const project = (projectRows as Array<Record<string,unknown>>)[0];
         if (!project) throw new Error("Project not found.");
-        const [mediaRows] = await executeOn(connection,"SELECT id FROM media_assets WHERE id=?",[mediaId]);
-        if (!(mediaRows as unknown[]).length) throw new Error("Media item not found.");
+        const [mediaRows] = await executeOn(connection,"SELECT id,content_type FROM media_assets WHERE id=?",[mediaId]);
+        const mediaItem = (mediaRows as Array<{id:string;content_type:string}>)[0];
+        if (!mediaItem) throw new Error("Media item not found.");
+        if (!String(mediaItem.content_type).startsWith("image/")) throw new Error("Only image files can be attached to a project.");
         const [orders] = await executeOn(connection,"SELECT COALESCE(MAX(sort_order),-1)+1 AS next_order FROM project_photos WHERE project_id=? AND stage=?",[id,stage]);
         const sortOrder=Number((orders as Array<{next_order:number}>)[0]?.next_order ?? 0);
         const photoId=randomUUID();
@@ -587,7 +592,7 @@ function safeSlideUrl(value:string):string {
     if (id && action === "file" && method === "GET") {
       const result = await readMediaBytes(id,false);
       if (!result) return send({error:"Media not found."},404);
-      return new NextResponse(new Uint8Array(result.bytes),{status:200,headers:{"Content-Type":result.type,"Content-Length":String(result.bytes.length),"Content-Disposition":`inline; filename="${result.filename.replace(/["\\\\]/g,"_")}"`,"Cache-Control":"private, no-store","X-Content-Type-Options":"nosniff"}});
+      return new NextResponse(new Uint8Array(result.bytes),{status:200,headers:{"Content-Type":result.type,"Content-Length":String(result.bytes.length),"Content-Disposition":`inline; filename="${safeHeaderFilename(result.filename)}"`,"Cache-Control":"private, no-store","X-Content-Type-Options":"nosniff"}});
     }
     if (id && action === "replace" && method === "POST") {
       const form = await request.formData();
