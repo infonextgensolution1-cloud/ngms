@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AdminRow, adminApiConfigurationMessage, adminApiErrorMessage, getAdminApiBase, getAdminApiHealthUrl, readAdminCollection, readCommercialDocuments } from "@/lib/admin-api";
 
-type DashboardData = { enquiries: AdminRow[]; jobs: AdminRow[]; quotations: AdminRow[]; invoices: AdminRow[] };
+type DashboardData = { enquiries: AdminRow[]; jobs: AdminRow[]; quotations: AdminRow[]; invoices: AdminRow[]; reports: AdminRow[] };
 type LoadState =
   | { status: "not-configured"; message: string }
   | { status: "loading"; message: string }
@@ -24,27 +24,28 @@ export default function AdminDashboardClient() {
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [state, setState] = useState<LoadState>({
     status: "not-configured",
-    message: "The preview API URL is not configured. Metrics stay unavailable until the protected API is connected.",
+    message: "Checking the HostAfrica application API…",
   });
 
   useEffect(() => {
     const controller = new AbortController();
     if (!getAdminApiBase()) {
-      setState({ status: "not-configured", message: adminApiConfigurationMessage() + " The dashboard will not call an unapproved host." });
+      setState({ status: "not-configured", message: adminApiConfigurationMessage() + " The dashboard uses the same-origin HostAfrica application API." });
       return () => controller.abort();
     }
-    setState({ status: "loading", message: "Retrieving live metrics from the protected Cloudflare API." });
+    setState({ status: "loading", message: "Retrieving live metrics from the HostAfrica database." });
     Promise.all([
       readAdminCollection("enquiries", controller.signal),
       readAdminCollection("jobs", controller.signal),
       readCommercialDocuments("Quotation", undefined, controller.signal),
       readCommercialDocuments("Invoice", undefined, controller.signal),
-    ]).then(([enquiries, jobs, quotations, invoices]) => {
+      readAdminCollection("reports", controller.signal),
+    ]).then(([enquiries, jobs, quotations, invoices, reports]) => {
       if (!controller.signal.aborted) {
         setState({
           status: "ready",
           message: "Counts reflect the most recent successful API response.",
-          data: { enquiries, jobs, quotations, invoices },
+          data: { enquiries, jobs, quotations, invoices, reports },
         });
       }
     }).catch((error: unknown) => {
@@ -84,6 +85,8 @@ export default function AdminDashboardClient() {
   }, [state]);
 
   const apiIsReady = state.status === "ready";
+  const reportCards = apiIsReady ? state.data.reports.filter(item => ["Outstanding invoice balance","Payments received this month","Paid expenses this month","Maintenance due within 30 days","Low / out-of-stock items"].includes(String(item.metric))) : [];
+  const reportValue = (item:AdminRow) => item.format === "ZAR_CENTS" && typeof item.value === "number" ? zar(item.value) : String(item.value ?? "—");
   const metricValue = (value: number | string | undefined) => apiIsReady && value !== undefined ? value : "—";
   const recentEnquiries = metrics?.recentEnquiries ?? [];
   const recentJobs = metrics?.recentJobs ?? [];
@@ -95,7 +98,7 @@ export default function AdminDashboardClient() {
       <div className="admin-head-actions"><Link className="button button-orange" href="/admin/enquiries">Review enquiries ↗</Link><button className="button button-outline button-dark-outline" type="button" onClick={() => setRefreshVersion(v=>v+1)} disabled={state.status==="loading"}>Refresh data</button></div>
     </div>
 
-    <div className="api-notice" role="status"><span className="notice-dot" aria-hidden="true"/><div><strong>{state.status==="ready"?"Cloudflare API connected":state.status==="loading"?"Connecting to Cloudflare API":state.status==="error"?"Live data unavailable":"Preview integration pending"}</strong><p>{state.message}</p>{apiHealthUrl&&<p><a className="text-link" href={apiHealthUrl} target="_blank" rel="noopener noreferrer">Open secure API sign-in / health check ↗</a> <span className="module-footnote">After signing in, return here and refresh data.</span></p>}</div></div>
+    <div className="api-notice" role="status"><span className="notice-dot" aria-hidden="true"/><div><strong>{state.status==="ready"?"HostAfrica API connected":state.status==="loading"?"Connecting to HostAfrica":state.status==="error"?"Live data unavailable":"HostAfrica integration pending"}</strong><p>{state.message}</p>{apiHealthUrl&&<p><a className="text-link" href={apiHealthUrl} target="_blank" rel="noopener noreferrer">Check HostAfrica database health ↗</a> <span className="module-footnote">This checks the application database connection; sign-in is handled on this website.</span></p>}</div></div>
 
     <section className="metric-grid" aria-label="Business metrics">
       <article className="metric-card"><span className="metric-label">Active enquiries</span><strong>{metricValue(metrics?.enquiries)}</strong><small>{apiIsReady ? `${metrics?.newEnquiries ?? 0} new to review` : "API data not confirmed"}</small></article>
@@ -103,7 +106,10 @@ export default function AdminDashboardClient() {
       <article className="metric-card"><span className="metric-label">Draft quotations</span><strong>{metricValue(metrics?.draftQuotes)}</strong><small>{apiIsReady ? "Formal quotations from the commercial-document API" : "API data not confirmed"}</small></article>
       <article className="metric-card"><span className="metric-label">Issued unpaid invoices</span><strong>{metricValue(metrics ? zar(metrics.outstandingFaceValueCents) : undefined)}</strong><small>{apiIsReady ? `${metrics?.issuedUnpaidCount ?? 0} invoices · status-based face value` : "API data not confirmed"}</small></article>
     </section>
-    {apiIsReady && <p className="module-footnote">Invoice figures use document status and face value. The verified database schema has no partial-payment ledger, so this is not a reconciled balance due.</p>}
+    <section className="metric-grid" aria-label="Finance and resource metrics">
+      {reportCards.map(item=><article key={String(item.metric)} className="metric-card"><span className="metric-label">{String(item.metric)}</span><strong>{reportValue(item)}</strong><small>{String(item.detail??"Live Operations Manager metric")}</small></article>)}
+      {!apiIsReady&&<article className="metric-card"><span className="metric-label">Finance & resources</span><strong>—</strong><small>Live database data not yet confirmed</small></article>}
+    </section>
 
     <section className="admin-section">
       <div className="admin-section-heading"><div><p className="eyebrow">WORKSPACE</p><h2>CORE OPERATIONS</h2></div><span className="section-id">01 — 04</span></div>
@@ -124,6 +130,6 @@ export default function AdminDashboardClient() {
       </div>
     </section>
 
-    <div className="admin-callout"><span className="callout-mark" aria-hidden="true">!</span><div><strong>Write operations are still disabled in this rebuild.</strong><p>Read-only API mapping is based on the verified Worker contract. Enquiry creation, status changes, quotation/invoice edits and R2 uploads remain off until preview-origin access, authorisation and write tests are completed.</p></div></div>
+    <div className="admin-callout"><span className="callout-mark" aria-hidden="true">✓</span><div><strong>HostAfrica operations workspace.</strong><p>Staff actions are protected by NGMS administrator sessions. Quotation sharing, customer decisions, invoice payments and public content publication are recorded in the HostAfrica database with audit history.</p></div></div>
   </div>;
 }

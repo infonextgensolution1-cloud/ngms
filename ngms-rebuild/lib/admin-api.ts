@@ -37,72 +37,21 @@ export class AdminApiError extends Error {
   }
 }
 
-const PREVIEW_ADMIN_API_HOST = "ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev";
-const PRODUCTION_ADMIN_API_HOST = "ngms-admin-api.nextgensolarcleaningmaintenancesolutions.workers.dev";
-
-function approvedAdminApiHost(): string {
-  return process.env.NEXT_PUBLIC_NGMS_ENV === "production"
-    ? PRODUCTION_ADMIN_API_HOST
-    : PREVIEW_ADMIN_API_HOST;
-}
-
 export function getAdminApiBase(): string {
-  const configured = (process.env.NEXT_PUBLIC_NGMS_API_BASE ?? "").trim();
-  if (!configured) return "";
-
-  try {
-    const url = new URL(configured);
-    if (
-      url.protocol !== "https:" ||
-      url.hostname !== approvedAdminApiHost() ||
-      url.port ||
-      url.username ||
-      url.password ||
-      url.pathname !== "/" ||
-      url.search ||
-      url.hash
-    ) {
-      return "";
-    }
-    return url.origin;
-  } catch {
-    return "";
-  }
+  return "/";
 }
 
 export function getAdminApiHealthUrl(): string {
-  const base = getAdminApiBase();
-  return base ? `${base}/health` : "";
+  return "/api/health";
 }
 
 export function adminApiConfigurationMessage(): string {
-  const configured = (process.env.NEXT_PUBLIC_NGMS_API_BASE ?? "").trim();
-  if (!configured) return "The NGMS API URL is not configured."
-
-  try {
-    const url = new URL(configured);
-    if (
-      url.protocol !== "https:" ||
-      url.hostname !== approvedAdminApiHost() ||
-      url.port ||
-      url.username ||
-      url.password ||
-      url.pathname !== "/" ||
-      url.search ||
-      url.hash
-    ) {
-      return "The configured API target is blocked. This deployment only connects to its approved HTTPS NGMS API host; no request was sent."
-    }
-    return "The NGMS API configuration is valid."
-  } catch {
-    return "The preview API URL is invalid. No request was sent.";
-  }
+  return "NGMS HostAfrica API uses same-origin application routes.";
 }
 
 export function getAdminMediaDownloadUrl(id: unknown): string {
-  const base = getAdminApiBase();
-  if (typeof id !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(id) || !base) return "";
-  return `${base}/api/admin/media/${encodeURIComponent(id)}/download`;
+  if (typeof id !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(id)) return "";
+  return `/api/admin/media/${encodeURIComponent(id)}/file`;
 }
 
 async function mediaActionFetch(path: string, init: RequestInit): Promise<Record<string, unknown>> {
@@ -110,10 +59,10 @@ async function mediaActionFetch(path: string, init: RequestInit): Promise<Record
     throw new AdminApiError("Media changes are disabled until preview write acceptance is approved.", "not-configured");
   }
   const base = getAdminApiBase();
-  if (!base) throw new AdminApiError("The protected preview API base URL is not configured.", "not-configured");
+  if (!base) throw new AdminApiError("The NGMS application API is not available in this browser.", "not-configured");
   let response: Response;
   try {
-    response = await fetch(`${base}${path}`, {
+    response = await fetch(path, {
       ...init,
       credentials: "include",
       cache: "no-store",
@@ -126,7 +75,7 @@ async function mediaActionFetch(path: string, init: RequestInit): Promise<Record
   if (!response.ok) {
     const message = body && typeof body === "object" && "error" in body && typeof (body as { error?: unknown }).error === "string"
       ? (body as { error: string }).error
-      : `Cloudflare API returned HTTP ${response.status}.`;
+      : `NGMS API returned HTTP ${response.status}.`;
     throw new AdminApiError(message, "http", response.status);
   }
   if (!body || typeof body !== "object") {
@@ -137,7 +86,7 @@ async function mediaActionFetch(path: string, init: RequestInit): Promise<Record
 
 export async function updateAdminMediaMetadata(
   id: string,
-  payload: { category: string; alt_text: string; tags: string[] }
+  payload: { category: string; alt_text: string; tags: string[]; is_published?: boolean }
 ): Promise<AdminRow> {
   if (!/^[A-Za-z0-9_-]{1,100}$/.test(id)) throw new AdminApiError("The media identifier is invalid.", "invalid-response");
   const body = await mediaActionFetch(`/api/admin/media/${encodeURIComponent(id)}`, {
@@ -177,14 +126,14 @@ export async function readAdminCollection(
   const base = getAdminApiBase();
   if (!base) {
     throw new AdminApiError(
-      "The preview API URL is missing or not the approved HTTPS preview host. No request was sent.",
+      "the NGMS API URL is missing or not the approved HTTPS preview host. No request was sent.",
       "not-configured"
     );
   }
 
   let response: Response;
   try {
-    response = await fetch(`${base}/api/admin/${resource}`, {
+    response = await fetch(`/api/admin/${resource}`, {
       method: "GET",
       credentials: "include",
       cache: "no-store",
@@ -194,7 +143,7 @@ export async function readAdminCollection(
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") throw error;
     throw new AdminApiError(
-      "The API request failed. Check the API URL, Cloudflare Access session and allowed preview origin.",
+      "The API request failed. Check your NGMS sign-in session and retry.",
       "network"
     );
   }
@@ -207,7 +156,7 @@ export async function readAdminCollection(
       "error" in body &&
       typeof (body as { error?: unknown }).error === "string"
         ? (body as { error: string }).error
-        : `Cloudflare API returned HTTP ${response.status}.`;
+        : `NGMS API returned HTTP ${response.status}.`;
     throw new AdminApiError(safeMessage, "http", response.status);
   }
 
@@ -236,20 +185,17 @@ export function adminApiErrorMessage(error: unknown): string {
   if (error.code === "not-configured") return error.message;
   if (error.code === "network") return error.message;
   if (error.code === "invalid-response") return error.message;
-  if (error.status === 401) return "Cloudflare Access authentication is missing or expired. Sign in through the configured Access application.";
-  if (error.status === 403) return "Access was denied. The signed-in user or preview origin may not be allowed by the Worker.";
+  if (error.status === 401) return "Your NGMS session is missing or expired. Please sign in again.";
+  if (error.status === 403) return "NGMS denied this action. Check your administrator permissions.";
   if (error.status === 404) return "This endpoint is not available on the configured Worker.";
   if (error.status === 429) return "The API rate limit was reached. Wait briefly before retrying.";
-  if (error.status && error.status >= 500) return "The Cloudflare API reported a server error. No record changes were made by this read request.";
+  if (error.status && error.status >= 500) return "The NGMS API reported a server error. No record changes were made by this read request.";
   return error.message;
 }
 
 
 export function previewWritesEnabled(): boolean {
-  if (process.env.NEXT_PUBLIC_NGMS_ENV === "production") {
-    return process.env.NEXT_PUBLIC_NGMS_ENABLE_PRODUCTION_WRITES === "true";
-  }
-  return process.env.NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES === "true";
+  return process.env.NEXT_PUBLIC_NGMS_ENV === "hostafrica";
 }
 
 async function readMutationResponse(response: Response): Promise<AdminRow> {
@@ -259,7 +205,7 @@ async function readMutationResponse(response: Response): Promise<AdminRow> {
       body && typeof body === "object" && "error" in body &&
       typeof (body as { error?: unknown }).error === "string"
         ? (body as { error: string }).error
-        : `Cloudflare API returned HTTP ${response.status}.`;
+        : `NGMS API returned HTTP ${response.status}.`;
     throw new AdminApiError(message, "http", response.status);
   }
   if (!body || typeof body !== "object" || !("item" in body) ||
@@ -275,10 +221,10 @@ async function mutationFetch(path: string, init: RequestInit): Promise<AdminRow>
     throw new AdminApiError("Preview write actions are disabled until staging authentication and persistence checks are complete.", "not-configured");
   }
   const base = getAdminApiBase();
-  if (!base) throw new AdminApiError("The protected Cloudflare API base URL is not configured for this preview.", "not-configured");
+  if (!base) throw new AdminApiError("The NGMS application API is not available in this browser.", "not-configured");
   let response: Response;
   try {
-    response = await fetch(`${base}${path}`, {
+    response = await fetch(path, {
       ...init,
       credentials: "include",
       cache: "no-store",
@@ -335,24 +281,54 @@ export async function updateAdminStatus(
   });
 }
 
-export async function uploadAdminMedia(file: File): Promise<AdminRow> {
+async function optimiseMediaUpload(source:File):Promise<File>{
+  if(!source.type.startsWith("image/"))return source;
+  if(source.size>20*1024*1024)throw new AdminApiError("Image source exceeds the 20 MB upload limit. Resize it before uploading.","invalid-response");
+  try{
+    const bitmap=await createImageBitmap(source);
+    try{
+      const scale=Math.min(1,2400/Math.max(bitmap.width,bitmap.height));
+      const width=Math.max(1,Math.round(bitmap.width*scale));
+      const height=Math.max(1,Math.round(bitmap.height*scale));
+      if(scale===1&&source.size<=400*1024)return source;
+      const canvas=document.createElement("canvas");
+      canvas.width=width;canvas.height=height;
+      const context=canvas.getContext("2d",{alpha:true});
+      if(!context)return source;
+      context.drawImage(bitmap,0,0,width,height);
+      const blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,"image/webp",0.84));
+      if(!blob||blob.size>=source.size)return source;
+      const filename=source.name.replace(/\.[^.]+$/,"")||"ngms-image";
+      return new File([blob],filename+".webp",{type:"image/webp",lastModified:source.lastModified||Date.now()});
+    }finally{bitmap.close();}
+  }catch{
+    return source;
+  }
+}
+
+export async function uploadAdminMedia(file: File, category = "Uncategorised"): Promise<AdminRow> {
   const accepted = new Set(["image/jpeg", "image/png", "image/webp", "image/avif", "application/pdf"]);
   if (!accepted.has(file.type)) {
     throw new AdminApiError("Unsupported file type. Use JPEG, PNG, WebP, AVIF or PDF.", "invalid-response");
   }
-  if (file.size < 1 || file.size > 10 * 1024 * 1024) {
-    throw new AdminApiError("File must be between 1 byte and 10 MB.", "invalid-response");
+  if (file.size < 1 || file.size > 20 * 1024 * 1024) {
+    throw new AdminApiError("File must be between 1 byte and 20 MB before image optimisation.", "invalid-response");
+  }
+  const uploadFile=await optimiseMediaUpload(file);
+  if(uploadFile.size>10*1024*1024){
+    throw new AdminApiError("The optimised file is still larger than 10 MB. Resize it before uploading.","invalid-response");
   }
   if (!previewWritesEnabled()) {
-    throw new AdminApiError("Preview uploads are disabled until staging authentication and persistence checks are complete.", "not-configured");
+    throw new AdminApiError("Uploads are unavailable until the NGMS administrator session is active.", "not-configured");
   }
   const base = getAdminApiBase();
-  if (!base) throw new AdminApiError("The protected Cloudflare API base URL is not configured for this preview.", "not-configured");
+  if (!base) throw new AdminApiError("The NGMS application API is not available in this browser.", "not-configured");
   const form = new FormData();
   form.append("file", file);
+  form.append("category", category);
   let response: Response;
   try {
-    response = await fetch(`${base}/api/admin/media`, {
+    response = await fetch("/api/admin/media", {
       method: "POST",
       body: form,
       credentials: "include",
@@ -368,7 +344,7 @@ export async function uploadAdminMedia(file: File): Promise<AdminRow> {
       body && typeof body === "object" && "error" in body &&
       typeof (body as { error?: unknown }).error === "string"
         ? (body as { error: string }).error
-        : `Cloudflare API returned HTTP ${response.status}.`;
+        : `NGMS API returned HTTP ${response.status}.`;
     throw new AdminApiError(message, "http", response.status);
   }
   if (
@@ -396,12 +372,12 @@ export async function readCommercialDocuments(
   signal?: AbortSignal
 ): Promise<AdminRow[]> {
   const base = getAdminApiBase();
-  if (!base) throw new AdminApiError("The approved preview API is not configured.", "not-configured");
+  if (!base) throw new AdminApiError("The NGMS application API is not available in this browser.", "not-configured");
   const params = new URLSearchParams({ kind });
   if (status) params.set("status", status);
   let response: Response;
   try {
-    response = await fetch(`${base}/api/admin/commercial-documents?${params.toString()}`, {
+    response = await fetch(`/api/admin/commercial-documents?${params.toString()}`, {
       method: "GET",
       credentials: "include",
       cache: "no-store",
@@ -410,13 +386,13 @@ export async function readCommercialDocuments(
     });
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") throw error;
-    throw new AdminApiError("The commercial-document request failed. Check Cloudflare Access and preview CORS.", "network");
+    throw new AdminApiError("The commercial-document request failed. Check your NGMS sign-in session and retry.", "network");
   }
   const body: unknown = await response.json().catch(() => null);
   if (!response.ok) {
     const message = body && typeof body === "object" && "error" in body && typeof (body as { error?: unknown }).error === "string"
       ? (body as { error: string }).error
-      : `Cloudflare API returned HTTP ${response.status}.`;
+      : `NGMS API returned HTTP ${response.status}.`;
     throw new AdminApiError(message, "http", response.status);
   }
   if (!body || typeof body !== "object" || !("items" in body) || !Array.isArray((body as { items?: unknown }).items)) {
@@ -517,10 +493,10 @@ async function requestPreviewJson<T>(
     throw new AdminApiError("Preview write actions are disabled until authenticated staging persistence tests are approved.", "not-configured");
   }
   const base = getAdminApiBase();
-  if (!base) throw new AdminApiError("The protected preview API URL is not configured.", "not-configured");
+  if (!base) throw new AdminApiError("The NGMS application API is not available in this browser.", "not-configured");
   let response: Response;
   try {
-    response = await fetch(`${base}${path}`, {
+    response = await fetch(path, {
       ...init,
       credentials: publicTokenRequest ? "omit" : "include",
       cache: "no-store",
@@ -528,13 +504,13 @@ async function requestPreviewJson<T>(
     });
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") throw error;
-    throw new AdminApiError("The preview API request failed. Check Cloudflare Access and the preview origin.", "network");
+    throw new AdminApiError("the NGMS API request failed. Check your NGMS sign-in session and retry.", "network");
   }
   const body: unknown = await response.json().catch(() => null);
   if (!response.ok) {
     const message = body && typeof body === "object" && "error" in body && typeof (body as { error?: unknown }).error === "string"
       ? (body as { error: string }).error
-      : `Cloudflare API returned HTTP ${response.status}.`;
+      : `NGMS API returned HTTP ${response.status}.`;
     throw new AdminApiError(message, "http", response.status);
   }
   return body as T;
@@ -648,12 +624,13 @@ export type AdminPublishingSnapshot = {
 };
 
 export function cmsWritesEnabled(): boolean {
-  return previewWritesEnabled() && process.env.NEXT_PUBLIC_NGMS_CMS_WRITES_ENABLED === "true";
+  return process.env.NEXT_PUBLIC_NGMS_ENV === "hostafrica" &&
+    process.env.NEXT_PUBLIC_NGMS_CMS_WRITES_ENABLED === "true";
 }
 
 function requireCmsWrites(): void {
   if (!cmsWritesEnabled()) {
-    throw new AdminApiError("CMS editing and publishing are disabled in this preview environment. A CMS owner must enable both preview writes and the CMS-specific write flag after approval testing.", "not-configured");
+    throw new AdminApiError("CMS editing and publishing are disabled in this preview environment. A CMS owner must enable both Staging writes and the CMS-specific write flag after approval testing.", "not-configured");
   }
 }
 

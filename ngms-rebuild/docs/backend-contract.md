@@ -1,169 +1,80 @@
-# NGMS backend integration contract — verified inventory
+# NGMS HostAfrica application backend contract
 
-**Updated:** 3 November 2026  
-**Scope:** Production inventory remained read-only. Workflow A backend changes were deployed only to preview Workers `ngms-admin-api-preview` (version 51) and `ngms-public-intake-preview` (version 38), with their existing preview-only D1/R2 bindings. No production Worker, D1, R2, DNS or customer record was changed. The frontend changes are on draft PR #283 and are not yet promoted to the active frontend preview.
+**Updated:** 14 November 2026  
+**Branch:** `feat/hostafrica-native-ops-rebuild`  
+**Base URL:** same-origin Next.js application routes  
+**Data store:** dedicated HostAfrica MySQL/MariaDB database  
+**File store:** persistent HostAfrica directory outside `public_html`
 
-## Verified resources
+## Hosting boundary
 
-- Cloudflare Worker `ngms-admin-api` exists and has a D1 binding named `DB` and R2 binding named `MEDIA`.
-- Cloudflare Worker `ngms-public-intake` exists and is also bound to `DB`; it uses a Turnstile secret binding.
-- D1 database `ngms-admin` exists. A read-only `sqlite_master` query returned tables `documents`, `enquiries`, `jobs`, `media`, `site_content`, plus SQLite metadata/migration tables.
-- R2 bucket `ngmsmedia` exists. The R2 API reported no custom domains, the managed `r2.dev` endpoint is disabled, and no bucket CORS configuration exists. Current media operations are therefore expected to flow through the Worker rather than direct browser-to-R2 uploads.
-- An Access application named `ngms-admin-api - Cloudflare Workers` exists with one policy. The Worker source validates a `Cf-Access-Jwt-Assertion` JWT against configured issuer/audience values.
-- **Production boundary:** the existing production admin/intake Worker configuration is separate and must retain its production allowlist. The production admin Worker source reviewed for this inventory lists `https://ngms-website-v4.vercel.app`; the V4 preview origin must not be added to production just to make preview tests work.
+This contract is for the isolated HostAfrica-native application in `ngms-rebuild/`. It must not call Supabase, Cloudflare services or Vercel APIs.
 
-### Aggregate record snapshot
+## Public routes
 
-A read-only count query on 29 October 2026 returned:
+- `GET /api/health` — verifies database connectivity without returning credentials.
+- `POST /api/public/enquiries` — validates and saves a website enquiry; includes honeypot, idempotency key and rate limit.
+- `GET /api/public/quotes/:token` — fetches the quotation bound to a valid, unexpired one-use link.
+- `POST /api/public/quotes/:token` — records one customer Accept/Decline decision; acceptance creates one job, decline does not.
+- `GET /api/media/:id` — serves only media explicitly published for public access.
 
-| D1 table | Records |
-|---|---:|
-| `enquiries` | 0 |
-| `jobs` | 0 |
-| `documents` | 0 |
-| `media` | 2 |
-| `site_content` | 3 |
+## Authentication routes
 
-These are a dated snapshot, not a guarantee that counts remain unchanged. No customer rows, document contents, or object filenames were read for this count check. The D1 database metadata endpoint reported `num_tables: 0`, but the direct read-only schema query returned the tables listed above; trust the schema query for current table inventory.
+- `GET /api/auth/session` — current staff user.
+- `POST /api/auth/login` — verify password and create a signed database-backed session.
+- `POST /api/auth/logout` — revoke session.
+- `GET /api/setup/admin` — reports whether one-time first-owner setup is available.
+- `POST /api/setup/admin` — creates the first owner using server-side `NGMS_SETUP_TOKEN`; unavailable after first setup.
 
-## Admin API route map
+## Administrative collection routes
 
-The base route inventory below is from the existing NGMS admin Worker source. The Workflow A additions that follow are deployed to the isolated preview Worker only; they are not production routes.
+All `/api/admin/*` routes require an authorised staff session. Mutations are same-origin protected.
 
-- `GET /health` — health response.
-- `GET /api/admin/enquiries` — list enquiry records.
-- `POST /api/admin/enquiries` — create an enquiry record.
-- `GET /api/admin/jobs` and `POST /api/admin/jobs` — list/create job records.
-- `GET /api/admin/documents` and `POST /api/admin/documents` — legacy/basic document collection.
-- `GET /api/admin/commercial-documents?kind=Quotation|Invoice&status=...` — formal quotation/invoice list, filtered by document kind and optional status.
-- `POST /api/admin/commercial-documents` — create an itemised formal quotation, or create an invoice from an accepted quotation.
-- `GET /api/admin/commercial-documents/:id` — retrieve a formal document with its line items.
-- `PATCH /api/admin/commercial-documents/:id/status` — update permitted formal document statuses. Customer decisions are recorded through the one-use public link, not the manual status editor.
-- `POST /api/admin/commercial-documents/:id/share` — on the preview Worker, requires `enquiry_id`, verifies the enquiry belongs to the quotation's CRM customer, then creates a 30-day one-use customer link and moves the quotation to Sent.
-- `GET /api/admin/commercial-documents/:id/payments` and `POST /api/admin/commercial-documents/:id/payments` — view/record invoice payments, calculate paid/balance cents, reject overpayment and mark Paid only when fully paid.
-- `POST /api/admin/commercial-documents/:id/convert-to-job` — create one job from an accepted quotation.
-- `GET /api/admin/customers` and `POST /api/admin/customers` — list/create CRM customers.
-- `GET /api/public/quotes/:token` and `POST /api/public/quotes/:token` — on the preview Worker, retrieve a token-protected quotation and record one Accepted/Declined decision. Acceptance creates one linked job, marks the source enquiry Converted and records customer activity; decline creates no job.
-- `GET/POST /api/admin/schedules` and `PATCH/DELETE /api/admin/schedules/:id` — schedule records.
-- `GET/POST/PATCH/DELETE /api/admin/operations/{maintenance|suppliers|inventory|financials}/:id?` — operation records.
-- `GET /api/admin/media` and `POST /api/admin/media` — list/upload allowed media.
-- `POST /api/admin/media/:uuid/replace`, `DELETE /api/admin/media/:uuid` or `POST /api/admin/media/:uuid/delete` — replace/delete media.
-- `GET /api/admin/media/:uuid/download` — authenticated media download through the Worker.
-- `GET /api/admin/content` and `PUT /api/admin/content` — read/update content keyed by content key.
+- `GET/POST /api/admin/enquiries` — enquiry register and staff-entered enquiries.
+- `GET/POST /api/admin/customers` — CRM customers.
+- `POST /api/admin/enquiries/:id/convert-to-customer` — link or create a CRM customer from an enquiry.
+- `GET/POST /api/admin/jobs` and `PATCH /api/admin/jobs/:id` — job records/status.
+- `GET/POST /api/admin/schedules` and `PATCH /api/admin/schedules/:id` — scheduled work.
+- `GET/POST /api/admin/commercial-documents?kind=Quotation|Invoice` — formal commercial documents.
+- `GET /api/admin/commercial-documents/:id` — document and line detail.
+- `PATCH /api/admin/commercial-documents/:id/status` — permitted document status changes; Accepted/Declined decisions must use the customer link; Paid requires full ledger payments.
+- `POST /api/admin/commercial-documents/:id/share` — creates a 30-day one-use quotation decision link after validating the customer and originating enquiry.
+- `GET/POST /api/admin/commercial-documents/:id/payments` — payment history and payment allocation. Overpayment is rejected.
+- `POST /api/admin/commercial-documents/:id/convert-to-job` — accepted quotation to job, with duplicate prevention.
+- `GET/POST /api/admin/media` — list and upload media.
+- `PATCH /api/admin/media/:id` — media category, alt text, tags and publication metadata.
+- `POST /api/admin/media/:id/replace` — replace media object.
+- `DELETE /api/admin/media/:id` — delete media only if it is not linked to a project.
+- `GET /api/admin/media/:id/file` — authenticated private preview/download.
+- `GET/POST /api/admin/projects` — project register.
+- `GET/PATCH/DELETE /api/admin/projects/:id` — project details and lifecycle.
+- `POST /api/admin/projects/:id/photos` — attach before/after/general media.
+- `DELETE /api/admin/projects/:id/photos/:photoId` — detach project photo without deleting the media asset.
+- `GET/POST /api/admin/slides` — homepage carousel slides, with server-enforced 12-active-slide maximum.
+- `PATCH/DELETE /api/admin/slides/:id` — update slide content/order/status or remove a slide.
+- `GET/POST /api/admin/operations/{suppliers|materials|purchases|expenses|staff|subcontractors|wages|maintenance}` — Operations Manager registers.
+- `PATCH /api/admin/operations/:module/:id` — status update for an Operations Manager record.
+- `GET /api/admin/content` and `PUT /api/admin/content` — website content drafts.
+- `GET /api/admin/publishing` — publication requests, published versions and audit.
+- `POST /api/admin/publishing/request` — request publication of a saved draft.
+- `POST /api/admin/publishing/approve` — owner/admin review; requester cannot approve their own request.
+- `POST /api/admin/publishing/rollback` — owner/admin rollback to a prior saved publication.
+- `GET /api/admin/reports` — operational, finance, stock and maintenance KPIs.
+- `GET /api/admin/settings` — current application configuration summary.
 
-The `ngms-public-intake` Worker exposes:
-- `GET /api/public/site-content` — read public content from the shared D1 database.
-- `POST /api/public/enquiries` — validate and save a public enquiry; requires valid submitted fields and a valid Turnstile token.
+## Database invariants
 
-## D1 schema and business-model boundaries
+- Monetary values are stored as integer ZAR cents.
+- An invoice is created from an accepted quotation and carries forward its source line items and agreed totals.
+- A unique document/source index prevents duplicate invoices from one quotation.
+- Invoice payment rows are immutable allocations; amounts above the outstanding balance are rejected.
+- An invoice is Paid only when recorded payments cover its full amount.
+- A quotation is Accepted or Declined only through its public one-use decision link.
+- The customer quote link stores only a SHA-256 token hash, has a 30-day expiry, and can be used once.
+- Media files are written outside the public document root and exposed publicly only when marked published.
+- Project references prevent deletion of linked media.
+- All privileged actions are audited.
 
-The production and preview D1 databases contain the core business tables below:
+## Environment variables
 
-- `customers`, `customer_contacts`, `customer_activity`: normalized CRM customers, contacts and activity notes.
-- `enquiries`: customer name, phone/email, requested service, area, details, status, creator, deduplication keys and timestamps.
-- `jobs`: job/site, service, area, details, status and optional customer relationship.
-- `documents`: formal quotations/invoices, customer relationship, reference, issue/due dates, amount/subtotal/discount/VAT cents, status, notes and invoice source document.
-- `document_line_items`: item description, quantity, unit, unit price cents and line total cents, linked to a document.
-- `document_sequences`: yearly formal quotation and invoice number sequences.
-- `document_payments`: invoice payment ledger with amount cents, payment date, method, reference, notes and recorder.
-- `quote_public_links`: hashed, expiring, one-use customer quote decisions, with accepted/declined outcome.
-- `enquiry_customer_links`: explicit enquiry-to-CRM customer relationship.
-- `schedules`: scheduled start/end, assigned person, customer/site, status and notes.
-- `projects`, `media`, `site_content`: project records, R2 media metadata and CMS content.
-- `operation_records`: maintenance, supplier, inventory and financial operational records.
-
-The formal commercial-document API is the supported route for new quotations and invoices. The generic `/api/admin/documents` endpoint remains for legacy/basic records and must not be used by the V4 commercial-document forms.
-
-Business-model limitations remain:
-- The deployed payment API allocates recorded payments to one invoice, calculates the remaining balance, prevents overpayment and sets Paid only when payment allocations cover invoice face value. Refunds, payment reversals and credit-note allocation are not yet implemented.
-- One invoice is permitted per source quotation, including after cancellation, matching the stricter `idx_documents_one_invoice_per_quote` index and server-side duplicate-source check.
-- A complete job status/assignment history is not yet implemented.
-- Financial profitability reports need agreed labour/material allocation and overhead definitions.
-
-Any production schema migration requires a verified backup, duplicate/data preflight checks, non-production rehearsal and explicit release approval.
-
-## Authentication and browser-origin boundary
-
-- Admin Worker reads `Cf-Access-Jwt-Assertion`, checks signature/issuer/audience/expiry and requires an identity claim.
-- The production admin Worker CORS configuration remains separate. Do not add preview app origins to the production Worker or change production Access.
-- The dedicated `ngms-admin-api-preview` Worker (version 49) allowlists `https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev`. The preview API Access app `NGMS Rebuild Preview API` has `options_preflight_bypass=true`, so anonymous OPTIONS requests reach the Worker CORS handler. All actual admin API requests still pass through Cloudflare Access and Worker JWT signature/issuer/audience/expiry validation.
-- A separate preview UI Access app protects the exact `/admin` path and `/admin/*` routes using the single authorised administrator policy; public pages and token quotation routes remain outside those UI paths. These changes were made only in preview. Real human-browser sign-in and preflight still require acceptance testing.
-- Do not add the V4 preview origin to the existing production Worker’s allowlist. Use the preview-specific Worker/policy for preview validation.
-- Never place Cloudflare Access audience/secret bindings, R2 keys, Turnstile secret, or Zapier token in browser-visible environment variables or source code. Only the non-secret API base URL may use `NEXT_PUBLIC_NGMS_API_BASE`.
-
-## Integration safety rules
-
-- The rebuild client permits only the dedicated HTTPS preview API hostname, exposes an API health/sign-in link for Cloudflare Access and displays explicit configuration/error state instead of assuming empty collections. The admin UI reads formal commercial documents, CRM customers, item lines and invoice payment records. Public quotation decisions use one-use tokens rather than exposing private document identifiers. Browser API/CORS/media behaviour still requires human-browser verification.
-- The dashboard must distinguish `0 records` from API unavailable, access denied, timeout, unsupported route and bad response.
-- All create/update/delete actions and public form submission remain disabled until the rebuild preview origin, Access session flow, CORS behaviour and actual write persistence are tested end to end with synthetic records.
-- Private media stays behind the Worker; do not enable public bucket URLs.
-
-
----
-
-## Isolated staging environment — created 29 October 2026
-
-These resources are **preview-only** and separate from the original production database/bucket.
-
-- Preview admin Worker: `ngms-admin-api-preview`
-- Preview API base: `https://ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev`
-- Preview D1: `ngms-admin-preview`, UUID `f12c5c48-58cd-4c48-82de-8c7341b8e6cf`
-- Preview R2: `ngmsmedia-preview`
-- Cloudflare Access application: `NGMS Rebuild Preview API`, protected with the same single-administrator allow criterion as the existing admin application.
-- Worker bindings are verified to target the **preview** D1 and R2 resources only. The preview Worker has no Zapier token binding.
-- The preview API Worker source was inspected and its CORS allowlist includes `https://ngms-rebuild-preview-worker.nextgensolarcleaningmaintenancesolutions.workers.dev` plus the earlier intended `https://ngms-rebuild-preview.vercel.app` origin. This preview allowlist is separate from the production Worker configuration. The real browser CORS/Access flow is still not independently tested.
-
-The preview D1 schema records application migrations 0005, 0006 and 0007–0012:
-- 0007 records the already-present scheduling table/indexes.
-- 0008 creates `operation_records` and category indexes.
-- 0009 adds a partial unique active-invoice/source-quotation index.
-- 0011 adds the `document_payments` ledger, `enquiry_customer_links`, the job source-quotation relationship and the stricter unique index allowing only one invoice per source quotation, including after cancellation.
-- 0012 adds hashed, expiring, one-use `quote_public_links` for customer quotation decisions and the quote-to-job uniqueness index.
-
-The invoice and job duplicate preflight queries returned no rows before the corresponding uniqueness constraints were verified. Migrations 0011 and 0012 were already present in preview D1; their SQL source files are now tracked in `cloudflare/migrations/`. No production D1 migration was applied.
-
-### Synthetic QA fixtures
-
-Four records were inserted into the **preview D1 only**, with `created_by = REBUILD_SYNTHETIC_QA` and explicit “PREVIEW ONLY - Test Customer” labels:
-- enquiry `preview-enquiry-001` — Solar Panel Cleaning / Somerset West / New;
-- job `preview-job-001` — Solar Panel Cleaning / Somerset West / In progress;
-- quotation `preview-quote-001` — R1,234.56 / Draft;
-- invoice `preview-invoice-001` — R789.00 / Sent.
-
-These values exist solely to test the preview interface; they must never be mistaken for genuine work, used for decisions or copied into production.
-
-### Preview access and write gate
-
-- The Worker continues to validate the Cloudflare Access JWT's issuer, audience, expiry and signature.
-- UI mutations require `NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=true` at preview build/runtime and the Worker independently requires a valid Access identity. The flag is unset by default.
-- The deployed Cloudflare V4 preview uses `NEXT_PUBLIC_NGMS_API_BASE=https://ngms-admin-api-preview.nextgensolarcleaningmaintenancesolutions.workers.dev` as a non-secret build variable. The API endpoint and Access policy are preview-specific; do not place the preview API base or preview feature flags into the live production environment.
-- Do not set the preview API base/feature flag on the live `ngms-new` project or production environment.
-- The existing production Worker, production D1, production R2 and original site's domain/DNS were not changed by this staging setup.
-- Public enquiry submission remains disabled in the rebuild. The existing public-intake Worker is bound to production D1; using it for rebuild form tests would put test enquiries into production data. A separate preview intake Worker and Turnstile configuration are required before public form submissions can be enabled.
-- Preview API Access application `NGMS Rebuild Preview API` retains the single-administrator allow policy; only OPTIONS preflight bypass is enabled. Preview admin UI paths have their own single-administrator Access application. Formal commercial, public quotation-decision and payment endpoints are present in the deployed API. However, authorised browser sign-in, actual browser CORS, API reads, public quote acceptance, payment recording and R2 download have **not** yet been completed from a human browser. Keep admin write controls disabled until those tests are performed with synthetic preview records.
-
-
-## Related acceptance record
-
-- [V4 blueprint-to-acceptance matrix](v4-acceptance-matrix.md) — current requirement status, available evidence, exit criteria and production release gate.
-- [Implementation status](implementation-status.md)
-- [Cloudflare preview deployment](cloudflare-preview-deployment.md)
-
-
-## Workflow A — preview-only additions (3 November 2026)
-
-- Preview admin API Worker: `ngms-admin-api-preview`, version **51**, deployed at 100% of that preview Worker’s traffic.
-- Preview intake Worker: `ngms-public-intake-preview`, version **38**, deployed at 100% of that preview Worker’s traffic.
-- Preview public intake: `POST /api/public/enquiries` uses Turnstile validation, honeypot handling, a UUID submission key and server-side duplicate detection. Its CORS allow-list includes the isolated Cloudflare preview website origin. The production intake Worker allow-list was not modified.
-- Preview admin conversion: `POST /api/admin/enquiries/:id/convert-to-customer` uses the existing `enquiry_customer_links` table, links to a matching CRM customer or creates one, updates the enquiry to Contacted and records customer activity. Ambiguous matches are rejected for manual resolution.
-- Preview quotation issue: `POST /api/admin/commercial-documents/:id/share` requires an originating `enquiry_id` and verifies that the quotation and enquiry refer to the same CRM customer before issuing the link.
-- Preview customer decision: the token route retrieves itemised quote data and records one customer decision. Acceptance creates one job linked through `jobs.source_document_id`, sets the enquiry to Converted, and writes customer activity. Decline records the decline without a job. The unique partial index on `jobs.source_document_id` prevents a second job from being created for the same quotation.
-- Access boundary: the existing administrator Access application remains in place. A separate Access application named `NGMS Preview Public Quote Decisions` applies a Bypass/Everyone policy only to `/api/public/quotes/*`; the Worker still requires a 256-bit random, hashed, expiring and single-use token. No admin endpoints are included in the bypass path.
-- Preview write flag: `NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=false`. The admin UI mutations remain disabled until authenticated browser testing. The quote-request form can be browser-tested with synthetic Turnstile submissions, but real customer use is not enabled.
-- Frontend: Workflow A public form, CRM action, enquiry-bound quotation issue selector and customer decision UI are committed to draft PR #283. The latest GitHub rebuild CI run passed TypeScript, dependency audit, no-Supabase guard, Next.js build, Docker build and route smoke tests. Those commits have not yet been deployed to the active frontend preview.
-
-## Remaining acceptance evidence
-
-- A browser test from the actual preview frontend is still required for Turnstile, CORS, Access session, form submission and D1 read-after-write.
-- A synthetic end-to-end quote must be created, issued, accepted and declined in separate test cases; verify one job on acceptance, no job on decline, duplicate/replay returns conflict, and expiry returns not found.
-- The ChatGPT tool environment blocks direct requests to the `workers.dev` origin, so it did not independently verify the public HTTP responses. Do not treat Worker version deployment or source checks as browser acceptance.
+See `.env.example`. Required production variables are `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `SESSION_SECRET`, `NGMS_SETUP_TOKEN`, `MEDIA_ROOT`, `APP_BASE_URL` and `PORT`. Keep all secrets in DirectAdmin server-side environment settings, never in Git or browser bundles.

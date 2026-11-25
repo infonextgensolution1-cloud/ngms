@@ -69,7 +69,7 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   },
   calendar: {
     title: "Job calendar",
-    description: "Review scheduled work from the protected Cloudflare D1 calendar. Appointments are ordered by scheduled start time.",
+    description: "Review scheduled work from the HostAfrica job calendar. Appointments are ordered by scheduled start time.",
     resource: "schedules",
     columns: [
       { key: "title", label: "Appointment" }, { key: "customer_name", label: "Customer / site" },
@@ -90,7 +90,7 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   },
   content: {
     title: "Website content",
-    description: "Review content records currently stored for the website. Editing remains disabled until publish/rollback and concurrency controls are implemented.",
+    description: "Prepare website content drafts, request approval, review publication history and roll back approved changes.",
     resource: "content",
     columns: [
       { key: "content_key", label: "Content key" }, { key: "content_json", label: "Content value" },
@@ -99,7 +99,7 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   },
   reports: {
     title: "Reports",
-    description: "Live operational and verified commercial summary from the isolated Cloudflare preview database.",
+    description: "Live operational and verified commercial summary from the HostAfrica database.",
     resource: "reports",
     columns: [
       { key: "metric", label: "Metric" }, { key: "value", label: "Value" },
@@ -108,7 +108,7 @@ const MODULES: Record<AdminModuleKey, ModuleDefinition> = {
   },
   settings: {
     title: "Settings & access",
-    description: "Review safe commercial preferences and infrastructure ownership. Authentication and security policies remain managed in Cloudflare.",
+    description: "Review safe commercial preferences and infrastructure ownership. Authentication and security policies are managed by NGMS in this application.",
     resource: "settings",
     columns: [
       { key: "setting", label: "Setting" }, { key: "current_value", label: "Current value" },
@@ -273,7 +273,7 @@ function ShareQuotationAction({ row, onUpdated, enquiries }: { row: AdminRow; on
       </div>
     </div>}
     {message && <small className="inline-feedback block mt-1" role="status">{message}</small>}
-    {!previewWritesEnabled() && <small className="module-footnote block mt-1">Sharing is disabled until preview Access and persistence tests pass.</small>}
+    {!previewWritesEnabled() && <small className="module-footnote block mt-1">Quotation sharing requires an active NGMS administrator session.</small>}
   </div>;
 }
 
@@ -364,7 +364,7 @@ function InvoicePaymentsPanel({ row, onUpdated }: { row: AdminRow; onUpdated: ()
           <label className="block text-xs">Reference<input name="reference" maxLength={120} disabled={!previewWritesEnabled()||saving}/></label>
           <label className="block text-xs">Notes<textarea name="notes" rows={2} maxLength={1000} disabled={!previewWritesEnabled()||saving}/></label>
           <button type="submit" className="button button-small button-orange" disabled={!previewWritesEnabled()||saving}>{saving?"Saving payment…":"Save payment"}</button>
-          {!previewWritesEnabled() && <small className="module-footnote block">Payment recording is disabled until preview write acceptance is approved.</small>}
+          {!previewWritesEnabled() && <small className="module-footnote block">Payment recording requires an active NGMS administrator session.</small>}
         </form> : <p className="mt-3 text-xs font-semibold">Invoice paid in full.</p>}
       </> : null}
       {message && <small className="inline-feedback block mt-2" role="status">{message}</small>}
@@ -394,7 +394,7 @@ function ConvertEnquiryToCrmAction({ row, onUpdated }: { row: AdminRow; onUpdate
 }
 
 function CommercialDocumentActions({ moduleKey, row, onUpdated, enquiries }: { moduleKey: "quotes"|"invoices"; row: AdminRow; onUpdated: () => void; enquiries: AdminRow[] }) {
-  const documentComplete = Boolean(row.reference) && row.integrity_status === "Complete" && Number(row.line_item_count) > 0;
+  const documentComplete = Boolean(row.reference) && ["Complete","OK"].includes(String(row.integrity_status ?? "")) && Number(row.line_item_count) > 0;
   return <div className="min-w-[260px]">
     <CommercialDocumentDetails id={String(row.id ?? "")}/>
     {!documentComplete ? <small className="module-footnote block mt-2">Legacy record — {String(row.integrity_status ?? "incomplete")}. Customer issue, payment and job-conversion actions are blocked until the document is accurately reconstructed.</small>
@@ -410,7 +410,7 @@ function CommercialDocumentActions({ moduleKey, row, onUpdated, enquiries }: { m
 
 
 
-const MEDIA_CATEGORIES = ["Uncategorised", "Branding", "Project Photos", "Before & After", "Website", "Documents"];
+const MEDIA_CATEGORIES = ["Uncategorised","Branding","Homepage Hero Slides","Homepage Featured","Website","Solar Panel Cleaning","Painting","Waterproofing","Plumbing","Electrical","Paving","Pool Fibre Lining","High-Pressure Cleaning","Steelwork & Welding","Handyman","Rubble Removal","Subcontractor Work","Body Corporate Projects","Project Photos","Before & After","Portfolio","Documents"];
 
 function AdminMediaPreview({ row }: { row: AdminRow }) {
   const [source, setSource] = useState("");
@@ -456,6 +456,7 @@ function MediaItemActions({ row, apiConfigured, writesEnabled, onUpdated }: {
 }) {
   const [category, setCategory] = useState(String(row.category ?? "Uncategorised"));
   const [altText, setAltText] = useState(String(row.alt_text ?? ""));
+  const [isPublished, setIsPublished] = useState(Number(row.is_published ?? 0) === 1);
   const [tagsText, setTagsText] = useState(() => {
     try {
       const parsed = JSON.parse(String(row.tags_json ?? "[]"));
@@ -475,7 +476,7 @@ function MediaItemActions({ row, apiConfigured, writesEnabled, onUpdated }: {
     }
     setSaving(true); setError(""); setMessage("");
     try {
-      await updateAdminMediaMetadata(String(row.id), { category, alt_text: altText.trim(), tags });
+      await updateAdminMediaMetadata(String(row.id), { category, alt_text: altText.trim(), tags, is_published: isPublished });
       setMessage("Asset details saved.");
       onUpdated();
     } catch (e) { setError(adminApiErrorMessage(e)); }
@@ -497,12 +498,12 @@ function MediaItemActions({ row, apiConfigured, writesEnabled, onUpdated }: {
 
   async function removeFile() {
     if (!row.id || !apiConfigured || !writesEnabled || saving) return;
-    const accepted = window.confirm("Delete this file from the preview media library? Project-linked images are protected and cannot be deleted.");
+    const accepted = window.confirm("Delete this file from the HostAfrica media library? Project-linked images are protected and cannot be deleted.");
     if (!accepted) return;
     setSaving(true); setError(""); setMessage("");
     try {
       await deleteAdminMedia(String(row.id));
-      setMessage("Asset deleted from preview storage.");
+      setMessage("Asset deleted from HostAfrica media storage.");
       onUpdated();
     } catch (e) { setError(adminApiErrorMessage(e)); }
     finally { setSaving(false); }
@@ -513,7 +514,8 @@ function MediaItemActions({ row, apiConfigured, writesEnabled, onUpdated }: {
     <label className="block text-xs">Category<select className="mt-1 w-full" value={category} onChange={(event)=>setCategory(event.target.value)} disabled={!apiConfigured||!writesEnabled||saving}>
       {MEDIA_CATEGORIES.map((item)=><option key={item} value={item}>{item}</option>)}
     </select></label>
-    <label className="block text-xs">Alt text<input className="mt-1 w-full" value={altText} onChange={(event)=>setAltText(event.target.value)} maxLength={240} disabled={!apiConfigured||!writesEnabled||saving} placeholder="Describe the image for accessibility"/></label>
+    <label className="block text-xs">Alt text<input className="mt-1 w-full" value={altText} onChange={(event)=>setAltText(event.target.value)} maxLength={500} disabled={!apiConfigured||!writesEnabled||saving} placeholder="Describe the image for accessibility"/></label>
+    <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={isPublished} onChange={event=>setIsPublished(event.target.checked)} disabled={!apiConfigured||!writesEnabled||saving}/> Publish on public website</label>
     <label className="block text-xs">Tags<input className="mt-1 w-full" value={tagsText} onChange={(event)=>setTagsText(event.target.value)} disabled={!apiConfigured||!writesEnabled||saving} placeholder="e.g. solar, strand, before"/></label>
     <div className="flex flex-wrap gap-2">
       <button type="button" className="button button-small button-outline button-dark-outline" onClick={saveMetadata} disabled={!apiConfigured||!writesEnabled||saving}>Save details</button>
@@ -553,7 +555,7 @@ function CmsDraftEditor({ row, apiConfigured, writesEnabled, onUpdated }: {
     setSaving(true); setError(""); setMessage("");
     try {
       await saveAdminCmsDraft(moduleKey, parsed as Record<string, unknown>);
-      setMessage("CMS draft saved to preview D1.");
+      setMessage("CMS draft saved to HostAfrica MySQL.");
       onUpdated();
     } catch (e) { setError(adminApiErrorMessage(e)); }
     finally { setSaving(false); }
@@ -578,7 +580,7 @@ function CmsDraftEditor({ row, apiConfigured, writesEnabled, onUpdated }: {
   const blockCount = Array.isArray(parsedPreview?.blocks) ? parsedPreview.blocks.length : 0;
 
   return <section className="action-panel">
-    <div className="action-panel-head"><div><strong>Draft editor · {moduleKey}</strong><small>Versioned CMS draft. Publication is a separate, second-person approval.</small></div><span className="preview-pill">PREVIEW CMS</span></div>
+    <div className="action-panel-head"><div><strong>Draft editor · {moduleKey}</strong><small>Versioned CMS draft. Publication requires a separate owner or administrator approval.</small></div><span className="preview-pill">HOSTAFRICA CMS</span></div>
     <div className="grid gap-2 text-xs md:grid-cols-3">
       <div><span className="text-mist block">Page title</span><strong>{String(parsedPreview?.title ?? "Draft title not set")}</strong></div>
       <div><span className="text-mist block">URL slug</span><strong>{String(parsedPreview?.slug ?? moduleKey)}</strong></div>
@@ -591,7 +593,7 @@ function CmsDraftEditor({ row, apiConfigured, writesEnabled, onUpdated }: {
       <button type="button" className="button button-small button-outline button-dark-outline" onClick={saveDraft} disabled={!apiConfigured||!writesEnabled||saving||requesting}>{saving?"Saving draft…":"Save draft"}</button>
       <button type="button" className="button button-small button-orange" onClick={submitForReview} disabled={!apiConfigured||!writesEnabled||saving||requesting}>{requesting?"Submitting…":"Request publication approval"}</button>
     </div>
-    {!writesEnabled&&<p className="guardrail-message mt-2">CMS editing and publication requests are disabled on this preview. Both the preview-write flag and the CMS-specific Worker flag must be approved before writes can be enabled.</p>}
+    {!writesEnabled&&<p className="guardrail-message mt-2">CMS publishing requires an authenticated owner or administrator approval.</p>}
     {message&&<p className="inline-feedback mt-2" role="status">{message}</p>}
     {error&&<p className="action-result action-result-error mt-2" role="alert">{error}</p>}
   </section>;
@@ -662,7 +664,7 @@ function CmsPublishingReview({ apiConfigured, writesEnabled, onUpdated }: {
     </div>
     {error&&<p className="action-result action-result-error" role="alert">{error}</p>}
     {message&&<p className="inline-feedback" role="status">{message}</p>}
-    {!apiConfigured?<div className="table-empty"><h2>CONNECT THE PREVIEW API</h2><p>Publication history is read from the protected preview Worker.</p></div>
+    {!apiConfigured?<div className="table-empty"><h2>CONNECT TO NGMS</h2><p>Publication history is read from the HostAfrica database.</p></div>
     :loading&&!snapshot?<div className="table-empty"><h2>LOADING PUBLICATION RECORDS</h2></div>
     :snapshot&&<>
       <div className="p-3 border-b border-darkgrey">
@@ -677,12 +679,12 @@ function CmsPublishingReview({ apiConfigured, writesEnabled, onUpdated }: {
               <button type="button" className="button button-small button-orange" onClick={()=>void review(request.id,"approve")} disabled={!writesEnabled||Boolean(busyRequest)}>{busyRequest===request.id?"Reviewing…":"Approve & publish"}</button>
               <button type="button" className="button button-small button-outline button-dark-outline" onClick={()=>void review(request.id,"reject")} disabled={!writesEnabled||Boolean(busyRequest)}>Reject request</button>
             </div>
-            <small className="module-footnote block mt-2">The Worker enforces independent approval: the person who requested publication cannot approve or reject their own request.</small>
+            <small className="module-footnote block mt-2">The application requires a different owner or administrator to approve a publication request.</small>
           </div>)}</div>}
       </div>
       <div className="grid gap-3 p-3 md:grid-cols-2">
         <div><strong className="text-sm">Currently published</strong>
-          {snapshot.current.length ? <ul className="mt-2 space-y-2 text-xs">{snapshot.current.map((item)=><li key={item.module_key} className="border-t border-darkgrey pt-2"><strong>{item.module_key} · /{item.slug}</strong><div className="text-mist">Published {displayValue("created_at",item.published_at)} by {item.published_by}</div><div className="text-mist">Version {item.publication_id}</div></li>)}</ul> : <p className="text-xs text-mist mt-2">No CMS publication is recorded as live in this preview database.</p>}
+          {snapshot.current.length ? <ul className="mt-2 space-y-2 text-xs">{snapshot.current.map((item)=><li key={item.module_key} className="border-t border-darkgrey pt-2"><strong>{item.module_key} · /{item.slug}</strong><div className="text-mist">Published {displayValue("created_at",item.published_at)} by {item.published_by}</div><div className="text-mist">Version {item.publication_id}</div></li>)}</ul> : <p className="text-xs text-mist mt-2">No CMS publication is recorded as live in this HostAfrica database.</p>}
         </div>
         <div><strong className="text-sm">Version history</strong>
           {snapshot.history.length ? <ul className="mt-2 space-y-2 text-xs">{snapshot.history.slice(0,10).map((item)=><li key={item.id} className="border-t border-darkgrey pt-2"><strong>{item.module_key} · /{item.slug}</strong><div className="text-mist">{displayValue("created_at",item.published_at)} · {item.published_by}</div><div className="text-mist">Version {item.id}</div></li>)}</ul> : <p className="text-xs text-mist mt-2">No historical publication versions.</p>}
@@ -698,14 +700,14 @@ function CmsPublishingReview({ apiConfigured, writesEnabled, onUpdated }: {
           <input value={rollbackNote} onChange={(event)=>setRollbackNote(event.target.value)} maxLength={1000} placeholder="Rollback reason" disabled={!writesEnabled||rollbackBusy}/>
           <button type="button" className="button button-small button-outline button-dark-outline" onClick={rollback} disabled={!writesEnabled||!rollbackTarget||rollbackBusy}>{rollbackBusy?"Rolling back…":"Create rollback version"}</button>
         </div>
-        {!writesEnabled&&<p className="guardrail-message mt-2">Approvals and rollbacks are disabled in this preview environment.</p>}
+        {!writesEnabled&&<p className="guardrail-message mt-2">Approvals and rollbacks require an owner or administrator account.</p>}
       </div>
       <div className="p-3 border-t border-darkgrey">
         <strong className="text-sm">Audit trail</strong>
         {snapshot.audit.length ? <ul className="mt-2 space-y-1 text-xs">{snapshot.audit.slice(0,12).map((item)=><li key={item.id} className="border-t border-darkgrey pt-1"><strong>{item.action}</strong> · {item.module_key} · {item.actor} · {displayValue("created_at",item.created_at)}</li>)}</ul> : <p className="text-xs text-mist mt-2">No CMS audit events recorded.</p>}
       </div>
     </>}
-    {!writesEnabled&&<p className="module-footnote p-3">This dashboard is read-only. CMS changes require both the general preview write gate and the CMS-specific preview write gate; the Worker independently validates permissions and second-person approval.</p>}
+    {!writesEnabled&&<p className="module-footnote p-3">CMS changes require an authenticated administrator and a separate owner/administrator approval before publication.</p>}
   </section>;
 }
 
@@ -752,7 +754,7 @@ function ScheduleCreatePanel({ apiConfigured, writesEnabled, onCreated }: {
         notes: String(data.get("notes") ?? "").trim(),
         status: "Scheduled",
       });
-      setMessage("Appointment saved to the isolated preview calendar.");
+      setMessage("Appointment saved to the HostAfrica job calendar.");
       form.reset();
       onCreated();
     } catch (e) {
@@ -764,8 +766,8 @@ function ScheduleCreatePanel({ apiConfigured, writesEnabled, onCreated }: {
 
   return <section className="action-panel">
     <div className="action-panel-head">
-      <div><strong>Schedule an appointment</strong><small>Creates a calendar entry in preview D1 only.</small></div>
-      <span className="preview-pill">PREVIEW</span>
+      <div><strong>Schedule an appointment</strong><small>Creates a calendar entry in HostAfrica MySQL only.</small></div>
+      <span className="preview-pill">HOSTAFRICA</span>
     </div>
     <form className="admin-form-grid" onSubmit={submit}>
       <label className="admin-form-wide">Appointment title<input name="title" required maxLength={180} disabled={!writesEnabled || !apiConfigured || saving} placeholder="e.g. Solar panel cleaning — site visit"/></label>
@@ -778,7 +780,7 @@ function ScheduleCreatePanel({ apiConfigured, writesEnabled, onCreated }: {
       <label className="admin-form-wide">Notes<textarea name="notes" rows={2} maxLength={4000} disabled={!writesEnabled || !apiConfigured || saving}/></label>
       <div className="admin-form-wide form-actions"><button type="submit" className="button button-orange" disabled={!writesEnabled || !apiConfigured || saving}>{saving ? "Saving appointment…" : "Save appointment"}</button><span>New appointments start with Scheduled status.</span></div>
     </form>
-    {!writesEnabled && <p className="guardrail-message">Calendar writes remain disabled until the preview write-acceptance checks are approved.</p>}
+    {!writesEnabled && <p className="guardrail-message">Calendar changes require an authorised NGMS administrator session.</p>}
     {message && <p className="inline-feedback" role="status">{message}</p>}
     {error && <p className="action-result action-result-error" role="alert">{error}</p>}
   </section>;
@@ -806,6 +808,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
+  const [mediaCategory, setMediaCategory] = useState("Uncategorised");
   const apiConfigured = Boolean(getAdminApiBase());
   const apiHealthUrl = getAdminApiHealthUrl();
   const writesEnabled = previewWritesEnabled();
@@ -915,7 +918,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
           vat_enabled: data.get("vat_enabled") === "on",
           notes: String(data.get("notes") ?? "").trim(),
         });
-        setActionMessage("Formal quotation created in preview D1. Its NGMS reference and item lines have been saved.");
+        setActionMessage("Formal quotation created in HostAfrica MySQL. Its NGMS reference and item lines have been saved.");
         setQuoteLines([{ description: "", quantity: "1", unit: "item", unit_price: "" }]);
         form.reset();
         setShowCreate(false);
@@ -947,7 +950,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
           due_date: String(data.get("due_date") ?? "").trim() || undefined,
           notes: String(data.get("notes") ?? "").trim(),
         });
-        setActionMessage("Invoice created in preview D1 from the accepted quotation, carrying across its approved line items and VAT treatment.");
+        setActionMessage("Invoice created in HostAfrica MySQL from the accepted quotation, carrying across its approved line items and VAT treatment.");
         form.reset();
         setShowCreate(false);
         setRefreshVersion((version) => version + 1);
@@ -974,7 +977,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     setActionError("");
     try {
       await createAdminRecord(writeResource, payload);
-      setActionMessage(moduleKey === "jobs" ? "Job created in the preview database." : "Enquiry created in the preview database.");
+      setActionMessage(moduleKey === "jobs" ? "Job created in HostAfrica MySQL." : "Enquiry created in HostAfrica MySQL.");
       form.reset();
       setShowCreate(false);
       setRefreshVersion((version)=>version+1);
@@ -1008,7 +1011,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
         billing_address: String(data.get("billing_address") ?? "").trim(),
       });
       if (customer.id) setNewCustomerId(customer.id);
-      setActionMessage("Customer added to the preview CRM. Select the customer when preparing the quotation.");
+      setActionMessage("Customer added to the HostAfrica CRM. Select the customer when preparing the quotation.");
       form.reset();
       setShowCustomerForm(false);
       setRefreshVersion((version) => version + 1);
@@ -1020,18 +1023,24 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
   }
 
   async function handleUpload(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file || !writesEnabled || !apiConfigured) return;
+    const files = Array.from(event.target.files ?? []);
+    if (!files.length || !writesEnabled || !apiConfigured) return;
+    if (files.length > 30) { setActionError("Choose up to 30 files per upload batch."); event.target.value = ""; return; }
     setUploading(true);
     setUploadMessage("");
     setActionError("");
+    let completed = 0;
+    const failures: string[] = [];
     try {
-      const record = await uploadAdminMedia(file);
-      setUploadMessage("Upload stored in the preview media bucket: "+String(record.original_name ?? record.id ?? file.name));
+      for (const file of files) {
+        try { await uploadAdminMedia(file, mediaCategory); completed++; }
+        catch (error) { failures.push(file.name + ": " + adminApiErrorMessage(error)); }
+        setUploadMessage("Uploaded " + completed + " of " + files.length + " file(s).");
+      }
+      if (failures.length) setActionError(failures.join(" | "));
+      else setUploadMessage("Uploaded " + completed + " file(s) to the HostAfrica media library.");
       setRefreshVersion((version)=>version+1);
       event.target.value = "";
-    } catch (error) {
-      setActionError(adminApiErrorMessage(error));
     } finally {
       setUploading(false);
     }
@@ -1045,22 +1054,22 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     </div>
     <div className="api-notice" role="status">
       <span className="notice-dot" aria-hidden="true"/>
-      <div><strong>{error ? "API data is unavailable" : loading ? "Loading records" : !module.resource ? "API route not implemented" : !apiConfigured ? "Preview integration pending" : "Read-only API connection"}</strong>
-        <p>{error ? error : !module.resource ? "The Worker does not expose this module. No demo records are displayed." : !apiConfigured ? adminApiConfigurationMessage() + " No request was sent and no data is simulated." : "Reads use the approved preview Worker. Any write controls remain disabled by default until preview authentication and persistence tests are approved."}</p>
-        {apiHealthUrl&&<p><a className="text-link" href={apiHealthUrl} target="_blank" rel="noopener noreferrer">Open secure API sign-in / health check ↗</a> <span className="module-footnote">After signing in, return here and refresh records.</span></p>}
+      <div><strong>{error ? "API data is unavailable" : loading ? "Loading records" : !module.resource ? "API route not implemented" : !apiConfigured ? "HostAfrica integration pending" : "HostAfrica API connected"}</strong>
+        <p>{error ? error : !module.resource ? "The HostAfrica application does not expose this module. No demo records are displayed." : !apiConfigured ? adminApiConfigurationMessage() + " No request was sent and no data is simulated." : "Reads and writes use the same-origin HostAfrica application API. Administrator actions are audited."}</p>
+        {apiHealthUrl&&<p><a className="text-link" href={apiHealthUrl} target="_blank" rel="noopener noreferrer">Check HostAfrica database health ↗</a> <span className="module-footnote">This checks the application database connection; sign-in is handled on this website.</span></p>}
       </div>
     </div>
 
     {moduleKey === "calendar" && <ScheduleCreatePanel apiConfigured={apiConfigured} writesEnabled={writesEnabled} onCreated={()=>setRefreshVersion((version)=>version+1)}/>}
 
     {canCreate && <section className="action-panel">
-      <div className="action-panel-head"><div><strong>Create {moduleKey==="enquiries"?"enquiry":moduleKey==="jobs"?"job":moduleKey==="quotes"?"quotation":"invoice"}</strong><small>New records are only allowed when the explicit preview-write flag is enabled.</small></div>
+      <div className="action-panel-head"><div><strong>Create {moduleKey==="enquiries"?"enquiry":moduleKey==="jobs"?"job":moduleKey==="quotes"?"quotation":"invoice"}</strong><small>New records are created in the isolated HostAfrica staging database.</small></div>
         <div className="flex gap-2 flex-wrap">
           {(moduleKey === "quotes" || moduleKey === "invoices") && <button type="button" className="button button-outline button-dark-outline" onClick={()=>{setShowCustomerForm(v=>!v);setActionError("");}} disabled={!writesEnabled||!apiConfigured}>{showCustomerForm?"Close customer form":"+ Add customer"}</button>}
           <button type="button" className="button button-orange" onClick={()=>{setShowCreate(v=>!v);setActionMessage("");setActionError("");}} disabled={!writesEnabled||!apiConfigured}>{showCreate?"Close form":"+ New record"}</button>
         </div>
       </div>
-      {!writesEnabled&&<p className="guardrail-message">Writes disabled: enable NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES only after Access, CORS and staging persistence checks pass.</p>}
+      {!writesEnabled&&<p className="guardrail-message">Sign in with an authorised NGMS administrator account before creating records.</p>}
       {showCreate&&writesEnabled&&apiConfigured&&<form className="admin-form-grid" onSubmit={handleCreate}>
         {moduleKey === "quotes" && <>
           <label className="admin-form-wide">CRM customer
@@ -1069,7 +1078,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
               {customers.filter((customer)=>customer.status !== "Archived").map((customer)=><option key={String(customer.id)} value={String(customer.id)}>{String(customer.display_name ?? customer.company_name ?? customer.id)} · {String(customer.primary_phone ?? "No phone")}</option>)}
             </select>
           </label>
-          {!customers.length && <p className="admin-form-wide guardrail-message">There are no CRM customers in this preview database yet. Add a customer before creating a formal quotation.</p>}
+          {!customers.length && <p className="admin-form-wide guardrail-message">There are no CRM customers in the HostAfrica database yet. Add a customer before creating a formal quotation.</p>}
           <div className="admin-form-wide">
             <strong>Quotation line items</strong>
             {quoteLines.map((line,index)=><div key={index} className="admin-form-grid mt-3 border border-darkgrey rounded-card p-3">
@@ -1084,7 +1093,7 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
           <label>Discount (ZAR)<input name="discount_amount" type="number" min="0" step="0.01" defaultValue="0"/></label>
           <label className="flex items-center gap-2"><input name="vat_enabled" type="checkbox" className="w-4 h-4"/> Apply VAT using saved NGMS settings</label>
           <label className="admin-form-wide">Quotation notes<textarea name="notes" rows={3} maxLength={4000} placeholder="Scope, exclusions, access notes or payment terms"/></label>
-          <div className="admin-form-wide form-actions"><button className="button button-orange" type="submit" disabled={saving||!customers.length}>{saving?"Saving…":"Create formal quotation"}</button><span>Creates an NGMS reference and stores the itemised lines in preview D1.</span></div>
+          <div className="admin-form-wide form-actions"><button className="button button-orange" type="submit" disabled={saving||!customers.length}>{saving?"Saving…":"Create formal quotation"}</button><span>Creates an NGMS reference and stores the itemised lines in HostAfrica MySQL.</span></div>
         </>}
         {moduleKey === "invoices" && <>
           <label className="admin-form-wide">Accepted quotation
@@ -1104,18 +1113,18 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
           <label>Area / suburb<input name="area" maxLength={160} autoComplete="off"/></label>
           {moduleKey==="enquiries"&&<><label>Phone<input name="phone" type="tel" maxLength={40} autoComplete="off"/></label><label>Email<input name="email" type="email" maxLength={254} autoComplete="off"/></label></>}
           <label className="admin-form-wide">Job details<textarea name="details" rows={3} maxLength={4000}/></label>
-          <div className="admin-form-wide form-actions"><button className="button button-orange" type="submit" disabled={saving}>{saving?"Saving…":"Create in preview"}</button><span>Records are written only to the isolated preview D1 database.</span></div>
+          <div className="admin-form-wide form-actions"><button className="button button-orange" type="submit" disabled={saving}>{saving?"Saving…":"Create record"}</button><span>Records are written only to the separate HostAfrica staging database.</span></div>
         </>}
       </form>}
       {showCustomerForm&&writesEnabled&&apiConfigured&&(moduleKey==="quotes"||moduleKey==="invoices")&&<form className="admin-form-grid mt-4 border-t border-darkgrey pt-4" onSubmit={handleCustomerCreate}>
-        <strong className="admin-form-wide">Add customer to preview CRM</strong>
+        <strong className="admin-form-wide">Add customer to HostAfrica CRM</strong>
         <label>Customer name<input name="display_name" required maxLength={160}/></label>
         <label>Customer type<select name="customer_type" defaultValue="Individual"><option>Individual</option><option>Business</option><option>Body corporate</option></select></label>
         <label>Phone<input name="primary_phone" type="tel" maxLength={40}/></label>
         <label>Email<input name="primary_email" type="email" maxLength={254}/></label>
         <label className="admin-form-wide">Service address<input name="service_address" maxLength={1000}/></label>
         <label className="admin-form-wide">Billing address<input name="billing_address" maxLength={1000}/></label>
-        <div className="admin-form-wide form-actions"><button className="button button-orange" type="submit" disabled={saving}>{saving?"Saving…":"Save customer"}</button><span>Customer details are stored only in the isolated preview CRM.</span></div>
+        <div className="admin-form-wide form-actions"><button className="button button-orange" type="submit" disabled={saving}>{saving?"Saving…":"Save customer"}</button><span>Customer details are stored in the separate HostAfrica staging CRM.</span></div>
       </form>}
     </section>}
 
@@ -1127,20 +1136,21 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
       <CmsPublishingReview apiConfigured={apiConfigured} writesEnabled={cmsWritesEnabled()} onUpdated={()=>setRefreshVersion((version)=>version+1)}/>
     </>}
 
-    {moduleKey==="media"&&<section className="action-panel"><div className="action-panel-head"><div><strong>Upload media</strong><small>JPEG, PNG, WebP, AVIF or PDF · maximum 10 MB.</small></div><span className="preview-pill">PREVIEW BUCKET</span></div><label className="upload-control">Choose a file<input type="file" accept="image/jpeg,image/png,image/webp,image/avif,application/pdf" disabled={!writesEnabled||!apiConfigured||uploading} onChange={handleUpload}/></label>{uploading&&<p className="inline-feedback" role="status">Uploading to preview storage…</p>}{uploadMessage&&<p className="inline-feedback" role="status">{uploadMessage}</p>}{!writesEnabled&&<p className="guardrail-message">Uploads remain disabled until preview Access/CORS and persistence checks are approved.</p>}</section>}
+    {moduleKey==="media"&&<section className="action-panel"><div className="action-panel-head"><div><strong>Upload media</strong><small>JPEG, PNG, WebP, AVIF or PDF · maximum 10 MB.</small></div><span className="preview-pill">HOSTAFRICA MEDIA</span></div><label className="block text-xs mb-3">Upload category<select className="mt-1 w-full" value={mediaCategory} onChange={(event)=>setMediaCategory(event.target.value)} disabled={!writesEnabled||!apiConfigured||uploading}>{MEDIA_CATEGORIES.map((item)=><option key={item} value={item}>{item}</option>)}</select></label>
+    <label className="upload-control">Choose files<input type="file" multiple accept="image/jpeg,image/png,image/webp,image/avif,application/pdf" disabled={!writesEnabled||!apiConfigured||uploading} onChange={handleUpload}/></label>{uploading&&<p className="inline-feedback" role="status">Uploading to HostAfrica media storage…</p>}{uploadMessage&&<p className="inline-feedback" role="status">{uploadMessage}</p>}{!writesEnabled&&<p className="guardrail-message">Uploads require an authorised NGMS administrator session and a configured media directory.</p>}</section>}
 
     {(actionMessage||actionError)&&<div className={actionError?"action-result action-result-error":"action-result"} role="status"><strong>{actionError?"Action failed":"Action complete"}</strong><p>{actionError||actionMessage}</p></div>}
 
     <section className="data-panel">
-      <div className="data-toolbar"><div><strong>{title}</strong><small>{error?"Could not verify the current record count":loading?"Retrieving from protected API…":hasReadEndpoint&&apiConfigured?rows.length+" records returned by API":"Live record retrieval is not active"}</small></div>
+      <div className="data-toolbar"><div><strong>{title}</strong><small>{error?"Could not verify the current record count":loading?"Retrieving from HostAfrica API…":hasReadEndpoint&&apiConfigured?rows.length+" records returned by API":"Live record retrieval is not active"}</small></div>
         <input aria-label={"Search "+title} placeholder="Search loaded records…" value={query} onChange={(event)=>setQuery(event.target.value)} disabled={!rows.length}/>
         <button className="button button-orange" type="button" onClick={()=>setRefreshVersion((v)=>v+1)} disabled={loading||!module.resource||!apiConfigured}>Refresh</button>
       </div>
-      {loading?<div className="table-empty" role="status"><span aria-hidden="true">◌</span><h2>LOADING RECORDS</h2><p>Waiting for the protected Cloudflare API response.</p></div>
+      {loading?<div className="table-empty" role="status"><span aria-hidden="true">◌</span><h2>LOADING RECORDS</h2><p>Waiting for the protected NGMS API response.</p></div>
       :error?<div className="table-empty"><span aria-hidden="true">!</span><h2>RECORDS COULD NOT BE LOADED.</h2><p>No empty list or zero balance is substituted for an API error.</p><button className="button button-outline button-dark-outline" type="button" onClick={()=>setRefreshVersion((v)=>v+1)}>Try again</button></div>
       :!module.resource?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>ENDPOINT NOT YET IMPLEMENTED.</h2><p>This module needs a documented API route and approved business definitions before its data can be displayed.</p></div>
-      :!apiConfigured?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>CONNECT THE PREVIEW API.</h2><p>Set the non-secret API base URL in Vercel Preview. Cloudflare Access and the preview origin allowlist must also match.</p></div>
-      :rows.length===0?<div className="table-empty"><span aria-hidden="true">▤</span><h2>NO RECORDS RETURNED.</h2><p>The protected API returned an empty collection for this module. This is not an API error.</p></div>
+      :!apiConfigured?<div className="table-empty"><span aria-hidden="true">⌁</span><h2>NGMS API UNAVAILABLE.</h2><p>The same-origin HostAfrica API is not responding. Check the Node.js application and MySQL configuration.</p></div>
+      :rows.length===0?<div className="table-empty"><span aria-hidden="true">▤</span><h2>NO RECORDS RETURNED.</h2><p>The HostAfrica API returned an empty collection for this module.</p></div>
       :visibleRows.length===0?<div className="table-empty"><span aria-hidden="true">⌕</span><h2>NO MATCHES.</h2><p>Try a different search term.</p></div>
       :<div className="table-scroll"><table><thead><tr>{module.columns.map((column)=><th key={column.key}>{column.label}</th>)}{moduleKey==="media"&&<><th>Preview</th><th>Asset management</th></>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<th>Document workflow</th>}{moduleKey==="enquiries"&&<th>CRM / quotation workflow</th>}{writesEnabled&&["enquiries","jobs","quotes","invoices","calendar"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents","schedules"].includes(module.resource)&&<th>Status action</th>}</tr></thead>
         <tbody>{visibleRows.map((row,index)=><tr key={String(row.id??row.content_key??index)}>{module.columns.map((column)=><td key={column.key}>{displayValue(column.key,row[column.key])}</td>)}{moduleKey==="media"&&<><td><AdminMediaPreview key={String(row.id)+"-"+String(row.updated_at??row.size_bytes)} row={row}/></td><td><MediaItemActions key={String(row.id)} row={row} apiConfigured={apiConfigured} writesEnabled={writesEnabled} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td></>}{(moduleKey==="quotes"||moduleKey==="invoices")&&<td><CommercialDocumentActions moduleKey={moduleKey} row={row} enquiries={enquiryRows} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{moduleKey==="enquiries"&&<td><ConvertEnquiryToCrmAction row={row} onUpdated={()=>setRefreshVersion((version)=>version+1)}/></td>}{writesEnabled&&["enquiries","jobs","quotes","invoices","calendar"].includes(moduleKey)&&module.resource&&["enquiries","jobs","documents","schedules"].includes(module.resource)&&<td>{module.resource === "documents" && !row.reference ? <small className="module-footnote">Legacy document — read-only</small> : <StatusEditor key={String(row.id)+"-"+String(row.status)} resource={module.resource as "enquiries"|"jobs"|"documents"|"schedules"} statusOptions={module.resource === "documents" ? (module.kind === "Quotation" ? QUOTE_STATUS_OPTIONS : INVOICE_STATUS_OPTIONS) : module.resource === "schedules" ? SCHEDULE_STATUS_OPTIONS : STATUS_OPTIONS[module.resource as "enquiries"|"jobs"]} row={row} onSaved={()=>setRefreshVersion((version)=>version+1)}/>}</td>}</tr>)}</tbody></table></div>}
@@ -1149,6 +1159,6 @@ export default function AdminModuleClient({ moduleKey }: { moduleKey: AdminModul
     {moduleKey==="settings"&&<p className="module-footnote">This screen does not expose Access policies, API secrets, DNS, or production credentials. VAT preferences are reviewed here; changes to financial settings remain a separately guarded action.</p>}
     {moduleKey==="invoices"&&<p className="module-footnote">Invoices are generated only from accepted quotations. The payment ledger tracks partial payments, prevents overpayment and marks an invoice Paid only when its allocated payments cover the full value. Refunds, reversals and credit-note allocation remain separate work.</p>}
     {moduleKey==="content"&&<p className="module-footnote">The CMS has versioned drafts, independent approval, publication history, audit logging and rollback controls. Editing and publishing remain blocked until the CMS-specific preview gate is approved.</p>}
-    <p className="module-footnote">Preview write controls require NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=true. The Worker independently verifies Cloudflare Access identity for every protected action.</p>
+    <p className="module-footnote">Preview write controls require NEXT_PUBLIC_NGMS_ENABLE_PREVIEW_WRITES=true. Every protected action verifies the NGMS administrator session on the server.</p>
   </div>;
 }

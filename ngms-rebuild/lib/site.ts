@@ -2,7 +2,7 @@ export const site = {
   name: "NextGen Maintenance Solutions",
   shortName: "NGMS",
   tagline: "One Call. All Solutions.",
-  domain: "https://www.nextgensolarmaintenance.co.za",
+  domain: "https://nextgen.getmaintenance.co.za",
   phoneDisplay: "063 138 7945",
   phoneHref: "+27631387945",
   whatsappHref: "https://wa.me/27631387945?text=Hi%20NextGen%2C%20I%27d%20like%20a%20quote%20please.",
@@ -28,6 +28,8 @@ export const publicNav = [
   {href:"/maintenance-packages",label:"Maintenance plans"},
   {href:"/body-corporate-maintenance",label:"Body corporates"},
   {href:"/portfolio",label:"Projects"},
+  {href:"/before-after",label:"Before & After"},
   {href:"/price-list",label:"Prices"},
-  {href:"/contact",label:"Contact"}
+  {href:"/contact",label:"Contact"},
+  {href:"/portal",label:"Customer Portal"}
 ];
