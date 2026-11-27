@@ -1,15 +1,13 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
-import Link from 'next/link'
+import { Barlow_Condensed } from 'next/font/google'
 import SeasonalBanner from '@/components/SeasonalBanner'
 import DiscountPopup from '@/components/DiscountPopup'
-import HomeHero from '@/components/home/HomeHero'
-import HowItWorks from '@/components/HowItWorks'
-import BodyCorporateSection from '@/components/BodyCorporateSection'
-import HelderbergToday from '@/components/home/HelderbergToday'
-import { GoogleReviews, WhyNgms, AreasAndFaq, FinalCta } from '@/components/home/HomeSections'
+import Hero from '@/components/home2026/Hero'
+import Effects from '@/components/home2026/Effects'
+import { Marquee, Audience, LocalContact, Features } from '@/components/home2026/Intro'
+import { Services, SolarFlagship, BeforeAfter, GoogleReviews } from '@/components/home2026/Showcase'
+import { WhyNgms, HowItWorks, BodyCorporate, WeatherToday, AreasAndFaq, FinalCta } from '@/components/home2026/Trust'
 import { services } from '@/lib/services'
-import { SITE, whatsappLink } from '@/lib/site'
 import { getBusinessHours } from '@/lib/business-hours'
 import { getBeforeAfter, getHeroSlides, getServiceImages, getSlotPhotos } from '@/lib/queries'
 import './homepage-mason-editorial.css'
@@ -18,6 +16,17 @@ import './homepage-fusion.css'
 import './ngms-public-fusion.css'
 import './homepage-stein-reference.css'
 import './homepage-graphite-brutalist.css'
+// 2026 homepage look. Loaded last; every rule is scoped to .ng26.
+import './homepage-2026.css'
+
+// Display face for the big condensed headlines (the rest of the site keeps Inter + Poppins).
+const display = Barlow_Condensed({
+  subsets: ['latin'],
+  weight: ['600', '700', '800', '900'],
+  style: ['normal', 'italic'],
+  variable: '--ng26-display',
+  display: 'swap',
+})
 
 // Admin-managed homepage media should become visible promptly after an edit.
 export const revalidate = 60
@@ -31,175 +40,70 @@ export default async function HomePage() {
     getBeforeAfter(),
     getSlotPhotos(['hero_solar', 'hero_feature', 'mission_left', 'mission_right']),
   ])
-  const comparisonPhotos = beforeAfter.filter((photo) => photo.before_image_url && photo.after_image_url).slice(0, 3)
+  const proofPairs = beforeAfter
+    .filter((photo) => photo.before_image_url && photo.after_image_url)
+    .slice(0, 3)
+    .map((photo) => ({
+      before: photo.before_image_url,
+      after: photo.after_image_url,
+      caption: photo.caption || '',
+      location: photo.location || '',
+    }))
+  const tradeCount = services.length
 
   return (
-    <main className="ngms-home-new">
-      <SeasonalBanner />
-      <DiscountPopup />
-      <HomeHero slides={slides} days={hours.days} open={hours.open} close={hours.close} />
+    <>
+      {/* Banner + popup keep the class their existing styles are scoped to. */}
+      <div className="ngms-home-new" style={{ display: 'contents' }}>
+        <SeasonalBanner />
+        <DiscountPopup />
+      </div>
 
-      <section className="ngms-new-clients" aria-labelledby="ngms-clients-title">
-        <div>
-          <p className="ngms-new-eyebrow ngms-new-eyebrow--dark">START HERE</p>
-          <h2 id="ngms-clients-title">WHO ARE WE<br /><span>HELPING TODAY?</span></h2>
-        </div>
-        <div className="ngms-new-client-grid">
-          <Link href="/quote?type=homeowner"><span>01</span><strong>HOMEOWNERS</strong><small>Keep your property in shape.</small><b aria-hidden="true">↗</b></Link>
-          <Link href="/body-corporate-maintenance"><span>02</span><strong>BODY CORPORATES</strong><small>Planned upkeep for shared spaces.</small><b aria-hidden="true">↗</b></Link>
-          <Link href="/quote?type=commercial"><span>03</span><strong>BUSINESSES</strong><small>One contact for ongoing maintenance.</small><b aria-hidden="true">↗</b></Link>
-        </div>
-      </section>
-
-      <section className="ngms-new-intro" aria-labelledby="ngms-intro-title">
-        <div>
-          <p className="ngms-new-eyebrow ngms-new-eyebrow--dark">ONE LOCAL POINT OF CONTACT</p>
-          <h2 id="ngms-intro-title">LESS CHASING.<br /><span>MORE GETTING DONE.</span></h2>
-        </div>
-        <p>From solar panel cleaning to repairs, painting and exterior maintenance, NGMS helps homeowners, body corporates and businesses manage property work with one reliable team.</p>
-      </section>
-
-      <section className="ngms-interactive-features" aria-label="Why customers choose NextGen Maintenance Solutions">
-        <div className="ngms-interactive-features__grid">
-          <Link href="/services" className="ngms-interactive-feature">
-            <span className="ngms-interactive-feature__circle">
-              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M29 8a11 11 0 0 0-13.8 13.8L7 30l11 11 8.2-8.2A11 11 0 0 0 40 19l-7 7-7-7 7-7a11 11 0 0 0-4-4Z"/><path d="m11 30 7 7"/></svg>
-            </span>
-            <h2>BEST SERVICES</h2>
-            <p>Practical maintenance solutions delivered by one accountable team.</p>
-            <span className="ngms-interactive-feature__more">MORE <span aria-hidden="true">↗</span></span>
-          </Link>
-
-          <Link href="/portfolio" className="ngms-interactive-feature">
-            <span className="ngms-interactive-feature__circle">
-              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 40V12h34v28H7Z"/><path d="M13 12V7h22v5M15 19h6m6 0h6M15 25h6m6 0h6M15 31h6m6 0h6M21 40V33h6v7"/></svg>
-            </span>
-            <h2>COMPLETE SOLUTIONS</h2>
-            <p>Residential, commercial and shared-property maintenance in one place.</p>
-            <span className="ngms-interactive-feature__more">MORE <span aria-hidden="true">↗</span></span>
-          </Link>
-
-          <Link href="/about" className="ngms-interactive-feature">
-            <span className="ngms-interactive-feature__circle">
-              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5 39 11v11c0 10-6.4 16.5-15 21-8.6-4.5-15-11-15-21V11l15-6Z"/><path d="m16 24 5 5 11-12"/></svg>
-            </span>
-            <h2>QUALITY WORKMANSHIP</h2>
-            <p>Clear scopes, considered workmanship and visible project results.</p>
-            <span className="ngms-interactive-feature__more">MORE <span aria-hidden="true">↗</span></span>
-          </Link>
-
-          <Link href="/contact" className="ngms-interactive-feature">
-            <span className="ngms-interactive-feature__circle">
-              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 27v-4a16 16 0 0 1 32 0v4"/><path d="M8 24H6v9h8v-9H8Zm32 0h2v9h-8v-9h6Z"/><path d="M34 34c-2 5-6 7-12 7h-4"/></svg>
-            </span>
-            <h2>QUICK SUPPORT</h2>
-            <p>Speak to our team and send through your maintenance requirements.</p>
-            <span className="ngms-interactive-feature__more">MORE <span aria-hidden="true">↗</span></span>
-          </Link>
-        </div>
-      </section>
-
-      <section className="ngms-new-services" aria-labelledby="ngms-services-title">
-        <div className="ngms-new-section-head">
-          <div>
-            <p className="ngms-new-eyebrow ngms-new-eyebrow--dark">WHAT WE DO</p>
-            <h2 id="ngms-services-title">ONE TEAM.<br /><span>MANY SOLUTIONS.</span></h2>
-          </div>
-          <Link href="/services" className="ngms-new-text-link">VIEW ALL SERVICES <span aria-hidden="true">↗</span></Link>
-        </div>
-        <ul className="ngms-new-service-grid">
-          {services.map((service, index) => {
-            const image = serviceImages[service.slug]
-            return <li key={service.slug}>
-              <Link href={`/services/${service.slug}`} className="ngms-new-service-card">
-                <div className="ngms-new-service-card__media">
-                  {image ? <Image src={image} alt={`${service.name} service imagery`} fill sizes="(max-width: 700px) 100vw, (max-width: 1050px) 50vw, 25vw" quality={76} unoptimized={image.includes('.supabase.co') || image.includes('images.unsplash.com')} /> : <div className="ngms-new-service-card__placeholder" />}
-                  <span className="ngms-new-service-card__number">{String(index + 1).padStart(2, '0')}</span>
-                </div>
-                <div className="ngms-new-service-card__body">
-                  <h3>{service.name}</h3>
-                  <p>{service.tagline}</p>
-                  <span className="ngms-new-service-card__link">EXPLORE SERVICE <span aria-hidden="true">↗</span></span>
-                </div>
-              </Link>
-            </li>
-          })}
-        </ul>
-      </section>
-
-      <section className="ngms-new-solar" aria-labelledby="ngms-solar-title">
-        <div className="ngms-new-solar__copy">
-          <p className="ngms-new-eyebrow">FLAGSHIP SERVICE · SOLAR</p>
-          <h2 id="ngms-solar-title">CLEAN PANELS.<br /><span>CLEAR RESULTS.</span></h2>
-          <p>Coastal salt, dust and pollen build up on solar panels. Our careful cleaning service helps keep your panels clear, with before-and-after photos so you can see the work.</p>
-          <div className="ngms-new-solar__actions">
-            <Link href="/solar-panel-cleaning/helderberg" className="ngms-new-button ngms-new-button--orange">SOLAR PANEL CLEANING <span aria-hidden="true">↗</span></Link>
-            <Link href="/roi-calculator" className="ngms-new-button ngms-new-button--outline">CHECK CLEANING ROI</Link>
-          </div>
-        </div>
-        <div className="ngms-new-solar__facts">
-          {slotPhotos.hero_solar?.image_url && (
-            <div className="ngms-new-solar__photo">
-              <Image
-                src={slotPhotos.hero_solar.image_url}
-                alt={slotPhotos.hero_solar.caption || 'NGMS solar panel cleaning project'}
-                fill
-                sizes="(max-width: 900px) 100vw, 40vw"
-                quality={80}
-                unoptimized={slotPhotos.hero_solar.image_url.includes('.supabase.co/storage/') || slotPhotos.hero_solar.image_url.includes('images.unsplash.com')}
-                className="object-cover"
-              />
-              {slotPhotos.hero_solar.caption && (
-                <p className="absolute inset-x-0 bottom-0 bg-black/75 px-3 py-2 text-xs font-semibold text-white">
-                  {slotPhotos.hero_solar.caption}
-                </p>
-              )}
-            </div>
-          )}
-          <div><strong>01</strong><span>Gentle cleaning method</span></div>
-          <div><strong>02</strong><span>Before-and-after photos</span></div>
-          <div><strong>03</strong><span>Local Helderberg service</span></div>
-        </div>
-      </section>
-
-      {comparisonPhotos.length > 0 && <section className="bg-[#F2F2F2] text-[#0D0D0D] px-5 py-16 sm:px-8 sm:py-24" aria-labelledby="ngms-before-after-title">
-        <div className="mx-auto max-w-7xl">
-          <p className="mb-4 text-xs font-black uppercase tracking-[.16em] text-[#A43C00]">Visible proof</p>
-          <h2 id="ngms-before-after-title" className="mb-10 text-4xl leading-none sm:text-6xl">BEFORE.<br /><span className="text-[#A43C00]">AFTER.</span></h2>
-          <div className="grid gap-5 md:grid-cols-3">
-            {comparisonPhotos.map((photo, index) => <article key={photo.after_image_url} className="min-w-0 border border-[#D0D0D0] bg-white">
-              <div className="grid grid-cols-2">
-                <div>
-                  <div className="relative aspect-[4/3] bg-[#D8D8D8]">
-                    <Image src={photo.before_image_url} alt={`Before: ${photo.caption || photo.location || 'NGMS project'}`} fill sizes="(max-width: 768px) 50vw, 20vw" quality={72} unoptimized={photo.before_image_url.includes('.supabase.co')} />
-                  </div>
-                  <p className="bg-[#0D0D0D] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-white">Before</p>
-                </div>
-                <div>
-                  <div className="relative aspect-[4/3] bg-[#D8D8D8]">
-                    <Image src={photo.after_image_url} alt={`After: ${photo.caption || photo.location || 'NGMS project'}`} fill sizes="(max-width: 768px) 50vw, 20vw" quality={72} unoptimized={photo.after_image_url.includes('.supabase.co')} />
-                  </div>
-                  <p className="bg-[#FF5A00] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-[#0D0D0D]">After</p>
-                </div>
-              </div>
-              <div className="p-4">
-                <p className="text-sm font-bold">{photo.caption || 'Completed maintenance work'}</p>
-                <p className="mt-1 text-xs text-[#555]">{photo.location}</p>
-              </div>
-            </article>)}
-          </div>
-          <p className="mt-8"><Link href="/portfolio" className="inline-flex border-b-2 border-[#FF5A00] py-3 text-xs font-black uppercase tracking-wider">VIEW MORE PROJECTS ↗</Link></p>
-        </div>
-      </section>}
-
-      <GoogleReviews />
-      <WhyNgms photo={slotPhotos.mission_left ? { src: slotPhotos.mission_left.image_url, caption: slotPhotos.mission_left.caption || 'Recent NGMS maintenance project' } : undefined} />
-      <HowItWorks />
-      <BodyCorporateSection photo={slotPhotos.hero_feature ? { src: slotPhotos.hero_feature.image_url, caption: slotPhotos.hero_feature.caption || 'Complex maintenance' } : undefined} />
-      <HelderbergToday />
-      <AreasAndFaq />
-      <FinalCta photo={slotPhotos.mission_right ? { src: slotPhotos.mission_right.image_url, caption: slotPhotos.mission_right.caption || 'NextGen maintenance project' } : undefined} />
-
-    </main>
+      <main className={`ng26 ${display.variable}`}>
+        <Effects />
+        <Hero slides={slides} tradeCount={tradeCount} days={hours.days} open={hours.open} close={hours.close} />
+        <Marquee />
+        <Audience />
+        <LocalContact tradeCount={tradeCount} />
+        <Features />
+        <Services services={services} images={serviceImages} />
+        <SolarFlagship
+          photo={
+            slotPhotos.hero_solar?.image_url
+              ? {
+                  src: slotPhotos.hero_solar.image_url,
+                  caption: slotPhotos.hero_solar.caption || 'NGMS solar panel cleaning project',
+                }
+              : undefined
+          }
+        />
+        <BeforeAfter pairs={proofPairs} />
+        <GoogleReviews />
+        <WhyNgms
+          photo={
+            slotPhotos.mission_left
+              ? { src: slotPhotos.mission_left.image_url, caption: slotPhotos.mission_left.caption || 'Recent NGMS maintenance project' }
+              : undefined
+          }
+        />
+        <HowItWorks />
+        <BodyCorporate
+          photo={
+            slotPhotos.hero_feature
+              ? { src: slotPhotos.hero_feature.image_url, caption: slotPhotos.hero_feature.caption || 'Complex maintenance' }
+              : undefined
+          }
+        />
+        <WeatherToday />
+        <AreasAndFaq />
+        <FinalCta
+          photo={
+            slotPhotos.mission_right
+              ? { src: slotPhotos.mission_right.image_url, caption: slotPhotos.mission_right.caption || 'NextGen maintenance project' }
+              : undefined
+          }
+        />
+      </main>
+    </>
   )
 }
